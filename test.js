@@ -128,7 +128,7 @@ async function main() {
   );
   // Verify that the functions documentation is included
   assert(
-    sdkFunctionsResult.content[0].text.includes('# PubNub Functions Development Guidelines'),
+    sdkFunctionsResult.content[0].text.includes('# PubNub Functions 2.0 Development Guidelines'),
     "Expected functions documentation header in 'read_pubnub_sdk_docs' tool output."
   );
   console.log("'read_pubnub_sdk_docs' tool with 'functions' returned content successfully.");
