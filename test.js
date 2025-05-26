@@ -148,6 +148,17 @@ async function main() {
   );
   console.log("'read_pubnub_sdk_docs' tool with language 'dart' returned content successfully.");
 
+  console.log("Testing 'read_pubnub_sdk_docs' tool with language 'dart' and apiReference 'publish-and-subscribe'...");
+  const dartPubSubResult = await client.callTool({
+    name: 'read_pubnub_sdk_docs',
+    arguments: { language: 'dart', apiReference: 'publish-and-subscribe' },
+  });
+  assert(
+    Array.isArray(dartPubSubResult.content) && dartPubSubResult.content.length > 0,
+    "'read_pubnub_sdk_docs' tool with language 'dart' and apiReference 'publish-and-subscribe' returned no content."
+  );
+  console.log("'read_pubnub_sdk_docs' tool with language 'dart' and apiReference 'publish-and-subscribe' returned content successfully.");
+
   console.log("Testing 'read_pubnub_resources' tool with document 'pubnub_concepts'...");
   const conceptsResult = await client.callTool({
     name: 'read_pubnub_resources',
