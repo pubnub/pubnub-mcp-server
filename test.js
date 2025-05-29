@@ -159,6 +159,41 @@ async function main() {
   );
   console.log("'read_pubnub_sdk_docs' tool with language 'dart' and apiReference 'publish-and-subscribe' returned content successfully.");
 
+  console.log("Testing 'read_pubnub_chat_sdk_docs' tool for all chat SDK docs...");
+  {
+    const { readFile } = await import('fs/promises');
+    const data = await readFile('chat_sdk_urls.txt', 'utf8');
+    const lines = data.split(/\r?\n/);
+    const chatSdkUrlsMap = {};
+    let currentLang = null;
+    for (const line of lines) {
+      const trimmed = line.trim();
+      if (!trimmed) {
+        currentLang = null;
+      } else if (!currentLang) {
+        currentLang = trimmed;
+        chatSdkUrlsMap[currentLang] = [];
+      } else {
+        chatSdkUrlsMap[currentLang].push(trimmed);
+      }
+    }
+    for (const [lang, urls] of Object.entries(chatSdkUrlsMap)) {
+      const languageArg = lang.toLowerCase();
+      for (const url of urls) {
+        const topic = url.split('/').pop();
+        console.log(`Testing 'read_pubnub_chat_sdk_docs' for language '${languageArg}', topic '${topic}'...`);
+        const result = await client.callTool({
+          name: 'read_pubnub_chat_sdk_docs',
+          arguments: { language: languageArg, topic },
+        });
+        assert(
+          Array.isArray(result.content) && result.content.length > 0,
+          `'read_pubnub_chat_sdk_docs' returned no content for ${languageArg} ${topic}`
+        );
+      }
+    }
+    console.log("All 'read_pubnub_chat_sdk_docs' tests passed successfully.");
+  }
   console.log("Testing 'read_pubnub_resources' tool with document 'pubnub_concepts'...");
   const conceptsResult = await client.callTool({
     name: 'read_pubnub_resources',
