@@ -2,7 +2,7 @@
 import dotenv from 'dotenv';
 dotenv.config();
 
-import { fileURLToPath } from 'url';
+import { fileURLToPath, URL } from 'url';
 import { dirname, join as pathJoin, extname, basename } from 'path';
 import fs from 'fs';
 import PubNub from 'pubnub';
@@ -33,7 +33,7 @@ const server = new McpServer({
 const languages = [
     'javascript', 'python', 'java', 'go', 'ruby',
     'swift', 'objective-c', 'c-sharp', 'php', 'dart',
-    'rust', 'unity', 'kotlin', 'unreal', 'chat_sdk',
+    'rust', 'unity', 'kotlin', 'unreal',
 ];
 const apiReferences = [
     'configuration',
@@ -142,6 +142,79 @@ async function loadArticle(url) {
   }
 }
 
+// Parse chat_sdk_urls.txt to generate mapping of Chat SDK documentation URLs per language and topic
+const chatSdkUrlsPath = pathJoin(__dirname, 'chat_sdk_urls.txt');
+let chatSdkDocsUrlMap = {};
+try {
+  const chatSdkUrlsContent = fs.readFileSync(chatSdkUrlsPath, 'utf8');
+  const lines = chatSdkUrlsContent.split(/\n/);
+  let currentLang = null;
+  for (const rawLine of lines) {
+    const line = rawLine.trim();
+    if (!line) {
+      currentLang = null;
+      continue;
+    }
+    if (!line.startsWith('http')) {
+      currentLang = line.toLowerCase();
+      chatSdkDocsUrlMap[currentLang] = {};
+    } else if (currentLang) {
+      const url = line;
+      const urlObj = new URL(url);
+      const pathSegments = urlObj.pathname.split('/').filter(Boolean);
+      let topicKey;
+      const buildIndex = pathSegments.indexOf('build');
+      const learnIndex = pathSegments.indexOf('learn');
+      if (buildIndex !== -1) {
+        topicKey = pathSegments[pathSegments.length - 1];
+      } else if (learnIndex !== -1) {
+        const remaining = pathSegments.slice(learnIndex + 1);
+        topicKey = remaining.length > 1 ? remaining[remaining.length - 1] : remaining[0];
+      } else {
+        topicKey = pathSegments[pathSegments.length - 1];
+      }
+      chatSdkDocsUrlMap[currentLang][topicKey] = url;
+    }
+  }
+} catch (err) {
+  console.error(`Error loading chat_sdk_urls.txt: ${err}`);
+}
+const chatSdkLanguages = Object.keys(chatSdkDocsUrlMap);
+const chatSdkTopics = chatSdkLanguages.length > 0
+  ? Object.keys(chatSdkDocsUrlMap[chatSdkLanguages[0]])
+  : [];
+
+// Tool: "read_pubnub_chat_sdk_docs" (PubNub Chat SDK docs for a given Chat SDK language and topic)
+server.tool(
+  'read_pubnub_chat_sdk_docs',
+  'Retrieves official PubNub Chat SDK documentation for a given Chat SDK language and topic section. Call this tool whenever you need detailed Chat SDK docs, code examples, or usage patterns. Returns documentation in markdown format.',
+  {
+    language: z.enum(chatSdkLanguages).describe('Chat SDK language to retrieve documentation for'),
+    topic: z.enum(chatSdkTopics).describe('Chat SDK documentation topic to retrieve'),
+  },
+  async ({ language, topic }) => {
+    const url = chatSdkDocsUrlMap[language]?.[topic];
+    if (!url) {
+      return {
+        content: [
+          { type: 'text', text: `Documentation URL not found for language '${language}' and topic '${topic}'.` },
+        ],
+        isError: true,
+      };
+    }
+    try {
+      const markdown = await loadArticle(url);
+      return {
+        content: [{ type: 'text', text: markdown }],
+      };
+    } catch (err) {
+      return {
+        content: [{ type: 'text', text: `Error fetching ${url}: ${err.message || err}` }],
+        isError: true,
+      };
+    }
+  }
+);
 // Tool: "read_pubnub_resources" (fetch PubNub conceptual guides and how-to documentation from markdown files)
 // Dynamically generate available resource names based on markdown files in the resources directory and languages subdirectory
 const resourcesDir = pathJoin(__dirname, 'resources');
