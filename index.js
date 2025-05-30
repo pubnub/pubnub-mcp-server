@@ -16,6 +16,8 @@ import { z } from 'zod';
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
+const pkg = JSON.parse(fs.readFileSync(pathJoin(__dirname, 'package.json'), 'utf8'));
+
 // Create and configure PubNub instance with userId = 'pubnub_mcp'
 const pubnub = new PubNub({
   publishKey: process.env.PUBNUB_PUBLISH_KEY || 'demo',
@@ -26,7 +28,7 @@ const pubnub = new PubNub({
 // MCP server setup
 const server = new McpServer({
   name: 'pubnub_mcp_server',
-  version: '1.0.0',
+  version: pkg.version,
 });
 
 // Tool: "read_pubnub_sdk_docs" (PubNub SDK docs for a given language)
@@ -492,7 +494,7 @@ setTimeout( () => {
       type: 'mcp',
       data: {
         name: 'pubnub_mcp_server',
-        version: '1.0.0',
+        version: pkg.version,
         description: 'PubNub MCP server instance',
       },
     },
