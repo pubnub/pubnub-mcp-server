@@ -115,6 +115,10 @@ server.tool(
 
 // Function that loads a file from resources directory
 function loadLanguageFile(file) {
+  // Java Github repository does not have a specific language file, so we return an empty string
+  if (file==='java') {
+    return '';
+  }
   try {
     const content = fs.readFileSync(pathJoin(__dirname, 'resources', 'languages', `${file}.md`), 'utf8');
     return content;
