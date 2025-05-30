@@ -158,6 +158,23 @@ async function main() {
     "'read_pubnub_sdk_docs' tool with language 'dart' and apiReference 'publish-and-subscribe' returned no content."
   );
   console.log("'read_pubnub_sdk_docs' tool with language 'dart' and apiReference 'publish-and-subscribe' returned content successfully.");
+  
+  // Test alias 'App Context' for apiReference equals 'objects'
+  console.log("Testing 'read_pubnub_sdk_docs' tool with alias 'App Context' is same as 'objects'...");
+  const objectsJsResult = await client.callTool({
+    name: 'read_pubnub_sdk_docs',
+    arguments: { language: 'javascript', apiReference: 'objects' },
+  });
+  const appContextJsResult = await client.callTool({
+    name: 'read_pubnub_sdk_docs',
+    arguments: { language: 'javascript', apiReference: 'App Context' },
+  });
+  assert.deepStrictEqual(
+    appContextJsResult.content,
+    objectsJsResult.content,
+    "'App Context' alias did not produce same content as 'objects'"
+  );
+  console.log("'App Context' alias behaves the same as 'objects' in 'read_pubnub_sdk_docs' tool.");
 
   console.log("Testing 'read_pubnub_sdk_docs' tool for language 'java' and all apiReference options...");
   const javaApiReferences = [
