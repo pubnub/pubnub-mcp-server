@@ -46,6 +46,7 @@ const apiReferences = [
     'storage-and-playback',
     'mobile-push',
     'objects',
+    'App Context',
     'files',
     'message-actions',
     'misc',
@@ -57,11 +58,12 @@ server.tool(
   'Retrieves official PubNub SDK documentation for a given programming language and API reference section. Call this tool whenever you need detailed SDK docs, code examples, or usage patterns. Returns documentation in markdown format.',
   {
     language: z.enum(languages).describe('Programming language of the PubNub SDK to retrieve documentation for (e.g. javascript, python)'),
-    apiReference: z.enum(apiReferences).optional().default('configuration').describe('API reference section to retrieve (e.g. configuration, publish-and-subscribe; defaults to configuration)'),
+    apiReference: z.enum(apiReferences).optional().default('configuration').describe('API reference section to retrieve (e.g. configuration, publish-and-subscribe, objects (App Context); defaults to configuration)'),
   },
   async ({ language, apiReference }) => {
+    const apiRefKey = apiReference === 'App Context' ? 'objects' : apiReference;
     // Early return for PubNub Functions documentation
-    if (apiReference === 'functions') {
+    if (apiRefKey === 'functions') {
       try {
         const functionsDoc = fs.readFileSync(
           pathJoin(__dirname, 'resources', 'pubnub_functions.md'),
@@ -76,12 +78,12 @@ server.tool(
       }
     }
     const sdkURL = `https://www.pubnub.com/docs/sdks/${language}`;
-    const apiRefURL = `https://www.pubnub.com/docs/sdks/${language}/api-reference/${apiReference}`;
+    const apiRefURL = `https://www.pubnub.com/docs/sdks/${language}/api-reference/${apiRefKey}`;
 
     const sdkResponse = await loadArticle(sdkURL);
     // Load API reference: fetch remote article or load local functions documentation
     let apiRefResponse;
-    if (apiReference === 'functions') {
+    if (apiRefKey === 'functions') {
       try {
         apiRefResponse = fs.readFileSync(
           pathJoin(__dirname, 'resources', 'pubnub_functions.md'),
@@ -97,7 +99,7 @@ server.tool(
 
     // Combine the content of both responses
     let combinedContent;
-    if (apiReference === 'functions') {
+    if (apiRefKey === 'functions') {
       combinedContent = [apiRefResponse, context7Response].join('\n\n');
     } else {
       combinedContent = [sdkResponse, apiRefResponse, context7Response].join('\n\n');
