@@ -159,6 +159,40 @@ async function main() {
   );
   console.log("'read_pubnub_sdk_docs' tool with language 'dart' and apiReference 'publish-and-subscribe' returned content successfully.");
 
+  console.log("Testing 'read_pubnub_sdk_docs' tool for language 'java' and all apiReference options...");
+  const javaApiReferences = [
+    'configuration',
+    'publish-and-subscribe',
+    'presence',
+    'access-manager',
+    'channel-groups',
+    'storage-and-playback',
+    'mobile-push',
+    'objects',
+    'files',
+    'message-actions',
+    'misc',
+    'functions',
+  ];
+  for (const apiReference of javaApiReferences) {
+    console.log(`Testing 'read_pubnub_sdk_docs' tool with language 'java', apiReference '${apiReference}'...`);
+    const javaResult = await client.callTool({
+      name: 'read_pubnub_sdk_docs',
+      arguments: { language: 'java', apiReference },
+    });
+    assert(
+      Array.isArray(javaResult.content) && javaResult.content.length > 0,
+      `'read_pubnub_sdk_docs' tool returned no content for java ${apiReference}`
+    );
+    if (apiReference === 'functions') {
+      assert(
+        javaResult.content[0].text.includes('# PubNub Functions 2.0 Development Guidelines'),
+        "Expected functions documentation header in 'read_pubnub_sdk_docs' tool output for java"
+      );
+    }
+  }
+  console.log("All 'read_pubnub_sdk_docs' tests for language 'java' passed successfully.");
+
   console.log("Testing 'read_pubnub_chat_sdk_docs' tool for all chat SDK docs...");
   {
     const { readFile } = await import('fs/promises');
