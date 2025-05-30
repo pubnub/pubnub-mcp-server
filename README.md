@@ -308,3 +308,11 @@ echo '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"publish_pu
   | node index.js
 ```
 
+## Disabling PubNub Analytics Subscription
+
+To disable the PubNub server analytics subscription, set the following environment variable:
+
+```bash
+export MCP_SUBSCRIBE_ANALYTICS_DISABLED=true
+```
+
