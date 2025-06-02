@@ -1,8 +1,8 @@
 ---
 id: rest-api-provisioning-keys
 title: REST APIs for Provisioning Keys
-keywords: [REST API, Provisioning, PubNub, Keys, Account Management, Session Token, Authentication, App, Permissions, APNs, FCM]
-description: "Learn how to manage keys and permissions for PubNub accounts using REST APIs. Authenticate, create apps, and configure push notification services."
+keywords: [REST API, Provisioning, PubNub, Keys, Account Management, Session Token, Authentication, App Settings and Services]
+description: "Learn how to manage keys and apps for PubNub accounts using REST APIs. Authenticate, create apps, and configure services."
 sidebar_label: REST APIs for Provisioning Keys
 ---
 
@@ -366,7 +366,6 @@ curl --request POST 'https://admin.pubnub.com/api/keys' \
         "message_storage_ttl" : 1...365,
         "lms" : 1|0,
         "multiplexing" : 1, // Stream Controller
-        "apns" : 1|0,
         "uls" : 1|0, // Access Manager
         "objects" : 1|0,
         "objects_region" : <region_name>,
@@ -399,10 +398,6 @@ curl --request POST 'https://admin.pubnub.com/api/keys' \
     "result": {
         "created": 1491992709,
         "dates": {
-            "apns": {
-                "created": 1492017909,
-                "modified": null
-            },
             "bill_by_uuid": {
                 "created": 1492017909,
                 "modified": null
@@ -448,7 +443,6 @@ curl --request POST 'https://admin.pubnub.com/api/keys' \
             "message_storage_ttl" : 1...365,
             "lms" : 1|0,
             "multiplexing" : 1,
-            "apns" : 1|0,
             "uls" : 1|0,
             "bill_by_uuid": 1,
             "objects": 1|0,
@@ -498,7 +492,6 @@ curl --request PUT 'https://admin.pubnub.com/api/keys/<key_id>' \
         "message_storage_ttl" : 1...365,
         "lms" : 1|0,
         "multiplexing" : 1, // Stream Controller
-        "apns" : 1|0,
         "uls" : 1|0, // Access Manager
         "objects" : 1|0,
         "objects_region" : <region_name>,
@@ -531,10 +524,6 @@ curl --request PUT 'https://admin.pubnub.com/api/keys/<key_id>' \
     "result": {
         "created": 1491992709,
         "dates": {
-            "apns": {
-                "created": 1492017909,
-                "modified": null
-            },
             "bill_by_uuid": {
                 "created": 1492017909,
                 "modified": null
@@ -581,7 +570,6 @@ curl --request PUT 'https://admin.pubnub.com/api/keys/<key_id>' \
             "message_storage_ttl" : 1...365,
             "lms" : 1|0,
             "multiplexing" : 1,
-            "apns" : 1|0,
             "uls" : 1|0,
             "bill_by_uuid" : 1,
             "objects" : 1|0,
@@ -610,48 +598,6 @@ curl --request PUT 'https://admin.pubnub.com/api/keys/<key_id>' \
         "status": 1
     }
 }
-```
-
-## Push Notifications
-
-### Configure APNs
-
-APNs can be configured in just one call
-
-``` bash showLineNumbers
-curl --request PUT 'https://admin.pubnub.com/api/keys/<key_id>' \
---header 'X-Session-Token: <session_token>' \
---header 'Content-Type: application/json' \
---data-raw '{
-  "status": 1,
-  "properties": {
-      "apns": 1,
-      "token_key": "<token_file_contents>",
-      "apns_token_filename": "<apns_pem_filename>",
-      "apns_team_id": "<apns_team_id>",
-      "apns_auth_key_id": "<apns_auth_key_id>",
-  }
-}'
-```
-
-### Configure FCM HTTP v1
-
-The FCM HTTP v1 API can be configured in just one call
-
-``` bash showLineNumbers
-curl --request PUT 'https://admin.pubnub.com/api/services/configure-fcm/<key_id>?fcm_key_filename=<fcm_key_filename>' \
---header 'X-Session-Token: <session_token>' \
---header 'Content-Type: application/json' \
---data-raw '<fcm_key_file_contents>'
-```
-
-Alternatively, you can have curl read and send the FCM key file contents from a file specified using the `--data-binary @<filename>` option, as follows:
-
-``` bash showLineNumbers
-curl --request PUT 'https://admin.pubnub.com/api/services/configure-fcm/<key_id>?fcm_key_filename=<fcm_key_filename>' \
---header 'X-Session-Token: <session_token>' \
---header 'Content-Type: application/json' \
---data-binary @<filename>
 ```
 
 ## Get list of keys from Vault
