@@ -55,7 +55,7 @@ const apiReferences = [
 ];
 server.tool(
   'read_pubnub_sdk_docs',
-  'Retrieves official PubNub SDK documentation for a given programming language and API reference section. Call this tool whenever you need detailed SDK docs, code examples, or usage patterns. Returns documentation in markdown format.',
+  'Retrieves official PubNub SDK documentation for a given programming language and API reference section. Call this tool for low-level API details, code examples, and usage patterns. Returns documentation in markdown format. For conceptual guides, best practices, and how-tos, also call the read_pubnub_resources tool.',
   {
     language: z.enum(languages).describe('Programming language of the PubNub SDK to retrieve documentation for (e.g. javascript, python)'),
     apiReference: z.enum(apiReferences).optional().default('configuration').describe('API reference section to retrieve (e.g. configuration, publish-and-subscribe, objects (App Context); defaults to configuration)'),
@@ -251,7 +251,7 @@ const pubnubResourceOptions = (() => {
 })();
 server.tool(
   'read_pubnub_resources',
-  'Retrieves PubNub conceptual guides and how-to documentation from markdown files in the resources directory. Call this tool whenever you need overviews, integration instructions, best practices, or troubleshooting tips for PubNub features. Specify the resource name to retrieve, such as pubnub_concepts, pubnub_features, pubnub_security, how_to_send_receive_json, how_to_encrypt_messages_files, etc.',
+  'Retrieves PubNub conceptual guides and how-to documentation from markdown files in the resources directory. Call this tool for overviews, integration instructions, best practices, and troubleshooting tips. Returns documentation in markdown format. For detailed API reference and SDK code samples, also call the read_pubnub_sdk_docs tool.',
   {
     document: z.enum(pubnubResourceOptions).describe('Resource name to fetch (file name without .md under resources directory, e.g., pubnub_concepts, how_to_send_receive_json, how_to_encrypt_messages_files)'),
   },
