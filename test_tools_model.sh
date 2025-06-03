@@ -14,25 +14,39 @@ echo "MCP server received tools list."
 
 TOOLS=$(echo "$TOOLS_JSON" | jq -c '.result.tools')
 
-echo "Submitting user prompt to with MCP server tools..."
-REQUEST_PAYLOAD=$(jq -n --arg model "$MODEL" \
-  --arg prompt "write a pubnub chat app" \
-  --argjson functions "$TOOLS" \
-  '{model: $model, messages:[{role:"user", content:$prompt}], functions:$functions, function_call:"auto"}')
+echo "Submitting user prompts with MCP server tools..."
+PROMPTS=(
+  "Please retrieve the API reference for the PubNub JavaScript SDK, publish-and-subscribe section."
+  "Fetch the PubNub Chat SDK documentation for Swift for the 'thread-channel' topic."
+  "Provide the pubnub_concepts guide from resources."
+  "Publish the message 'Hello, world!' to the channel 'test-channel'."
+  "Get historical messages from the channels 'channel1' and 'channel2'."
+  "Retrieve presence information for channel 'room42'."
+  "Generate step-by-step instructions on how to write a PubNub application."
+)
+FAIL_COUNT=0
+for prompt in "${PROMPTS[@]}"; do
+  echo "Prompt: $prompt"
+  REQUEST_PAYLOAD=$(jq -n --arg model "$MODEL" \
+    --arg prompt "$prompt" \
+    --argjson functions "$TOOLS" \
+    '{model: $model, messages:[{role:"user", content:$prompt}], functions:$functions, function_call:"auto"}')
+  RESPONSE=$(curl -sS https://api.openai.com/v1/chat/completions \
+    -H "Authorization: Bearer $OPENAI_API_KEY" \
+    -H "Content-Type: application/json" \
+    -d "$REQUEST_PAYLOAD")
 
-RESPONSE=$(curl -sS https://api.openai.com/v1/chat/completions \
-  -H "Authorization: Bearer $OPENAI_API_KEY" \
-  -H "Content-Type: application/json" \
-  -d "$REQUEST_PAYLOAD")
+  CALL_NAME=$(echo "$RESPONSE" | jq -r '.choices[0].message.function_call.name // empty')
+  if [[ -n "$CALL_NAME" ]]; then
+    echo "SUCCESS: Model requested tool \"$CALL_NAME\""
+  else
+    echo "FAILURE: Model did not request a tool call for prompt: $prompt"
+    FAIL_COUNT=$((FAIL_COUNT+1))
+  fi
+done
 
-#echo "OpenAI API response:"
-#echo "$RESPONSE" | jq .
-
-CALL_NAME=$(echo "$RESPONSE" | jq -r '.choices[0].message.function_call.name // empty')
-if [[ -n "$CALL_NAME" ]]; then
-  echo "SUCCESS: Model requested tool \"$CALL_NAME\""
+if [[ $FAIL_COUNT -eq 0 ]]; then
   exit 0
 else
-  echo "FAILURE: Model did not request a tool call"
   exit 1
 fi
