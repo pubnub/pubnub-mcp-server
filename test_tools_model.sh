@@ -23,6 +23,10 @@ PROMPTS=(
   "Get historical messages from the channels 'channel1' and 'channel2'."
   "Retrieve presence information for channel 'room42'."
   "Generate step-by-step instructions on how to write a PubNub application."
+  "Generate step-by-step instructions on how to write a PubNub chat application."
+  "Generate step-by-step instructions on how to write a PubNub word game application."
+  "Generate step-by-step instructions on how to write a PubNub synchronized video player application."
+  "Generate step-by-step instructions on how to write a PubNub delivery application."
 )
 FAIL_COUNT=0
 for prompt in "${PROMPTS[@]}"; do
