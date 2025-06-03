@@ -380,7 +380,6 @@ curl --request PUT 'https://admin.pubnub.com/api/keys/<key_id>' \
   }
 }
 ```
-
 ## Vault Operations
 
 ### Get list of keys from Vault
