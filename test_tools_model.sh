@@ -7,14 +7,14 @@ command -v curl >/dev/null 2>&1 || { echo "Error: curl is required but not insta
 
 MODEL="${OPENAI_MODEL:-gpt-4-0613}"
 
-echo "Fetching list of tools..."
+echo "Starting MCP Server and fetching list of tools..."
 export TOOLS_JSON=$(echo '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | timeout 3s node index.js)
-echo "Received tools list:"
+echo "MCP server received tools list."
 #echo "$TOOLS_JSON" | jq .
 
 TOOLS=$(echo "$TOOLS_JSON" | jq -c '.result.tools')
 
-echo "Submitting user prompt to OpenAI API with available tools..."
+echo "Submitting user prompt to with MCP server tools..."
 REQUEST_PAYLOAD=$(jq -n --arg model "$MODEL" \
   --arg prompt "write a pubnub chat app" \
   --argjson functions "$TOOLS" \
