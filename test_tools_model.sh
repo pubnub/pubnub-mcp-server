@@ -27,6 +27,11 @@ PROMPTS=(
   "Generate step-by-step instructions on how to write a PubNub word game application."
   "Generate step-by-step instructions on how to write a PubNub synchronized video player application."
   "Generate step-by-step instructions on how to write a PubNub delivery application."
+  "Generate step-by-step instructions on how to write a PubNub JavaScript chat application."
+  "Fetch the PubNub control plane documentation for software deployment."
+  "Retrieve the PubNub Access Manager API reference for granting and revoking permissions."
+  "Provide the PubNub resource guide on how to encrypt messages and files."
+  "Fetch the PubNub serverless Functions API documentation for JavaScript."
 )
 FAIL_COUNT=0
 for prompt in "${PROMPTS[@]}"; do
