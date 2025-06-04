@@ -73,21 +73,21 @@ curl --request GET 'https://admin.pubnub.com/api/apps?owner_id=<account_id>&no_k
 {
   "result": [
     {
-        "created": 1407997326,
-        "dates": {
-            "stats_channel": {
-                "created": 1408022525,
-                "modified": null
-            }
-        },
-        "id": <id>,
-        "modified": null,
-        "name": "My First PubNub App",
-        "owner_id": <owner-id>,
-        "properties": {
-            "stats_channel": "2tQAhFZN5B69gtGvy"
-        },
-        "status": 1
+      "created": 1407997326,
+      "dates": {
+        "stats_channel": {
+          "created": 1408022525,
+          "modified": null
+        }
+      },
+      "id": <id>,
+      "modified": null,
+      "name": "My First PubNub App",
+      "owner_id": <owner-id>,
+      "properties": {
+        "stats_channel": "2tQAhFZN5B69gtGvy"
+      },
+      "status": 1
     }
   ],
   "total": 1
@@ -109,23 +109,23 @@ curl --request GET 'https://admin.pubnub.com/api/apps/<app_id>?no_keys=1' --head
 
 ```json
 {
-    "result": {
-        "created": 1407997326,
-        "dates": {
-            "stats_channel": {
-                "created": 1408022525,
-                "modified": null
-            }
-        },
-        "id": <id>,
-        "modified": null,
-        "name": "My First PubNub App",
-        "owner_id": <owner-id>,
-        "properties": {
-            "stats_channel": "2tQAhFZN5B69gtGvy"
-        },
-        "status": 1
-    }
+  "result": {
+    "created": 1407997326,
+    "dates": {
+      "stats_channel": {
+        "created": 1408022525,
+        "modified": null
+      }
+    },
+    "id": <id>,
+    "modified": null,
+    "name": "My First PubNub App",
+    "owner_id": <owner-id>,
+    "properties": {
+      "stats_channel": "2tQAhFZN5B69gtGvy"
+    },
+    "status": 1
+  }
 }
 ```
 
@@ -197,23 +197,23 @@ curl --request POST 'https://admin.pubnub.com/api/apps' \
 
 ```json
 {
-    "result": {
-        "created": 1612450966,
-        "dates": {
-            "stats_channel": {
-                "created": 1612450965,
-                "modified": null
-            }
-        },
-        "id": <app_id>,
-        "modified": null,
-        "name": "My new app",
-        "owner_id": <account_id>,
-        "properties": {
-            "stats_channel": <stats_channel>
-        },
-        "status": 1
-    }
+  "result": {
+    "created": 1612450966,
+    "dates": {
+      "stats_channel": {
+        "created": 1612450965,
+        "modified": null
+      }
+    },
+    "id": <app_id>,
+    "modified": null,
+    "name": "My new app",
+    "owner_id": <account_id>,
+    "properties": {
+      "stats_channel": <stats_channel>
+    },
+    "status": 1
+  }
 }
 ```
 
@@ -397,7 +397,7 @@ curl --request GET 'https://admin.pubnub.com/api/vault/<subscribe_key>/keys' \
 
 ```json
 {
-    "values": ["secret_name1", "secret_name2"]
+  "values": ["secret_name1", "secret_name2"]
 }
 ```
 
@@ -422,7 +422,7 @@ curl --request PUT 'https://admin.pubnub.com/api/vault/<subscribe_key>/key/<key_
 
 ```json
 {
-    "success": true
+  "success": true
 }
 ```
 
@@ -441,6 +441,6 @@ curl --request DELETE 'https://admin.pubnub.com/api/vault/<subscribe_key>/key/<k
 
 ```json
 {
-    "success": true
+  "success": true
 }
 ```
