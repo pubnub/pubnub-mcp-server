@@ -1,20 +1,26 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-command -v jq >/dev/null 2>&1 || { echo "Error: jq is required but not installed." >&2; exit 1; }
-command -v curl >/dev/null 2>&1 || { echo "Error: curl is required but not installed." >&2; exit 1; }
-[[ -n "${OPENAI_API_KEY:-}" ]] || { echo "Error: OPENAI_API_KEY env var must be set." >&2; exit 1; }
+# Terminal colors and formatting
+BOLD='\033[1m'
+RESET='\033[0m'
+GREEN='\033[1;32m'
+RED='\033[1;31m'
+
+command -v jq >/dev/null 2>&1 || { echo -e "${RED}Error: jq is required but not installed.${RESET}" >&2; exit 1; }
+command -v curl >/dev/null 2>&1 || { echo -e "${RED}Error: curl is required but not installed.${RESET}" >&2; exit 1; }
+[[ -n "${OPENAI_API_KEY:-}" ]] || { echo -e "${RED}Error: OPENAI_API_KEY env var must be set.${RESET}" >&2; exit 1; }
 
 MODEL="${OPENAI_MODEL:-gpt-4-0613}"
 
-echo "Starting MCP Server and fetching list of tools..."
+echo -e "${BOLD}Starting MCP Server and fetching list of tools...${RESET}"
 export TOOLS_JSON=$(echo '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}' | timeout 3s node index.js)
-echo "MCP server received tools list."
+echo -e "${BOLD}MCP server received tools list.${RESET}"
 #echo "$TOOLS_JSON" | jq .
 
 TOOLS=$(echo "$TOOLS_JSON" | jq -c '.result.tools')
 
-echo "Submitting user prompts with MCP server tools..."
+echo -e "${BOLD}Submitting user prompts with MCP server tools...${RESET}"
 PROMPTS=(
   "Create a PubNub-powered web-based social mapping app. The App uses OpenStreetMap, displayed in the main window. When a user launches the app, they must enter their username and chose a color for their marker. Any user can click to create a marker anywhere on the map, and upload an image. Each image will be stored using the PubNub Files API. The user, their markers, and image URLs will be stored in PubNub AppContext. As users create markers and upload images, those images will be instantly visible to everyone else as well automatically via PubNub. Each user can pan and zoom the map to their own location, so zoom level is individual; i.e. not synced via PubNub. The app also has a global chat window to the right side of the map where all users can chat with text and emojis. Make sure to use the PubNub MCP server for pubnub concepts and docs."
   "Please retrieve the API reference for the PubNub JavaScript SDK, publish-and-subscribe section."
@@ -36,7 +42,7 @@ PROMPTS=(
 )
 FAIL_COUNT=0
 for prompt in "${PROMPTS[@]}"; do
-  echo "Prompt: $prompt"
+  echo -e "${BOLD}Prompt:${RESET} $prompt"
   REQUEST_PAYLOAD=$(jq -n --arg model "$MODEL" \
     --arg prompt "$prompt" \
     --argjson functions "$TOOLS" \
@@ -50,9 +56,9 @@ for prompt in "${PROMPTS[@]}"; do
 
   CALL_NAME=$(echo "$RESPONSE" | jq -r '.choices[0].message.function_call.name // empty')
   if [[ -n "$CALL_NAME" ]]; then
-    echo "SUCCESS: Model requested tool \"$CALL_NAME\""
+    echo -e "${GREEN}SUCCESS:${RESET} Model requested tool \"$CALL_NAME\""
   else
-    echo "FAILURE: Model did not request a tool call for prompt: $prompt"
+    echo -e "${RED}FAILURE:${RESET} Model did not request a tool call for prompt: $prompt"
     FAIL_COUNT=$((FAIL_COUNT+1))
   fi
 done

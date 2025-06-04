@@ -4,6 +4,31 @@ import assert from 'assert';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 
+// Terminal colors and styles
+const RESET = '\x1b[0m';
+const BOLD = '\x1b[1m';
+const FG_GREEN = '\x1b[32m';
+const FG_RED = '\x1b[31m';
+
+const originalLog = console.log.bind(console);
+const originalError = console.error.bind(console);
+
+// Color success messages green and bold
+console.log = (...args) => {
+  const msg = args.join(' ');
+  if (/successfully|passed/.test(msg)) {
+    originalLog(`${FG_GREEN}${BOLD}${msg}${RESET}`);
+  } else {
+    originalLog(...args);
+  }
+};
+
+// Color error messages red and bold
+console.error = (...args) => {
+  const msg = args.join(' ');
+  originalError(`${FG_RED}${BOLD}${msg}${RESET}`);
+};
+
 async function main() {
   console.log('Starting MCP server and client...');
   const client = new Client({ name: 'test-client', version: '1.0.0' });
