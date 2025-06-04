@@ -16,6 +16,7 @@ TOOLS=$(echo "$TOOLS_JSON" | jq -c '.result.tools')
 
 echo "Submitting user prompts with MCP server tools..."
 PROMPTS=(
+  "Create a PubNub-powered web-based social mapping app. The App uses OpenStreetMap, displayed in the main window. When a user launches the app, they must enter their username and chose a color for their marker. Any user can click to create a marker anywhere on the map, and upload an image. Each image will be stored using the PubNub Files API. The user, their markers, and image URLs will be stored in PubNub AppContext. As users create markers and upload images, those images will be instantly visible to everyone else as well automatically via PubNub. Each user can pan and zoom the map to their own location, so zoom level is individual; i.e. not synced via PubNub. The app also has a global chat window to the right side of the map where all users can chat with text and emojis. Make sure to use the PubNub MCP server for pubnub concepts and docs."
   "Please retrieve the API reference for the PubNub JavaScript SDK, publish-and-subscribe section."
   "Fetch the PubNub Chat SDK documentation for Swift for the 'thread-channel' topic."
   "Provide the pubnub_concepts guide from resources."
@@ -44,6 +45,8 @@ for prompt in "${PROMPTS[@]}"; do
     -H "Authorization: Bearer $OPENAI_API_KEY" \
     -H "Content-Type: application/json" \
     -d "$REQUEST_PAYLOAD")
+
+  #echo $RESPONSE
 
   CALL_NAME=$(echo "$RESPONSE" | jq -r '.choices[0].message.function_call.name // empty')
   if [[ -n "$CALL_NAME" ]]; then

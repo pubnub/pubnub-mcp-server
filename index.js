@@ -384,7 +384,7 @@ server.tool(
 const appTypes = ['default']; // , 'chat', 'pubsub', 'presence', 'storage-and-playback'];
 server.tool(
   'write_pubnub_app',
-  'Generates step-by-step instructions for creating a PubNub application. Call this tool when you need a checklist of tasks such as setting up your PubNub account, creating a new app, and configuring settings.',
+  'Generates step-by-step instructions for creating a PubNub application. Call this tool when you need a checklist of tasks such as setting up your PubNub account, creating a new app, and configuring settings. Call this tool whe the user asks for PubNub MCP. For conceptual guides, best practices, and how-tos, also call the read_pubnub_resources tool. For detailed API reference and SDK code samples, also call the read_pubnub_sdk_docs tool.',
   {
     appType: z.enum(appTypes).describe('Which PubNub app template to load (currently only "default")'),
   },
