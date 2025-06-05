@@ -46,7 +46,7 @@ call_openai_api() {
     
     if [ -n "$context" ]; then
         # Truncate context to avoid token limits
-        local truncated_context=$(echo "$context" | head -c 4000)
+        local truncated_context=$(echo "$context" | head -c 40000)
         full_prompt="Context information:\n${truncated_context}\n\nTask: ${prompt}\n\nPlease provide working code that accomplishes this task."
     else
         full_prompt="Task: ${prompt}\n\nPlease provide working code that accomplishes this task using PubNub."
