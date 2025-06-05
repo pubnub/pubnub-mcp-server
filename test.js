@@ -141,6 +141,14 @@ async function main() {
     "'read_pubnub_sdk_docs' default behavior returned no content."
   );
   console.log("'read_pubnub_sdk_docs' default behavior returned content successfully.");
+  // Test presence best practices inclusion in default javascript behavior
+  console.log("Testing presence best practices inclusion in 'read_pubnub_sdk_docs' tool default javascript behavior...");
+  assert(
+    sdkDefaultResult.content[0].text.includes('# PubNub Presence Best Practices'),
+    "Expected presence best practices header in default 'read_pubnub_sdk_docs' tool output."
+  );
+  console.log("Presence best practices content included successfully in default 'read_pubnub_sdk_docs' tool output.");
+
   // Test the 'read_pubnub_sdk_docs' tool with 'functions' apiReference
   console.log("Testing 'read_pubnub_sdk_docs' tool with apiReference 'functions'...");
   const sdkFunctionsResult = await client.callTool({

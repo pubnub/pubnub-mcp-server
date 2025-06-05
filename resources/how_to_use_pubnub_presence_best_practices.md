@@ -1,4 +1,109 @@
 
+# PubNub Presence Best Practices
+
+This guide demonstrates best practices for implementing PubNub Presence functionality in JavaScript. The example shows how to build a real-time user counter that tracks how many users are currently connected to a channel.
+
+## Best Practices Overview
+
+### 1. Unique User Identification
+Always use a unique user ID for each user to ensure accurate presence tracking:
+
+**Why this is important:** Each client needs a unique identifier to be properly tracked in presence events. Without unique IDs, the system cannot distinguish between different users.
+
+### 2. Enable Event Engine for Better Connection Management
+Use the Event Engine for improved connection reliability and automatic reconnection:
+
+```javascript
+const pubnub = new PubNub({
+    publishKey: 'your-publish-key',
+    subscribeKey: 'your-subscribe-key',
+    userId: generateRandomUserId(),
+    enableEventEngine: true  // Best practice for connection management
+});
+```
+
+**Why this is important:** The Event Engine provides automatic reconnection, better error handling, and more predictable connection states, which are crucial for reliable presence tracking.
+
+### 3. Use Channel-Based Subscriptions with Presence Events
+Enable presence events specifically for channels that need user tracking:
+
+```javascript
+const channel = pubnub.channel(channelName);
+const subscription = channel.subscription({
+    receivePresenceEvents: true  // Enable presence event delivery
+});
+```
+
+**Why this is important:** This approach gives you fine-grained control over which channels receive presence events, reducing unnecessary network traffic and processing.
+
+### 4. Handle Presence Events Properly
+Listen for presence events to get real-time updates about user join/leave activities:
+
+```javascript
+subscription.onPresence = (presenceEvent) => {
+    console.log('Presence event:', presenceEvent);
+    updateUserCount(presenceEvent.occupancy);  // Update UI with current count
+};
+```
+
+**Why this is important:** Presence events provide real-time notifications when users join or leave, giving you immediate updates without polling.
+
+### 5. Get Initial Occupancy on Connection
+Always fetch the current occupancy when first connecting to avoid starting with stale data:
+
+```javascript
+pubnub.addListener({
+    status: (statusEvent) => {
+        if (statusEvent.category === 'PNConnectedCategory') {
+            getInitialOccupancy();  // Get current count on connection
+        }
+    }
+});
+
+async function getInitialOccupancy() {
+    try {
+        const result = await pubnub.hereNow({
+            channels: [channelName],
+            includeUUIDs: false  // Optimize by not fetching UUIDs if not needed
+        });
+        
+        const occupancy = result.channels[channelName] ? 
+            result.channels[channelName].occupancy : 0;
+        updateUserCount(occupancy);
+    } catch (error) {
+        console.error('Error getting initial occupancy:', error);
+        updateUserCount(0);  // Fail gracefully with 0 count
+    }
+}
+```
+
+**Why this is important:** Without getting initial occupancy, your counter might show 0 users even when people are already connected. This ensures accurate state from the start.
+
+### 6. Optimize hereNow Calls
+Use `includeUUIDs: false` when you only need occupancy counts to reduce bandwidth:
+
+```javascript
+const result = await pubnub.hereNow({
+    channels: [channelName],
+    includeUUIDs: false  // More efficient when you only need counts
+});
+```
+
+**Why this is important:** Including UUIDs increases payload size and processing time. Only request them when you actually need the user identifiers.
+
+### 7. Proper Cleanup
+Always unsubscribe when the user leaves to ensure accurate presence counts:
+
+```javascript
+window.addEventListener('beforeunload', () => {
+    subscription.unsubscribe();  // Clean exit ensures accurate presence
+});
+```
+
+**Why this is important:** Without proper cleanup, the system may not immediately recognize that a user has left, leading to inflated occupancy counts.
+
+## Complete Working Example
+
 ```html
 <div id="user-count">0</div>
 
@@ -78,3 +183,15 @@
     });
 </script>
 ```
+
+## Key Takeaways
+
+1. **Unique User IDs**: Always generate unique identifiers for accurate tracking
+2. **Event Engine**: Enable for better connection management and reliability
+3. **Targeted Subscriptions**: Only enable presence events where needed
+4. **Initial State**: Always fetch current occupancy on connection
+5. **Optimization**: Use `includeUUIDs: false` when only counting users
+6. **Cleanup**: Properly unsubscribe to maintain accurate counts
+7. **Error Handling**: Implement try-catch blocks and fallback values
+
+Following these practices ensures reliable, efficient, and accurate presence tracking in your PubNub applications.
