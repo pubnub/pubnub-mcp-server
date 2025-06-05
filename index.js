@@ -96,13 +96,14 @@ server.tool(
       apiRefResponse = await loadArticle(apiRefURL);
     }
     const context7Response = loadLanguageFile(language);
+    const presenceBestPracticesResponse = loadPresenceBestPracticesFile(language);
 
     // Combine the content of both responses
     let combinedContent;
     if (apiRefKey === 'functions') {
       combinedContent = [apiRefResponse, context7Response].join('\n\n');
     } else {
-      combinedContent = [sdkResponse, apiRefResponse, context7Response].join('\n\n');
+      combinedContent = [sdkResponse, apiRefResponse, context7Response, presenceBestPracticesResponse].join('\n\n');
     }
 
     // Return the combined content
@@ -130,6 +131,20 @@ function loadLanguageFile(file) {
     console.error(`Error loading specific langauge file ${file}: ${err}`);
     return '';
   }
+}
+
+// Function that loads presence best practices for JavaScript requests
+function loadPresenceBestPracticesFile(language) {
+  if (language === 'javascript') {
+    try {
+      const content = fs.readFileSync(pathJoin(__dirname, 'resources', 'how_to_use_pubnub_presence_best_practices.md'), 'utf8');
+      return content;
+    } catch (err) {
+      console.error(`Error loading presence best practices file: ${err}`);
+      return '';
+    }
+  }
+  return '';
 }
 
 // Utility function that fetches the article content from the PubNub SDK documentation

@@ -109,3 +109,37 @@
 ,
     {
       "task": "Create a real-time location tracking system using PubNub that updates user positions on a map",
+      "with_context": {
+        "score": 97,
+        "response_time": 14.714056000,
+        "tokens_used": 5463,
+        "context_length": 20687
+      },
+      "without_context": {
+        "score": 78,
+        "response_time": 9.329740000,
+        "tokens_used": 1043
+      }
+    }
+  ],
+  "summary": {
+    "total_tasks": 8,
+    "averages": {
+      "with_context": {
+        "score": 97.37,
+        "response_time": 10.951,
+        "tokens_used": 6489.62
+      },
+      "without_context": {
+        "score": 72.12,
+        "response_time": 7.852,
+        "tokens_used": 632.50
+      }
+    },
+    "improvements": {
+      "score_improvement_percent": 35.00,
+      "time_difference_percent": 39.00,
+      "token_usage_difference_percent": 926.00
+    }
+  }
+}
