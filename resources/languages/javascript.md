@@ -2,9 +2,6 @@ TITLE: Initializing PubNub SDK (JavaScript)
 DESCRIPTION: This code snippet demonstrates how to create a new instance of the PubNub SDK. You must provide your publishKey and subscribeKey obtained from the PubNub Admin Portal, along with a unique userId to identify the client.
 SOURCE: https://github.com/pubnub/javascript/blob/master/README.md#_snippet_1
 
-LIBRARY: PubNub
-URL: <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.9.5.2.min.js"></script>
-
 LANGUAGE: JavaScript
 CODE:
 ```
