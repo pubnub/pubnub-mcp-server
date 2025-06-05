@@ -146,10 +146,12 @@ compare_and_score_code() {
     
     local scoring_prompt="You are a code quality evaluator comparing two implementations of the same task. Please score each implementation on a scale of 1-100 based on these criteria:
 
-1. **Correctness** (40 points): Does the code correctly accomplish the given task?
-2. **PubNub Implementation** (30 points): Is PubNub properly used with correct methods and patterns?
+1. **Correctness** (30 points): Does the code correctly accomplish the given task?
+2. **PubNub Implementation** (40 points): Is PubNub properly used with correct methods and patterns?
 3. **Code Quality** (20 points): Is the code well-structured, readable, and follows best practices?
 4. **Error Handling** (10 points): Does the code include appropriate error handling?
+
+**Note**: Implementation A received context information, while Implementation B did not. Deduct significant points from Implementation B for any missing features, incorrect API usage, or omissions that context would have resolved, and reward Implementation A for effectively leveraging the provided context.
 
 **Task**: ${task}
 
@@ -164,18 +166,18 @@ ${code_without_context}
 \`\`\`
 
 Compare these implementations and provide scores. Pay special attention to:
-- Which implementation better uses PubNub APIs correctly
-- Which has better error handling
-- Which is more complete and functional
-- Which follows PubNub best practices
+- Effective use of context (penalize omissions in B, reward improvements in A)
+- Correct PubNub API usage and best practices
+- Completeness and functionality
+- Robust error handling
 
-Respond with ONLY two numbers separated by a colon (A_score:B_score), for example: 85:72
+Respond with ONLY two numbers separated by a colon (A_score:B_score), for example: 85:65
 No explanation, just the scores."
 
     local json_file="$TEMP_DIR/comparison_$$.json"
     cat > "$json_file" << EOF
 {
-    "model": "gpt-4",
+    "model": "$MODEL",
     "messages": [{"role": "user", "content": $(echo "$scoring_prompt" | jq -Rs .)}],
     "max_tokens": 20,
     "temperature": 0.1
