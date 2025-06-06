@@ -3,6 +3,24 @@
 
 This guide demonstrates best practices for implementing PubNub Presence functionality in JavaScript. The example shows how to build a real-time user counter that tracks how many users are currently connected to a channel.
 
+## Configuration Prerequisites
+
+### Enable Presence Management for Selected Channels
+
+Before implementing presence functionality, you must configure Presence in your PubNub Admin Dashboard. When setting up your keyset, you'll see presence configuration options:
+
+**Recommended Configuration:**
+- Select "**Selected channels only (recommended)**" instead of "All channels"
+- This prevents high costs and gives you control over which channels track presence
+- You'll configure specific channel rules later in Presence Management. Ensure you do not skip the extra Presence Management step, or presence will not work.
+
+**Why this matters:** Tracking presence on all channels can incur high costs and generate unnecessary events. Using "Selected channels only" allows you to:
+- Control costs by only tracking presence where needed
+- Reduce network overhead from unused presence events  
+- Configure channel-specific presence rules in Presence Management
+
+**Note:** No presence transactions will be captured until you complete the channel configuration in Presence Management, even after enabling presence in your code.
+
 ## Best Practices Overview
 
 ### 1. Unique User Identification
