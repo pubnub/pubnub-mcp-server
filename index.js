@@ -94,6 +94,12 @@ server.tool(
       }
     } else {
       apiRefResponse = await loadArticle(apiRefURL);
+
+      const lines = apiRefResponse.split('\n');
+      const oldIndex = lines.findIndex((line) => /^##\s.*\(old\)/i.test(line));
+      if (oldIndex !== -1) {
+        apiRefResponse = lines.slice(0, oldIndex).join('\n');
+      }
     }
     const context7Response = loadLanguageFile(language);
     const presenceBestPracticesResponse = loadPresenceBestPracticesFile(language);

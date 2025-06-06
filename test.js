@@ -203,6 +203,13 @@ async function main() {
   );
   console.log("'read_pubnub_sdk_docs' tool with language 'dart' and apiReference 'publish-and-subscribe' returned content successfully.");
   
+  // Ensure that any "(old)" sections and subsequent content are removed
+  assert(
+    !dartPubSubResult.content[0].text.includes('(old)'),
+    "Expected no '(old)' sections in 'publish-and-subscribe' documentation."
+  );
+  console.log("'read_pubnub_sdk_docs' tool removed '(old)' sections from 'publish-and-subscribe' docs successfully.");
+
   // Test alias 'App Context' for apiReference equals 'objects'
   console.log("Testing 'read_pubnub_sdk_docs' tool with alias 'App Context' is same as 'objects'...");
   const objectsJsResult = await client.callTool({
