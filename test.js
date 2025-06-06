@@ -66,6 +66,17 @@ async function main() {
   );
   console.log("'read_pubnub_resources' tool returned content successfully.");
 
+  console.log("Testing 'read_pubnub_resources' tool with document 'how_to_use_pubnub_presence_best_practices'...");
+  const presencePracResult = await client.callTool({
+    name: 'read_pubnub_resources',
+    arguments: { document: 'how_to_use_pubnub_presence_best_practices' },
+  });
+  assert(
+    Array.isArray(presencePracResult.content) && presencePracResult.content.length > 0 && presencePracResult.content[0].text.includes('# PubNub Presence Best Practices'),
+    "'read_pubnub_resources' tool did not load how_to_use_pubnub_presence_best_practices.md content."
+  );
+  console.log("'read_pubnub_resources' tool loaded presence best practices content successfully.");
+
   // Test the 'read_pubnub_sdk_docs' tool
   console.log("Testing 'read_pubnub_sdk_docs' tool...");
   const sdkDocsResult = await client.callTool({
