@@ -1,6 +1,6 @@
 {
   "name": "@pubnub/mcp",
-  "version": "1.0.75",
+  "version": "1.0.76",
   "type": "module",
   "description": "PubNub Model Context Protocol MCP Server for Cursor and Claude",
   "main": "index.js",
@@ -34,7 +34,10 @@
     "@modelcontextprotocol/sdk": "^1.10.2",
     "cbor-sync": "^1.0.4",
     "dotenv": "^16.5.0",
+    "eventsource": "^4.0.0",
+    "express": "^5.1.0",
     "jsdom": "^26.1.0",
+    "node-fetch": "^3.3.2",
     "pubnub": "^9.5.2",
     "turndown": "^7.2.0",
     "zod": "^3.23.8"

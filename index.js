@@ -11,6 +11,10 @@ import { JSDOM } from 'jsdom';
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
+import { StreamableHTTPServerTransport } from '@modelcontextprotocol/sdk/server/streamableHttp.js';
+import { isInitializeRequest } from '@modelcontextprotocol/sdk/types.js';
+import express from 'express';
+import { randomUUID } from 'node:crypto';
 import { z } from 'zod';
 
 const __filename = fileURLToPath(import.meta.url);
@@ -30,6 +34,9 @@ const server = new McpServer({
   name: 'pubnub_mcp_server',
   version: pkg.version,
 });
+
+// Store tool handlers for reuse in HTTP sessions
+const toolHandlers = {};
 
 // Tool: "read_pubnub_sdk_docs" (PubNub SDK docs for a given language)
 const languages = [
@@ -53,14 +60,9 @@ const apiReferences = [
     // Special section for PubNub Functions; loads from local resources/pubnub_functions.md
     'functions',
 ];
-server.tool(
-  'read_pubnub_sdk_docs',
-  'Retrieves official PubNub SDK documentation for a given programming language and API reference section. Call this tool for low-level API details, code examples, and usage patterns. Returns documentation in markdown format. For conceptual guides, best practices, and how-tos, also call the read_pubnub_resources tool.',
-  {
-    language: z.enum(languages).describe('Programming language of the PubNub SDK to retrieve documentation for (e.g. javascript, python)'),
-    apiReference: z.enum(apiReferences).optional().default('configuration').describe('API reference section to retrieve (e.g. configuration, publish-and-subscribe, objects (App Context); defaults to configuration)'),
-  },
-  async ({ language, apiReference }) => {
+
+// Define the handler for read_pubnub_sdk_docs
+toolHandlers['read_pubnub_sdk_docs'] = async ({ language, apiReference }) => {
     const apiRefKey = apiReference === 'App Context' ? 'objects' : apiReference;
     // Early return for PubNub Functions documentation
     if (apiRefKey === 'functions') {
@@ -121,7 +123,16 @@ server.tool(
         },
       ],
     };
-  }
+};
+
+server.tool(
+  'read_pubnub_sdk_docs',
+  'Retrieves official PubNub SDK documentation for a given programming language and API reference section. Call this tool for low-level API details, code examples, and usage patterns. Returns documentation in markdown format. For conceptual guides, best practices, and how-tos, also call the read_pubnub_resources tool.',
+  {
+    language: z.enum(languages).describe('Programming language of the PubNub SDK to retrieve documentation for (e.g. javascript, python)'),
+    apiReference: z.enum(apiReferences).optional().default('configuration').describe('API reference section to retrieve (e.g. configuration, publish-and-subscribe, objects (App Context); defaults to configuration)'),
+  },
+  toolHandlers['read_pubnub_sdk_docs']
 );
 
 // Function that loads a file from resources directory
@@ -213,15 +224,8 @@ const chatSdkTopics = chatSdkLanguages.length > 0
   ? Object.keys(chatSdkDocsUrlMap[chatSdkLanguages[0]])
   : [];
 
-// Tool: "read_pubnub_chat_sdk_docs" (PubNub Chat SDK docs for a given Chat SDK language and topic)
-server.tool(
-  'read_pubnub_chat_sdk_docs',
-  'Retrieves official PubNub Chat SDK documentation for a given Chat SDK language and topic section. Call this tool whenever you need detailed Chat SDK docs, code examples, or usage patterns. Returns documentation in markdown format.',
-  {
-    language: z.enum(chatSdkLanguages).describe('Chat SDK language to retrieve documentation for'),
-    topic: z.enum(chatSdkTopics).describe('Chat SDK documentation topic to retrieve'),
-  },
-  async ({ language, topic }) => {
+// Define the handler for read_pubnub_chat_sdk_docs
+toolHandlers['read_pubnub_chat_sdk_docs'] = async ({ language, topic }) => {
     const url = chatSdkDocsUrlMap[language]?.[topic];
     if (!url) {
       return {
@@ -242,8 +246,19 @@ server.tool(
         isError: true,
       };
     }
-  }
+};
+
+// Tool: "read_pubnub_chat_sdk_docs" (PubNub Chat SDK docs for a given Chat SDK language and topic)
+server.tool(
+  'read_pubnub_chat_sdk_docs',
+  'Retrieves official PubNub Chat SDK documentation for a given Chat SDK language and topic section. Call this tool whenever you need detailed Chat SDK docs, code examples, or usage patterns. Returns documentation in markdown format.',
+  {
+    language: z.enum(chatSdkLanguages).describe('Chat SDK language to retrieve documentation for'),
+    topic: z.enum(chatSdkTopics).describe('Chat SDK documentation topic to retrieve'),
+  },
+  toolHandlers['read_pubnub_chat_sdk_docs']
 );
+
 // Tool: "read_pubnub_resources" (fetch PubNub conceptual guides and how-to documentation from markdown files)
 // Dynamically generate available resource names based on markdown files in the resources directory and languages subdirectory
 const resourcesDir = pathJoin(__dirname, 'resources');
@@ -270,13 +285,9 @@ const pubnubResourceOptions = (() => {
     return [];
   }
 })();
-server.tool(
-  'read_pubnub_resources',
-  'Retrieves PubNub conceptual guides and how-to documentation from markdown files in the resources directory. Call this tool for overviews, integration instructions, best practices, and troubleshooting tips. Returns documentation in markdown format. For detailed API reference and SDK code samples, also call the read_pubnub_sdk_docs tool.',
-  {
-    document: z.enum(pubnubResourceOptions).describe('Resource name to fetch (file name without .md under resources directory, e.g., pubnub_concepts, how_to_send_receive_json, how_to_encrypt_messages_files)'),
-  },
-  async ({ document }) => {
+
+// Define the handler for read_pubnub_resources
+toolHandlers['read_pubnub_resources'] = async ({ document }) => {
     try {
       // determine the file path for the requested resource (top-level or languages)
       let filePath = pathJoin(resourcesDir, `${document}.md`);
@@ -315,18 +326,19 @@ server.tool(
         isError: true,
       };
     }
-  }
+};
+
+server.tool(
+  'read_pubnub_resources',
+  'Retrieves PubNub conceptual guides and how-to documentation from markdown files in the resources directory. Call this tool for overviews, integration instructions, best practices, and troubleshooting tips. Returns documentation in markdown format. For detailed API reference and SDK code samples, also call the read_pubnub_sdk_docs tool.',
+  {
+    document: z.enum(pubnubResourceOptions).describe('Resource name to fetch (file name without .md under resources directory, e.g., pubnub_concepts, how_to_send_receive_json, how_to_encrypt_messages_files)'),
+  },
+  toolHandlers['read_pubnub_resources']
 );
 
-// Tool: "publish_pubnub_message" (publishes a message to a PubNub channel)
-server.tool(
-  'publish_pubnub_message',
-  'Publishes a message to a specified PubNub channel. Call this tool whenever you need to send data through PubNub. Provide the channel name and message payload. Returns a timetoken confirming successful publication.',
-  {
-    channel: z.string().describe('Name of the PubNub channel (string) to publish the message to'),
-    message: z.string().describe('Message payload as a string'),
-  },
-  async ({ channel, message }) => {
+// Define the handler for publish_pubnub_message
+toolHandlers['publish_pubnub_message'] = async ({ channel, message }) => {
     try {
       const result = await pubnub.publish({
         channel,
@@ -351,17 +363,21 @@ server.tool(
         isError: true,
       };
     }
-  }
+};
+
+// Tool: "publish_pubnub_message" (publishes a message to a PubNub channel)
+server.tool(
+  'publish_pubnub_message',
+  'Publishes a message to a specified PubNub channel. Call this tool whenever you need to send data through PubNub. Provide the channel name and message payload. Returns a timetoken confirming successful publication.',
+  {
+    channel: z.string().describe('Name of the PubNub channel (string) to publish the message to'),
+    message: z.string().describe('Message payload as a string'),
+  },
+  toolHandlers['publish_pubnub_message']
 );
 
-// Tool: "get_pubnub_messages" (fetch message history for PubNub channels)
-server.tool(
-  'get_pubnub_messages',
-  'Fetches historical messages from one or more PubNub channels. Call this tool whenever you need to access past message history. Provide a list of channel names. Returns message content and metadata in JSON format.',
-  {
-    channels: z.array(z.string()).min(1).describe('List of one or more PubNub channel names (strings) to retrieve historical messages from'),
-  },
-  async ({ channels }) => {
+// Define the handler for get_pubnub_messages
+toolHandlers['get_pubnub_messages'] = async ({ channels }) => {
     try {
       const result = await pubnub.fetchMessages({ channels });
       return {
@@ -375,18 +391,20 @@ server.tool(
         isError: true,
       };
     }
-  }
+};
+
+// Tool: "get_pubnub_messages" (fetch message history for PubNub channels)
+server.tool(
+  'get_pubnub_messages',
+  'Fetches historical messages from one or more PubNub channels. Call this tool whenever you need to access past message history. Provide a list of channel names. Returns message content and metadata in JSON format.',
+  {
+    channels: z.array(z.string()).min(1).describe('List of one or more PubNub channel names (strings) to retrieve historical messages from'),
+  },
+  toolHandlers['get_pubnub_messages']
 );
 
-// Tool: "get_pubnub_presence" (fetch presence information for PubNub channels and channel groups)
-server.tool(
-  'get_pubnub_presence',
-  'Retrieves real-time presence information for specified PubNub channels and channel groups. Call this tool when you need to monitor active users, occupancy counts, and subscriber UUIDs. Provide channel names and/or channel group names. Returns presence data in JSON format.',
-  {
-    channels: z.array(z.string()).default([]).describe('List of channel names (strings) to query presence data for'),
-    channelGroups: z.array(z.string()).default([]).describe('List of channel group names (strings) to query presence data for'),
-  },
-  async ({ channels, channelGroups }) => {
+// Define the handler for get_pubnub_presence
+toolHandlers['get_pubnub_presence'] = async ({ channels, channelGroups }) => {
     try {
       const result = await pubnub.hereNow({ channels, channelGroups });
       return {
@@ -398,18 +416,22 @@ server.tool(
         isError: true,
       };
     }
-  }
+};
+
+// Tool: "get_pubnub_presence" (fetch presence information for PubNub channels and channel groups)
+server.tool(
+  'get_pubnub_presence',
+  'Retrieves real-time presence information for specified PubNub channels and channel groups. Call this tool when you need to monitor active users, occupancy counts, and subscriber UUIDs. Provide channel names and/or channel group names. Returns presence data in JSON format.',
+  {
+    channels: z.array(z.string()).default([]).describe('List of channel names (strings) to query presence data for'),
+    channelGroups: z.array(z.string()).default([]).describe('List of channel group names (strings) to query presence data for'),
+  },
+  toolHandlers['get_pubnub_presence']
 );
 
-// Tool: "write_pubnub_app" (generate instructions for creating a PubNub application)
+// Define the handler for write_pubnub_app
 const appTypes = ['default']; // , 'chat', 'pubsub', 'presence', 'storage-and-playback'];
-server.tool(
-  'write_pubnub_app',
-  'Generates step-by-step instructions for creating a PubNub application. Call this tool when you need a checklist of tasks such as setting up your PubNub account, creating a new app, and configuring settings. Call this tool whe the user asks for PubNub MCP. For conceptual guides, best practices, and how-tos, also call the read_pubnub_resources tool. For detailed API reference and SDK code samples, also call the read_pubnub_sdk_docs tool.',
-  {
-    appType: z.enum(appTypes).describe('Which PubNub app template to load (currently only "default")'),
-  },
-  async ({ appType }) => {
+toolHandlers['write_pubnub_app'] = async ({ appType }) => {
     try {
       const fileName = appType === 'default' ? 'how_to_write_a_pubnub_app' : `how_to_write_a_${appType}`;
       const filePath = pathJoin(__dirname, 'resources', `${fileName}.md`);
@@ -436,7 +458,16 @@ server.tool(
         isError: true,
       };
     }
-  }
+};
+
+// Tool: "write_pubnub_app" (generate instructions for creating a PubNub application)
+server.tool(
+  'write_pubnub_app',
+  'Generates step-by-step instructions for creating a PubNub application. Call this tool when you need a checklist of tasks such as setting up your PubNub account, creating a new app, and configuring settings. Call this tool whe the user asks for PubNub MCP. For conceptual guides, best practices, and how-tos, also call the read_pubnub_resources tool. For detailed API reference and SDK code samples, also call the read_pubnub_sdk_docs tool.',
+  {
+    appType: z.enum(appTypes).describe('Which PubNub app template to load (currently only "default")'),
+  },
+  toolHandlers['write_pubnub_app']
 );
 
 // Function that returns instructions for creating a PubNub application using the user's API keys
@@ -528,9 +559,171 @@ if (process.env.MCP_SUBSCRIBE_ANALYTICS_DISABLED !== 'true') {
   }, 1000);
 }
 
-// Start the MCP server over stdio
-const transport = new StdioServerTransport();
-server.connect(transport).catch((err) => {
-  console.error('Failed to start PubNub MCP server:', err);
-  process.exit(1);
-});
+// Check if we should start HTTP server
+const HTTP_PORT = process.env.HTTP_PORT ? parseInt(process.env.HTTP_PORT) : null;
+
+if (HTTP_PORT) {
+  // HTTP Server with StreamableHTTPServerTransport
+  const app = express();
+  app.use(express.json());
+
+  // Map to store transports by session ID
+  const transports = {};
+
+  // Handle POST requests for client-to-server communication
+  app.post('/mcp', async (req, res) => {
+    // Check for existing session ID
+    const sessionId = req.headers['mcp-session-id'];
+    let transport;
+
+    if (sessionId && transports[sessionId]) {
+      // Reuse existing transport
+      transport = transports[sessionId];
+    } else if (!sessionId && isInitializeRequest(req.body)) {
+      // New initialization request
+      transport = new StreamableHTTPServerTransport({
+        sessionIdGenerator: () => randomUUID(),
+        onsessioninitialized: (sessionId) => {
+          // Store the transport by session ID
+          transports[sessionId] = transport;
+        }
+      });
+
+      // Clean up transport when closed
+      transport.onclose = () => {
+        if (transport.sessionId) {
+          delete transports[transport.sessionId];
+        }
+      };
+
+      // Create a new server instance for this session
+      const sessionServer = new McpServer({
+        name: 'pubnub_mcp_server',
+        version: pkg.version,
+      });
+
+      // Register all the same tools for this session server
+      // Tool: "read_pubnub_sdk_docs"
+      sessionServer.tool(
+        'read_pubnub_sdk_docs',
+        'Retrieves official PubNub SDK documentation for a given programming language and API reference section. Call this tool for low-level API details, code examples, and usage patterns. Returns documentation in markdown format. For conceptual guides, best practices, and how-tos, also call the read_pubnub_resources tool.',
+        {
+          language: z.enum(languages).describe('Programming language of the PubNub SDK to retrieve documentation for (e.g. javascript, python)'),
+          apiReference: z.enum(apiReferences).optional().default('configuration').describe('API reference section to retrieve (e.g. configuration, publish-and-subscribe, objects (App Context); defaults to configuration)'),
+        },
+        toolHandlers['read_pubnub_sdk_docs']
+      );
+
+      // Tool: "read_pubnub_chat_sdk_docs"
+      if (chatSdkLanguages.length > 0 && chatSdkTopics.length > 0) {
+        sessionServer.tool(
+          'read_pubnub_chat_sdk_docs',
+          'Retrieves official PubNub Chat SDK documentation for a given Chat SDK language and topic section. Call this tool whenever you need detailed Chat SDK docs, code examples, or usage patterns. Returns documentation in markdown format.',
+          {
+            language: z.enum(chatSdkLanguages).describe('Chat SDK language to retrieve documentation for'),
+            topic: z.enum(chatSdkTopics).describe('Chat SDK documentation topic to retrieve'),
+          },
+          toolHandlers['read_pubnub_chat_sdk_docs']
+        );
+      }
+
+      // Tool: "read_pubnub_resources"
+      sessionServer.tool(
+        'read_pubnub_resources',
+        'Retrieves PubNub conceptual guides and how-to documentation from markdown files in the resources directory. Call this tool for overviews, integration instructions, best practices, and troubleshooting tips. Returns documentation in markdown format. For detailed API reference and SDK code samples, also call the read_pubnub_sdk_docs tool.',
+        {
+          document: z.enum(pubnubResourceOptions).describe('Resource name to fetch (file name without .md under resources directory, e.g., pubnub_concepts, how_to_send_receive_json, how_to_encrypt_messages_files)'),
+        },
+        toolHandlers['read_pubnub_resources']
+      );
+
+      // Tool: "publish_pubnub_message"
+      sessionServer.tool(
+        'publish_pubnub_message',
+        'Publishes a message to a specified PubNub channel. Call this tool whenever you need to send data through PubNub. Provide the channel name and message payload. Returns a timetoken confirming successful publication.',
+        {
+          channel: z.string().describe('Name of the PubNub channel (string) to publish the message to'),
+          message: z.string().describe('Message payload as a string'),
+        },
+        toolHandlers['publish_pubnub_message']
+      );
+
+      // Tool: "get_pubnub_messages"
+      sessionServer.tool(
+        'get_pubnub_messages',
+        'Fetches historical messages from one or more PubNub channels. Call this tool whenever you need to access past message history. Provide a list of channel names. Returns message content and metadata in JSON format.',
+        {
+          channels: z.array(z.string()).min(1).describe('List of one or more PubNub channel names (strings) to retrieve historical messages from'),
+        },
+        toolHandlers['get_pubnub_messages']
+      );
+
+      // Tool: "get_pubnub_presence"
+      sessionServer.tool(
+        'get_pubnub_presence',
+        'Retrieves real-time presence information for specified PubNub channels and channel groups. Call this tool when you need to monitor active users, occupancy counts, and subscriber UUIDs. Provide channel names and/or channel group names. Returns presence data in JSON format.',
+        {
+          channels: z.array(z.string()).default([]).describe('List of channel names (strings) to query presence data for'),
+          channelGroups: z.array(z.string()).default([]).describe('List of channel group names (strings) to query presence data for'),
+        },
+        toolHandlers['get_pubnub_presence']
+      );
+
+      // Tool: "write_pubnub_app"
+      sessionServer.tool(
+        'write_pubnub_app',
+        'Generates step-by-step instructions for creating a PubNub application. Call this tool when you need a checklist of tasks such as setting up your PubNub account, creating a new app, and configuring settings. Call this tool whe the user asks for PubNub MCP. For conceptual guides, best practices, and how-tos, also call the read_pubnub_resources tool. For detailed API reference and SDK code samples, also call the read_pubnub_sdk_docs tool.',
+        {
+          appType: z.enum(appTypes).describe('Which PubNub app template to load (currently only "default")'),
+        },
+        toolHandlers['write_pubnub_app']
+      );
+
+      // Connect to the MCP server
+      await sessionServer.connect(transport);
+    } else {
+      // Invalid request
+      res.status(400).json({
+        jsonrpc: '2.0',
+        error: {
+          code: -32000,
+          message: 'Bad Request: No valid session ID provided',
+        },
+        id: null,
+      });
+      return;
+    }
+
+    // Handle the request
+    await transport.handleRequest(req, res, req.body);
+  });
+
+  // Reusable handler for GET and DELETE requests
+  const handleSessionRequest = async (req, res) => {
+    const sessionId = req.headers['mcp-session-id'];
+    if (!sessionId || !transports[sessionId]) {
+      res.status(400).send('Invalid or missing session ID');
+      return;
+    }
+    
+    const transport = transports[sessionId];
+    await transport.handleRequest(req, res);
+  };
+
+  // Handle GET requests for server-to-client notifications via SSE
+  app.get('/mcp', handleSessionRequest);
+
+  // Handle DELETE requests for session termination
+  app.delete('/mcp', handleSessionRequest);
+
+  app.listen(HTTP_PORT, () => {
+    console.log(`PubNub MCP server running on HTTP port ${HTTP_PORT}`);
+  });
+} else {
+  // Start the MCP server over stdio (default behavior)
+  const transport = new StdioServerTransport();
+  server.connect(transport).catch((err) => {
+    console.error('Failed to start PubNub MCP server:', err);
+    process.exit(1);
+  });
+}

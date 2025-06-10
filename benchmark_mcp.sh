@@ -28,14 +28,14 @@ echo "=================================================="
 
 # Test tasks with varying complexity
 declare -a TASKS=(
-#    "Write JavaScript code to publish a message to a PubNub channel named 'chat-room' with the message 'Hello World'"
-#    "Create Python code that subscribes to multiple PubNub channels and handles incoming messages with error handling"
-#    "Write a Node.js function that implements presence detection on a PubNub channel and logs when users join/leave"
-#    "Create JavaScript code that uses PubNub's message persistence feature to retrieve the last 10 messages from a channel"
-#    "Write Python code that implements PubNub access control to grant read/write permissions to specific users"
-#    "Create a JavaScript function that uses PubNub Functions to filter messages based on content before delivery"
-#    "Write code that implements PubNub's file sharing feature to upload and share a file with other users"
-#    "Create a real-time location tracking system using PubNub that updates user positions on a map"
+    "Write JavaScript code to publish a message to a PubNub channel named 'chat-room' with the message 'Hello World'"
+    "Create Python code that subscribes to multiple PubNub channels and handles incoming messages with error handling"
+    "Write a Node.js function that implements presence detection on a PubNub channel and logs when users join/leave"
+    "Create JavaScript code that uses PubNub's message persistence feature to retrieve the last 10 messages from a channel"
+    "Write Python code that implements PubNub access control to grant read/write permissions to specific users"
+    "Create a JavaScript function that uses PubNub Functions to filter messages based on content before delivery"
+    "Write code that implements PubNub's file sharing feature to upload and share a file with other users"
+    "Create a real-time location tracking system using PubNub that updates user positions on a map"
     "Create a PubNub-powered web-based social mapping app with OpenStreetMap, user markers with image uploads via PubNub Files API, user data stored in PubNub AppContext, real-time synchronization, and a global chat window"
 )
 
