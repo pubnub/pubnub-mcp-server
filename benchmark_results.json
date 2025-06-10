@@ -1,19 +1,19 @@
 {
   "model": "gpt-4.1-2025-04-14",
-  "timestamp": "2025-06-10T13:54:09-07:00",
+  "timestamp": "2025-06-10T14:08:58-07:00",
   "tasks": [
     {
       "task": "Write JavaScript code to publish a message to a PubNub channel named 'chat-room' with the message 'Hello World'",
       "with_context": {
         "score": 98,
-        "response_time": 4.687903000,
-        "tokens_used": 6963,
+        "response_time": 3.749454000,
+        "tokens_used": 6903,
         "context_length": 30360
       },
       "without_context": {
-        "score": 78,
-        "response_time": 9.760670000,
-        "tokens_used": 474
+        "score": 75,
+        "response_time": 5.164899000,
+        "tokens_used": 463
       }
     }
 ,
@@ -21,14 +21,14 @@
       "task": "Create Python code that subscribes to multiple PubNub channels and handles incoming messages with error handling",
       "with_context": {
         "score": 97,
-        "response_time": 6.956278000,
-        "tokens_used": 8358,
+        "response_time": 15.398365000,
+        "tokens_used": 8361,
         "context_length": 35090
       },
       "without_context": {
-        "score": 74,
-        "response_time": 22.258937000,
-        "tokens_used": 572
+        "score": 75,
+        "response_time": 6.390147000,
+        "tokens_used": 509
       }
     }
 ,
@@ -36,14 +36,14 @@
       "task": "Write a Node.js function that implements presence detection on a PubNub channel and logs when users join/leave",
       "with_context": {
         "score": 97,
-        "response_time": 10.517979000,
-        "tokens_used": 5023,
+        "response_time": 20.195445000,
+        "tokens_used": 5029,
         "context_length": 20687
       },
       "without_context": {
-        "score": 72,
-        "response_time": 6.253379000,
-        "tokens_used": 508
+        "score": 75,
+        "response_time": 6.473436000,
+        "tokens_used": 493
       }
     }
 ,
@@ -51,14 +51,14 @@
       "task": "Create JavaScript code that uses PubNub's message persistence feature to retrieve the last 10 messages from a channel",
       "with_context": {
         "score": 98,
-        "response_time": 9.399930000,
-        "tokens_used": 4940,
+        "response_time": 6.135184000,
+        "tokens_used": 4901,
         "context_length": 19910
       },
       "without_context": {
-        "score": 72,
-        "response_time": 8.758761000,
-        "tokens_used": 626
+        "score": 68,
+        "response_time": 6.123469000,
+        "tokens_used": 452
       }
     }
 ,
@@ -66,29 +66,29 @@
       "task": "Write Python code that implements PubNub access control to grant read/write permissions to specific users",
       "with_context": {
         "score": 97,
-        "response_time": 14.746777000,
-        "tokens_used": 7011,
+        "response_time": 17.091636000,
+        "tokens_used": 7231,
         "context_length": 28502
       },
       "without_context": {
-        "score": 68,
-        "response_time": 13.265629000,
-        "tokens_used": 694
+        "score": 62,
+        "response_time": 9.563586000,
+        "tokens_used": 555
       }
     }
 ,
     {
       "task": "Create a JavaScript function that uses PubNub Functions to filter messages based on content before delivery",
       "with_context": {
-        "score": 97,
-        "response_time": 10.207489000,
-        "tokens_used": 11239,
+        "score": 98,
+        "response_time": 11.683067000,
+        "tokens_used": 11245,
         "context_length": 47584
       },
       "without_context": {
-        "score": 68,
-        "response_time": 20.919788000,
-        "tokens_used": 539
+        "score": 62,
+        "response_time": 8.459552000,
+        "tokens_used": 542
       }
     }
 ,
@@ -96,16 +96,65 @@
       "task": "Write code that implements PubNub's file sharing feature to upload and share a file with other users",
       "with_context": {
         "score": 97,
-        "response_time": 18.155375000,
-        "tokens_used": 4784,
+        "response_time": 12.518395000,
+        "tokens_used": 4806,
         "context_length": 17585
       },
       "without_context": {
         "score": 68,
-        "response_time": 11.438990000,
-        "tokens_used": 704
+        "response_time": 6.691192000,
+        "tokens_used": 595
       }
     }
 ,
     {
       "task": "Create a real-time location tracking system using PubNub that updates user positions on a map",
+      "with_context": {
+        "score": 94,
+        "response_time": 9.923702000,
+        "tokens_used": 5463,
+        "context_length": 20687
+      },
+      "without_context": {
+        "score": 68,
+        "response_time": 9.778229000,
+        "tokens_used": 1043
+      }
+    }
+,
+    {
+      "task": "Create a PubNub-powered web-based social mapping app with OpenStreetMap, user markers with image uploads via PubNub Files API, user data stored in PubNub AppContext, real-time synchronization, and a global chat window",
+      "with_context": {
+        "score": 95,
+        "response_time": 13.403465000,
+        "tokens_used": 31627,
+        "context_length": 139080
+      },
+      "without_context": {
+        "score": 68,
+        "response_time": 11.631841000,
+        "tokens_used": 1072
+      }
+    }
+  ],
+  "summary": {
+    "total_tasks": 9,
+    "averages": {
+      "with_context": {
+        "score": 96.77,
+        "response_time": 12.233,
+        "tokens_used": 9507.33
+      },
+      "without_context": {
+        "score": 69.00,
+        "response_time": 7.808,
+        "tokens_used": 636.00
+      }
+    },
+    "improvements": {
+      "score_improvement_percent": 40.00,
+      "time_difference_percent": 56.00,
+      "token_usage_difference_percent": 1394.00
+    }
+  }
+}

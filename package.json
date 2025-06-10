@@ -6,7 +6,8 @@
   "main": "index.js",
   "bin": "index.js",
   "scripts": {
-    "test": "node test.js"
+    "test": "node test.js",
+    "test-all": "node test_all.js"
   },
   "files": [
     "index.js",

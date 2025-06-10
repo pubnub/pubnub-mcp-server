@@ -316,3 +316,17 @@ To disable the PubNub server analytics subscription, set the following environme
 export MCP_SUBSCRIBE_ANALYTICS_DISABLED=true
 ```
 
+## Running All Tests
+
+You can run the complete test suite (unit tests, SSE tests, model tooling tests, and benchmarks) with:
+
+```bash
+node test_all.js
+```
+
+Or via npm:
+
+```bash
+npm run test-all
+```
+
