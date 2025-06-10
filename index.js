@@ -470,6 +470,362 @@ server.tool(
   toolHandlers['write_pubnub_app']
 );
 
+// Define the handler for manage_pubnub_account
+const managementSubjects = ['app', 'api_key'];
+const managementActions = ['create', 'list', 'delete'];
+let sessionToken = null;
+let accountId = null;
+
+// Helper function to authenticate with PubNub Admin API
+async function authenticateWithPubNub() {
+  const email = process.env.PUBNUB_EMAIL;
+  const password = process.env.PUBNUB_PASSWORD;
+  
+  if (!email || !password) {
+    throw new Error('PUBNUB_EMAIL and PUBNUB_PASSWORD environment variables must be set');
+  }
+  
+  try {
+    const response = await fetch('https://admin.pubnub.com/api/me', {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+      },
+      body: JSON.stringify({ email, password }),
+    });
+    
+    if (!response.ok) {
+      throw new Error(`Authentication failed: ${response.status} ${response.statusText}`);
+    }
+    
+    const data = await response.json();
+    sessionToken = data.result.token;
+    accountId = data.result.user.account_id;
+    
+    return { sessionToken, accountId };
+  } catch (err) {
+    throw new Error(`Authentication error: ${err.message}`);
+  }
+}
+
+// Helper function to make authenticated API calls with retry
+async function makeAuthenticatedRequest(url, options = {}) {
+  if (!sessionToken) {
+    await authenticateWithPubNub();
+  }
+  
+  const requestOptions = {
+    ...options,
+    headers: {
+      ...options.headers,
+      'X-Session-Token': sessionToken,
+    },
+  };
+  
+  let response = await fetch(url, requestOptions);
+  
+  // Retry with re-authentication if session expired
+  if (response.status === 401 || response.status === 403) {
+    await authenticateWithPubNub();
+    requestOptions.headers['X-Session-Token'] = sessionToken;
+    response = await fetch(url, requestOptions);
+  }
+  
+  return response;
+}
+
+toolHandlers['manage_pubnub_account'] = async ({ subject, action }) => {
+  try {
+    // Handle list actions
+    if (action === 'list') {
+      if (subject === 'app') {
+        // List apps without keys
+        const response = await makeAuthenticatedRequest(
+          `https://admin.pubnub.com/api/apps?owner_id=${accountId}&no_keys=1`
+        );
+        
+        if (!response.ok) {
+          throw new Error(`Failed to list apps: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        return {
+          content: [{ type: 'text', text: JSON.stringify(data, null, 2) }],
+        };
+        
+      } else if (subject === 'api_key') {
+        // List all apps with their keys
+        const response = await makeAuthenticatedRequest(
+          `https://admin.pubnub.com/api/apps?owner_id=${accountId}`
+        );
+        
+        if (!response.ok) {
+          throw new Error(`Failed to list API keys: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        
+        // Extract just the keys from all apps for a cleaner response
+        const allKeys = [];
+        if (data.result && Array.isArray(data.result)) {
+          data.result.forEach(app => {
+            if (app.keys && Array.isArray(app.keys)) {
+              app.keys.forEach(key => {
+                allKeys.push({
+                  app_name: app.name,
+                  app_id: app.id,
+                  key_id: key.id,
+                  key_name: key.properties?.name || 'Unnamed Key',
+                  publish_key: key.publish_key,
+                  subscribe_key: key.subscribe_key,
+                  secret_key: key.secret_key,
+                  status: key.status,
+                  type: key.type
+                });
+              });
+            }
+          });
+        }
+        
+        return {
+          content: [{ 
+            type: 'text', 
+            text: JSON.stringify({ 
+              total_keys: allKeys.length, 
+              keys: allKeys 
+            }, null, 2) 
+          }],
+        };
+      }
+    }
+    
+    // Handle create actions
+    if (action === 'create') {
+      if (subject === 'app') {
+        // Create a new app
+        const appName = `New App ${new Date().toISOString()}`;
+        const response = await makeAuthenticatedRequest(
+          'https://admin.pubnub.com/api/apps',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              owner_id: accountId,
+              name: appName
+            }),
+          }
+        );
+        
+        if (!response.ok) {
+          throw new Error(`Failed to create app: ${response.status} ${response.statusText}`);
+        }
+        
+        const data = await response.json();
+        return {
+          content: [{ 
+            type: 'text', 
+            text: `App created successfully!\n${JSON.stringify(data, null, 2)}` 
+          }],
+        };
+        
+      } else if (subject === 'api_key') {
+        // First, we need to get the list of apps to pick one
+        const appsResponse = await makeAuthenticatedRequest(
+          `https://admin.pubnub.com/api/apps?owner_id=${accountId}&no_keys=1`
+        );
+        
+        if (!appsResponse.ok) {
+          throw new Error(`Failed to get apps: ${appsResponse.status} ${appsResponse.statusText}`);
+        }
+        
+        const appsData = await appsResponse.json();
+        if (!appsData.result || appsData.result.length === 0) {
+          throw new Error('No apps found. Please create an app first.');
+        }
+        
+        // Use the first app for now
+        const appId = appsData.result[0].id;
+        const keyName = `New Key ${new Date().toISOString()}`;
+        
+        // Create a new API key
+        const response = await makeAuthenticatedRequest(
+          'https://admin.pubnub.com/api/keys',
+          {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              app_id: appId,
+              type: 1, // production
+              properties: {
+                name: keyName,
+                history: 1,
+                message_storage_ttl: 30,
+                presence: 1,
+                wildcardsubscribe: 1
+              }
+            }),
+          }
+        );
+        
+        if (!response.ok) {
+          const errorText = await response.text();
+          throw new Error(`Failed to create API key: ${response.status} ${response.statusText} - ${errorText}`);
+        }
+        
+        const data = await response.json();
+        return {
+          content: [{ 
+            type: 'text', 
+            text: `API key created successfully in app "${appsData.result[0].name}"!\n${JSON.stringify(data, null, 2)}` 
+          }],
+        };
+      }
+    }
+    
+    // Handle delete actions
+    if (action === 'delete') {
+      if (subject === 'app') {
+        // Get list of apps to find the most recently created test app
+        const appsResponse = await makeAuthenticatedRequest(
+          `https://admin.pubnub.com/api/apps?owner_id=${accountId}&no_keys=1`
+        );
+        
+        if (!appsResponse.ok) {
+          throw new Error(`Failed to get apps: ${appsResponse.status} ${appsResponse.statusText}`);
+        }
+        
+        const appsData = await appsResponse.json();
+        if (!appsData.result || appsData.result.length === 0) {
+          throw new Error('No apps found to delete.');
+        }
+        
+        // Find a test app to delete (look for apps with "Test App" in the name)
+        const testApps = appsData.result.filter(app => app.name.includes('Test App'));
+        if (testApps.length === 0) {
+          return {
+            content: [{ 
+              type: 'text', 
+              text: `No test apps found to delete. Only apps with "Test App" in the name can be deleted via this tool for safety.` 
+            }],
+            isError: true,
+          };
+        }
+        
+        // Sort by created date (descending) and delete the most recent test app
+        const appToDelete = testApps.sort((a, b) => b.created - a.created)[0];
+        
+        // Delete the app
+        const deleteResponse = await makeAuthenticatedRequest(
+          `https://admin.pubnub.com/api/apps/${appToDelete.id}`,
+          {
+            method: 'DELETE',
+          }
+        );
+        
+        if (!deleteResponse.ok) {
+          const errorText = await deleteResponse.text();
+          throw new Error(`Failed to delete app: ${deleteResponse.status} ${deleteResponse.statusText} - ${errorText}`);
+        }
+        
+        return {
+          content: [{ 
+            type: 'text', 
+            text: `App deleted successfully!\nDeleted app: "${appToDelete.name}" (ID: ${appToDelete.id})` 
+          }],
+        };
+        
+      } else if (subject === 'api_key') {
+        // Get all apps with their keys
+        const appsResponse = await makeAuthenticatedRequest(
+          `https://admin.pubnub.com/api/apps?owner_id=${accountId}`
+        );
+        
+        if (!appsResponse.ok) {
+          throw new Error(`Failed to get API keys: ${appsResponse.status} ${appsResponse.statusText}`);
+        }
+        
+        const appsData = await appsResponse.json();
+        
+        // Find test keys to delete (look for keys with "Test Key" in the name)
+        let keyToDelete = null;
+        let appContainingKey = null;
+        
+        if (appsData.result && Array.isArray(appsData.result)) {
+          for (const app of appsData.result) {
+            if (app.keys && Array.isArray(app.keys)) {
+              const testKeys = app.keys.filter(key => 
+                key.properties?.name && key.properties.name.includes('Test Key')
+              );
+              if (testKeys.length > 0) {
+                // Sort by ID (descending) to get the most recent test key
+                keyToDelete = testKeys.sort((a, b) => b.id - a.id)[0];
+                appContainingKey = app;
+                break;
+              }
+            }
+          }
+        }
+        
+        if (!keyToDelete) {
+          return {
+            content: [{ 
+              type: 'text', 
+              text: `No test API keys found to delete. Only keys with "Test Key" in the name can be deleted via this tool for safety.` 
+            }],
+            isError: true,
+          };
+        }
+        
+        // Delete the API key
+        const deleteResponse = await makeAuthenticatedRequest(
+          `https://admin.pubnub.com/api/keys/${keyToDelete.id}`,
+          {
+            method: 'DELETE',
+          }
+        );
+        
+        if (!deleteResponse.ok) {
+          const errorText = await deleteResponse.text();
+          throw new Error(`Failed to delete API key: ${deleteResponse.status} ${deleteResponse.statusText} - ${errorText}`);
+        }
+        
+        return {
+          content: [{ 
+            type: 'text', 
+            text: `API key deleted successfully!\nDeleted key: "${keyToDelete.properties.name}" (ID: ${keyToDelete.id}) from app "${appContainingKey.name}"` 
+          }],
+        };
+      }
+    }
+    
+    return {
+      content: [{ type: 'text', text: `Unsupported combination: ${action} ${subject}` }],
+      isError: true,
+    };
+    
+  } catch (err) {
+    return {
+      content: [{ type: 'text', text: `Error managing PubNub account: ${err.message}` }],
+      isError: true,
+    };
+  }
+};
+
+// Tool: "manage_pubnub_account" (manage PubNub account apps and keys)
+server.tool(
+  'manage_pubnub_account',
+  'Manages the users PubNub account apps and API key settings. Uses PUBNUB_EMAIL and PUBNUB_PASSWORD environment variables for authentication. Supports creating, listing, and deleting apps and API keys. Delete action only works on test apps/keys (with "Test App" or "Test Key" in the name) for safety.',
+  {
+    subject: z.enum(managementSubjects).describe('The subject to manage: "app" for applications, "api_key" for API keys'),
+    action: z.enum(managementActions).describe('The action to perform: "create" to create new, "list" to list existing, "delete" to delete test items'),
+  },
+  toolHandlers['manage_pubnub_account']
+);
+
 // Function that returns instructions for creating a PubNub application using the user's API keys
 function getPubNubInitSDKInstructions() {
   const publishKey = process.env.PUBNUB_PUBLISH_KEY || 'demo';
@@ -677,6 +1033,17 @@ if (HTTP_PORT) {
           appType: z.enum(appTypes).describe('Which PubNub app template to load (currently only "default")'),
         },
         toolHandlers['write_pubnub_app']
+      );
+
+      // Tool: "manage_pubnub_account"
+      sessionServer.tool(
+        'manage_pubnub_account',
+        'Manages the users PubNub account apps and API key settings. Uses PUBNUB_EMAIL and PUBNUB_PASSWORD environment variables for authentication. Supports creating, listing, and deleting apps and API keys. Delete action only works on test apps/keys (with "Test App" or "Test Key" in the name) for safety.',
+        {
+          subject: z.enum(managementSubjects).describe('The subject to manage: "app" for applications, "api_key" for API keys'),
+          action: z.enum(managementActions).describe('The action to perform: "create" to create new, "list" to list existing, "delete" to delete test items'),
+        },
+        toolHandlers['manage_pubnub_account']
       );
 
       // Connect to the MCP server

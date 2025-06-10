@@ -22,6 +22,7 @@ This improves the LLM AI Agent's ability to understand and interact with PubNub'
 - Fetch historical messages from one or more channels with `get_pubnub_messages`, returning message content and metadata in JSON.
 - Retrieve real-time presence information (occupancy counts, subscriber UUIDs) for channels and channel groups with `get_pubnub_presence`.
 - Generate step-by-step instructions for creating a PubNub application, including code snippets for initializing the PubNub SDK in multiple languages using `write_pubnub_app`.
+- Manage PubNub account apps and API keys with `manage_pubnub_account`, supporting create, list, and delete operations for both apps and API keys. Delete operations only work on test items (with "Test App" or "Test Key" in the name) for safety. Requires `PUBNUB_EMAIL` and `PUBNUB_PASSWORD` environment variables.
 - Environment variable configuration: supports `PUBNUB_PUBLISH_KEY` and `PUBNUB_SUBSCRIBE_KEY` for authenticating SDK operations.
 - Converts remote HTML articles to Markdown using `jsdom` and `turndown` for consistent documentation formatting.
 - Input validation via Zod schemas for all tool parameters, ensuring robust error handling.
@@ -43,6 +44,12 @@ This improves the LLM AI Agent's ability to understand and interact with PubNub'
 - "Fetch the Python SDK docs for the `publish()` method."
 - "Fetch the message history for the `test` channel."
 - "Retrieve presence information (occupancy and UUIDs) for the `test` channel and the `default` channel group."
+- "List all my PubNub apps."
+- "List all API keys across my PubNub account."
+- "Create a new PubNub app."
+- "Create a new API key in my PubNub account."
+- "Delete test apps from my PubNub account."
+- "Delete test API keys from my PubNub account."
 
 This requires Node.js (>= 18) and npm (https://nodejs.org/).
 `npx` will automatically fetch and run the latest MCP server.
@@ -80,7 +87,9 @@ Edit or create `~/.cursor/mcp.json`:
       "args": ["-y", "@pubnub/mcp"],
       "env": {
         "PUBNUB_PUBLISH_KEY": "YOUR_PUBLISH_KEY",
-        "PUBNUB_SUBSCRIBE_KEY": "YOUR_SUBSCRIBE_KEY"
+        "PUBNUB_SUBSCRIBE_KEY": "YOUR_SUBSCRIBE_KEY",
+        "PUBNUB_EMAIL": "YOUR_PUBNUB_EMAIL",
+        "PUBNUB_PASSWORD": "YOUR_PUBNUB_PASSWORD"
       }
     }
   }
@@ -99,12 +108,25 @@ In your project directory, create `.cursor/mcp.json`:
       "args": ["-y", "@pubnub/mcp"],
       "env": {
         "PUBNUB_PUBLISH_KEY": "YOUR_PUBLISH_KEY",
-        "PUBNUB_SUBSCRIBE_KEY": "YOUR_SUBSCRIBE_KEY"
+        "PUBNUB_SUBSCRIBE_KEY": "YOUR_SUBSCRIBE_KEY",
+        "PUBNUB_EMAIL": "YOUR_PUBNUB_EMAIL",
+        "PUBNUB_PASSWORD": "YOUR_PUBNUB_PASSWORD"
       }
     }
   }
 }
 ```
+
+### Environment Variables
+
+The PubNub MCP server supports the following environment variables:
+
+- `PUBNUB_PUBLISH_KEY`: Your PubNub publish key (required for publishing messages)
+- `PUBNUB_SUBSCRIBE_KEY`: Your PubNub subscribe key (required for subscribing and message history)
+- `PUBNUB_EMAIL`: Your PubNub account email (required for account management features)
+- `PUBNUB_PASSWORD`: Your PubNub account password (required for account management features)
+
+> **Note:** The `PUBNUB_EMAIL` and `PUBNUB_PASSWORD` are only required if you want to use the `manage_pubnub_account` tool to create or list apps and API keys.
 
 ### Docker-Based Configuration
 
@@ -113,6 +135,8 @@ If you prefer to run the MCP server via Docker, set your PubNub keys as environm
 ```bash
 export PUBNUB_PUBLISH_KEY=YOUR_PUBLISH_KEY
 export PUBNUB_SUBSCRIBE_KEY=YOUR_SUBSCRIBE_KEY
+export PUBNUB_EMAIL=YOUR_PUBNUB_EMAIL        # Optional: for account management
+export PUBNUB_PASSWORD=YOUR_PUBNUB_PASSWORD  # Optional: for account management
 ```
 
 Then configure your `~/.cursor/mcp.json` (or `.cursor/mcp.json` in your project):
@@ -129,6 +153,10 @@ Then configure your `~/.cursor/mcp.json` (or `.cursor/mcp.json` in your project)
         "PUBNUB_PUBLISH_KEY",
         "-e",
         "PUBNUB_SUBSCRIBE_KEY",
+        "-e",
+        "PUBNUB_EMAIL",
+        "-e",
+        "PUBNUB_PASSWORD",
         "pubnub/pubnub-mcp-server"
       ]
     }
@@ -201,6 +229,8 @@ export PUBNUB_SUBSCRIBE_KEY=your_subscribe_key
 claude mcp add pubnub -- docker run -i \
   -e PUBNUB_PUBLISH_KEY=$PUBNUB_PUBLISH_KEY \
   -e PUBNUB_SUBSCRIBE_KEY=$PUBNUB_SUBSCRIBE_KEY \
+  -e PUBNUB_EMAIL=$PUBNUB_EMAIL \
+  -e PUBNUB_PASSWORD=$PUBNUB_PASSWORD \
   pubnub/pubnub-mcp-server
 ```
 
@@ -251,6 +281,8 @@ If you prefer the Docker-based MCP server in Claude Desktop:
    ```bash
    export PUBNUB_PUBLISH_KEY=your_publish_key
    export PUBNUB_SUBSCRIBE_KEY=your_subscribe_key
+   export PUBNUB_EMAIL=your_pubnub_email        # Optional: for account management
+   export PUBNUB_PASSWORD=your_pubnub_password  # Optional: for account management
    ```
 2. In the **Tools** section of Claude Desktop, add a new tool named **pubnub**.
 3. Set the **Command** to `docker`.
@@ -263,6 +295,10 @@ If you prefer the Docker-based MCP server in Claude Desktop:
      "PUBNUB_PUBLISH_KEY",
      "-e",
      "PUBNUB_SUBSCRIBE_KEY",
+     "-e",
+     "PUBNUB_EMAIL",
+     "-e",
+     "PUBNUB_PASSWORD",
      "pubnub/pubnub-mcp-server"
    ]
    ```
@@ -277,6 +313,8 @@ If you prefer the Docker-based MCP server in Claude Desktop:
 >   "-i",
 >   "-e", "PUBNUB_PUBLISH_KEY",
 >   "-e", "PUBNUB_SUBSCRIBE_KEY",
+>   "-e", "PUBNUB_EMAIL",
+>   "-e", "PUBNUB_PASSWORD",
 >   "pubnub/pubnub-mcp-server"
 > ]
 > ```
@@ -339,6 +377,22 @@ PUBNUB_SUBSCRIBE_KEY=demo \
 echo '{"jsonrpc":"2.0","id":2,"method":"tools/call","params":{"name":"publish_pubnub_message","arguments":{"channel":"my_channel","message":"Hello, PubNub MCP JSON-RPC!"}}}' \
   | node index.js
 ```
+
+### 3) Manage PubNub Account (Optional)
+
+To manage your PubNub account (e.g., list apps or list keys), set the following environment variables for authentication:
+
+```bash
+export PUBNUB_EMAIL=<your-pubnub-email>
+export PUBNUB_PASSWORD=<your-pubnub-password>
+```
+
+Invoke the `manage_pubnub_account` tool via JSON-RPC, specifying the desired action (`apps` or `keys`):
+
+```bash
+echo '{"jsonrpc":"2.0","id":3,"method":"tools/call","params":{"name":"manage_pubnub_account","arguments":{"action":"apps"}}}' | node index.js
+```
+Replace `"apps"` with `"keys"` in the arguments to list API keys for each app.
 
 ## Disabling PubNub Analytics Subscription
 

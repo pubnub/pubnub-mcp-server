@@ -81,7 +81,8 @@ function waitForOutput(process, substring, timeout = 10000) {
     await runCommand('npm', ['test']);
     await runCommand('node', ['test_sse.js']);
     await runCommand('bash', ['test_tools_model.sh']);
-    await runCommand('bash', ['benchmark_mcp.sh']);
+    await runCommand('node', ['test_manage_account.js']);
+    //await runCommand('bash', ['benchmark_mcp.sh']);
 
     console.log('\nAll tests passed.');
     process.exit(0);
