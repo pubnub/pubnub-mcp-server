@@ -10,9 +10,13 @@ This improves the LLM AI Agent's ability to understand and interact with PubNub'
 ## Features
 
 - MCP server exposing tools for interacting with PubNub via JSON-RPC over STDIN/STDOUT.
+- MCP server supports SSE Mode by supplying `HTTP_PORT` environment variable.
 - Retrieve official PubNub SDK documentation (HTML → Markdown) for:
   - Languages: JavaScript, Python, Java, Go, Ruby, Swift, Objective-C, C#, PHP, Rust, Unity, Kotlin, Unreal.
   - API reference sections: configuration, publish-and-subscribe, presence, access-manager, channel-groups, storage-and-playback, mobile-push, objects, files, message-actions, misc, functions.
+- Retrieve official PubNub Chat SDK documentation (HTML → Markdown) for:
+  - Chat SDK languages: JavaScript, Kotlin, Swift, Unity, Unreal.
+  - Chat SDK topics: configuration, chat, channel, user, message, membership, thread-channel, thread-message, message-draft, event, access-control, glossary.
 - Fetch PubNub conceptual guides and how-to documentation from local markdown files in the `resources` directory (e.g., `pubnub_concepts`, `pubnub_features`, `pubnub_security`, `how_to_send_receive_json`, `how_to_encrypt_messages_files`, etc.).
 - Publish messages to PubNub channels with `publish_pubnub_message`, returning a timetoken.
 - Fetch historical messages from one or more channels with `get_pubnub_messages`, returning message content and metadata in JSON.
@@ -135,6 +139,34 @@ Then configure your `~/.cursor/mcp.json` (or `.cursor/mcp.json` in your project)
 - `command` specifies the executable to launch the MCP server.
 - `args` specifies the arguments to pass to the command.
 - `env` sets environment variables for the server process.
+
+## SSE Mode
+
+To enable Server-Sent Events (SSE) HTTP transport, export the HTTP_PORT environment variable and start the MCP server. Ensure your PubNub API keys are set in the environment:
+
+```bash
+export PUBNUB_PUBLISH_KEY=YOUR_PUBLISH_KEY
+export PUBNUB_SUBSCRIBE_KEY=YOUR_SUBSCRIBE_KEY
+export HTTP_PORT=3000
+```
+
+### Using NPX
+
+```bash
+# Start the MCP server in SSE mode on port 3000 with NPX
+npx -y @pubnub/mcp
+```
+
+### Using Docker
+
+```bash
+# Start the MCP server in SSE mode on port 3000 with Docker
+docker run -i \
+  -e PUBNUB_PUBLISH_KEY=$PUBNUB_PUBLISH_KEY \
+  -e PUBNUB_SUBSCRIBE_KEY=$PUBNUB_SUBSCRIBE_KEY \
+  -e HTTP_PORT=$HTTP_PORT \
+  pubnub/pubnub-mcp-server
+```
 
 ## Using in Cursor IDE
 
