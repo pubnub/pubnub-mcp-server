@@ -38,6 +38,9 @@ const server = new McpServer({
 // Store tool handlers for reuse in HTTP sessions
 const toolHandlers = {};
 
+// Tool definitions - defined once and reused
+const toolDefinitions = {};
+
 // Tool: "read_pubnub_sdk_docs" (PubNub SDK docs for a given language)
 const languages = [
     'javascript', 'python', 'java', 'go', 'ruby',
@@ -60,6 +63,16 @@ const apiReferences = [
     // Special section for PubNub Functions; loads from local resources/pubnub_functions.md
     'functions',
 ];
+
+// Define tool metadata for read_pubnub_sdk_docs
+toolDefinitions['read_pubnub_sdk_docs'] = {
+  name: 'read_pubnub_sdk_docs',
+  description: 'Retrieves official PubNub SDK documentation for a given programming language and API reference section. Call this tool for low-level API details, code examples, and usage patterns. Returns documentation in markdown format. For conceptual guides, best practices, and how-tos, also call the read_pubnub_resources tool.',
+  parameters: {
+    language: z.enum(languages).describe('Programming language of the PubNub SDK to retrieve documentation for (e.g. javascript, python)'),
+    apiReference: z.enum(apiReferences).optional().default('configuration').describe('API reference section to retrieve (e.g. configuration, publish-and-subscribe, objects (App Context); defaults to configuration)'),
+  }
+};
 
 // Define the handler for read_pubnub_sdk_docs
 toolHandlers['read_pubnub_sdk_docs'] = async ({ language, apiReference }) => {
@@ -126,12 +139,9 @@ toolHandlers['read_pubnub_sdk_docs'] = async ({ language, apiReference }) => {
 };
 
 server.tool(
-  'read_pubnub_sdk_docs',
-  'Retrieves official PubNub SDK documentation for a given programming language and API reference section. Call this tool for low-level API details, code examples, and usage patterns. Returns documentation in markdown format. For conceptual guides, best practices, and how-tos, also call the read_pubnub_resources tool.',
-  {
-    language: z.enum(languages).describe('Programming language of the PubNub SDK to retrieve documentation for (e.g. javascript, python)'),
-    apiReference: z.enum(apiReferences).optional().default('configuration').describe('API reference section to retrieve (e.g. configuration, publish-and-subscribe, objects (App Context); defaults to configuration)'),
-  },
+  toolDefinitions['read_pubnub_sdk_docs'].name,
+  toolDefinitions['read_pubnub_sdk_docs'].description,
+  toolDefinitions['read_pubnub_sdk_docs'].parameters,
   toolHandlers['read_pubnub_sdk_docs']
 );
 
@@ -248,14 +258,21 @@ toolHandlers['read_pubnub_chat_sdk_docs'] = async ({ language, topic }) => {
     }
 };
 
-// Tool: "read_pubnub_chat_sdk_docs" (PubNub Chat SDK docs for a given Chat SDK language and topic)
-server.tool(
-  'read_pubnub_chat_sdk_docs',
-  'Retrieves official PubNub Chat SDK documentation for a given Chat SDK language and topic section. Call this tool whenever you need detailed Chat SDK docs, code examples, or usage patterns. Returns documentation in markdown format.',
-  {
+// Define tool metadata for read_pubnub_chat_sdk_docs
+toolDefinitions['read_pubnub_chat_sdk_docs'] = {
+  name: 'read_pubnub_chat_sdk_docs',
+  description: 'Retrieves official PubNub Chat SDK documentation for a given Chat SDK language and topic section. Call this tool whenever you need detailed Chat SDK docs, code examples, or usage patterns. Returns documentation in markdown format.',
+  parameters: {
     language: z.enum(chatSdkLanguages).describe('Chat SDK language to retrieve documentation for'),
     topic: z.enum(chatSdkTopics).describe('Chat SDK documentation topic to retrieve'),
-  },
+  }
+};
+
+// Tool: "read_pubnub_chat_sdk_docs" (PubNub Chat SDK docs for a given Chat SDK language and topic)
+server.tool(
+  toolDefinitions['read_pubnub_chat_sdk_docs'].name,
+  toolDefinitions['read_pubnub_chat_sdk_docs'].description,
+  toolDefinitions['read_pubnub_chat_sdk_docs'].parameters,
   toolHandlers['read_pubnub_chat_sdk_docs']
 );
 
@@ -328,12 +345,19 @@ toolHandlers['read_pubnub_resources'] = async ({ document }) => {
     }
 };
 
-server.tool(
-  'read_pubnub_resources',
-  'Retrieves PubNub conceptual guides and how-to documentation from markdown files in the resources directory. Call this tool for overviews, integration instructions, best practices, and troubleshooting tips. Returns documentation in markdown format. For detailed API reference and SDK code samples, also call the read_pubnub_sdk_docs tool.',
-  {
+// Define tool metadata for read_pubnub_resources
+toolDefinitions['read_pubnub_resources'] = {
+  name: 'read_pubnub_resources',
+  description: 'Retrieves PubNub conceptual guides and how-to documentation from markdown files in the resources directory. Call this tool for overviews, integration instructions, best practices, and troubleshooting tips. Returns documentation in markdown format. For detailed API reference and SDK code samples, also call the read_pubnub_sdk_docs tool.',
+  parameters: {
     document: z.enum(pubnubResourceOptions).describe('Resource name to fetch (file name without .md under resources directory, e.g., pubnub_concepts, how_to_send_receive_json, how_to_encrypt_messages_files)'),
-  },
+  }
+};
+
+server.tool(
+  toolDefinitions['read_pubnub_resources'].name,
+  toolDefinitions['read_pubnub_resources'].description,
+  toolDefinitions['read_pubnub_resources'].parameters,
   toolHandlers['read_pubnub_resources']
 );
 
@@ -365,14 +389,21 @@ toolHandlers['publish_pubnub_message'] = async ({ channel, message }) => {
     }
 };
 
-// Tool: "publish_pubnub_message" (publishes a message to a PubNub channel)
-server.tool(
-  'publish_pubnub_message',
-  'Publishes a message to a specified PubNub channel. Call this tool whenever you need to send data through PubNub. Provide the channel name and message payload. Returns a timetoken confirming successful publication.',
-  {
+// Define tool metadata for publish_pubnub_message
+toolDefinitions['publish_pubnub_message'] = {
+  name: 'publish_pubnub_message',
+  description: 'Publishes a message to a specified PubNub channel. Call this tool whenever you need to send data through PubNub. Provide the channel name and message payload. Returns a timetoken confirming successful publication.',
+  parameters: {
     channel: z.string().describe('Name of the PubNub channel (string) to publish the message to'),
     message: z.string().describe('Message payload as a string'),
-  },
+  }
+};
+
+// Tool: "publish_pubnub_message" (publishes a message to a PubNub channel)
+server.tool(
+  toolDefinitions['publish_pubnub_message'].name,
+  toolDefinitions['publish_pubnub_message'].description,
+  toolDefinitions['publish_pubnub_message'].parameters,
   toolHandlers['publish_pubnub_message']
 );
 
@@ -393,13 +424,20 @@ toolHandlers['get_pubnub_messages'] = async ({ channels }) => {
     }
 };
 
+// Define tool metadata for get_pubnub_messages
+toolDefinitions['get_pubnub_messages'] = {
+  name: 'get_pubnub_messages',
+  description: 'Fetches historical messages from one or more PubNub channels. Call this tool whenever you need to access past message history. Provide a list of channel names. Returns message content and metadata in JSON format.',
+  parameters: {
+    channels: z.array(z.string()).min(1).describe('List of one or more PubNub channel names (strings) to retrieve historical messages from'),
+  }
+};
+
 // Tool: "get_pubnub_messages" (fetch message history for PubNub channels)
 server.tool(
-  'get_pubnub_messages',
-  'Fetches historical messages from one or more PubNub channels. Call this tool whenever you need to access past message history. Provide a list of channel names. Returns message content and metadata in JSON format.',
-  {
-    channels: z.array(z.string()).min(1).describe('List of one or more PubNub channel names (strings) to retrieve historical messages from'),
-  },
+  toolDefinitions['get_pubnub_messages'].name,
+  toolDefinitions['get_pubnub_messages'].description,
+  toolDefinitions['get_pubnub_messages'].parameters,
   toolHandlers['get_pubnub_messages']
 );
 
@@ -418,14 +456,21 @@ toolHandlers['get_pubnub_presence'] = async ({ channels, channelGroups }) => {
     }
 };
 
-// Tool: "get_pubnub_presence" (fetch presence information for PubNub channels and channel groups)
-server.tool(
-  'get_pubnub_presence',
-  'Retrieves real-time presence information for specified PubNub channels and channel groups. Call this tool when you need to monitor active users, occupancy counts, and subscriber UUIDs. Provide channel names and/or channel group names. Returns presence data in JSON format.',
-  {
+// Define tool metadata for get_pubnub_presence
+toolDefinitions['get_pubnub_presence'] = {
+  name: 'get_pubnub_presence',
+  description: 'Retrieves real-time presence information for specified PubNub channels and channel groups. Call this tool when you need to monitor active users, occupancy counts, and subscriber UUIDs. Provide channel names and/or channel group names. Returns presence data in JSON format.',
+  parameters: {
     channels: z.array(z.string()).default([]).describe('List of channel names (strings) to query presence data for'),
     channelGroups: z.array(z.string()).default([]).describe('List of channel group names (strings) to query presence data for'),
-  },
+  }
+};
+
+// Tool: "get_pubnub_presence" (fetch presence information for PubNub channels and channel groups)
+server.tool(
+  toolDefinitions['get_pubnub_presence'].name,
+  toolDefinitions['get_pubnub_presence'].description,
+  toolDefinitions['get_pubnub_presence'].parameters,
   toolHandlers['get_pubnub_presence']
 );
 
@@ -460,13 +505,20 @@ toolHandlers['write_pubnub_app'] = async ({ appType }) => {
     }
 };
 
+// Define tool metadata for write_pubnub_app
+toolDefinitions['write_pubnub_app'] = {
+  name: 'write_pubnub_app',
+  description: 'Generates step-by-step instructions for creating a PubNub application. Call this tool when you need a checklist of tasks such as setting up your PubNub account, creating a new app, and configuring settings. Call this tool whe the user asks for PubNub MCP. For conceptual guides, best practices, and how-tos, also call the read_pubnub_resources tool. For detailed API reference and SDK code samples, also call the read_pubnub_sdk_docs tool.',
+  parameters: {
+    appType: z.enum(appTypes).describe('Which PubNub app template to load (currently only "default")'),
+  }
+};
+
 // Tool: "write_pubnub_app" (generate instructions for creating a PubNub application)
 server.tool(
-  'write_pubnub_app',
-  'Generates step-by-step instructions for creating a PubNub application. Call this tool when you need a checklist of tasks such as setting up your PubNub account, creating a new app, and configuring settings. Call this tool whe the user asks for PubNub MCP. For conceptual guides, best practices, and how-tos, also call the read_pubnub_resources tool. For detailed API reference and SDK code samples, also call the read_pubnub_sdk_docs tool.',
-  {
-    appType: z.enum(appTypes).describe('Which PubNub app template to load (currently only "default")'),
-  },
+  toolDefinitions['write_pubnub_app'].name,
+  toolDefinitions['write_pubnub_app'].description,
+  toolDefinitions['write_pubnub_app'].parameters,
   toolHandlers['write_pubnub_app']
 );
 
@@ -815,14 +867,21 @@ toolHandlers['manage_pubnub_account'] = async ({ subject, action }) => {
   }
 };
 
-// Tool: "manage_pubnub_account" (manage PubNub account apps and keys)
-server.tool(
-  'manage_pubnub_account',
-  'Manages the users PubNub account apps and API key settings. Uses PUBNUB_EMAIL and PUBNUB_PASSWORD environment variables for authentication. Supports creating, listing, and deleting apps and API keys. Delete action only works on test apps/keys (with "Test App" or "Test Key" in the name) for safety.',
-  {
+// Define tool metadata for manage_pubnub_account
+toolDefinitions['manage_pubnub_account'] = {
+  name: 'manage_pubnub_account',
+  description: 'Manages the users PubNub account apps and API key settings. Uses PUBNUB_EMAIL and PUBNUB_PASSWORD environment variables for authentication. Supports creating, listing, and deleting apps and API keys. Delete action only works on test apps/keys (with "Test App" or "Test Key" in the name) for safety.',
+  parameters: {
     subject: z.enum(managementSubjects).describe('The subject to manage: "app" for applications, "api_key" for API keys'),
     action: z.enum(managementActions).describe('The action to perform: "create" to create new, "list" to list existing, "delete" to delete test items'),
-  },
+  }
+};
+
+// Tool: "manage_pubnub_account" (manage PubNub account apps and keys)
+server.tool(
+  toolDefinitions['manage_pubnub_account'].name,
+  toolDefinitions['manage_pubnub_account'].description,
+  toolDefinitions['manage_pubnub_account'].parameters,
   toolHandlers['manage_pubnub_account']
 );
 
@@ -961,88 +1020,67 @@ if (HTTP_PORT) {
       // Register all the same tools for this session server
       // Tool: "read_pubnub_sdk_docs"
       sessionServer.tool(
-        'read_pubnub_sdk_docs',
-        'Retrieves official PubNub SDK documentation for a given programming language and API reference section. Call this tool for low-level API details, code examples, and usage patterns. Returns documentation in markdown format. For conceptual guides, best practices, and how-tos, also call the read_pubnub_resources tool.',
-        {
-          language: z.enum(languages).describe('Programming language of the PubNub SDK to retrieve documentation for (e.g. javascript, python)'),
-          apiReference: z.enum(apiReferences).optional().default('configuration').describe('API reference section to retrieve (e.g. configuration, publish-and-subscribe, objects (App Context); defaults to configuration)'),
-        },
+        toolDefinitions['read_pubnub_sdk_docs'].name,
+        toolDefinitions['read_pubnub_sdk_docs'].description,
+        toolDefinitions['read_pubnub_sdk_docs'].parameters,
         toolHandlers['read_pubnub_sdk_docs']
       );
 
       // Tool: "read_pubnub_chat_sdk_docs"
       if (chatSdkLanguages.length > 0 && chatSdkTopics.length > 0) {
         sessionServer.tool(
-          'read_pubnub_chat_sdk_docs',
-          'Retrieves official PubNub Chat SDK documentation for a given Chat SDK language and topic section. Call this tool whenever you need detailed Chat SDK docs, code examples, or usage patterns. Returns documentation in markdown format.',
-          {
-            language: z.enum(chatSdkLanguages).describe('Chat SDK language to retrieve documentation for'),
-            topic: z.enum(chatSdkTopics).describe('Chat SDK documentation topic to retrieve'),
-          },
+          toolDefinitions['read_pubnub_chat_sdk_docs'].name,
+          toolDefinitions['read_pubnub_chat_sdk_docs'].description,
+          toolDefinitions['read_pubnub_chat_sdk_docs'].parameters,
           toolHandlers['read_pubnub_chat_sdk_docs']
         );
       }
 
       // Tool: "read_pubnub_resources"
       sessionServer.tool(
-        'read_pubnub_resources',
-        'Retrieves PubNub conceptual guides and how-to documentation from markdown files in the resources directory. Call this tool for overviews, integration instructions, best practices, and troubleshooting tips. Returns documentation in markdown format. For detailed API reference and SDK code samples, also call the read_pubnub_sdk_docs tool.',
-        {
-          document: z.enum(pubnubResourceOptions).describe('Resource name to fetch (file name without .md under resources directory, e.g., pubnub_concepts, how_to_send_receive_json, how_to_encrypt_messages_files)'),
-        },
+        toolDefinitions['read_pubnub_resources'].name,
+        toolDefinitions['read_pubnub_resources'].description,
+        toolDefinitions['read_pubnub_resources'].parameters,
         toolHandlers['read_pubnub_resources']
       );
 
       // Tool: "publish_pubnub_message"
       sessionServer.tool(
-        'publish_pubnub_message',
-        'Publishes a message to a specified PubNub channel. Call this tool whenever you need to send data through PubNub. Provide the channel name and message payload. Returns a timetoken confirming successful publication.',
-        {
-          channel: z.string().describe('Name of the PubNub channel (string) to publish the message to'),
-          message: z.string().describe('Message payload as a string'),
-        },
+        toolDefinitions['publish_pubnub_message'].name,
+        toolDefinitions['publish_pubnub_message'].description,
+        toolDefinitions['publish_pubnub_message'].parameters,
         toolHandlers['publish_pubnub_message']
       );
 
       // Tool: "get_pubnub_messages"
       sessionServer.tool(
-        'get_pubnub_messages',
-        'Fetches historical messages from one or more PubNub channels. Call this tool whenever you need to access past message history. Provide a list of channel names. Returns message content and metadata in JSON format.',
-        {
-          channels: z.array(z.string()).min(1).describe('List of one or more PubNub channel names (strings) to retrieve historical messages from'),
-        },
+        toolDefinitions['get_pubnub_messages'].name,
+        toolDefinitions['get_pubnub_messages'].description,
+        toolDefinitions['get_pubnub_messages'].parameters,
         toolHandlers['get_pubnub_messages']
       );
 
       // Tool: "get_pubnub_presence"
       sessionServer.tool(
-        'get_pubnub_presence',
-        'Retrieves real-time presence information for specified PubNub channels and channel groups. Call this tool when you need to monitor active users, occupancy counts, and subscriber UUIDs. Provide channel names and/or channel group names. Returns presence data in JSON format.',
-        {
-          channels: z.array(z.string()).default([]).describe('List of channel names (strings) to query presence data for'),
-          channelGroups: z.array(z.string()).default([]).describe('List of channel group names (strings) to query presence data for'),
-        },
+        toolDefinitions['get_pubnub_presence'].name,
+        toolDefinitions['get_pubnub_presence'].description,
+        toolDefinitions['get_pubnub_presence'].parameters,
         toolHandlers['get_pubnub_presence']
       );
 
       // Tool: "write_pubnub_app"
       sessionServer.tool(
-        'write_pubnub_app',
-        'Generates step-by-step instructions for creating a PubNub application. Call this tool when you need a checklist of tasks such as setting up your PubNub account, creating a new app, and configuring settings. Call this tool whe the user asks for PubNub MCP. For conceptual guides, best practices, and how-tos, also call the read_pubnub_resources tool. For detailed API reference and SDK code samples, also call the read_pubnub_sdk_docs tool.',
-        {
-          appType: z.enum(appTypes).describe('Which PubNub app template to load (currently only "default")'),
-        },
+        toolDefinitions['write_pubnub_app'].name,
+        toolDefinitions['write_pubnub_app'].description,
+        toolDefinitions['write_pubnub_app'].parameters,
         toolHandlers['write_pubnub_app']
       );
 
       // Tool: "manage_pubnub_account"
       sessionServer.tool(
-        'manage_pubnub_account',
-        'Manages the users PubNub account apps and API key settings. Uses PUBNUB_EMAIL and PUBNUB_PASSWORD environment variables for authentication. Supports creating, listing, and deleting apps and API keys. Delete action only works on test apps/keys (with "Test App" or "Test Key" in the name) for safety.',
-        {
-          subject: z.enum(managementSubjects).describe('The subject to manage: "app" for applications, "api_key" for API keys'),
-          action: z.enum(managementActions).describe('The action to perform: "create" to create new, "list" to list existing, "delete" to delete test items'),
-        },
+        toolDefinitions['manage_pubnub_account'].name,
+        toolDefinitions['manage_pubnub_account'].description,
+        toolDefinitions['manage_pubnub_account'].parameters,
         toolHandlers['manage_pubnub_account']
       );
 
