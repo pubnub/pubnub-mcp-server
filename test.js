@@ -46,6 +46,7 @@ async function main() {
     'get_pubnub_messages',
     'get_pubnub_presence',
     'write_pubnub_app',  // should expose the app creation instructions tool
+    'pubnub_subscribe_and_receive_messages',  // new subscribe and receive tool
   ];
   for (const tool of expectedTools) {
     assert(
@@ -566,6 +567,174 @@ async function main() {
     
     console.log("Successfully retrieved message using timetoken range!");
   }
+
+  // Test the new 'pubnub_subscribe_and_receive_messages' tool
+  console.log("Testing 'pubnub_subscribe_and_receive_messages' tool...");
+  const subscribeTestChannel = `subscribe-test-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+  const subscribeTestMessage = {
+    text: "Test message for subscription",
+    timestamp: new Date().toISOString(),
+    testType: "subscription-test"
+  };
+  
+  // Start the subscription with a timeout (this will run in background)
+  console.log(`Starting subscription to channel '${subscribeTestChannel}' with 5-second timeout...`);
+  const subscriptionPromise = client.callTool({
+    name: 'pubnub_subscribe_and_receive_messages',
+    arguments: { 
+      channel: subscribeTestChannel,
+      messageCount: 1,
+      timeout: 5000
+    }
+  });
+  
+  // Wait a moment, then publish a message
+  console.log("Waiting 1 second before publishing message...");
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  console.log(`Publishing message to channel '${subscribeTestChannel}'...`);
+  const subscribePublishResult = await client.callTool({
+    name: 'publish_pubnub_message',
+    arguments: { 
+      channel: subscribeTestChannel, 
+      message: JSON.stringify(subscribeTestMessage)
+    }
+  });
+  
+  assert(
+    Array.isArray(subscribePublishResult.content) &&
+      subscribePublishResult.content.length > 0 &&
+      subscribePublishResult.content[0].text.includes('Message published successfully'),
+    "Failed to publish message for subscription test."
+  );
+  
+  // Wait for the subscription to receive the message
+  console.log("Waiting for subscription to receive the message...");
+  const subscribeResult = await subscriptionPromise;
+  
+  assert(
+    Array.isArray(subscribeResult.content) &&
+      subscribeResult.content.length > 0,
+    "'pubnub_subscribe_and_receive_messages' returned no content."
+  );
+  
+  // Parse and verify the received message
+  const receivedData = JSON.parse(subscribeResult.content[0].text);
+  assert(
+    receivedData.channel === subscribeTestChannel,
+    `Expected channel '${subscribeTestChannel}', got '${receivedData.channel}'`
+  );
+  assert(
+    receivedData.messageCount === 1,
+    `Expected messageCount 1, got ${receivedData.messageCount}`
+  );
+  assert(
+    Array.isArray(receivedData.messages) && receivedData.messages.length === 1,
+    "Expected exactly 1 message in the received data"
+  );
+  
+  // Verify the message content
+  const receivedMessage = receivedData.messages[0];
+  const parsedMessage = typeof receivedMessage.message === 'string' 
+    ? JSON.parse(receivedMessage.message) 
+    : receivedMessage.message;
+  
+  assert(
+    parsedMessage.testType === "subscription-test",
+    "Received message does not match the published message"
+  );
+  
+  console.log("'pubnub_subscribe_and_receive_messages' successfully received the published message!");
+  
+  // Test with multiple messages
+  console.log("Testing 'pubnub_subscribe_and_receive_messages' with multiple messages...");
+  const multiSubscribeChannel = `multi-subscribe-test-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+  const messageCount = 3;
+  
+  // Start subscription for multiple messages with timeout
+  console.log(`Starting subscription for ${messageCount} messages with 10-second timeout...`);
+  const multiSubscriptionPromise = client.callTool({
+    name: 'pubnub_subscribe_and_receive_messages',
+    arguments: { 
+      channel: multiSubscribeChannel,
+      messageCount: messageCount,
+      timeout: 10000
+    }
+  });
+  
+  // Wait a moment, then publish multiple messages
+  await new Promise(resolve => setTimeout(resolve, 1000));
+  
+  for (let i = 1; i <= messageCount; i++) {
+    console.log(`Publishing message ${i}/${messageCount}...`);
+    const multiMessage = {
+      text: `Message ${i} of ${messageCount}`,
+      messageNumber: i,
+      testType: "multi-subscription-test"
+    };
+    
+    await client.callTool({
+      name: 'publish_pubnub_message',
+      arguments: { 
+        channel: multiSubscribeChannel, 
+        message: JSON.stringify(multiMessage)
+      }
+    });
+    
+    // Small delay between messages
+    if (i < messageCount) {
+      await new Promise(resolve => setTimeout(resolve, 500));
+    }
+  }
+  
+  // Wait for the subscription to receive all messages
+  console.log(`Waiting for subscription to receive all ${messageCount} messages...`);
+  const multiSubscribeResult = await multiSubscriptionPromise;
+  
+  assert(
+    Array.isArray(multiSubscribeResult.content) &&
+      multiSubscribeResult.content.length > 0,
+    "'pubnub_subscribe_and_receive_messages' with multiple messages returned no content."
+  );
+  
+  // Parse and verify the received messages
+  const multiReceivedData = JSON.parse(multiSubscribeResult.content[0].text);
+  assert(
+    multiReceivedData.channel === multiSubscribeChannel,
+    `Expected channel '${multiSubscribeChannel}', got '${multiReceivedData.channel}'`
+  );
+  assert(
+    multiReceivedData.messageCount === messageCount,
+    `Expected messageCount ${messageCount}, got ${multiReceivedData.messageCount}`
+  );
+  assert(
+    Array.isArray(multiReceivedData.messages) && multiReceivedData.messages.length === messageCount,
+    `Expected exactly ${messageCount} messages in the received data, got ${multiReceivedData.messages.length}`
+  );
+  
+  console.log(`'pubnub_subscribe_and_receive_messages' successfully received all ${messageCount} messages!`);
+
+  // Test timeout behavior
+  console.log("Testing 'pubnub_subscribe_and_receive_messages' timeout behavior...");
+  const timeoutChannel = `timeout-test-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+  
+  const timeoutResult = await client.callTool({
+    name: 'pubnub_subscribe_and_receive_messages',
+    arguments: { 
+      channel: timeoutChannel,
+      messageCount: 1,
+      timeout: 2000  // 2 second timeout with no messages published
+    }
+  });
+  
+  assert(
+    Array.isArray(timeoutResult.content) &&
+      timeoutResult.content.length > 0 &&
+      timeoutResult.content[0].text.includes('Timeout'),
+    "'pubnub_subscribe_and_receive_messages' did not handle timeout correctly."
+  );
+  
+  console.log("'pubnub_subscribe_and_receive_messages' timeout behavior works correctly!");
 
   // Additional test for 'get_pubnub_presence' tool with channelGroups option
   console.log("Testing 'get_pubnub_presence' tool with channelGroups option...");

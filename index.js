@@ -840,6 +840,124 @@ toolDefinitions['manage_pubnub_account'] = {
   }
 };
 
+
+// Define the handler for pubnub_subscribe_and_receive_messages
+toolHandlers['pubnub_subscribe_and_receive_messages'] = async ({ channel, messageCount = 1, timeout }) => {
+  try {
+    return new Promise((resolve, reject) => {
+      let messagesReceived = [];
+      let completed = false;
+      let timeoutId;
+
+      // Create subscription for the channel
+      const channelEntity = pubnub.channel(channel);
+      const subscription = channelEntity.subscription();
+
+      // Set up message listener
+      const messageListener = (messageEvent) => {
+        if (!completed) {
+          messagesReceived.push({
+            channel: messageEvent.channel,
+            message: messageEvent.message,
+            publisher: messageEvent.publisher,
+            timetoken: messageEvent.timetoken,
+            subscription: messageEvent.subscription
+          });
+
+          // Check if we've received the desired number of messages
+          if (messagesReceived.length >= messageCount) {
+            completed = true;
+            
+            // Clean up
+            if (timeoutId) {
+              clearTimeout(timeoutId);
+            }
+            subscription.unsubscribe();
+            subscription.removeListener(messageListener);
+
+            // Return all received messages
+            resolve({
+              content: [
+                {
+                  type: 'text',
+                  text: JSON.stringify({
+                    channel: channel,
+                    messageCount: messagesReceived.length,
+                    messages: messagesReceived
+                  }, null, 2)
+                }
+              ]
+            });
+          }
+        }
+      };
+
+      // Add listener and subscribe
+      subscription.addListener({ message: messageListener });
+      subscription.subscribe();
+
+      // Set timeout if specified
+      if (timeout && timeout > 0) {
+        timeoutId = setTimeout(() => {
+          if (!completed) {
+            completed = true;
+            subscription.unsubscribe();
+            subscription.removeListener(messageListener);
+            
+            if (messagesReceived.length > 0) {
+              // Return partial results if some messages were received
+              resolve({
+                content: [
+                  {
+                    type: 'text',
+                    text: JSON.stringify({
+                      channel: channel,
+                      messageCount: messagesReceived.length,
+                      messages: messagesReceived,
+                      note: `Timeout: Only ${messagesReceived.length} of ${messageCount} requested messages received within ${timeout}ms`
+                    }, null, 2)
+                  }
+                ]
+              });
+            } else {
+              // No messages received at all
+              resolve({
+                content: [
+                  {
+                    type: 'text',
+                    text: `Timeout: No messages received on channel '${channel}' within ${timeout}ms`
+                  }
+                ]
+              });
+            }
+          }
+        }, timeout);
+      }
+    });
+  } catch (err) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Error subscribing to channel and receiving messages: ${err.message || err}`
+        }
+      ],
+      isError: true
+    };
+  }
+};
+
+// Define tool metadata for pubnub_subscribe_and_receive_messages
+toolDefinitions['pubnub_subscribe_and_receive_messages'] = {
+  name: 'pubnub_subscribe_and_receive_messages',
+  description: 'Subscribes to a PubNub channel and waits to receive a specified number of messages, then automatically unsubscribes. Call this tool when you need to listen for messages on a channel. Optionally specify a timeout in milliseconds to avoid waiting indefinitely.',
+  parameters: {
+    channel: z.string().describe('Name of the PubNub channel to subscribe to and receive messages from'),
+    messageCount: z.number().optional().default(1).describe('Number of messages to wait for before unsubscribing (default: 1)'),
+    timeout: z.number().optional().describe('Optional timeout in milliseconds. If not all messages are received within this time, the subscription will end (default: no timeout)')
+  }
+};
+
 // Helper function to register all tools to a server instance
 function registerAllTools(serverInstance) {
   for (const toolName in toolDefinitions) {

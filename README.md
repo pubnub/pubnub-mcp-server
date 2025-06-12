@@ -19,6 +19,7 @@ This improves the LLM AI Agent's ability to understand and interact with PubNub'
   - Chat SDK topics: configuration, chat, channel, user, message, membership, thread-channel, thread-message, message-draft, event, access-control, glossary.
 - Fetch PubNub conceptual guides and how-to documentation from local markdown files in the `resources` directory (e.g., `pubnub_concepts`, `pubnub_features`, `pubnub_security`, `how_to_send_receive_json`, `how_to_encrypt_messages_files`, etc.).
 - Publish messages to PubNub channels with `publish_pubnub_message`, returning a timetoken.
+- Subscribe to channels and receive real-time messages with `pubnub_subscribe_and_receive_messages`, supporting single or multiple message collection with optional timeout.
 - Fetch historical messages from one or more channels with `get_pubnub_messages`, returning message content and metadata in JSON.
 - Retrieve real-time presence information (occupancy counts, subscriber UUIDs) for channels and channel groups with `get_pubnub_presence`.
 - Generate step-by-step instructions for creating a PubNub application, including code snippets for initializing the PubNub SDK in multiple languages using `write_pubnub_app`.
@@ -39,6 +40,9 @@ This improves the LLM AI Agent's ability to understand and interact with PubNub'
 - "Write a PubNub app that lets users create and share playlists with friends."
 - "Build a PubNub JavaScript app that subscribes to the `my_channel` channel and logs messages to the console."
 - "Publish a message to the `my_channel` channel with the message `Hello, PubNub!`."
+- "Subscribe to the `my_channel` channel and wait for one message."
+- "Subscribe to the `notifications` channel and collect 5 messages with a 30-second timeout."
+- "Listen for messages on the `alerts` channel for 10 seconds."
 - "Show me the PubNub JavaScript SDK documentation for `subscribe()`."
 - "List all available PubNub Functions."
 - "Fetch the Python SDK docs for the `publish()` method."
@@ -192,6 +196,43 @@ docker run -i \
    - `pubnub://docs/java` — Fetch PubNub Java SDK documentation
    - `pubnub://functions` — List PubNub Functions (static content from `resources/pubnub_functions.md`)
 4. Approve resource execution when prompted, or enable **auto-run** in settings for trusted resources.
+
+## Real-Time Message Subscription
+
+The `pubnub_subscribe_and_receive_messages` tool provides real-time message listening capabilities, allowing you to subscribe to PubNub channels and receive messages as they're published. This tool automatically handles subscription lifecycle, message collection, and cleanup.
+
+### Key Features
+
+- **Flexible Message Collection**: Wait for a single message (default) or specify how many messages to collect
+- **Timeout Support**: Set optional timeouts to prevent indefinite waiting
+- **Automatic Cleanup**: Automatically unsubscribes and cleans up listeners after receiving the specified number of messages or timeout
+- **Structured Response**: Returns detailed message information including channel, content, publisher, and timetoken
+
+### Usage Examples
+
+```bash
+# Subscribe and wait for one message (default behavior)
+"Subscribe to the 'my_channel' channel and wait for one message"
+
+# Collect multiple messages with timeout
+"Subscribe to the 'notifications' channel and collect 5 messages with a 30-second timeout"
+
+# Listen with timeout only
+"Listen for messages on the 'alerts' channel for 10 seconds"
+```
+
+### Parameters
+
+- `channel` (required): Name of the PubNub channel to subscribe to
+- `messageCount` (optional, default: 1): Number of messages to wait for before unsubscribing
+- `timeout` (optional): Timeout in milliseconds to avoid waiting indefinitely
+
+### Response Format
+
+The tool returns a JSON object containing:
+- `channel`: The subscribed channel name
+- `messageCount`: Number of messages actually received
+- `messages`: Array of message objects with channel, message content, publisher, timetoken, and subscription info
 
 ## Claude Code
 
