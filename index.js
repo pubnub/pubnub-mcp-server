@@ -138,12 +138,6 @@ toolHandlers['read_pubnub_sdk_docs'] = async ({ language, apiReference }) => {
     };
 };
 
-server.tool(
-  toolDefinitions['read_pubnub_sdk_docs'].name,
-  toolDefinitions['read_pubnub_sdk_docs'].description,
-  toolDefinitions['read_pubnub_sdk_docs'].parameters,
-  toolHandlers['read_pubnub_sdk_docs']
-);
 
 // Function that loads a file from resources directory
 function loadLanguageFile(file) {
@@ -268,13 +262,6 @@ toolDefinitions['read_pubnub_chat_sdk_docs'] = {
   }
 };
 
-// Tool: "read_pubnub_chat_sdk_docs" (PubNub Chat SDK docs for a given Chat SDK language and topic)
-server.tool(
-  toolDefinitions['read_pubnub_chat_sdk_docs'].name,
-  toolDefinitions['read_pubnub_chat_sdk_docs'].description,
-  toolDefinitions['read_pubnub_chat_sdk_docs'].parameters,
-  toolHandlers['read_pubnub_chat_sdk_docs']
-);
 
 // Tool: "read_pubnub_resources" (fetch PubNub conceptual guides and how-to documentation from markdown files)
 // Dynamically generate available resource names based on markdown files in the resources directory and languages subdirectory
@@ -354,12 +341,6 @@ toolDefinitions['read_pubnub_resources'] = {
   }
 };
 
-server.tool(
-  toolDefinitions['read_pubnub_resources'].name,
-  toolDefinitions['read_pubnub_resources'].description,
-  toolDefinitions['read_pubnub_resources'].parameters,
-  toolHandlers['read_pubnub_resources']
-);
 
 // Define the handler for publish_pubnub_message
 toolHandlers['publish_pubnub_message'] = async ({ channel, message }) => {
@@ -399,13 +380,6 @@ toolDefinitions['publish_pubnub_message'] = {
   }
 };
 
-// Tool: "publish_pubnub_message" (publishes a message to a PubNub channel)
-server.tool(
-  toolDefinitions['publish_pubnub_message'].name,
-  toolDefinitions['publish_pubnub_message'].description,
-  toolDefinitions['publish_pubnub_message'].parameters,
-  toolHandlers['publish_pubnub_message']
-);
 
 // Define the handler for get_pubnub_messages
 toolHandlers['get_pubnub_messages'] = async ({ channels }) => {
@@ -433,13 +407,6 @@ toolDefinitions['get_pubnub_messages'] = {
   }
 };
 
-// Tool: "get_pubnub_messages" (fetch message history for PubNub channels)
-server.tool(
-  toolDefinitions['get_pubnub_messages'].name,
-  toolDefinitions['get_pubnub_messages'].description,
-  toolDefinitions['get_pubnub_messages'].parameters,
-  toolHandlers['get_pubnub_messages']
-);
 
 // Define the handler for get_pubnub_presence
 toolHandlers['get_pubnub_presence'] = async ({ channels, channelGroups }) => {
@@ -466,13 +433,6 @@ toolDefinitions['get_pubnub_presence'] = {
   }
 };
 
-// Tool: "get_pubnub_presence" (fetch presence information for PubNub channels and channel groups)
-server.tool(
-  toolDefinitions['get_pubnub_presence'].name,
-  toolDefinitions['get_pubnub_presence'].description,
-  toolDefinitions['get_pubnub_presence'].parameters,
-  toolHandlers['get_pubnub_presence']
-);
 
 // Define the handler for write_pubnub_app
 const appTypes = ['default']; // , 'chat', 'pubsub', 'presence', 'storage-and-playback'];
@@ -514,13 +474,6 @@ toolDefinitions['write_pubnub_app'] = {
   }
 };
 
-// Tool: "write_pubnub_app" (generate instructions for creating a PubNub application)
-server.tool(
-  toolDefinitions['write_pubnub_app'].name,
-  toolDefinitions['write_pubnub_app'].description,
-  toolDefinitions['write_pubnub_app'].parameters,
-  toolHandlers['write_pubnub_app']
-);
 
 // Define the handler for manage_pubnub_account
 const managementSubjects = ['app', 'api_key'];
@@ -877,13 +830,29 @@ toolDefinitions['manage_pubnub_account'] = {
   }
 };
 
-// Tool: "manage_pubnub_account" (manage PubNub account apps and keys)
-server.tool(
-  toolDefinitions['manage_pubnub_account'].name,
-  toolDefinitions['manage_pubnub_account'].description,
-  toolDefinitions['manage_pubnub_account'].parameters,
-  toolHandlers['manage_pubnub_account']
-);
+// Helper function to register all tools to a server instance
+function registerAllTools(serverInstance) {
+  for (const toolName in toolDefinitions) {
+    if (toolHandlers[toolName]) {
+      // Special handling for chat SDK docs tool
+      if (toolName === 'read_pubnub_chat_sdk_docs' && 
+          (chatSdkLanguages.length === 0 || chatSdkTopics.length === 0)) {
+        continue; // Skip this tool if chat SDK data isn't loaded
+      }
+      
+      const toolDef = toolDefinitions[toolName];
+      serverInstance.tool(
+        toolDef.name,
+        toolDef.description,
+        toolDef.parameters,
+        toolHandlers[toolName]
+      );
+    }
+  }
+}
+
+// Register all tools to the main server
+registerAllTools(server);
 
 // Function that returns instructions for creating a PubNub application using the user's API keys
 function getPubNubInitSDKInstructions() {
@@ -1018,71 +987,7 @@ if (HTTP_PORT) {
       });
 
       // Register all the same tools for this session server
-      // Tool: "read_pubnub_sdk_docs"
-      sessionServer.tool(
-        toolDefinitions['read_pubnub_sdk_docs'].name,
-        toolDefinitions['read_pubnub_sdk_docs'].description,
-        toolDefinitions['read_pubnub_sdk_docs'].parameters,
-        toolHandlers['read_pubnub_sdk_docs']
-      );
-
-      // Tool: "read_pubnub_chat_sdk_docs"
-      if (chatSdkLanguages.length > 0 && chatSdkTopics.length > 0) {
-        sessionServer.tool(
-          toolDefinitions['read_pubnub_chat_sdk_docs'].name,
-          toolDefinitions['read_pubnub_chat_sdk_docs'].description,
-          toolDefinitions['read_pubnub_chat_sdk_docs'].parameters,
-          toolHandlers['read_pubnub_chat_sdk_docs']
-        );
-      }
-
-      // Tool: "read_pubnub_resources"
-      sessionServer.tool(
-        toolDefinitions['read_pubnub_resources'].name,
-        toolDefinitions['read_pubnub_resources'].description,
-        toolDefinitions['read_pubnub_resources'].parameters,
-        toolHandlers['read_pubnub_resources']
-      );
-
-      // Tool: "publish_pubnub_message"
-      sessionServer.tool(
-        toolDefinitions['publish_pubnub_message'].name,
-        toolDefinitions['publish_pubnub_message'].description,
-        toolDefinitions['publish_pubnub_message'].parameters,
-        toolHandlers['publish_pubnub_message']
-      );
-
-      // Tool: "get_pubnub_messages"
-      sessionServer.tool(
-        toolDefinitions['get_pubnub_messages'].name,
-        toolDefinitions['get_pubnub_messages'].description,
-        toolDefinitions['get_pubnub_messages'].parameters,
-        toolHandlers['get_pubnub_messages']
-      );
-
-      // Tool: "get_pubnub_presence"
-      sessionServer.tool(
-        toolDefinitions['get_pubnub_presence'].name,
-        toolDefinitions['get_pubnub_presence'].description,
-        toolDefinitions['get_pubnub_presence'].parameters,
-        toolHandlers['get_pubnub_presence']
-      );
-
-      // Tool: "write_pubnub_app"
-      sessionServer.tool(
-        toolDefinitions['write_pubnub_app'].name,
-        toolDefinitions['write_pubnub_app'].description,
-        toolDefinitions['write_pubnub_app'].parameters,
-        toolHandlers['write_pubnub_app']
-      );
-
-      // Tool: "manage_pubnub_account"
-      sessionServer.tool(
-        toolDefinitions['manage_pubnub_account'].name,
-        toolDefinitions['manage_pubnub_account'].description,
-        toolDefinitions['manage_pubnub_account'].parameters,
-        toolHandlers['manage_pubnub_account']
-      );
+      registerAllTools(sessionServer);
 
       // Connect to the MCP server
       await sessionServer.connect(transport);
