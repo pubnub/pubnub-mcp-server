@@ -382,9 +382,16 @@ toolDefinitions['publish_pubnub_message'] = {
 
 
 // Define the handler for get_pubnub_messages
-toolHandlers['get_pubnub_messages'] = async ({ channels }) => {
+toolHandlers['get_pubnub_messages'] = async ({ channels, start, end, count }) => {
     try {
-      const result = await pubnub.fetchMessages({ channels });
+      const params = { channels };
+      
+      // Add optional pagination parameters
+      if (start !== undefined) params.start = start;
+      if (end !== undefined) params.end = end;
+      if (count !== undefined) params.count = count;
+      
+      const result = await pubnub.fetchMessages(params);
       return {
         content: [
           { type: 'text', text: JSON.stringify(result, null, 2) },
@@ -401,9 +408,12 @@ toolHandlers['get_pubnub_messages'] = async ({ channels }) => {
 // Define tool metadata for get_pubnub_messages
 toolDefinitions['get_pubnub_messages'] = {
   name: 'get_pubnub_messages',
-  description: 'Fetches historical messages from one or more PubNub channels. Call this tool whenever you need to access past message history. Provide a list of channel names. Returns message content and metadata in JSON format.',
+  description: 'Fetches historical messages from one or more PubNub channels. Call this tool whenever you need to access past message history. Provide a list of channel names. Returns message content and metadata in JSON format. Supports pagination with start/end timetokens and count limit.',
   parameters: {
     channels: z.array(z.string()).min(1).describe('List of one or more PubNub channel names (strings) to retrieve historical messages from'),
+    start: z.string().optional().describe('Timetoken delimiting the start of time slice (exclusive) to pull messages from'),
+    end: z.string().optional().describe('Timetoken delimiting the end of time slice (inclusive) to pull messages from'),
+    count: z.number().optional().describe('Number of historical messages to return per channel (default: 100 for single channel, 25 for multiple channels)'),
   }
 };
 

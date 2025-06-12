@@ -397,6 +397,176 @@ async function main() {
   );
   console.log("'get_pubnub_messages' multiple channels returned content successfully.");
 
+  // Test 'get_pubnub_messages' tool with pagination parameters
+  console.log("Testing 'get_pubnub_messages' tool with pagination parameters (count)...");
+  const paginatedMessagesResult = await client.callTool({
+    name: 'get_pubnub_messages',
+    arguments: { channels: ['test-channel'], count: 5 },
+  });
+  assert(
+    Array.isArray(paginatedMessagesResult.content) &&
+      paginatedMessagesResult.content.length > 0 &&
+      paginatedMessagesResult.content[0].text.length > 0,
+    "'get_pubnub_messages' with count parameter returned no content."
+  );
+  console.log("'get_pubnub_messages' with count parameter returned content successfully.");
+
+  // Test 'get_pubnub_messages' tool with start timetoken
+  console.log("Testing 'get_pubnub_messages' tool with start timetoken...");
+  const startTimeMessagesResult = await client.callTool({
+    name: 'get_pubnub_messages',
+    arguments: { channels: ['test-channel'], start: '15000000000000000' },
+  });
+  assert(
+    Array.isArray(startTimeMessagesResult.content) &&
+      startTimeMessagesResult.content.length > 0 &&
+      startTimeMessagesResult.content[0].text.length > 0,
+    "'get_pubnub_messages' with start timetoken returned no content."
+  );
+  console.log("'get_pubnub_messages' with start timetoken returned content successfully.");
+
+  // Test 'get_pubnub_messages' tool with end timetoken
+  console.log("Testing 'get_pubnub_messages' tool with end timetoken...");
+  const endTimeMessagesResult = await client.callTool({
+    name: 'get_pubnub_messages',
+    arguments: { channels: ['test-channel'], end: '17000000000000000' },
+  });
+  assert(
+    Array.isArray(endTimeMessagesResult.content) &&
+      endTimeMessagesResult.content.length > 0 &&
+      endTimeMessagesResult.content[0].text.length > 0,
+    "'get_pubnub_messages' with end timetoken returned no content."
+  );
+  console.log("'get_pubnub_messages' with end timetoken returned content successfully.");
+
+  // Test 'get_pubnub_messages' tool with all pagination parameters
+  console.log("Testing 'get_pubnub_messages' tool with all pagination parameters...");
+  const fullPaginationResult = await client.callTool({
+    name: 'get_pubnub_messages',
+    arguments: { 
+      channels: ['test-channel'], 
+      start: '15000000000000000',
+      end: '17000000000000000',
+      count: 10 
+    },
+  });
+  assert(
+    Array.isArray(fullPaginationResult.content) &&
+      fullPaginationResult.content.length > 0 &&
+      fullPaginationResult.content[0].text.length > 0,
+    "'get_pubnub_messages' with all pagination parameters returned no content."
+  );
+  console.log("'get_pubnub_messages' with all pagination parameters returned content successfully.");
+
+  // Test publishing and retrieving a specific message
+  console.log("Testing publish and retrieve workflow with pagination...");
+  const randomChannel = `test-channel-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+  const testMessage = {
+    text: `Test message at ${new Date().toISOString()}`,
+    random: Math.random(),
+    testId: 'pagination-test'
+  };
+  
+  // Publish a message
+  console.log(`Publishing message to channel '${randomChannel}'...`);
+  const publishTestResult = await client.callTool({
+    name: 'publish_pubnub_message',
+    arguments: { 
+      channel: randomChannel, 
+      message: JSON.stringify(testMessage) 
+    },
+  });
+  assert(
+    Array.isArray(publishTestResult.content) &&
+      publishTestResult.content.length > 0 &&
+      publishTestResult.content[0].text.includes('Message published successfully'),
+    "Failed to publish test message."
+  );
+  
+  // Extract timetoken from publish result
+  const publishResponse = publishTestResult.content[0].text;
+  const timetokenMatch = publishResponse.match(/Timetoken: (\d+)/);
+  const publishedTimetoken = timetokenMatch ? timetokenMatch[1] : null;
+  console.log(`Message published with timetoken: ${publishedTimetoken}`);
+  
+  // Sleep for 2 seconds to ensure message is stored
+  console.log("Waiting 2 seconds for message to be stored...");
+  await new Promise(resolve => setTimeout(resolve, 2000));
+  
+  // Retrieve the specific message using pagination
+  console.log(`Retrieving message from channel '${randomChannel}'...`);
+  const retrieveResult = await client.callTool({
+    name: 'get_pubnub_messages',
+    arguments: { 
+      channels: [randomChannel],
+      count: 10
+    },
+  });
+  
+  assert(
+    Array.isArray(retrieveResult.content) &&
+      retrieveResult.content.length > 0,
+    "Failed to retrieve messages."
+  );
+  
+  // Parse the response and verify our message is there
+  const messagesData = JSON.parse(retrieveResult.content[0].text);
+  const channelMessages = messagesData.channels[randomChannel];
+  
+  assert(
+    Array.isArray(channelMessages) && channelMessages.length > 0,
+    `No messages found in channel '${randomChannel}'.`
+  );
+  
+  // Find our specific message
+  const foundMessage = channelMessages.find(msg => {
+    try {
+      const parsed = typeof msg.message === 'string' ? JSON.parse(msg.message) : msg.message;
+      return parsed.testId === 'pagination-test';
+    } catch {
+      return false;
+    }
+  });
+  
+  assert(
+    foundMessage !== undefined,
+    "Could not find the published test message in retrieved messages."
+  );
+  
+  console.log("Successfully published and retrieved the same message!");
+  
+  // Test retrieving with timetoken range
+  if (publishedTimetoken) {
+    console.log("Testing retrieval with timetoken range...");
+    const startTimetoken = (BigInt(publishedTimetoken) - BigInt(1000)).toString();
+    const endTimetoken = (BigInt(publishedTimetoken) + BigInt(1000)).toString();
+    
+    const rangeResult = await client.callTool({
+      name: 'get_pubnub_messages',
+      arguments: { 
+        channels: [randomChannel],
+        start: startTimetoken,
+        end: endTimetoken
+      },
+    });
+    
+    assert(
+      Array.isArray(rangeResult.content) &&
+        rangeResult.content.length > 0,
+      "Failed to retrieve messages with timetoken range."
+    );
+    
+    const rangeData = JSON.parse(rangeResult.content[0].text);
+    const rangeMessages = rangeData.channels[randomChannel];
+    
+    assert(
+      Array.isArray(rangeMessages) && rangeMessages.length > 0,
+      "No messages found in timetoken range."
+    );
+    
+    console.log("Successfully retrieved message using timetoken range!");
+  }
+
   // Additional test for 'get_pubnub_presence' tool with channelGroups option
   console.log("Testing 'get_pubnub_presence' tool with channelGroups option...");
   const presenceCgResult = await client.callTool({
