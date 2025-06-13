@@ -1,7 +1,6 @@
 #!/usr/bin/env node
 
 import assert from 'assert';
-import fetch from 'node-fetch';
 import { Client } from '@modelcontextprotocol/sdk/client/index.js';
 import { StdioClientTransport } from '@modelcontextprotocol/sdk/client/stdio.js';
 

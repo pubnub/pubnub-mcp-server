@@ -1,5 +1,4 @@
 #!/usr/bin/env node
-import fetch from 'node-fetch';
 import { EventSource } from 'eventsource';
 
 const SERVER_URL = 'http://localhost:3000';

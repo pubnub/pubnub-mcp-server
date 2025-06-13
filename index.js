@@ -6,7 +6,7 @@ import { fileURLToPath, URL } from 'url';
 import { dirname, join as pathJoin, extname, basename } from 'path';
 import fs from 'fs';
 import PubNub from 'pubnub';
-import TurndownService from 'turndown';
+import { HtmlToMarkdown } from './lib/html-to-markdown.js';
 import { parse } from 'node-html-parser';
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
@@ -179,8 +179,8 @@ async function loadArticle(url) {
     const html = await response.text();
     const root = parse(html);
     const article = root.querySelector('article');
-    const td = new TurndownService();
-    return td.turndown(article?.innerHTML || '');
+    const converter = new HtmlToMarkdown();
+    return converter.turndown(article?.innerHTML || '');
   } catch (err) {
     return `Error fetching ${url}: ${err.message}`;
   }

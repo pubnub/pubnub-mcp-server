@@ -1,6 +1,6 @@
 {
   "name": "@pubnub/mcp",
-  "version": "1.0.80",
+  "version": "1.0.81",
   "type": "module",
   "description": "PubNub Model Context Protocol MCP Server for Cursor and Claude",
   "main": "index.js",
@@ -11,6 +11,7 @@
   },
   "files": [
     "index.js",
+    "lib",
     "chat_sdk_urls.txt",
     "package.json",
     "resources"
@@ -31,6 +32,9 @@
     "url": "https://github.com/pubnub/pubnub-mcp-server/issues"
   },
   "homepage": "https://github.com/pubnub/pubnub-mcp-server#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.10.2",
     "cbor-sync": "^1.0.4",
@@ -38,10 +42,7 @@
     "eventsource": "^4.0.0",
     "express": "^5.1.0",
     "node-html-parser": "^6.1.13",
-    "node-fetch": "^3.3.2",
-    "pubnub": "^9.6.0",
-    "turndown": "^7.2.0",
-    "zod": "^3.23.8"
+    "pubnub": "^9.6.0"
   },
   "overrides": {
     "react-native-url-polyfill": "npm:whatwg-url@^11.0.0"
