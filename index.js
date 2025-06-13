@@ -7,7 +7,7 @@ import { dirname, join as pathJoin, extname, basename } from 'path';
 import fs from 'fs';
 import PubNub from 'pubnub';
 import TurndownService from 'turndown';
-import { JSDOM } from 'jsdom';
+import { parse } from 'node-html-parser';
 
 import { McpServer } from '@modelcontextprotocol/sdk/server/mcp.js';
 import { StdioServerTransport } from '@modelcontextprotocol/sdk/server/stdio.js';
@@ -177,10 +177,10 @@ async function loadArticle(url) {
     }
 
     const html = await response.text();
-    const dom = new JSDOM(html);
-    const article = dom.window.document.querySelector('article');
+    const root = parse(html);
+    const article = root.querySelector('article');
     const td = new TurndownService();
-    return td.turndown(article);
+    return td.turndown(article?.innerHTML || '');
   } catch (err) {
     return `Error fetching ${url}: ${err.message}`;
   }

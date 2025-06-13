@@ -37,7 +37,7 @@
     "dotenv": "^16.5.0",
     "eventsource": "^4.0.0",
     "express": "^5.1.0",
-    "jsdom": "^26.1.0",
+    "node-html-parser": "^6.1.13",
     "node-fetch": "^3.3.2",
     "pubnub": "^9.6.0",
     "turndown": "^7.2.0",
