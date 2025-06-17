@@ -1,6 +1,17 @@
 PubNub Objects App Context Metadata
 ==================
 
+> **🔑 Feature Enablement Required**
+> 
+> To use App Context, you must enable and configure it in your PubNub Admin Portal:
+> 1. Navigate to your keyset settings
+> 2. Enable the **App Context** add-on
+> 3. Select a **Bucket Region** for data storage
+> 4. Configure **User/Channel/Membership Metadata Events** as needed
+> 5. Set **Referential Integrity** options if desired
+> 
+> Without proper enablement and configuration, App Context API calls will fail.
+
 App Context is a feature that lets you store and manage data (also called metadata) for users, channels, and relationships between them (membership) directly within the PubNub platform.
 
 This way, you can provide personalized and context-rich interactions in real-time applications without needing external databases, enhancing user experience while ensuring data security and compliance.

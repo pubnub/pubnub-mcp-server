@@ -1,6 +1,16 @@
 
 # PubNub Presence Best Practices
 
+> **🔑 Feature Enablement Required**
+> 
+> To use Presence, you must enable it in your PubNub Admin Portal:
+> 1. Navigate to your keyset settings
+> 2. Enable the **Presence** add-on
+> 3. Choose **"Selected channels only (recommended)"** instead of "All channels"
+> 4. Configure specific channel rules in **Presence Management**
+> 
+> Without enabling Presence and configuring channel rules, presence tracking will not work.
+
 This guide demonstrates best practices for implementing PubNub Presence functionality in JavaScript. The example shows how to build a real-time user counter that tracks how many users are currently connected to a channel.
 
 ## Configuration Prerequisites

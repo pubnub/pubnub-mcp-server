@@ -1,5 +1,14 @@
 # How to Use Message Actions with PubNub
 
+> **🔑 Feature Enablement Required**
+> 
+> To use Message Actions, you must first enable Message Persistence in your PubNub Admin Portal:
+> 1. Navigate to your keyset settings
+> 2. Enable the **Message Persistence** add-on
+> 3. Configure retention period as needed
+> 
+> Message Actions are automatically available once Message Persistence is enabled. Without Message Persistence, Message Actions cannot be used.
+
 PubNub's Message Actions feature allows you to attach metadata to published messages without modifying the original message content. This is perfect for implementing features like reactions, read receipts, message status updates, or any scenario where you need to add contextual information to existing messages.
 
 ## Overview

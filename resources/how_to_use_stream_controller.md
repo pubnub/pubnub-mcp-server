@@ -1,5 +1,13 @@
 # How to Use Stream Controller with PubNub (Multiplexing, Channel Groups, Wildcard Subscribe)
 
+> **🔑 Feature Enablement Required**
+> 
+> To use Channel Groups and Wildcard Subscribe features, you must enable Stream Controller in your PubNub Admin Portal:
+> 1. Navigate to your keyset settings
+> 2. Enable the **Stream Controller** add-on
+> 
+> Note: Basic channel multiplexing (subscribing to multiple named channels) is a core SDK capability and doesn't require Stream Controller.
+
 PubNub's Stream Controller is an add-on feature that allows a single client connection to efficiently subscribe to multiple channels, or even a dynamic set of channels, without needing to establish a separate TCP connection for each. This is crucial for scalability, performance, and reducing resource usage on both the client and server.
 
 Stream Controller encompasses three main capabilities:

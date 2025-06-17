@@ -1,5 +1,14 @@
 # How to Implement Access Control with PubNub Access Manager (PAM)
 
+> **🔑 Feature Enablement Required**
+> 
+> To use Access Manager, you must enable it in your PubNub Admin Portal:
+> 1. Navigate to your keyset settings
+> 2. Enable the **Access Manager** add-on
+> 3. Securely store your **Secret Key** - it's required for granting permissions
+> 
+> Without enabling Access Manager, all clients have unrestricted access to publish and subscribe.
+
 PubNub Access Manager (PAM) provides fine-grained control over who can access your PubNub resources (channels, channel groups, user IDs) and what actions they can perform (read, write, manage).
 
 ## Core Concepts of PAM

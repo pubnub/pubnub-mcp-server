@@ -1,5 +1,16 @@
 # PubNub Dart SDK App Context (Objects) Best Practices Guide
 
+> **🔑 Feature Enablement Required**
+> 
+> To use App Context in your Dart/Flutter application, you must first enable it in your PubNub Admin Portal:
+> 1. Navigate to your keyset settings
+> 2. Enable the **App Context** add-on
+> 3. Select a **Bucket Region** for data storage
+> 4. Configure **User/Channel/Membership Metadata Events** as needed
+> 5. Set **Referential Integrity** options if desired
+> 
+> Without proper enablement, all App Context API calls will fail with errors.
+
 ## Overview
 
 This guide provides practical implementation patterns for PubNub's App Context (Objects) API in the Dart/Flutter SDK. App Context allows you to store metadata about users, channels, and their relationships (memberships) directly in PubNub's infrastructure.
