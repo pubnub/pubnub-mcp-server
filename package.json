@@ -1,6 +1,6 @@
 {
   "name": "@pubnub/mcp",
-  "version": "1.0.81",
+  "version": "1.0.82",
   "type": "module",
   "description": "PubNub Model Context Protocol MCP Server for Cursor and Claude",
   "main": "index.js",
@@ -42,7 +42,8 @@
     "eventsource": "^4.0.0",
     "express": "^5.1.0",
     "node-html-parser": "^6.1.13",
-    "pubnub": "^9.6.0"
+    "pubnub": "^9.6.0",
+    "zod": "^3.25.67"
   },
   "overrides": {
     "react-native-url-polyfill": "npm:whatwg-url@^11.0.0"
