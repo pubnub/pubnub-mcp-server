@@ -238,10 +238,10 @@ The tool returns a JSON object containing:
 
 ```shell
 ## Install the MCP server if you have node >= 18
-claude mcp add pubnub -e PUBNUB_PUBLISH_KEY=your_publish_key -e PUBNUB_SUBSCRIBE_KEY=your_subscribe_key -- npx -y @pubnub/mcp
+claude mcp add --scope user pubnub -e PUBNUB_PUBLISH_KEY=your_publish_key -e PUBNUB_SUBSCRIBE_KEY=your_subscribe_key -- npx -y @pubnub/mcp
 
 ## Install the MCP server if you have node < 18 and need to point to the full path of node
-claude mcp add pubnub -e PUBNUB_PUBLISH_KEY=your_publish_key -e PUBNUB_SUBSCRIBE_KEY=your_subscribe_key -- /Users/stephen/.nvm/versions/node/v22.14.0/bin/node /Users/stephen/Projects/mcp-pubnub/index.js
+claude mcp add --scope user pubnub -e PUBNUB_PUBLISH_KEY=your_publish_key -e PUBNUB_SUBSCRIBE_KEY=your_subscribe_key -- /Users/stephen/.nvm/versions/node/v22.14.0/bin/node /Users/stephen/Projects/mcp-pubnub/index.js
 
 ## Install the MCP server using Docker
 # Ensure your PubNub keys are set as environment variables:
@@ -253,7 +253,7 @@ export PUBNUB_SUBSCRIBE_KEY=your_subscribe_key
 #   docker run --platform linux/arm64 -i pubnub/pubnub-mcp-server
 #   docker run --platform linux/amd64 -i pubnub/pubnub-mcp-server
 
-claude mcp add pubnub -- docker run -i \
+claude mcp add --scope user pubnub -- docker run -i \
   -e PUBNUB_PUBLISH_KEY=$PUBNUB_PUBLISH_KEY \
   -e PUBNUB_SUBSCRIBE_KEY=$PUBNUB_SUBSCRIBE_KEY \
   pubnub/pubnub-mcp-server
