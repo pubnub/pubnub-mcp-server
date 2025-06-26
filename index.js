@@ -1,7 +1,4 @@
 #!/usr/bin/env node
-import dotenv from 'dotenv';
-dotenv.config();
-
 import { fileURLToPath, URL } from 'url';
 import { dirname, join as pathJoin, extname, basename } from 'path';
 import fs from 'fs';
