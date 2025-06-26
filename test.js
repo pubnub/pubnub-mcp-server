@@ -322,6 +322,24 @@ async function main() {
     "Expected 'Sample chat app' in 'chat_sdk' result"
   );
   console.log("'read_pubnub_resources' tool with 'chat_sdk' returned content successfully.");
+  // Verify new examples (user creation note, channel helper, logout, reactions) present in chat_sdk guide
+  assert(
+    chatSdkResult.content[0].text.includes('**Note:** The Chat SDK requires you to explicitly create or retrieve users'),
+    "Expected user creation note in 'chat_sdk' result"
+  );
+  assert(
+    chatSdkResult.content[0].text.includes('async function getOrCreateDirectChannel'),
+    "Expected getOrCreateDirectChannel helper in 'chat_sdk' result"
+  );
+  assert(
+    chatSdkResult.content[0].text.includes('async function logout(chat)'),
+    "Expected logout cleanup snippet in 'chat_sdk' result"
+  );
+  assert(
+    chatSdkResult.content[0].text.includes('async function toggleReaction'),
+    "Expected reaction toggle snippet in 'chat_sdk' result"
+  );
+  console.log("New examples (user creation, channel helper, logout, reactions) present in 'chat_sdk' guide.");
   // Test for pubnub_chat_sdk resource
   console.log("Testing 'read_pubnub_resources' tool with document 'pubnub_chat_sdk'...");
   const pubnubChatSdkResult = await client.callTool({
@@ -338,6 +356,24 @@ async function main() {
   );
   console.log("'read_pubnub_resources' tool with 'pubnub_chat_sdk' returned content successfully.");
 
+  // Verify new examples (user creation note, channel helper, logout, reactions) present in pubnub_chat_sdk guide
+  assert(
+    pubnubChatSdkResult.content[0].text.includes('**Note:** The Chat SDK requires you to explicitly create or retrieve users'),
+    "Expected user creation note in 'pubnub_chat_sdk' result"
+  );
+  assert(
+    pubnubChatSdkResult.content[0].text.includes('async function getOrCreateDirectChannel'),
+    "Expected getOrCreateDirectChannel helper in 'pubnub_chat_sdk' result"
+  );
+  assert(
+    pubnubChatSdkResult.content[0].text.includes('async function logout(chat)'),
+    "Expected logout cleanup snippet in 'pubnub_chat_sdk' result"
+  );
+  assert(
+    pubnubChatSdkResult.content[0].text.includes('async function toggleReaction'),
+    "Expected reaction toggle snippet in 'pubnub_chat_sdk' result"
+  );
+  console.log("New examples (user creation, channel helper, logout, reactions) present in 'pubnub_chat_sdk' guide.");
   console.log("Testing 'read_pubnub_resources' tool with document 'how_to_use_app_context_objects_with_dart'...");
   const dartAppContextResult = await client.callTool({
     name: 'read_pubnub_resources',

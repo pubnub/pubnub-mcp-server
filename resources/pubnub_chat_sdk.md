@@ -138,7 +138,13 @@ This sample app uses two hardcoded sample users - a support agent and a customer
 
 When you run the app, you get randomly assigned an ID of one of these two users (`support-agent` or `supported-user`). Based on the provided details, the user metadata gets created ([`createUser()`](/docs/chat/chat-sdk/build/features/users/create)), updated ([`update()`](/docs/chat/chat-sdk/build/features/users/updates#update-user-details)), and retrieved ([`getUser()`](/docs/chat/chat-sdk/build/features/users/details#get-user-details)) from PubNub's App Context.
 
-    const randomizedUsers = Math.random() < 0.5 ? userData : userData.reverse()...const currentUser = await chat.currentUser.update(randomizedUsers[0].data)const interlocutor =  (await chat.getUser(randomizedUsers[1].id)) ||  (await chat.createUser(randomizedUsers[1].id, randomizedUsers[1].data))
+    const randomizedUsers = Math.random() < 0.5 ? userData : userData.reverse()
+    const currentUser = await chat.currentUser.update(randomizedUsers[0].data)
+    // Ensure users exist before creating channels
+    const interlocutor = (await chat.getUser(randomizedUsers[1].id)) ||
+                        (await chat.createUser(randomizedUsers[1].id, randomizedUsers[1].data))
+
+> **Note:** The Chat SDK requires you to explicitly create or retrieve users before using them in conversations. Use `chat.getUser()` with a fallback to `chat.createUser()` to enforce proper user management.
 
 The advantage of having that random logic here is that if you open the app in another browser window and get assigned another user, you can simulate a real-life discussion.
 
@@ -158,7 +164,30 @@ To simulate a conversation between two users, you'll need a direct channel type.
 
 The ID of the communication channel is hardcoded to `Support Channel`. When you run the app for the first time, you create the direct (1:1) channel ([`createDirectConversation()`](/docs/chat/chat-sdk/build/features/channels/create#create-direct-channel)) on the PubNub server.
 
-    const { channel } = await chat.createDirectConversation({        user: interlocutor,        channelData: { name: "Support Channel" },      })
+    const { channel } = await chat.createDirectConversation({
+      user: interlocutor,
+      channelData: { name: "Support Channel" },
+    })
+
+#### Channel caching and helper
+
+To avoid recreating channels on each load, you can cache active channels and use a helper:
+
+```js
+const activeChannels = {};
+
+async function getOrCreateDirectChannel(chat, interlocutor, channelData) {
+  const cacheKey = `${chat.currentUser.id}_${interlocutor.id}`;
+  if (activeChannels[cacheKey]) {
+    return activeChannels[cacheKey];
+  }
+  const { channel } = await chat.createDirectConversation({ user: interlocutor, channelData });
+  activeChannels[cacheKey] = channel;
+  return channel;
+}
+```
+
+Remember to clear the `activeChannels` cache on logout to free resources.
 
 To receive messages from another user, you must be subscribed to the channel, or "connected," as we call it. This guide uses the Chat SDK [`connect()`](/docs/chat/chat-sdk/build/features/channels/watch) method to listen for messages, called by the Getting Started app within `useEffect()` to update its messages state.
 
@@ -194,6 +223,33 @@ Next steps[​](#next-steps "Direct link to Next steps")
 
 You can extend this basic chat app by adding other features, like [message reactions](/docs/chat/chat-sdk/build/features/messages/reactions), [typing indicator](/docs/chat/chat-sdk/build/features/channels/typing-indicator), [mentions](/docs/chat/chat-sdk/build/features/users/mentions), and many more.
 
+### Logout cleanup
+
+If your app supports logout, disconnect all channels and clear local caches:
+
+```js
+async function logout(chat) {
+  await chat.disconnect();
+  Object.keys(activeChannels).forEach((key) => delete activeChannels[key]);
+}
+```
+
+### Message reactions (real-time sync)
+
+To toggle reactions and keep them synchronized in real time, use the following:
+
+```js
+// Toggle a reaction on a message
+async function toggleReaction(channel, messageTimetoken, actionType, value) {
+  await channel.sendReaction({ messageTimetoken, actionType, value });
+}
+
+// Listen for real-time reaction events
+channel.on('reaction', ({ event, data }) => {
+  console.log(`Reaction ${event}:`, data);
+  // Use data.messageTimetoken to find and update your message in local state
+});
+```
 You can also try running another sample and see what a [group chat in React Native](https://github.com/pubnub/js-chat/tree/master/samples/react-native-group-chat) can look like.
 
 Head to the [Features](/docs/chat/chat-sdk/build/features/channels/create) section to explore everything the Chat SDK offers.
