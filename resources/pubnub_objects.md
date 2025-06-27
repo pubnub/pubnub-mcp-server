@@ -221,6 +221,8 @@ You can create, edit, or delete channels and their data using [BizOps Workspace]
 
 The App Context service allows you to persist metadata about [channels](#channel-metadata), [channel memberships](/docs/general/metadata/membership-metadata), [channel members](/docs/general/metadata/membership-metadata#channel-member), and [users](/docs/general/setup/users-and-devices). The `name` and `description` are the predefined properties for channel metadata. Additionally, there is a `custom` property that you can use to store any custom attribute about a channel as per your business needs.
 
+IMPORTANT: Custom attributes only support scalar values, if you want to store JSON in a custom attribute you'll need to stringify.
+
 ##### Illuminate & sensitive data
 
 You can capture and track your App Context data in [Illuminate](/docs/illuminate/basics) for real-time decisioning and analytics. Illuminate captures all data you define with JSON paths and [map](/docs/illuminate/business-objects/basics#data-mapping) when creating measures and dimensions for the Business Objects. For this reason, make sure you don’t include any PII data (e-mail address, profile URL, or IP address) in the `custom` fields of your App Context mappings.
