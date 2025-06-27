@@ -404,6 +404,33 @@ async function main() {
   );
   console.log("'read_pubnub_resources' tool with 'dart' returned content successfully.");
 
+  console.log("Testing 'read_pubnub_resources' tool with document 'how_to_use_channel_filters_subscribe_filters_and_message_filters'...");
+  const channelFiltersResult = await client.callTool({
+    name: 'read_pubnub_resources',
+    arguments: { document: 'how_to_use_channel_filters_subscribe_filters_and_message_filters' },
+  });
+  assert(
+    Array.isArray(channelFiltersResult.content) && channelFiltersResult.content.length > 0,
+    "'read_pubnub_resources' with 'how_to_use_channel_filters_subscribe_filters_and_message_filters' returned no content."
+  );
+  assert(
+    channelFiltersResult.content[0].text.includes('Subscribe Filters'),
+    "Expected 'Subscribe Filters' in 'how_to_use_channel_filters_subscribe_filters_and_message_filters' result"
+  );
+  assert(
+    channelFiltersResult.content[0].text.includes('Message Filters'),
+    "Expected 'Message Filters' in 'how_to_use_channel_filters_subscribe_filters_and_message_filters' result"
+  );
+  assert(
+    channelFiltersResult.content[0].text.includes('Filter Expression Language'),
+    "Expected 'Filter Expression Language' in 'how_to_use_channel_filters_subscribe_filters_and_message_filters' result"
+  );
+  assert(
+    channelFiltersResult.content[0].text.includes('message.priority == "high"'),
+    "Expected filter expression example in 'how_to_use_channel_filters_subscribe_filters_and_message_filters' result"
+  );
+  console.log("'read_pubnub_resources' tool with 'how_to_use_channel_filters_subscribe_filters_and_message_filters' returned content successfully.");
+
   // Test error handling for 'read_pubnub_resources' tool with invalid document
   console.log("Testing 'read_pubnub_resources' tool with invalid document...");
   try {
