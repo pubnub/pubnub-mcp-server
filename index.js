@@ -19,6 +19,10 @@ const __dirname = dirname(__filename);
 
 const pkg = JSON.parse(fs.readFileSync(pathJoin(__dirname, 'package.json'), 'utf8'));
 
+// Parse command line arguments
+const args = process.argv.slice(2);
+const isChatSdkMode = args.includes('--chat-sdk');
+
 // Create and configure PubNub instance with userId = 'pubnub_mcp'
 const pubnub = new PubNub({
   publishKey: process.env.PUBNUB_PUBLISH_KEY || 'demo',
@@ -968,9 +972,22 @@ toolDefinitions['pubnub_subscribe_and_receive_messages'] = {
 };
 
 // Helper function to register all tools to a server instance
-function registerAllTools(serverInstance) {
+function registerAllTools(serverInstance, chatSdkMode = false) {
+  // Tools to exclude when in chat SDK mode
+  const chatSdkExcludedTools = [
+    'read_pubnub_sdk_docs',
+    'write_pubnub_app', 
+    'read_pubnub_resources',
+    'manage_pubnub_account'
+  ];
+
   for (const toolName in toolDefinitions) {
     if (toolHandlers[toolName]) {
+      // Skip excluded tools when in chat SDK mode
+      if (chatSdkMode && chatSdkExcludedTools.includes(toolName)) {
+        continue;
+      }
+
       // Special handling for chat SDK docs tool
       if (toolName === 'read_pubnub_chat_sdk_docs' && 
           (chatSdkLanguages.length === 0 || chatSdkTopics.length === 0)) {
@@ -989,7 +1006,7 @@ function registerAllTools(serverInstance) {
 }
 
 // Register all tools to the main server
-registerAllTools(server);
+registerAllTools(server, isChatSdkMode);
 
 // Function that returns instructions for creating a PubNub application using the user's API keys
 function getPubNubInitSDKInstructions() {
@@ -1124,7 +1141,7 @@ if (HTTP_PORT) {
       });
 
       // Register all the same tools for this session server
-      registerAllTools(sessionServer);
+      registerAllTools(sessionServer, isChatSdkMode);
 
       // Connect to the MCP server
       await sessionServer.connect(transport);
