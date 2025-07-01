@@ -186,6 +186,107 @@ docker run -i \
   pubnub/pubnub-mcp-server
 ```
 
+## Chat SDK Mode
+
+The PubNub MCP server supports a specialized **Chat SDK Mode** that focuses exclusively on PubNub Chat SDK documentation and functionality. When enabled with the `--chat-sdk` flag, the server provides streamlined access to Chat SDK resources while excluding general PubNub SDK tools.
+
+### Key Features
+
+- **Focused Chat SDK Documentation**: Access official PubNub Chat SDK docs for JavaScript, Kotlin, Swift, Unity, and Unreal
+- **Chat-Specific Topics**: Configuration, chat, channel, user, message, membership, thread-channel, thread-message, message-draft, event, access-control, and glossary
+- **Streamlined Tool Set**: Excludes general PubNub tools to reduce complexity and focus on Chat SDK functionality
+- **Same Real-Time Capabilities**: Retains message publishing, subscription, history, and presence tools
+
+### Usage
+
+#### Command Line
+```bash
+# Enable Chat SDK mode with NPX
+npx -y @pubnub/mcp --chat-sdk
+
+# Enable Chat SDK mode with Node.js directly
+node index.js --chat-sdk
+```
+
+#### Cursor IDE Configuration
+
+**Global Configuration** (`~/.cursor/mcp.json`):
+```json
+{
+  "mcpServers": {
+    "pubnub-chat": {
+      "command": "npx",
+      "args": ["-y", "@pubnub/mcp", "--chat-sdk"],
+      "env": {
+        "PUBNUB_PUBLISH_KEY": "YOUR_PUBLISH_KEY",
+        "PUBNUB_SUBSCRIBE_KEY": "YOUR_SUBSCRIBE_KEY"
+      }
+    }
+  }
+}
+```
+
+**Project Configuration** (`.cursor/mcp.json`):
+```json
+{
+  "mcpServers": {
+    "pubnub-chat": {
+      "command": "npx",
+      "args": ["-y", "@pubnub/mcp", "--chat-sdk"],
+      "env": {
+        "PUBNUB_PUBLISH_KEY": "YOUR_PUBLISH_KEY",
+        "PUBNUB_SUBSCRIBE_KEY": "YOUR_SUBSCRIBE_KEY"
+      }
+    }
+  }
+}
+```
+
+#### Claude Code Integration
+```bash
+# Install Chat SDK mode MCP server
+claude mcp add --scope user pubnub-chat -e PUBNUB_PUBLISH_KEY=your_publish_key -e PUBNUB_SUBSCRIBE_KEY=your_subscribe_key -- npx -y @pubnub/mcp --chat-sdk
+```
+
+#### Docker Usage
+```bash
+# Set environment variables
+export PUBNUB_PUBLISH_KEY=your_publish_key
+export PUBNUB_SUBSCRIBE_KEY=your_subscribe_key
+
+# Run with Docker in Chat SDK mode
+docker run -i \
+  -e PUBNUB_PUBLISH_KEY=$PUBNUB_PUBLISH_KEY \
+  -e PUBNUB_SUBSCRIBE_KEY=$PUBNUB_SUBSCRIBE_KEY \
+  pubnub/pubnub-mcp-server --chat-sdk
+```
+
+### Available Tools in Chat SDK Mode
+
+**Included Tools:**
+- `read_pubnub_chat_sdk_docs` - Access Chat SDK documentation for specific languages and topics
+- `publish_pubnub_message` - Publish messages to PubNub channels
+- `get_pubnub_messages` - Fetch historical messages from channels
+- `get_pubnub_presence` - Retrieve real-time presence information
+- `pubnub_subscribe_and_receive_messages` - Subscribe and receive real-time messages
+
+**Excluded Tools:**
+- `read_pubnub_sdk_docs` - General PubNub SDK documentation
+- `write_pubnub_app` - PubNub app templates and setup instructions
+- `read_pubnub_resources` - General PubNub conceptual guides
+- `manage_pubnub_account` - PubNub account management
+
+### Example Chat SDK Prompts
+
+- "Show me the JavaScript Chat SDK documentation for user management"
+- "Get the Swift Chat SDK configuration documentation"
+- "How do I implement threaded messaging with the Kotlin Chat SDK?"
+- "Show me the Unity Chat SDK documentation for message handling"
+- "Explain channel management in the Unreal Chat SDK"
+- "Get Chat SDK documentation for implementing access control"
+- "Show me how to handle message drafts in the JavaScript Chat SDK"
+- "What are the membership features available in the Chat SDK?"
+
 ## Using in Cursor IDE
 
 1. Restart Cursor IDE or open a new session.
