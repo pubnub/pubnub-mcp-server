@@ -1,17 +1,8 @@
-On this page
-# Channel Groups API for Python SDK
+# Channel Groups API – Python SDK
 
-[Channel groups](/docs/general/channels/subscribe#channel-groups) allow PubNub developers to bundle thousands of [channels](/docs/general/channels/overview) into a group that can be identified by a name. These channel groups can then be subscribed to, receiving data from the many back-end channels the channel group contains.
+Channel Groups bundle up to thousands of channels under a single name that you can **subscribe** to (publishing is still per-channel).
 
-##### Channel group operations
-
-You can't publish to a channel group. You can only subscribe to it. To publish within the channel group, you need to publish to each channel individually.
-
-##### Request execution and return values
-
-You can decide whether to perform the Python SDK operations synchronously or asynchronously.
-
-`.sync()` returns an `Envelope` object, which has two fields: `Envelope.result`, whose type differs for each API, and `Envelope.status` of type `PnStatus`.
+### Sync vs. Async request execution
 
 ```
 `pubnub.publish() \  
@@ -20,8 +11,6 @@ You can decide whether to perform the Python SDK operations synchronously or asy
     .sync()  
 `
 ```
-
-`.pn_async(callback)` returns `None` and passes the values of `Envelope.result` and `Envelope.status` to a callback you must define beforehand.
 
 ```
 `def my_callback_function(result, status):  
@@ -34,21 +23,18 @@ pubnub.publish() \
 `
 ```
 
-## Add Channels[​](#add-channels)
+`sync()` → `Envelope` with `result` (API-specific) and `status` (`PnStatus`).  
+`pn_async(cb)` → `None`; your `cb(result, status)` receives the same objects.
 
-##### Requires Stream Controller add-on
+---
 
-This method requires that the *Stream Controller* add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
+## Add Channels
 
-This function adds a channel to a channel group.
+*Requires the **Stream Controller** add-on.*
 
-### Method(s)[​](#methods)
+Maximum 200 channels per call.
 
-`Adding Channels` is accomplished by using the following method(s) in the Python SDK:
-
-##### Maximum number of channels
-
-`200 channels` can be added to the `channel group` per API call.
+#### Method
 
 ```
 `pubnub.add_channel_to_channel_group() \  
@@ -57,19 +43,13 @@ This function adds a channel to a channel group.
 `
 ```
 
-*  requiredParameterDescription`channels` *Type: String | List | TupleThe `channel` to add to the `channel_group`.`channel_group` *Type: StringThe `channel_group` to add the `channels` to.
+Parameters  
+• `channels` String | List | Tuple – channels to add  
+• `channel_group` String – target group
 
-### Basic Usage[​](#basic-usage)
+#### Examples
 
-#### Add Channels[​](#add-channels-1)
-
-##### Reference code
-
-This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
-
-- Builder Pattern
-- Named Arguments
-
+Builder pattern
 ```
 `import os  
 from pubnub.pnconfiguration import PNConfiguration  
@@ -88,7 +68,8 @@ def add_channels_to_group(pubnub: PubNub):
         print(f"Error: {e}")  
 `
 ```
-show all 33 lines
+
+Named arguments
 ```
 `import os  
 from pubnub.pnconfiguration import PNConfiguration  
@@ -107,32 +88,23 @@ def add_channels_to_group(pubnub: PubNub):
         print(f"Error: {e}")  
 `
 ```
-show all 34 lines
 
-### Returns[​](#returns)
+#### Returns
 
-The `add_channel_to_channel_group()` operation returns an `Envelope` which contains the following fields:
-
-FieldTypeDescriptionresult[`PNChannelGroupsAddChannelResult`](#pnchannelgroupsaddchannelresult)A detailed object containing the result of the operation.status`PNStatus`A status object with additional information.
-
-#### PNChannelGroupsAddChannelResult[​](#pnchannelgroupsaddchannelresult)
+`Envelope.result` → `PNChannelGroupsAddChannelResult`
 
 ```
 `Channel successfully added  
 `
 ```
 
-## List Channels[​](#list-channels)
+---
 
-##### Requires Stream Controller add-on
+## List Channels
 
-This method requires that the *Stream Controller* add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
+*Requires the **Stream Controller** add-on.*
 
-This function lists all the channels of the channel group.
-
-### Method(s)[​](#methods-1)
-
-`Listing Channels` is accomplished by using the following method(s) in the Python SDK:
+#### Method
 
 ```
 `pubnub.list_channels_in_channel_group() \  
@@ -140,15 +112,12 @@ This function lists all the channels of the channel group.
 `
 ```
 
-*  requiredParameterDescription`channel_group` *Type: StringThe `channel group` to fetch channels.
+Parameter  
+• `channel_group` String – group to query
 
-### Basic Usage[​](#basic-usage-1)
+#### Examples
 
-#### List Channels[​](#list-channels-1)
-
-- Builder Pattern
-- Named Arguments
-
+Builder pattern
 ```
 `result = pubnub.list_channels_in_channel_group() \  
     .channel_group("cg1") \  
@@ -156,32 +125,26 @@ This function lists all the channels of the channel group.
 `
 ```
 
+Named arguments
 ```
 `result = pubnub.list_channels_in_channel_group(channel_group="cg1").sync()  
 `
 ```
 
-### Returns[​](#returns-1)
+#### Returns
 
-The `list_channels_in_channel_group()` operation returns an `Envelope` which contains the following fields:
+`Envelope.result` → `PNChannelGroupsListResult`
 
-FieldTypeDescriptionresult[`PNChannelGroupsListResult`](#pnchannelgroupslistresult)A detailed object containing the result of the operation.status`PNStatus`A status object with additional information.
+Fields:  
+• `channels` Dictionary – list of channels in the group
 
-#### PNChannelGroupsListResult[​](#pnchannelgroupslistresult)
+---
 
-FieldTypeDescription`channels`DictionaryA list of channels in a channel group.
+## Remove Channels
 
-## Remove Channels[​](#remove-channels)
+*Requires the **Stream Controller** add-on.*
 
-##### Requires Stream Controller add-on
-
-This method requires that the *Stream Controller* add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
-
-This function removes the channels from the channel group.
-
-### Method(s)[​](#methods-2)
-
-`Removing Channels` is accomplished by using the following method(s) in the Python SDK:
+#### Method
 
 ```
 `pubnub.remove_channel_from_channel_group() \  
@@ -190,15 +153,13 @@ This function removes the channels from the channel group.
 `
 ```
 
-*  requiredParameterDescription`channels` *Type: String | List | TupleThe `channels` to remove from the channel group.`channel_group` *Type: StringSpecifies `channel_group` to remove the `channels` from.
+Parameters  
+• `channels` String | List | Tuple – channels to remove  
+• `channel_group` String – source group
 
-### Basic Usage[​](#basic-usage-2)
+#### Examples
 
-#### Remove channels[​](#remove-channels-1)
-
-- Builder Pattern
-- Named Arguments
-
+Builder pattern
 ```
 `pubnub.remove_channel_from_channel_group() \  
     .channels(["son", "daughter"]) \  
@@ -207,50 +168,40 @@ This function removes the channels from the channel group.
 `
 ```
 
+Named arguments
 ```
 `pubnub.remove_channel_from_channel_group(channels=["ch1", "ch2"], channel_group="cg1").sync()  
 `
 ```
 
-### Returns[​](#returns-2)
+#### Returns
 
-The `remove_channel_from_channel_group()` operation returns an `Envelope` which contains the following fields:
-
-FieldTypeDescriptionresult[`PNChannelGroupsRemoveChannelResult`](#pnchannelgroupsremovechannelresult)A detailed object containing the result of the operation.status`PNStatus`A status object with additional information.
-
-#### PNChannelGroupsRemoveChannelResult[​](#pnchannelgroupsremovechannelresult)
+`Envelope.result` → `PNChannelGroupsRemoveChannelResult`
 
 ```
 `Channel successfully removed  
 `
 ```
 
-## Delete Channel Group[​](#delete-channel-group)
+---
 
-##### Requires Stream Controller add-on
+## Delete Channel Group
 
-This method requires that the *Stream Controller* add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
+*Requires the **Stream Controller** add-on.*
 
-This function removes the channel group.
-
-### Method(s)[​](#methods-3)
-
-`Deleting Channel Group` is accomplished by using the following method(s) in the Python SDK:
+#### Method
 
 ```
 `pubnub.remove_channel_group(channel_group)  
 `
 ```
 
-*  requiredParameterDescription`channel_group` *Type: StringThe `channel group` to remove.
+Parameter  
+• `channel_group` String – group to delete
 
-### Basic Usage[​](#basic-usage-3)
+#### Examples
 
-#### Delete Channel Group[​](#delete-channel-group-1)
-
-- Builder Pattern
-- Named Arguments
-
+Builder pattern
 ```
 `pubnub.remove_channel_group() \  
     .channel_group("cg1") \  
@@ -258,20 +209,18 @@ This function removes the channel group.
 `
 ```
 
+Named arguments
 ```
 `pubnub.remove_channel_group(channel_group="cg1").sync()  
 `
 ```
 
-### Returns[​](#returns-3)
+#### Returns
 
-The `remove_channel_group()` operation returns an `Envelope` which contains the following fields:
-
-FieldTypeDescriptionresult[`PNChannelGroupsRemoveGroupResult`](#pnchannelgroupsremovegroupresult)A detailed object containing the result of the operation.status`PNStatus`A status object with additional information.
-
-#### PNChannelGroupsRemoveGroupResult[​](#pnchannelgroupsremovegroupresult)
+`Envelope.result` → `PNChannelGroupsRemoveGroupResult`
 
 ```
 `Group successfully removed**`
 ```
-Last updated on Apr 29, 2025**
+
+_Last updated: Apr 29 2025_

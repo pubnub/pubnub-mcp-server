@@ -1,23 +1,14 @@
-On this page
-# Presence API for Python SDK
+# Presence API – Python SDK (Condensed)
 
-Presence enables you to track the online and offline status of users and devices in real time and store custom state information. Presence provides authoritative information on:
+Presence add-on must be enabled for your keys. All SDK operations return an `Envelope` with  
+• `Envelope.result` – operation-specific.  
+• `Envelope.status` – `PNStatus`.
 
-- When a user has joined or left a channel
+---
 
-- Who, and how many, users are subscribed to a particular channel
+## Request execution
 
-- Which channel(s) an individual user is subscribed to
-
-- Associated state information for these users
-
-Learn more about our Presence feature [here](/docs/general/presence/overview).
-
-##### Request execution and return values
-
-You can decide whether to perform the Python SDK operations synchronously or asynchronously.
-
-`.sync()` returns an `Envelope` object, which has two fields: `Envelope.result`, whose type differs for each API, and `Envelope.status` of type `PnStatus`.
+Synchronous  
 
 ```
 `pubnub.publish() \  
@@ -27,7 +18,7 @@ You can decide whether to perform the Python SDK operations synchronously or asy
 `
 ```
 
-`.pn_async(callback)` returns `None` and passes the values of `Envelope.result` and `Envelope.status` to a callback you must define beforehand.
+Asynchronous  
 
 ```
 `def my_callback_function(result, status):  
@@ -40,23 +31,13 @@ pubnub.publish() \
 `
 ```
 
-## Here Now[​](#here-now)
+---
 
-##### Requires Presence
+## Here Now
 
-This method requires that the Presence add-on is [enabled](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) for your key in the [Admin Portal](https://admin.pubnub.com/).   
-  
- For information on how to receive presence events and what those events are, refer to [Presence Events](/docs/general/presence/presence-events#subscribe-to-presence-channel).
+Cache: 3 s
 
-You can obtain information about the current state of a channel including a list of unique user-ids currently subscribed to the channel and the total occupancy count of the channel by calling the `here_now()` function in your application.
-
-##### Cache
-
-This method has a 3 second response cache time.
-
-### Method(s)[​](#methods)
-
-To call `Here Now` you can use the following method(s) in the Python SDK:
+Method  
 
 ```
 `pubnub.here_now() \  
@@ -67,22 +48,21 @@ To call `Here Now` you can use the following method(s) in the Python SDK:
 `
 ```
 
-*  requiredParameterDescription`channels`Type: String | List | TupleDefault:  
-n/aThe `channels` to get the here now details.`channel_groups`Type: String | List | TupleDefault:  
-n/aThe `channel groups` to get the here now details.`include_state`Type: BooleanDefault:  
-`False`If `True`, the response will include the presence states of the users for channels/channelGroups.`include_uuids`Type: BooleanDefault:  
-`True`If `True`, the response will include the UUIDs of the connected clients.
+Parameters  
+• `channels` – target channels.  
+• `channel_groups` – target groups.  
+• `include_state` (bool, default False).  
+• `include_uuids` (bool, default True).
 
-### Basic Usage[​](#basic-usage)
+Result (`PNHereNowResult`)  
+• `total_channels` (int)  
+• `total_occupancy` (int)  
+• `channels` → [`PNHereNowChannelData`]
 
-#### Get a list of UUIDs subscribed to channel[​](#get-a-list-of-uuids-subscribed-to-channel)
+`PNHereNowChannelData` → `channel_name`, `occupancy`, `occupants` (list of [`PNHereNowOccupantData`])  
+`PNHereNowOccupantData` → `uuid`, `state`
 
-##### Reference code
-
-This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
-
-- Builder Pattern
-- Named Arguments
+Reference snippet  
 
 ```
 `import os  
@@ -91,65 +71,17 @@ from pubnub.pubnub import PubNub
   
   
 def main():  
-    # Configuration for PubNub instance  
     pn_config = PNConfiguration()  
     pn_config.subscribe_key = os.getenv('SUBSCRIBE_KEY', 'demo')  
     pn_config.user_id = os.getenv('USER_ID', 'my_custom_user_id')  
   
-    # Initialize PubNub client  
     pubnub = PubNub(pn_config)  
   
     # Get here_now details  
 `
 ```
-show all 37 lines
-```
-`import os  
-from pubnub.pnconfiguration import PNConfiguration  
-from pubnub.pubnub import PubNub  
-  
-  
-def main():  
-    # Configuration for PubNub instance  
-    pn_config = PNConfiguration()  
-    pn_config.subscribe_key = os.getenv('SUBSCRIBE_KEY', 'demo')  
-    pn_config.user_id = os.getenv('USER_ID', 'my_custom_user_id')  
-  
-    # Initialize PubNub client  
-    pubnub = PubNub(pn_config)  
-  
-    # Get here_now details  
-`
-```
-show all 37 lines
 
-### Returns[​](#returns)
-
-The `here_now()` operation returns an `Envelope` which contains the following fields:
-
-FieldTypeDescriptionresult[`PNHereNowResult`](#pnherenowresult)A detailed object containing the result of the operation.status`PNStatus`A status object with additional information.
-
-#### PNHereNowResult[​](#pnherenowresult)
-
-FieldTypeDescription`total_channels`IntTotal `channels`.`total_occupancy`IntTotal `occupancy``channels`DictionaryA dictionary with values of [`PNHereNowChannelData`](#pnherenowchanneldata) for each channel.
-
-#### PNHereNowChannelData[​](#pnherenowchanneldata)
-
-FieldTypeDescription`channel_name`String`channel` name.`occupancy`Int`occupancy` of the `channel`.`occupants`ListA list of [`PNHereNowOccupantData`](#pnherenowoccupantdata).
-
-#### PNHereNowOccupantData[​](#pnherenowoccupantdata)
-
-FieldTypeDescription`uuid`String`uuid` of the user.`state`Dictionary`state` of the user.
-
-### Other Examples[​](#other-examples)
-
-#### Returning State[​](#returning-state)
-
-##### Requires Presence
-
-This method requires that the Presence add-on is [enabled](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) for your key in the [Admin Portal](https://admin.pubnub.com/).   
-  
- For information on how to receive presence events and what those events are, refer to [Presence Events](/docs/general/presence/presence-events#subscribe-to-presence-channel).
+Return state  
 
 ```
 `envelope = pubnub.here_now() \  
@@ -160,7 +92,7 @@ This method requires that the Presence add-on is [enabled](https://support.pubnu
 `
 ```
 
-##### Example Response[​](#example-response)
+Example response  
 
 ```
 `{  
@@ -180,17 +112,8 @@ This method requires that the Presence add-on is [enabled](https://support.pubnu
     total_occupancy: 1  
 `
 ```
-show all 16 lines
 
-#### Return Occupancy Only[​](#return-occupancy-only)
-
-##### Requires Presence
-
-This method requires that the Presence add-on is [enabled](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) for your key in the [Admin Portal](https://admin.pubnub.com/).   
-  
- For information on how to receive presence events and what those events are, refer to [Presence Events](/docs/general/presence/presence-events#subscribe-to-presence-channel).
-
-You can return only the `occupancy` information for a single channel by specifying the channel and setting `UUIDs` to `False`:
+Occupancy-only  
 
 ```
 `envelope = pubnub.here_now() \  
@@ -200,8 +123,6 @@ You can return only the `occupancy` information for a single channel by specifyi
     .sync()  
 `
 ```
-
-##### Example Response[​](#example-response-1)
 
 ```
 `{  
@@ -216,7 +137,7 @@ You can return only the `occupancy` information for a single channel by specifyi
 `
 ```
 
-#### Here Now for Channel Groups[​](#here-now-for-channel-groups)
+Channel groups  
 
 ```
 `envelope = pubnub.here_now() \  
@@ -226,8 +147,6 @@ You can return only the `occupancy` information for a single channel by specifyi
     .sync()  
 `
 ```
-
-##### Example Response[​](#example-response-2)
 
 ```
 `{  
@@ -247,25 +166,12 @@ You can return only the `occupancy` information for a single channel by specifyi
                 uuid: "123123234t234f34fq3dq",  
 `
 ```
-show all 35 lines
 
-## Where Now[​](#where-now)
+---
 
-##### Requires Presence
+## Where Now
 
-This method requires that the Presence add-on is [enabled](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) for your key in the [Admin Portal](https://admin.pubnub.com/).   
-  
- For information on how to receive presence events and what those events are, refer to [Presence Events](/docs/general/presence/presence-events#subscribe-to-presence-channel).
-
-You can obtain information about the current list of channels to which a UUID is subscribed to by calling the `where_now()` function in your application.
-
-##### Timeout events
-
-If the app is killed/crashes and restarted (or the page containing the PubNub instance is refreshed on the browser) within the heartbeat window no timeout event is generated.
-
-### Method(s)[​](#methods-1)
-
-To call `where_now()` you can use the following method(s) in the Python SDK:
+Method  
 
 ```
 `pubnub.where_now() \  
@@ -273,35 +179,16 @@ To call `where_now()` you can use the following method(s) in the Python SDK:
 `
 ```
 
-*  requiredParameterDescription`uuid`Type: String`uuid` to get info on.
+Parameter: `uuid` – target UUID.
 
-### Basic Usage[​](#basic-usage-1)
-
-You simply need to define the `uuid` and the `callback` function to be used to send the data to as in the example below.
-
-#### Get a list of channels a UUID is subscribed to[​](#get-a-list-of-channels-a-uuid-is-subscribed-to)
+Basic usage  
 
 ```
 `envelope = pubnub.where_now().sync()  
 `
 ```
 
-### Returns[​](#returns-1)
-
-The `where_now()` operation returns an `Envelope` which contains the following fields:
-
-FieldTypeDescriptionresult[`PNWhereNowResult`](#pnwherenowresult)A detailed object containing the result of the operation.status`PNStatus`A status object with additional information.
-
-#### PNWhereNowResult[​](#pnwherenowresult)
-
-FieldTypeDescription`channels`ListThe list of `channels` where the `UUID` is present.
-
-### Other Examples[​](#other-examples-1)
-
-#### Obtain information about the current list of channels of some other UUID[​](#obtain-information-about-the-current-list-of-channels-of-some-other-uuid)
-
-- Builder Pattern
-- Named Arguments
+Other examples  
 
 ```
 `envelope = pubnub.where_now() \  
@@ -315,25 +202,15 @@ FieldTypeDescription`channels`ListThe list of `channels` where the `UUID` is pre
 `
 ```
 
-## User State[​](#user-state)
+Result (`PNWhereNowResult`) → `channels` (list)
 
-##### Requires Presence
+---
 
-This method requires that the Presence add-on is [enabled](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) for your key in the [Admin Portal](https://admin.pubnub.com/).   
-  
- For information on how to receive presence events and what those events are, refer to [Presence Events](/docs/general/presence/presence-events#subscribe-to-presence-channel).
+## User State
 
-Clients can set a dynamic custom state (score, game state, location) for their users on one or more channels and store it on a channel as long as the user stays subscribed.
+Presence state must be a serializable `dict`.
 
-The state is not persisted, and when the client disconnects, the state data is lost. For more information, refer to [Presence State](/docs/general/presence/presence-state).
-
-##### Presence state format
-
-Presence state must be expressed as a `dict`. When calling `set_state`, be sure to supply an initialized `dict` which can be serialized.
-
-### Method(s)[​](#methods-2)
-
-#### Set State[​](#set-state)
+### Set State
 
 ```
 `pubnub.set_state() \  
@@ -343,9 +220,7 @@ Presence state must be expressed as a `dict`. When calling `set_state`, be sure 
 `
 ```
 
-*  requiredParameterDescription`channels`Type: String | List | Tuple`channels` to set `state`.`channel_groups`Type: String | List | Tuple`channel groups` to set `state`.`state`Type: Dictionary`state` to set.
-
-#### Get State[​](#get-state)
+### Get State
 
 ```
 `pubnub.get_state() \  
@@ -355,14 +230,11 @@ Presence state must be expressed as a `dict`. When calling `set_state`, be sure 
 `
 ```
 
-*  requiredParameterDescription`channels`Type: String | List | Tuple`channels` to get `state`.`channel_groups`Type: String | List | Tuple`channel groups` to get `state`.`uuid`Type: String`uuid` to get state from.
+Return types  
+• `PNSetStateResult` → `state` (dict)  
+• `PNGetStateResult` → `channels` (dict)
 
-### Basic Usage[​](#basic-usage-2)
-
-#### Set State[​](#set-state-1)
-
-- Builder Pattern
-- Named Arguments
+Examples – Set state  
 
 ```
 `my_state = {  
@@ -380,10 +252,7 @@ envelope = pubnub.set_state() \
 `
 ```
 
-#### Get State[​](#get-state-1)
-
-- Builder Pattern
-- Named Arguments
+Get state  
 
 ```
 `envelope = pubnub.get_state() \  
@@ -398,30 +267,7 @@ envelope = pubnub.set_state() \
 `
 ```
 
-### Returns[​](#returns-2)
-
-The `set_state()` operation returns an `Envelope` which contains the following fields:
-
-FieldTypeDescriptionresult[`PNSetStateResult`](#pnsetstateresult)A detailed object containing the result of the operation.status`PNStatus`A status object with additional information.
-
-#### PNSetStateResult[​](#pnsetstateresult)
-
-FieldTypeDescription`state`DictionaryDictionary of UUIDs and the user states.
-
-The `get_state()` operation returns an `Envelope` which contains the following fields:
-
-FieldTypeDescriptionresult[`PNGetStateResult`](#pngetstateresult)A detailed object containing the result of the operation.status`PNStatus`A status object with additional information.
-
-#### PNGetStateResult[​](#pngetstateresult)
-
-FieldTypeDescription`channels`DictionaryDictionary of `channels` and the user states.
-
-### Other Examples[​](#other-examples-2)
-
-#### Set state for channels in channel group[​](#set-state-for-channels-in-channel-group)
-
-- Builder Pattern
-- Named Arguments
+Channel-group state  
 
 ```
 `my_state = {  
@@ -439,7 +285,7 @@ envelope = pubnub.set_state() \
 `
 ```
 
-The above code would return the following response to the client:
+Example response  
 
 ```
 `{**    first  : "Robert",  
@@ -449,4 +295,5 @@ The above code would return the following response to the client:
 }  
 `
 ```
-Last updated on Jun 16, 2025**
+
+*Updated Jun 16 2025*

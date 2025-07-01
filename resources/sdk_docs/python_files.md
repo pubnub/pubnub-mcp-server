@@ -1,15 +1,15 @@
-On this page
-# File Sharing API for Python SDK
+# PubNub Python SDK – File APIs (condensed)
 
-Allows users to upload and share files. You can upload any file of up to 5 MB in size. This feature is commonly used in social apps to share images, or in medical apps to share medical records for patients.
+Supports files ≤ 5 MB.  
+File uploads are stored for your key; all channel subscribers receive a file event (ID, filename, optional description).
 
-When a file is uploaded on a `channel`, it's stored and managed using a storage service, and associated with your key. Subscribers to that `channel` receive a file event which contains a file `ID`, `filename`, and optional `description`.
+---
 
-##### Request execution and return values
+## Synchronous vs. Asynchronous execution
 
-You can decide whether to perform the Python SDK operations synchronously or asynchronously.
-
-`.sync()` returns an `Envelope` object, which has two fields: `Envelope.result`, whose type differs for each API, and `Envelope.status` of type `PnStatus`.
+`.sync()` → `Envelope` with  
+• `Envelope.result` (API-specific)  
+• `Envelope.status` (`PNStatus`)
 
 ```
 `pubnub.publish() \  
@@ -19,7 +19,7 @@ You can decide whether to perform the Python SDK operations synchronously or asy
 `
 ```
 
-`.pn_async(callback)` returns `None` and passes the values of `Envelope.result` and `Envelope.status` to a callback you must define beforehand.
+`.pn_async(cb)` → `None`, results delivered to callback.
 
 ```
 `def my_callback_function(result, status):  
@@ -32,17 +32,11 @@ pubnub.publish() \
 `
 ```
 
-## Send file[​](#send-file)
+---
 
-Upload the file to a specified channel.
+## send_file
 
-This method covers the entire process of sending a file, including preparation, uploading the file to a cloud storage service, and post-uploading messaging on a channel.
-
-For the last messaging step, `send_file` internally calls the [`publish_file_message`](#publish-file-message) method to publish a message on the channel.
-
-The published message contains metadata about the file, such as the file identifier and name, enabling others on the channel to find out about the file and access it.
-
-### Method(s)[​](#methods)
+Uploads the file and automatically publishes the file message.
 
 ```
 `pubnub.send_file() \  
@@ -57,39 +51,28 @@ The published message contains metadata about the file, such as the file identif
 `
 ```
 
-*  requiredParameterDescription`channel` *Type: StringDefault:  
-n/aChannel for the file.`file_name` *Type: StringDefault:  
-n/aName of the file to send.`message`Type: DictionaryDefault:  
-n/aMessage which should be sent along with file to specified `channel`.`should_store`Type: BooleanDefault:  
-`True`Whether PubNub published `file message` should be stored in `channel` history.`ttl`Type: IntegerDefault:  
-n/aHow long message should be stored in channel's storage.`file_object` *Type: bytes or Python file objectDefault:  
-n/aInput stream with file content.`meta`Type: DictionaryDefault:  
-n/a`Meta` data object which can be used with the filtering ability.`custom_message_type`Type: StringDefault:  
-n/aA case-sensitive, alphanumeric string from 3 to 50 characters describing the business-specific label or category of the message. Dashes `-` and underscores `_` are allowed. The value cannot start with special characters or the string `pn_` or `pn-`.   
-   
- Examples: `text`, `action`, `poll`.
+Parameters (required ★):
 
-##### Deprecated parameter
+• ★ `channel` String – target channel  
+• ★ `file_name` String – stored name  
+• ★ `file_object` bytes | file object – content  
+• `message` Dict – payload sent with file  
+• `should_store` Bool (default True) – store message in history  
+• `ttl` Int – message TTL  
+• `meta` Dict – filterable metadata  
+• `custom_message_type` String – 3-50 chars, a–z, 0–9, `_` or `-`  
 
-The `cipher_key` parameter in this method is deprecated. We recommend that you configure the [crypto module](/docs/sdks/python/api-reference/configuration#crypto_module) on your PubNub instance instead.   
-   
- If you pass `cipher_key` as an argument, it overrides the crypto module configuration and the legacy encryption with 128-bit cipher key entropy is used.
+Deprecated: `cipher_key` (use Crypto Module).
 
-### Basic Usage[​](#basic-usage)
+### Usage
 
-##### Reference code
-
-This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
-
-- Builder Pattern
-- Named Arguments
+Builder style
 
 ```
 `import os  
 from pubnub.pnconfiguration import PNConfiguration  
 from pubnub.pubnub import PubNub  
 from pubnub.exceptions import PubNubException  
-  
   
 def send_file(pubnub: PubNub, file_path: str, channel: str):  
     try:  
@@ -102,13 +85,14 @@ def send_file(pubnub: PubNub, file_path: str, channel: str):
                 .sync()  
 `
 ```
-show all 39 lines
+
+Named-argument style
+
 ```
 `import os  
 from pubnub.pnconfiguration import PNConfiguration  
 from pubnub.pubnub import PubNub  
 from pubnub.exceptions import PubNubException  
-  
   
 def send_file(pubnub: PubNub, file_path: str, channel: str):  
     try:  
@@ -121,23 +105,18 @@ def send_file(pubnub: PubNub, file_path: str, channel: str):
                 custom_message_type="file-message"  
 `
 ```
-show all 41 lines
 
-### Returns[​](#returns)
+Return `Envelope.result` → `PNSendFileResult`
 
-The `send_file()` operation returns an `Envelope` which contains the following fields:
+| Property | Type   | Description                          |
+|----------|--------|--------------------------------------|
+| `name`   | String | Uploaded file name                   |
+| `file_id`| String | Uploaded file ID                     |
+| `timestamp` | String | Publish timetoken                 |
 
-FieldTypeDescriptionresult[`PNSendFileResult`](#pnsendfileresult)A detailed object containing the result of the operation.status`PNStatus`A status object with additional information.
+---
 
-#### PNSendFileResult[​](#pnsendfileresult)
-
-Property NameTypeDescription`name`StringName of the uploaded file.`file_id`StringID of the uploaded file.`timestamp`StringThe timetoken at which the message was published.
-
-## List channel files[​](#list-channel-files)
-
-Retrieve list of files uploaded to `Channel`.
-
-### Method(s)[​](#methods-1)
+## list_files
 
 ```
 `pubnub.list_files() \  
@@ -145,15 +124,10 @@ Retrieve list of files uploaded to `Channel`.
 `
 ```
 
-*  requiredParameterDescription`channel` *Type: StringDefault:  
-n/aChannel to get the list of files.`limit`Type: IntDefault:  
-n/aThe number of elements to return.`next`Type: StringDefault:  
-n/aRandom string returned from the server, indicating a specific position in a data set. Used for forward pagination, it fetches the next page, allowing you to continue from where you left off.
-
-### Basic Usage[​](#basic-usage-1)
-
-- Builder Pattern
-- Named Arguments
+Parameters:  
+• ★ `channel` String  
+• `limit` Int – items per page  
+• `next` String – forward-pagination cursor
 
 ```
 `  
@@ -169,25 +143,17 @@ for file_data in file_list_response.result.data:
 `
 ```
 
-### Returns[​](#returns-1)
+`Envelope.result` → `PNGetFilesResult`
 
-The `list_files()` operation returns an `Envelope` which contains the following fields:
+| Property | Type | Description |
+|----------|------|-------------|
+| `next`   | String | Cursor for next page |
+| `count`  | Int    | Number of files returned |
+| `data`   | List   | List of files: each has `id`, `name`, `size`, `created` |
 
-FieldTypeDescriptionresult[`PNGetFilesResult`](#pngetfilesresult)A detailed object containing the result of the operation.status`PNStatus`A status object with additional information.
+---
 
-#### PNGetFilesResult[​](#pngetfilesresult)
-
-Property NameTypeDescription`next`StringRandom string returned from the server, indicating a specific position in a data set. Used for forward pagination, it fetches the next page, allowing you to continue from where you left off.`count`IntNumber of files returned.`data`List`List` of channel files.
-
-`data` contains the following properties:
-
-Property NameTypeDescription`id`Long`Id` of the uploaded file.`name`String`Name` of the upload file.`size`String`Size` of the uploaded file.`created`StringTime of creation.
-
-## Get File Url[​](#get-file-url)
-
-Generate URL which can be used to download file from target `Channel`.
-
-### Method(s)[​](#methods-2)
+## get_file_url
 
 ```
 `pubnub.get_file_url() \  
@@ -197,12 +163,7 @@ Generate URL which can be used to download file from target `Channel`.
 `
 ```
 
-*  requiredParameterDescription`channel` *Type: StringName of `channel` to which the file has been uploaded.`file_name` *Type: StringName under which the uploaded file is stored.`file_id` *Type: StringUnique identifier for the file, assigned during upload.
-
-### Basic Usage[​](#basic-usage-2)
-
-- Builder Pattern
-- Named Arguments
+Parameters: ★ `channel`, ★ `file_id`, ★ `file_name`
 
 ```
 `  
@@ -219,21 +180,11 @@ print(f'  Download url: {download_url.result.file_url}')
 `
 ```
 
-### Returns[​](#returns-2)
+`Envelope.result` → `PNGetFileDownloadURLResult` (`file_url` String)
 
-The `get_file_url()` operation returns an `Envelope` which contains the following fields:
+---
 
-FieldTypeDescriptionresult[`PNGetFileDownloadURLResult`](#pngetfiledownloadurlresult)A detailed object containing the result of the operation.status`PNStatus`A status object with additional information.
-
-#### PNGetFileDownloadURLResult[​](#pngetfiledownloadurlresult)
-
-Property NameTypeDescription`file_url`String`URL` to be used to download the requested file.
-
-## Download file[​](#download-file)
-
-Download file from specified `Channel`.
-
-### Method(s)[​](#methods-3)
+## download_file
 
 ```
 `pubnub.download_file() \  
@@ -243,18 +194,8 @@ Download file from specified `Channel`.
 `
 ```
 
-*  requiredParameterDescription`channel` *Type: StringName of `channel` to which the file has been uploaded.`file_name` *Type: StringName under which the uploaded file is stored.`file_id` *Type: StringUnique identifier for the file, assigned during upload.
-
-##### Deprecated parameter
-
-The `cipher_key` parameter in this method is deprecated. We recommend that you configure the [crypto module](/docs/sdks/python/api-reference/configuration#crypto_module) on your PubNub instance instead.   
-   
- If you pass `cipher_key` as an argument, it overrides the crypto module configuration and the legacy encryption with 128-bit cipher key entropy is used.
-
-### Basic Usage[​](#basic-usage-3)
-
-- Builder Pattern
-- Named Arguments
+Parameters: ★ `channel`, ★ `file_id`, ★ `file_name`  
+Deprecated: `cipher_key`
 
 ```
 `  
@@ -275,21 +216,11 @@ print(f"File saved as {os.getcwd()}/{file_data['name']}")
 `
 ```
 
-### Returns[​](#returns-3)
+`Envelope.result` → `PNDownloadFileResult` (`data` bytes)
 
-The `download_file()` operation returns an `Envelope` which contains the following fields:
+---
 
-FieldTypeDescriptionresult[`PNDownloadFileResult`](#pndownloadfileresult)A detailed object containing the result of the operation.status`PNStatus`A status object with additional information.
-
-#### PNDownloadFileResult[​](#pndownloadfileresult)
-
-Property NameTypeDescription`data`bytesPython bytes object.
-
-## Delete file[​](#delete-file)
-
-Delete file from specified `Channel`.
-
-### Method(s)[​](#methods-4)
+## delete_file
 
 ```
 `pubnub.delete_file() \  
@@ -299,12 +230,7 @@ Delete file from specified `Channel`.
 `
 ```
 
-*  requiredParameterDescription`channel` *Type: StringThe `channel` from which to delete the file.`file_id` *Type: StringUnique identifier of the file to be deleted.`file_name` *Type: StringName of the file to be deleted.
-
-### Basic Usage[​](#basic-usage-4)
-
-- Builder Pattern
-- Named Arguments
+Parameters: ★ `channel`, ★ `file_id`, ★ `file_name`
 
 ```
 `  
@@ -322,28 +248,13 @@ print(f"File deleted")
 `
 ```
 
-### Returns[​](#returns-4)
+`Envelope.result` → `PNDeleteFileResult` (`status` Int)
 
-The `download_file()` operation returns an `Envelope` which contains the following fields:
+---
 
-FieldTypeDescriptionresult[`PNDeleteFileResult`](#pndeletefileresult)A detailed object containing the result of the operation.status`PNStatus`A status object with additional information.
+## publish_file_message
 
-#### PNDeleteFileResult[​](#pndeletefileresult)
-
-Property NameTypeDescription`status`IntReturns a status code.
-
-## Publish file message[​](#publish-file-message)
-
-Publish the uploaded file message to a specified channel.
-
-This method is called internally by [`send_file`](#send-file) as part of the file-sending process to publish the message with the file (already uploaded in a storage service) on a channel.
-
-This message includes the file's unique identifier and name elements, which are needed to construct download links and inform channel subscribers that the file is available for download.
-
-You can call this method when `send_file` fails and returns the `status.operation === PNPublishFileMessageOperation` error.
-In that case, you can use the data from the `status` object to try again and use `publish_file_message` to manually resend a file message to a channel without repeating the upload step.
-
-### Method(s)[​](#methods-5)
+Publishes a message about an already-uploaded file (automatically called by `send_file`).
 
 ```
 `pubnub.publish_file_message() \  
@@ -358,22 +269,15 @@ In that case, you can use the data from the `status` object to try again and use
 `
 ```
 
-*  requiredParameterDescription`channel` *Type: StringDefault:  
-n/aName of `channel` to publish file message.`meta`Type: DictionaryDefault:  
-n/aMeta data object which can be used with the filtering ability.`message`Type: DictionaryDefault:  
-n/aThe payload.`file_id` *Type: StringDefault:  
-n/aUnique identifier of the file.`custom_message_type`Type: StringDefault:  
-n/aA case-sensitive, alphanumeric string from 3 to 50 characters describing the business-specific label or category of the message. Dashes `-` and underscores `_` are allowed. The value cannot start with special characters or the string `pn_` or `pn-`.   
-   
- Examples: `text`, `action`, `poll`.`file_name` *Type: StringDefault:  
-n/aName of the file.`should_store`Type: BooleanDefault:  
-`True`Set to `False` to *not* store this message in history. By default, messages are stored according to the retention policy you set on your key.`ttl`Type: IntDefault:  
-`0`How long the message should be stored in the channel's history. If not specified, defaults to the key set's retention value.
+Key parameters:  
+• ★ `channel`, ★ `file_id`, ★ `file_name`  
+• `message` Dict (payload)  
+• `meta` Dict (filtering)  
+• `custom_message_type` String  
+• `should_store` Bool (default True)  
+• `ttl` Int (0 = key’s retention)
 
-### Basic Usage[​](#basic-usage-5)
-
-- Builder Pattern
-- Named Arguments
+### Usage
 
 ```
 `# synchronous:  
@@ -393,7 +297,7 @@ def callback(response, status):
   
 `
 ```
-show all 24 lines
+
 ```
 `envelope = pubnub.publish_file_message(channel="test_channel",  
                                        message="Bring me a shrubbery",  
@@ -406,14 +310,8 @@ show all 24 lines
 `
 ```
 
-### Returns[​](#returns-5)
+`Envelope.result` → `PNPublishFileMessageResult` (`timestamp` String)
 
-The `publish_file_message()` operation returns an `Envelope` which contains the following fields:
+---
 
-FieldTypeDescriptionresult[`PNPublishFileMessageResult`](#pnpublishfilemessageresult)A detailed object containing the result of the operation.status`PNStatus`A status object with additional information.
-
-#### PNPublishFileMessageResult[​](#pnpublishfilemessageresult)
-
-The `publish_file_message()` operation returns a `PNPublishFileMessageResult` which contains the following property:
-
-Property NameTypeDescription`timestamp`StringThe timetoken at which the message was published.Last updated on **May 8, 2025**
+Last updated May 8 2025
