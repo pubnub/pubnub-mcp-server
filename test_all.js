@@ -79,6 +79,7 @@ function waitForOutput(process, substring, timeout = 10000) {
     console.log('HTTP server started.');
 
     await runCommand('npm', ['test']);
+    await runCommand('node', ['test_chat_sdk.js']);
     await runCommand('node', ['test_sse.js']);
     await runCommand('bash', ['test_tools_model.sh']);
     await runCommand('node', ['test_tools_consistency.js']);
