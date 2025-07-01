@@ -89,40 +89,34 @@ toolHandlers['read_pubnub_sdk_docs'] = async ({ language, apiReference }) => {
         };
       }
     }
-    const sdkURL = `https://www.pubnub.com/docs/sdks/${language}`;
-    const apiRefURL = `https://www.pubnub.com/docs/sdks/${language}/api-reference/${apiRefKey}`;
 
-    const sdkResponse = await loadArticle(sdkURL);
-    // Load API reference: fetch remote article or load local functions documentation
-    let apiRefResponse;
-    if (apiRefKey === 'functions') {
-      try {
-        apiRefResponse = fs.readFileSync(
-          pathJoin(__dirname, 'resources', 'pubnub_functions.md'),
-          'utf8'
-        );
-      } catch (err) {
-        apiRefResponse = `Error loading functions documentation: ${err}`;
-      }
-    } else {
+    // Try to load from cached files first, fallback to API calls if not available
+    let sdkResponse = loadCachedSDKDoc(language, 'overview');
+    if (!sdkResponse) {
+      const sdkURL = `https://www.pubnub.com/docs/sdks/${language}`;
+      sdkResponse = await loadArticle(sdkURL);
+    }
+
+    let apiRefResponse = loadCachedSDKDoc(language, apiRefKey);
+    if (!apiRefResponse) {
+      const apiRefURL = `https://www.pubnub.com/docs/sdks/${language}/api-reference/${apiRefKey}`;
       apiRefResponse = await loadArticle(apiRefURL);
 
-      const lines = apiRefResponse.split('\n');
-      const oldIndex = lines.findIndex((line) => /^##\s.*\(old\)/i.test(line));
-      if (oldIndex !== -1) {
-        apiRefResponse = lines.slice(0, oldIndex).join('\n');
+      // Apply "(old)" section removal logic for dynamically loaded content
+      if (apiRefResponse && !apiRefResponse.startsWith('Error fetching')) {
+        const lines = apiRefResponse.split('\n');
+        const oldIndex = lines.findIndex((line) => /^##\s.*\(old\)/i.test(line));
+        if (oldIndex !== -1) {
+          apiRefResponse = lines.slice(0, oldIndex).join('\n');
+        }
       }
     }
+
     const context7Response = loadLanguageFile(language);
     const presenceBestPracticesResponse = loadPresenceBestPracticesFile(language);
 
     // Combine the content of both responses
-    let combinedContent;
-    if (apiRefKey === 'functions') {
-      combinedContent = [apiRefResponse, context7Response].join('\n\n');
-    } else {
-      combinedContent = [sdkResponse, apiRefResponse, context7Response, presenceBestPracticesResponse].join('\n\n');
-    }
+    const combinedContent = [sdkResponse, apiRefResponse, context7Response, presenceBestPracticesResponse].join('\n\n');
 
     // Return the combined content
     return {
@@ -163,6 +157,24 @@ function loadPresenceBestPracticesFile(language) {
     }
   }
   return '';
+}
+
+// Function to sanitize filenames for cached SDK docs
+function sanitizeFilename(str) {
+  return str.replace(/[^a-z0-9-]/gi, '_');
+}
+
+// Function that loads cached SDK documentation from local files
+function loadCachedSDKDoc(language, type) {
+  try {
+    const filename = `${sanitizeFilename(language)}_${sanitizeFilename(type)}.md`;
+    const filePath = pathJoin(__dirname, 'resources', 'sdk_docs', filename);
+    const content = fs.readFileSync(filePath, 'utf8');
+    return content;
+  } catch (err) {
+    console.error(`Error loading cached SDK doc ${language}_${type}: ${err}`);
+    return null;
+  }
 }
 
 // Utility function that fetches the article content from the PubNub SDK documentation

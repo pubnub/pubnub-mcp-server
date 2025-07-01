@@ -1,0 +1,304 @@
+On this page
+# Access Manager v3 API for Rust SDK
+
+Access Manager allows you to enforce security controls for client access to resources within the PubNub Platform. With Access Manager v3, your servers can grant their clients tokens with embedded permissions that provide access to individual PubNub resources:
+
+- For a limited period of time.
+
+- Through resource lists or patterns (regular expressions).
+
+- In a single API request, even if permission levels differ (`read` to `channel1` and `write` to `channel2`).
+
+You can add the [`authorized_user_id`](/docs/general/security/access-control#authorized-uuid) parameter to the grant request to restrict the token usage to one client with a given `userId`. Once specified, only this `authorized_user_id` will be able to use the token to make API requests for the specified resources, according to permissions given in the grant request.
+
+##### User ID / UUID
+
+User ID is also referred to as **`UUID`/`uuid`** in some APIs and server responses but **holds the value** of the **`userId`** parameter you set during initialization.
+
+For more information about Access Manager v3, refer to [Manage Permissions with Access Manager v3](/docs/general/security/access-control).
+
+### Available in features
+fullaccess
+
+## Grant Token[​](#grant-token)
+
+##### Requires Access Manager add-on
+
+This method requires that the *Access Manager* add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
+
+The `grant_token()` method generates a time-limited authorization token with an embedded access control list. The token defines time to live (`ttl`), `authorized_user_id`, and a set of permissions giving access to one or more resources:
+
+- `channel`
+
+- `channel_group`
+
+- `user_id` (other users' object metadata, such as their names or avatars)
+
+Only this `authorized_user_id` will be able to use the token with the defined permissions. The authorized client will send the token to PubNub with each request until the token's `ttl` expires. Any unauthorized request or a request made with an invalid token will return a `403` with a respective error message.
+
+#### Permissions[​](#permissions)
+
+The grant request allows your server to securely grant your clients access to the resources within the PubNub Platform. There is a limited set of operations the clients can perform on every resource:
+
+ResourcePermissions`channel``read`, `write`, `get`, `manage`, `update`, `join`, `delete``channel_group``read`, `manage``user_id``get`, `update`, `delete`
+
+For permissions and API operations mapping, refer to [Manage Permissions with Access Manager v3](/docs/general/security/access-control#permissions).
+
+#### TTL[​](#ttl)
+
+In the Rust SDK, the TTL value isn't provided as a separate parameter, but as a mandatory argument for the `grant_token()` method.
+
+The `ttl` (time to live) parameter is the number of minutes before the granted permissions expire. The client will require a new token to be granted before expiration to ensure continued access. `ttl` is a required parameter for every grant call and there is no default value set for it. The max value for `ttl` is 43,200 (30 days).
+
+For more details, see [TTL in Access Manager v3](/docs/general/security/access-control#ttl).
+
+#### RegEx[​](#regex)
+
+If you prefer to specify permissions by setting patterns, rather than listing all resources one by one, you can use regular expressions. To do this, set RegEx permissions as `patterns` before making a grant request.
+
+For more details, see [RegEx in Access Manager v3](/docs/general/security/access-control#regex).
+
+#### Authorized UUID[​](#authorized-uuid)
+
+Setting an `authorized_user_id` in the token helps you specify which client device should use this token in every request to PubNub. This will ensure that all requests to PubNub are authorized before PubNub processes them. If `authorized_user_id` isn't specified during the grant request, the token can be used by any client with any `user_id`. It's recommended to restrict tokens to a single `authorized_user_id` to prevent impersonation.
+
+For more details, see [Authorized UUID in Access Manager v3](/docs/general/security/access-control#authorized-uuid).
+
+### Method(s)[​](#methods)
+
+```
+`pubnub  
+    .grant_token(usize)  
+    .resources(Option[Boxpermissions::Permission>]>)  
+    .patterns(Option[Boxpermissions::Permission>]>)  
+    .authorized_user_id(OptionString>)  
+    .meta(OptionHashMapString, MetaValue>>)  
+    .execute()  
+`
+```
+
+*  requiredParameterDescription`grant_token` *Type: `usize`The token's time-to-live, which is a total number of minutes for which the token is valid. 
+- The minimum allowed value is `1`.
+- The maximum is `43,200` minutes (30 days).
+
+`resources`Type: [`Option<[Box<dyn permissions::Permission>]>`](#permissions-object)An array of boxed trait objects implementing the [`permissions::Permission`](#permissions-object) trait for individual resource permissions.`patterns`Type: [`Option<[Box<dyn permissions::Permission>]>`](#permissions-object)An array of boxed trait objects implementing the [`permissions::Permission`](#permissions-object) trait for pattern-based permissions.`authorized_user_id`Type: `Option<String>`Single `user_id` which is authorized to use the token to make API requests to PubNub.`meta`Type: `Option<HashMap<String, MetaValue>>`Extra metadata to be published with the request. Values must be scalar only; arrays or objects are not supported.
+
+##### Required key/value mappings
+
+For a successful grant request, you must specify permissions for at least one `uuid`, `channel`, or `channel_group`, either as a resource list or as a pattern (RegEx).
+
+#### `permissions` Object[​](#permissions-object)
+
+You can assign permissions by creating permissions objects to individual resources via the `resources()` method, or to possibly many resources that match a given regex via the `patterns()` method.
+
+Regardless of the method, the permission object follows the same template: `permissions::{objectToApplyPermissionsFor}.{permissionType()}`.
+
+Part of the permissions objectDescriptionAvailable values`{objectToApplyPermissionsFor}`Entity which the permissions are assigned to. You can use a RegEx to match multiple entities.
+ - `channel("channel_name")` or `channel("^onetoone-[a-zA-Z0-9]*$")` 
+ -  `channel_group("channel_group_name")` or `channel("^room-[a-zA-Z0-9]*$")`
+ -  `user_id("user_id")` or `channel("^user-[a-zA-Z0-9]*$")` 
+ 
+`{permissionType()}`Operation the clients can perform on a resourceOperations differ for each entity.   
+   
+ 
+ - `channel` - `read()`, `write()`, `get()`, `manage()`, `update()`, `join()`, `delete()` 
+ -  `channel_groups` - `read()`, `manage()`
+ -  `user_id` - `get()`, `update()`, `delete()` 
+ 
+ Refer to the [Permissions](#permissions) section for more information.
+
+The following code creates two permission objects. The first creates a `read` permission to a channel group with the ID of `channel-group`, while the second creates an `update` and `delete` permissions to a User with the ID of `admin`.
+
+```
+`  
+`
+```
+
+You can also use a RegEx pattern. The following code creates a `join`, `read`, and `write` permissions to all channels whose IDs match the of `^room-[a-zA-Z0-9]*$` RegEx.
+
+```
+`  
+`
+```
+
+### Basic Usage[​](#basic-usage)
+
+```
+`  
+`
+```
+
+### Returns[​](#returns)
+
+This operation returns a `GrantTokenResult`. You can get the string value of the token by accessing `GrantTokenResult.token`.
+
+### Other Examples[​](#other-examples)
+
+#### Grant an authorized client different levels of access to various resources in a single call[​](#grant-an-authorized-client-different-levels-of-access-to-various-resources-in-a-single-call)
+
+The code below grants `my-authorized-user_id`:
+
+- Read access to `channel-a`, `channel-group-b`, and get to `uuid-c`.
+
+- Read/write access to `channel-b`, `channel-c`, `channel-d`, and get/update to `uuid-d`.
+
+```
+`  
+`
+```
+
+#### Grant an authorized client read access to multiple channels using RegEx[​](#grant-an-authorized-client-read-access-to-multiple-channels-using-regex)
+
+The code below grants `my-authorized-user_id` read access to all channels that match the `channel-[A-Za-z0-9]` RegEx pattern.
+
+```
+`  
+`
+```
+
+#### Grant an authorized client different levels of access to various resources and read access to channels using RegEx in a single call[​](#grant-an-authorized-client-different-levels-of-access-to-various-resources-and-read-access-to-channels-using-regex-in-a-single-call)
+
+The code below grants the `my-authorized-user_id`:
+
+- Read access to `channel-a`, `channel-group-b`, and get to `uuid-c`.
+
+- Read/write access to `channel-b`, `channel-c`, `channel-d`, and get/update to `uuid-d`.
+
+- Read access to all channels that match the `channel-[A-Za-z0-9]` RegEx pattern.
+
+```
+`  
+`
+```
+
+### Error responses[​](#error-responses)
+
+If you submit an invalid request, the server returns the `400` error status code with a descriptive message informing which of the provided arguments is missing or incorrect. These can include, for example, issues with a RegEx, a [timestamp](https://support.pubnub.com/hc/en-us/articles/360051973331-Why-do-I-get-Invalid-Timestamp-when-I-try-to-grant-permission-using-Access-Manager-), or permissions. The server returns the details of the error as a string under the `PubNubException` class.
+
+## Revoke Token[​](#revoke-token)
+
+##### Requires Access Manager add-on
+
+This method requires that the *Access Manager* add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
+
+##### Enable token revoke
+
+To revoke tokens, you must first enable this feature on the [Admin Portal](https://admin.pubnub.com/). To do that, navigate to your app's keyset and mark the *Revoke v3 Token* checkbox in the *ACCESS MANAGER* section.
+
+The `revoke_token()` method allows you to disable an existing token and revoke all permissions embedded within. You can only revoke a valid token previously obtained using the `grant_token()` method.
+
+Use this method for tokens with `ttl` less than or equal to 30 days. If you need to revoke a token with a longer `ttl`, [contact support](mailto:support@pubnub.com).
+
+For more information, refer to [Revoke permissions](/docs/general/security/access-control#revoke-permissions).
+
+### Method(s)[​](#methods-1)
+
+```
+`pubnub  
+    .revoke_token(token)  
+`
+```
+
+*  requiredParameterDescription`token` *Type: `Into<String>`Default:  
+n/aExisting token with embedded permissions.
+
+### Basic Usage[​](#basic-usage-1)
+
+```
+`  
+`
+```
+
+### Returns[​](#returns-1)
+
+This operation returns either a success response with a token from the PAMv3 service or an error with additional information.
+
+### Error Responses[​](#error-responses-1)
+
+If you submit an invalid request, the server returns an error status code with a descriptive message informing which of the provided arguments is missing or incorrect. Depending on the root cause, this operation may return the following errors:
+
+- `400 Bad Request`
+
+- `403 Forbidden`
+
+- `503 Service Unavailable`
+
+## Parse Token[​](#parse-token)
+
+The `parse_token()` method decodes an existing token and returns the object containing permissions embedded in that token. The client can use this method for debugging to check the permissions to the resources or find out the token's `ttl` details.
+
+### Available in features
+fullparse_token
+
+### Method(s)[​](#methods-2)
+
+```
+`pubnub  
+    .parse_token(&token)  
+`
+```
+
+*  requiredParameterDescription`token` *Type: `&str`Default:  
+n/aCurrent token with embedded permissions.
+
+### Basic Usage[​](#basic-usage-2)
+
+```
+`pubnub  
+    .parse_token("p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI")  
+`
+```
+
+### Returns[​](#returns-2)
+
+```
+`{  
+   "version":2,  
+   "timestamp":1629394579,  
+   "ttl":15,  
+   "authorized_uuid": "user1",  
+   "resources":{  
+      "uuids":{  
+         "user1":{  
+            "read":false,  
+            "write":false,  
+            "manage":false,  
+            "delete":false,  
+            "get":true,  
+            "update":true,  
+            "join":false  
+`
+```
+show all 76 lines
+
+### Error Responses[​](#error-responses-2)
+
+If you receive an error while parsing the token, it may suggest that the token is damaged. In that case, request the server to issue a new one.
+
+## Set Token[​](#set-token)
+
+The `set_token()` method is used by the client devices to update the authentication token granted by the server.
+
+### Method(s)[​](#methods-3)
+
+```
+`pubnub  
+    .set_token(token);  
+`
+```
+
+*  requiredParameterDescription`token` *Type: `Into<String>`Default:  
+n/aCurrent token with embedded permissions.
+
+### Basic Usage[​](#basic-usage-3)
+
+```
+`pubnub  
+    .set_token("p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI")  
+`
+```
+
+### Returns[​](#returns-3)
+
+This method doesn't return any response value.
+Last updated on **Apr 29, 2025**
