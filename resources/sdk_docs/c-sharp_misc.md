@@ -1,13 +1,13 @@
-On this page
-# Utility Methods API for C# SDK
+# Utility Methods – PubNub C# SDK (Misc)
 
-The methods on this page are utility methods that don't fit into other categories.
+Concise reference to helper APIs.  
+All code blocks, signatures, and parameters are unchanged; non-essential prose removed.
 
-##### Request execution
+---
 
-We recommend using `try` and `catch` statements when working with the C# SDK.
+## Request Execution
 
-If there's an issue with the provided API parameter values, like missing a required parameter, the SDK throws an exception. However, if there is a server-side API execution issue or a network problem, the error details are contained within the `status`.
+Use `try / catch`. API/validation errors throw; server or network errors are in `PNStatus`.
 
 ```
 `try  
@@ -28,75 +28,59 @@ catch (Exception ex)
 `
 ```
 
-## Destroy[​](#destroy)
+---
 
-Destroy frees up the threads and allows for clean exit.
+## Destroy
 
-### Method(s)[​](#methods)
+Frees SDK threads for a clean exit.
+
+### Method
 
 ```
 `destroy()  
 `
 ```
 
-### Basic Usage[​](#basic-usage)
+Return: void
 
-##### Reference code
-
-This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
+### Example
 
 ```
 `  
 `
 ```
 
-### Returns[​](#returns)
+---
 
-None
+## Encrypt (Data)
 
-## Encrypt[​](#encrypt)
+Deprecated `cipherKey`; prefer `CryptoModule`.
 
-This function allows to `encrypt` the data.
-
-##### Deprecated
-
-The `cipherKey` parameter in this method is deprecated. We recommend that you configure a separate instance of the [crypto module](/docs/sdks/c-sharp/api-reference/configuration#cryptomodule) and use it for partial encryption.   
-   
- If you pass `cipherKey` as an argument, it overrides the crypto module configuration and the legacy encryption with 128-bit cipher key entropy is used.
-
-### Method(s)[​](#methods-1)
-
-To `encrypt` the data you can use the following method(s) in C# SDK.
+### Method
 
 ```
 `pubnub.Encrypt(inputString, cipherKey)  
 `
 ```
 
-*  requiredParameterDescription`inputString` *Type: StringThe `data` to `encrypt`.`cipherKey`Type: StringCipher key to use for encryption.
+Parameters  
+• `inputString` (String) – data to encrypt  
+• `cipherKey` (String, deprecated) – overrides `CryptoModule`
 
-### Basic Usage[​](#basic-usage-1)
-
-#### Encrypt part of message[​](#encrypt-part-of-message)
+### Example
 
 ```
 `  
 `
 ```
 
-## Encrypt File[​](#encrypt-file)
+---
 
-This function allow to `encrypt` the file content/data.
+## Encrypt File
 
-##### Deprecated
+Deprecated `cipherKey`; prefer `CryptoModule`.
 
-The `cipherKey` parameter in this method is deprecated. We recommend that you configure a separate instance of the [crypto module](/docs/sdks/c-sharp/api-reference/configuration#cryptomodule) and use it for partial encryption.   
-   
- If you pass `cipherKey` as an argument, it overrides the crypto module configuration and the legacy encryption with 128-bit cipher key entropy is used.
-
-### Method(s)[​](#methods-2)
-
-To `encrypt` the file you can use the following method(s) in C# SDK.
+### Methods
 
 ```
 `pubnub.EncryptFile(sourceFile, destinationFile)   
@@ -104,195 +88,169 @@ pubnub.EncryptFile(sourceFile, destinationFile, cipherKey)
 `
 ```
 
-*  requiredParameterDescription`sourceFile` *Type: StringFile to be encrypted.`destinationFile` *Type: StringPath of the encrypted file to be saved.`cipherKey`Type: StringCipher Key to use for encryption. If provided, the legacy encryption with 128-bit cipher key entropy is used. If not provided, the `CryptoModule` from PubNub config will be used.   
-   
- For more information, refer to [Crypto module configuration](/docs/sdks/c-sharp/api-reference/configuration#cryptomodule).   
-   
- This parameter is deprecated and will be removed in a future version. Please use the `CryptoModule` from PubNub config instead.
+Parameters  
+• `sourceFile` (String) – file to encrypt  
+• `destinationFile` (String) – output path  
+• `cipherKey` (String, deprecated)
 
 ```
 `byte[] outputBytes = pubnub.EncryptFile(sourceBytes) byte[] outputBytes = pubnub.EncryptFile(sourceBytes, cipherKey)  
 `
 ```
 
-*  requiredParameterDescription`sourceBytes` *Type: byte[]byte array of the file.`cipherKey`Type: StringCipher Key to use for encryption. If provided, the legacy encryption with 128-bit cipher key entropy is used. If not provided, the `CryptoModule` from PubNub config will be used.   
-   
- For more information, refer to [Crypto module configuration](/docs/sdks/c-sharp/api-reference/configuration#cryptomodule).
-
-### Basic Usage[​](#basic-usage-2)
+### Example
 
 ```
 `  
 `
 ```
 
-## Decrypt[​](#decrypt)
+---
 
-This function allows to `decrypt` the data.
+## Decrypt (Data)
 
-##### Deprecated
+Deprecated `cipherKey`; prefer `CryptoModule`.
 
-The `cipherKey` parameter in this method is deprecated. We recommend that you configure a separate instance of the [crypto module](/docs/sdks/c-sharp/api-reference/configuration#cryptomodule) and use it for partial encryption.   
-   
- If you pass `cipherKey` as an argument, it overrides the crypto module configuration and the legacy encryption with 128-bit cipher key entropy is used.
-
-### Method(s)[​](#methods-3)
-
-To `decrypt` the data you can use the following method(s) in C# SDK.
+### Method
 
 ```
 `pubnub.Decrypt(inputString, cipherKey)  
 `
 ```
 
-*  requiredParameterDescription`inputString` *Type: StringThe `data` to `decrypt`.`cipherKey`Type: StringCipher key to use for encryption.   
-   
- This parameter is deprecated and will be removed in a future version. Please use the `CryptoModule` from PubNub config instead.
+Parameters  
+• `inputString` (String) – data to decrypt  
+• `cipherKey` (String, deprecated)
 
-### Basic Usage[​](#basic-usage-3)
-
-#### Decrypt part of message[​](#decrypt-part-of-message)
+### Example
 
 ```
 `  
 `
 ```
 
-## Decrypt File[​](#decrypt-file)
+---
 
-This function allow to `decrypt` the file content/data.
+## Decrypt File
 
-### Method(s)[​](#methods-4)
-
-To `decrypt` the file you can use the following method(s) in C# SDK.
+### Methods
 
 ```
 `pubnub.DecryptFile(sourceFile, destinationFile); pubnub.DecryptFile(sourceFile, destinationFile, cipherKey);  
 `
 ```
 
-*  requiredParameterDescription`sourceFile` *Type: StringFile to be decrypted.`destinationFile` *Type: StringPath of the decrypted file to be saved.`cipherKey`Type: StringCipher Key to use for decryption. If provided, the legacy encryption with 128-bit cipher key entropy is used. If not provided, the `CryptoModule` from PubNub config will be used.   
-   
- For more information, refer to [Crypto module configuration](/docs/sdks/c-sharp/api-reference/configuration#cryptomodule).
+Parameters  
+• `sourceFile` (String) – file to decrypt  
+• `destinationFile` (String) – output path  
+• `cipherKey` (String, optional / deprecated)
 
 ```
 `byte[] outputBytes = pubnub.DecryptFile(sourceBytes) byte[] outputBytes = pubnub.DecryptFile(sourceBytes, cipherKey)  
 `
 ```
 
-*  requiredParameterDescription`sourceBytes` *Type: byte[]byte array of the file.`cipherKey`Type: StringCipher Key to use for decryption. If provided, the legacy encryption with 128-bit cipher key entropy is used. If not provided, the `CryptoModule` from PubNub config will be used.   
-   
- For more information, refer to [Crypto module configuration](/docs/sdks/c-sharp/api-reference/configuration#cryptomodule).
-
-### Basic Usage[​](#basic-usage-4)
+### Example
 
 ```
 `  
 `
 ```
 
-## Disconnect[​](#disconnect)
+---
 
-Call the `Disconnect` method to force the SDK to stop all requests to PubNub server when there are active subscribe channels.
+## Disconnect
 
-### Method(s)[​](#methods-5)
+Stops all active requests (including subscribe loops).
 
-To `disconnect` the data transmission you can use the following method(s) in C# SDK.
+### Method
 
 ```
 `DisconnectT>()  
 `
 ```
 
-This method doesn't take any arguments.
-
-### Basic Usage[​](#basic-usage-5)
+### Example
 
 ```
 `  
 `
 ```
 
-## Get Subscribed Channel Groups[​](#get-subscribed-channel-groups)
+---
 
-Returns all the subscribed channel groups in a `List of type String`.
+## Get Subscribed Channel Groups
 
-### Method(s)[​](#methods-6)
+Returns `List<string>`.
 
-To `Get Subscribe Channel Groups` you can use the following method(s) in the C# SDK:
+### Method
 
 ```
 `Liststring> GetSubscribedChannelGroups()  
 `
 ```
 
-### Basic Usage[​](#basic-usage-6)
-
-#### Get Subscribed Channel Groups[​](#get-subscribed-channel-groups-1)
+### Example
 
 ```
 `  
 `
 ```
 
-### Response[​](#response)
-
-`List<String>`
+#### Response
 
 ```
 `["channelGroup1", "channelGroup2"]  
 `
 ```
 
-## Get Subscribed Channels[​](#get-subscribed-channels)
+---
 
-Returns all the subscribed channels in a `List of type String`.
+## Get Subscribed Channels
 
-### Method(s)[​](#methods-7)
+Returns `List<string>`.
 
-To `Get Subscribed Channels` you can use the following method(s) in the C# SDK:
+### Method
 
 ```
 `Liststring> GetSubscribedChannels()  
 `
 ```
 
-### Basic Usage[​](#basic-usage-7)
-
-#### Get Subscribed Channels[​](#get-subscribed-channels-1)
+### Example
 
 ```
 `  
 `
 ```
 
-### Response[​](#response-1)
-
-`List<String>`
+#### Response
 
 ```
 `["channel1", "channel2"]  
 `
 ```
 
-## Reconnect[​](#reconnect)
+---
 
-Call the `reconnect` method to force the SDK to try and reach out PubNub.
+## Reconnect
 
-### Method(s)[​](#methods-8)
+Force reconnection to PubNub.
 
-To `reconnect` the data you can use the following method(s) in C# SDK.
+### Method
 
 ```
 `ReconnectT>(bool resetSubscribeToken)  
 `
 ```
 
-*  requiredParameterDescription`resetSubscribeToken`Type: boolPassing `true` will send zero timetoken upon reconnect.
+Parameter  
+• `resetSubscribeToken` (bool) – `true` sends 0 timetoken on reconnect.
 
-### Basic Usage[​](#basic-usage-8)
+### Example
 
 ```
 `**`
 ```
-Last updated on Jun 30, 2025**
+
+_Last updated: Jun 30 2025_

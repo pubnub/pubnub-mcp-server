@@ -1,21 +1,15 @@
-On this page
-# Utility Methods API for PHP SDK
+# Utility Methods API (PHP SDK)
 
-The methods on this page are utility methods that don't fit into other categories.
+## Time
 
-## Time[​](#time)
+Returns a 17-digit Unix epoch–based timetoken.
 
-This function will return a 17 digit precision Unix epoch.
-
-##### Algorithm constructing the timetoken
-
+Algorithm constructing the timetoken
 ```
 `timetoken = (Unix epoch time in seconds) * 10000000  
 `
 ```
-
-Example of creating a timetoken for a specific time and date:
-
+Example
 ```
 `08/19/2013 @ 9:20pm in UTC = 1376961606  
 timetoken = 1376961606 * 10000000  
@@ -23,25 +17,20 @@ timetoken = 13769616060000000
 `
 ```
 
-### Method(s)[​](#methods)
+### Method(s)
 
-To fetch `Time` you can use the following method(s) in PHP SDK:
-
+Retrieve current timetoken:
 ```
 `$pubnub->time()->sync();  
 `
 ```
+(No arguments)
 
-This method doesn't take any argument.
+### Basic Usage
 
-### Basic Usage[​](#basic-usage)
+#### Get PubNub Timetoken
 
-#### Get PubNub Timetoken[​](#get-pubnub-timetoken)
-
-##### Reference code
-
-This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
-
+Reference code
 ```
 `  
   
@@ -60,8 +49,12 @@ $pnConfig->setUserId("php-time-example-user");
   
 `
 ```
-show all 54 lines
+(show all 54 lines)
 
-### Response[​](#response)
+### Response
 
-MethodDescription`getTimetoken()`Type: IntegerReturns a `date` representation of current timetoken.Last updated on **Apr 2, 2025**
+Method          | Description
+--------------- | ---------------------------------------------------------------
+`getTimetoken()`| Integer. `date` representation of current timetoken.
+
+Last updated on **Apr 2, 2025**

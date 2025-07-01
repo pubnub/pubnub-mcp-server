@@ -1,52 +1,31 @@
-On this page
-# Channel Groups API for Unreal SDK
+# Channel Groups – Unreal SDK (Condensed)
 
-[Channel groups](/docs/general/channels/subscribe#channel-groups) allow PubNub developers to bundle thousands of [channels](/docs/general/channels/overview) into a group that can be identified by a name. These channel groups can then be subscribed to, receiving data from the many back-end channels the channel group contains.
+• Channel groups let you bundle up to thousands of channels and subscribe to them with a single name.  
+• You _cannot_ publish to a channel-group; publish to individual channels.  
+• All operations below require the **Stream Controller** add-on to be enabled for your keys.
 
-##### Channel group operations
+---
 
-You can't publish to a channel group. You can only subscribe to it. To publish within the channel group, you need to publish to each channel individually.
+## Add Channels
 
-### Usage in Blueprints and C++
+Maximum 200 channels per call.
 
-## Add Channels[​](#add-channels)
-
-##### Requires Stream Controller add-on
-
-This method requires that the *Stream Controller* add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
-
-This function adds a channel to a channel group.
-
-### Method(s)[​](#methods)
-
-`Adding Channels` is accomplished by using the following method(s) in the Unreal SDK:
-
-##### Maximum number of channels
-
-`200 channels` can be added to the `channel group` per API call.
-
-- Blueprint
-- C++
-
+```cpp
+PubnubSubsystem->AddChannelToGroup(
+    FString Channel,
+    FString ChannelGroup
+);
 ```
-`PubnubSubsystem->AddChannelToGroup(  
-    FString Channel,   
-    FString ChannelGroup  
-);  
-`
-```
-*  requiredParameterDescription`Channel` *Type: `FString`The channel to add to the channel group.`ChannelGroup` *Type: `FString`The channel group to add the channels to.
 
-### Basic Usage[​](#basic-usage)
+Parameter | Type | Description
+----------|------|------------
+Channel | FString | Channel to add.
+ChannelGroup | FString | Target group.
 
-##### Reference code
+### Example (`MyGameMode.h`)
 
-This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
-
-#### MyGameMode.h[​](#mygamemodeh)
-
-```
-`// NOTE: This example requires correct PubnubSDK configuration in plugins settings and adding "PubnubLibrary" to PublicDependencyModuleNames in your build.cs  
+```cpp
+// NOTE: This example requires correct PubnubSDK configuration in plugins settings and adding "PubnubLibrary" to PublicDependencyModuleNames in your build.cs  
 // More info in the documentation: https://www.pubnub.com/docs/sdks/unreal/api-reference/configuration  
   
 #pragma once  
@@ -61,186 +40,150 @@ This example is a self-contained code snippet ready to be run. It includes neces
 UCLASS()  
 //Replace MYPROJECT with name of your project  
 class MYPROJECT_API AMyGameMode : public AGameModeBase  
-`
 ```
-show all 21 lines
 
-#### MyGameMode.cpp[​](#mygamemodecpp)
+### Example (`MyGameMode.cpp`)
 
-```
-`#include "MyGameMode.h"  
+```cpp
+#include "MyGameMode.h"  
 #include "PubnubSubsystem.h"  
 #include "Kismet/GameplayStatics.h"  
   
 void AMyGameMode::AddChannelToGroupExample()  
 {  
-	// Get PubnubSubsystem from the game instance  
-	UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
-	UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
+    // Get PubnubSubsystem from the game instance  
+    UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
+    UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystem<UPubnubSubsystem>();  
   
-	// Ensure user ID is set  
-	PubnubSubsystem->SetUserID("my_user_id");  
+    // Ensure user ID is set  
+    PubnubSubsystem->SetUserID("my_user_id");  
   
-	FString Channel = "randomChannel";  
-	FString ChannelGroup = "myChannelGroup";  
-`
+    FString Channel = "randomChannel";  
+    FString ChannelGroup = "myChannelGroup";  
 ```
-show all 20 lines
 
-### Returns[​](#returns)
+Return: `void`
 
-This method doesn't have any return value.
+---
 
-## List Channels[​](#list-channels)
+## List Channels
 
-##### Requires Stream Controller add-on
-
-This method requires that the *Stream Controller* add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
-
-This function lists all the channels of the channel group.
-
-### Method(s)[​](#methods-1)
-
-- Blueprint
-- C++
-
+```cpp
+PubnubSubsystem->ListChannelsFromGroup(
+    FString ChannelGroup,
+    FOnListChannelsFromGroupResponse OnListChannelsResponse
+);
 ```
-`PubnubSubsystem->ListChannelsFromGroup(  
-    FString ChannelGroup,   
-    FOnListChannelsFromGroupResponse OnListChannelsResponse  
-);  
-`
-```
-*  requiredParameterDescription`ChannelGroup` *Type: `FString`The channel group to list the channels of.`OnListChannelsResponse` *Type: [`FOnListChannelsFromGroupResponse`](#fonlistchannelsfromgroupresponse)The [callback function](/docs/sdks/unreal/api-reference/configuration#add-callback-function) used to handle the result.
 
-### Basic Usage[​](#basic-usage-1)
+Parameter | Type | Description
+----------|------|------------
+ChannelGroup | FString | Group to query.
+OnListChannelsResponse | FOnListChannelsFromGroupResponse | Delegate/callback.
 
-```
-`#include "Kismet/GameplayStatics.h"  
+### Delegate
+
+Field | Type | Description
+------|------|------------
+Error | bool | Operation error flag.
+Status | int | HTTP status code.
+Channels | TArray<FString>& | Channel names in the group.
+
+### Usage
+
+```cpp
+#include "Kismet/GameplayStatics.h"  
 #include "PubnubSubsystem.h"  
   
 UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
-UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
+UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystem<UPubnubSubsystem>();  
   
 FString Channel = "randomChannel";  
 FString ChannelGroup = "myChannelGroup";  
   
-// Create a pubnub response delegate  
-// you MUST implement your own callback function to handle the response  
 FOnListChannelsFromGroupResponse OnListChannelsResponse;  
 OnListChannelsResponse.BindDynamic(this, &AMyActor::OnListChannelsResponse);  
-  
 // Add channel to channel group  
-`
 ```
-show all 16 lines
 
-### Returns[​](#returns-1)
+### JSON Response
 
-This method returns the [`FOnListChannelsFromGroupResponse`](#fonlistchannelsfromgroupresponse) struct.
-
-#### FOnListChannelsFromGroupResponse[​](#fonlistchannelsfromgroupresponse)
-
-  
-
-FieldTypeDescription`Error``bool`Whether the operation resulted in an error.`Status``int`HTTP code of the result of the operation.`Channels``TArray<FString>&`An array of channel names of all the channels of the channel group.
-
-#### JSON response[​](#json-response)
-
-```
-`{  
-  "error":false,  
-  "payload":{  
-    "channels":[],  
-    "group":"my_channel"  
+```json
+{  
+  "error": false,  
+  "payload": {  
+    "channels": [],  
+    "group": "my_channel"  
   },  
-  "service":"channel-registry",  
-  "status":200  
-}  
-`
+  "service": "channel-registry",  
+  "status": 200  
+}
 ```
 
-## Remove Channels[​](#remove-channels)
+Return: `FOnListChannelsFromGroupResponse`
 
-##### Requires Stream Controller add-on
+---
 
-This method requires that the *Stream Controller* add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
+## Remove Channels
 
-This function removes the channels from the channel group.
-
-### Method(s)[​](#methods-2)
-
-- Blueprint
-- C++
-
+```cpp
+PubnubSubsystem->RemoveChannelFromGroup(
+    FString Channel,
+    FString ChannelGroup
+);
 ```
-`PubnubSubsystem->RemoveChannelFromGroup(  
-    FString Channel,   
-    FString ChannelGroup  
-);  
-`
-```
-*  requiredParameterDescription`ChannelGroup` *Type: `FString`The channel group to remove the channel from.`Channel` *Type: `FString`The channel to remove from the channel group.
 
-### Basic Usage[​](#basic-usage-2)
+Parameter | Type | Description
+----------|------|------------
+Channel | FString | Channel to remove.
+ChannelGroup | FString | Source group.
 
-```
-`#include "Kismet/GameplayStatics.h"  
+### Usage
+
+```cpp
+#include "Kismet/GameplayStatics.h"  
 #include "PubnubSubsystem.h"  
   
 UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
-UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
+UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystem<UPubnubSubsystem>();  
   
 FString Channel = "randomChannel";  
-FString ChanelGroup = "myChannelGroup";  
+FString ChannelGroup = "myChannelGroup";  
   
 // Remove channel from channel group  
 PubnubSubsystem->RemoveChannelFromGroup(Channel, ChannelGroup);  
-`
 ```
 
-### Returns[​](#returns-2)
+Return: `void`
 
-This method doesn't have any return value.
+---
 
-## Delete Channel Group[​](#delete-channel-group)
+## Delete Channel Group
 
-##### Requires Stream Controller add-on
-
-This method requires that the *Stream Controller* add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
-
-This function removes the channel group.
-
-### Method(s)[​](#methods-3)
-
-- Blueprint
-- C++
-
+```cpp
+PubnubSubsystem->RemoveChannelGroup(
+    String ChannelGroup
+);
 ```
-`PubnubSubsystem->RemoveChannelGroup(  
-    String ChannelGroup  
-);  
-`
-```
-*  requiredParameterDescription`ChannelGroup` *Type: `FString`The channel group to remove.
 
-### Basic Usage[​](#basic-usage-3)
+Parameter | Type | Description
+----------|------|------------
+ChannelGroup | FString | Group to delete.
 
-```
-`#include "Kismet/GameplayStatics.h"  
+### Usage
+
+```cpp
+#include "Kismet/GameplayStatics.h"  
 #include "PubnubSubsystem.h"  
   
 UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
-UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
+UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystem<UPubnubSubsystem>();  
   
-FString ChanelGroup = "myChannelGroup";  
+FString ChannelGroup = "myChannelGroup";  
   
 // Remove channel group  
 PubnubSubsystem->RemoveChannelGroup(ChannelGroup);  
-`
 ```
 
-### Returns[​](#returns-3)
+Return: `void`  
 
-This method doesn't have any return value.
-Last updated on **Apr 29, 2025**
+_Last updated: Apr 29 2025_

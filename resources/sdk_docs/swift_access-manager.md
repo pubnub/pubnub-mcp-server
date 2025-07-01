@@ -1,114 +1,77 @@
-On this page
-# Access Manager v3 API for Swift SDK
+# Access Manager v3 API – Swift SDK (Client-side)
 
-Access Manager allows you to enforce security controls for client access to resources within the PubNub Platform. With Access Manager v3, your servers can grant their clients tokens with embedded permissions that provide access to individual PubNub resources, such as channels, channel groups, and UUID metadata:
+Access Manager v3 lets your server issue tokens that grant time-limited, fine-grained permissions (read, write, etc.) on channels, channel groups, and UUID metadata.  
+The Swift SDK is **client-only**: it can *parse* and *set* tokens received from your server, but it **cannot** grant or revoke permissions.
 
-- For a limited period of time.
+---
 
-- Through resource lists or patterns (regular expressions).
+## Parse Token
 
-- In a single API request, even if permission levels differ (`read` to `channel1` and `write` to `channel2`).
+Decode an existing token to inspect its permissions and TTL.
 
-You can add the [authorized UUID](/docs/general/security/access-control#authorized-uuid) parameter to the grant request to restrict the token usage to only one client with a given `uuid`. Once specified, only this authorized UUID will be able to use the token to make API requests for the specified resources, according to permissions given in the grant request.
-
-For more information about Access Manager v3, refer to [Manage Permissions with Access Manager v3](/docs/general/security/access-control).
-
-##### Client device support only
-
-The Swift SDK supports only client implementation of Access Manager functionality. This means that you cannot use it to grant permissions, but rather to parse and set tokens received from a server SDK.
-
-## Parse Token[​](#parse-token)
-
-The `parse()` method decodes an existing token and returns the object containing permissions embedded in that token. The client can use this method for debugging to check the permissions to the resources or find out the token's `ttl` (time to live) details.
-
-### Method(s)[​](#methods)
-
+### Method
+```swift
+func parse(token: String)
 ```
-`func parse(token: String)  
-`
-```
+* **token** – `String` (required)  
+  The token containing embedded permissions.
 
-*  requiredParameterDescription`token` *Type: `String`Default:  
-n/aCurrent token with embedded permissions.
+### Return
+```swift
+struct PAMToken {
+  /// Token version
+  public let version: Int { get }
 
-### Basic Usage[​](#basic-usage)
+  /// Token generation timestamp
+  public let timestamp: Int { get }
 
-##### Reference code
+  /// Token validity in minutes
+  public let ttl: Int { get }
 
-This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
+  /// UUID exclusively authorized to use this token
+  public let authorizedUUID: String? { get }
 
-```
-`  
-`
+  /// Permissions for exact resources
+  public let resources: PAMTokenResource { get }
+
+  /// Permissions for pattern resources
+  public let patterns: PAMTokenResource { get }
+}
 ```
 
-### Returns[​](#returns)
+Resource & pattern permissions:
+```swift
+struct PAMTokenResource {
+  /// Channel permissions
+  public let channels: [String: PAMPermission] { get }
 
-This method responds with a struct of `PAMToken`:
+  /// Channel-group permissions
+  public let groups: [String: PAMPermission] { get }
 
-```
-`struct PAMToken {  
-    
-  /// Token version  
-  public let version: Int { get }  
-    
-  /// Token generation date and time  
-  public let timestamp: Int { get }  
-    
-  /// Maximum amount of time (in minutes) during which the token will be valid  
-  public let ttl: Int { get }  
-    
-  /// The uuid that is exclusively authorized to use this token to make API requests  
-  public let authorizedUUID: String? { get }  
-    
-  /// Permissions granted to specific resources  
-`
-```
-show all 26 lines
-
-See the resource and pattern permissions stored in the `PAMTokenResource` structure:
-
-```
-`struct PAMTokenResource {  
-  
-  /// Permissions granted to specific / regexp matching channels  
-  public let channels: [String: PAMPermission] { get }  
-    
-  /// Permissions granted to specific / regexp matching channel groups  
-  public let groups: [String: PAMPermission] { get }  
-    
-  /// Permissions granted to specific / regexp matching uuids  
-  public let uuids: [String: PAMPermission] { get }  
-}  
-`
+  /// UUID permissions
+  public let uuids: [String: PAMPermission] { get }
+}
 ```
 
-### Error Responses[​](#error-responses)
+#### Error
+A parse error indicates a corrupted token; request a new token from the server.
 
-If you receive an error while parsing the token, it may suggest that the token is damaged. In that case, request the server to issue a new one.
+---
 
-## Set Token[​](#set-token)
+## Set Token
 
-The `set()` method is used by the client devices to update the authentication token granted by the server.
+Attach / replace the current authentication token on the client.
 
-### Method(s)[​](#methods-1)
-
+### Method
+```swift
+func set(token: String)
 ```
-`func set(token: String)  
-`
-```
+* **token** – `String` (required)  
+  The new token to use for all subsequent PubNub API calls.
 
-*  requiredParameterDescription`token` *Type: `String`Default:  
-n/aCurrent token with embedded permissions.
+### Return
+No value (void).
 
-### Basic Usage[​](#basic-usage-1)
+---
 
-```
-`  
-`
-```
-
-### Returns[​](#returns-1)
-
-This method doesn't return any response value.
-Last updated on **Jun 12, 2025**
+_Last updated: Jun 12 2025_

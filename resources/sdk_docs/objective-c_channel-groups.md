@@ -1,23 +1,16 @@
-On this page
-# Channel Groups API for Objective-C SDK
+# Channel Groups API (Objective-C SDK)
 
-[Channel groups](/docs/general/channels/subscribe#channel-groups) allow PubNub developers to bundle thousands of [channels](/docs/general/channels/overview) into a group that can be identified by a name. These channel groups can then be subscribed to, receiving data from the many back-end channels the channel group contains.
+Channel Groups bundle multiple channels under one name.  
+• Subscribe only (publishing must target individual channels).  
+• All operations below require the **Stream Controller** add-on to be enabled for your keys in the Admin Portal.
 
-##### Channel group operations
+---
 
-You can't publish to a channel group. You can only subscribe to it. To publish within the channel group, you need to publish to each channel individually.
+## Add Channels
 
-## Add Channels[​](#add-channels)
+Adds channels to a channel group.
 
-##### Requires Stream Controller add-on
-
-This method requires that the *Stream Controller* add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
-
-This function adds a channel to a channel group.
-
-### Method(s)[​](#methods)
-
-`Adding Channels` is accomplished by using the following method(s) in the Objective-C SDK:
+### Method
 
 ```
 `- (void)addChannels:(NSArrayNSString *> *)channels   
@@ -26,11 +19,12 @@ This function adds a channel to a channel group.
 `
 ```
 
-*  requiredParameterDescription`channels` *Type: NSArrayList of channel names which should be added to the group.`group` *Type: NSStringName of the group into which channels should be added.`block`Type: PNChannelGroupChangeCompletionBlock`Channels` addition process completion block which pass only one argument - request processing status to report about how data pushing was successful or not.
+Parameters  
+• `channels` (NSArray\<NSString *>): Channel names to add.  
+• `group` (NSString): Target channel group.  
+• `block` (PNChannelGroupChangeCompletionBlock, nullable): Completion status.
 
-### Basic Usage[​](#basic-usage)
-
-#### Add Channels[​](#add-channels-1)
+### Example
 
 ```
 `// Initialize PubNub client with your keys  
@@ -52,9 +46,7 @@ PNChannelGroupManageRequest *request = [PNChannelGroupManageRequest requestToAdd
 ```
 show all 35 lines
 
-### Response[​](#response)
-
-Response objects which is returned by client when Add Channels to Group API is used:
+### Response
 
 ```
 `@interface PNAcknowledgmentStatus : PNErrorStatus  
@@ -63,17 +55,13 @@ Response objects which is returned by client when Add Channels to Group API is u
 `
 ```
 
-## List Channels[​](#list-channels)
+---
 
-##### Requires Stream Controller add-on
+## List Channels
 
-This method requires that the *Stream Controller* add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
+Returns all channels registered in a group.
 
-This function lists all the channels of the channel group.
-
-### Method(s)[​](#methods-1)
-
-`Listing Channels` is accomplished by using the following method(s) in the Objective-C SDK:
+### Method
 
 ```
 `- (void)channelsForGroup:(NSString *)group   
@@ -81,11 +69,11 @@ This function lists all the channels of the channel group.
 `
 ```
 
-*  requiredParameterDescription`group` *Type: NSStringName of the group from which `channels` should be fetched.`block` *Type: PNClientChannelsForGroupRequestHandlingBlock`Channels` audition process completion `block` which pass two arguments: result - in case of successful request processing data field will contain results of channel groups `channels` audition operation; status - in case if error occurred during request processing.
+Parameters  
+• `group` (NSString): Group to audit.  
+• `block` (PNGroupChannelsAuditCompletionBlock): `(result, status)`.
 
-### Basic Usage[​](#basic-usage-1)
-
-#### List Channels[​](#list-channels-1)
+### Example
 
 ```
 `NSString *channelGroup = @"family";  
@@ -112,9 +100,7 @@ This function lists all the channels of the channel group.
 ```
 show all 19 lines
 
-### Response[​](#response-1)
-
-Response objects which is returned by client when Add Channels to Group API is used:
+### Response
 
 ```
 `@interface PNChannelGroupChannelsData : PNServiceData  
@@ -133,17 +119,13 @@ Response objects which is returned by client when Add Channels to Group API is u
 `
 ```
 
-## Remove Channels[​](#remove-channels)
+---
 
-##### Requires Stream Controller add-on
+## Remove Channels
 
-This method requires that the *Stream Controller* add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
+Removes specific channels from a group (pass empty array to remove the entire group).
 
-This function removes the channels from the channel group.
-
-### Method(s)[​](#methods-2)
-
-`Removing Channels` is accomplished by using the following method(s) in the Objective-C SDK:
+### Method
 
 ```
 `- (void)removeChannels:(NSArrayNSString *> *)channels   
@@ -152,11 +134,12 @@ This function removes the channels from the channel group.
 `
 ```
 
-*  requiredParameterDescription`channels` *Type: NSArrayList of channel names which should be removed from group. `If empty list passed whole channel group will be removed.``group` *Type: NSStringChannel group from which channels should be removed.`block`Type: PNChannelGroupChangeCompletionBlockChannels removal process completion block which pass only one argument - request processing status to report about how data pushing was successful or not.
+Parameters  
+• `channels` (NSArray\<NSString *>): Channels to remove. Empty array = delete group.  
+• `group` (NSString): Source group.  
+• `block` (PNChannelGroupChangeCompletionBlock, nullable): Completion status.
 
-### Basic Usage[​](#basic-usage-2)
-
-#### Remove channels[​](#remove-channels-1)
+### Example
 
 ```
 `NSString *channelGroup = @"family";  
@@ -183,9 +166,7 @@ This function removes the channels from the channel group.
 ```
 show all 19 lines
 
-### Response[​](#response-2)
-
-Response objects which is returned by client when Remove Channels to Group API is used:
+### Response
 
 ```
 `@interface PNAcknowledgmentStatus : PNErrorStatus  
@@ -194,17 +175,13 @@ Response objects which is returned by client when Remove Channels to Group API i
 `
 ```
 
-## Delete Channel Group[​](#delete-channel-group)
+---
 
-##### Requires Stream Controller add-on
+## Delete Channel Group
 
-This method requires that the *Stream Controller* add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
+Removes all channels from the specified group (effectively deleting it).
 
-This function removes the channel group.
-
-### Method(s)[​](#methods-3)
-
-`Deleting Channel Group` is accomplished by using the following method(s) in the Objective-C SDK:
+### Method
 
 ```
 `- (void)removeChannelsFromGroup:(NSString *)group   
@@ -212,11 +189,11 @@ This function removes the channel group.
 `
 ```
 
-*  requiredParameterDescription`group` *Type: NSStringName of the `group` from which all `channels` should be removed.`block`Type: PNChannelGroupChangeCompletionBlockChannel group removal process completion `block` which pass only one argument - request processing status to report about how data pushing was successful or not.
+Parameters  
+• `group` (NSString): Group to delete.  
+• `block` (PNChannelGroupChangeCompletionBlock, nullable): Completion status.
 
-### Basic Usage[​](#basic-usage-3)
-
-Deleting Channel Group :
+### Example
 
 ```
 `NSString *channelGroup = @"family";  
@@ -243,13 +220,12 @@ Deleting Channel Group :
 ```
 show all 18 lines
 
-### Response[​](#response-3)
-
-Response objects which is returned by client when Remove Channel Group API is used:
+### Response
 
 ```
 `@interface PNAcknowledgmentStatus : PNErrorStatus**  
 @end  
 `
 ```
-Last updated on May 29, 2025**
+
+_Last updated: May 29, 2025_

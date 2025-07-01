@@ -1,235 +1,182 @@
-On this page
-# Channel Groups API for Ruby SDK
+# Channel Groups API – Ruby SDK (Condensed)
 
-[Channel groups](/docs/general/channels/subscribe#channel-groups) allow PubNub developers to bundle thousands of [channels](/docs/general/channels/overview) into a group that can be identified by a name. These channel groups can then be subscribed to, receiving data from the many back-end channels the channel group contains.
+Channel Groups let you subscribe to, but not publish to, a named collection of channels.  
+All operations below require the **Stream Controller add-on** to be enabled for your keys.
 
-##### Channel group operations
+---
 
-You can't publish to a channel group. You can only subscribe to it. To publish within the channel group, you need to publish to each channel individually.
+## Common Method
 
-## Add Channels[​](#add-channels)
+All channel-group operations are performed with `channel_registration`.
 
-##### Requires Stream Controller add-on
-
-This method requires that the *Stream Controller* add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
-
-This function adds a channel to a channel group.
-
-### Method(s)[​](#methods)
-
-`Adding Channels` is accomplished by using the following method(s) in the Ruby SDK:
-
-##### Maximum number of channels
-
-`200 channels` can be added to the `channel group` per API call.
-
-```
-`channel_registration(  
-    action: :add,  
-    channels: channels,  
-    channel_groups: channel_groups,  
-    http_sync: http_sync,  
-    callback: callback  
-)  
-`
+```ruby
+channel_registration(
+    action:  :add | :get | :remove,
+    channels:         channels,        # String | Symbol
+    channel_groups:   channel_groups,  # String | Symbol
+    http_sync:        http_sync,       # Boolean (default false)
+    callback:         callback         # Proc/Lambda (1 arg – envelope)
+)
 ```
 
-*  requiredParameterDescription`action` *Type: Symbol`Action` that you want to preform, to add, it's `:add`.`channels` *Type: String, SymbolThe `channels` to add to `channel groups`.`channel_groups` *Type: String, SymbolThe `channel_groups` to add `channels` to.`http_sync`Type: BooleanDefault `false`. Method will be executed `asynchronously` and will return future, to get it's `value` you can use `value` method. If set to `true`, method will return array of envelopes (even if there's only one `envelope`).   
-For `sync` methods `Envelope` object will be returned.`callback`Type: Lambda accepting one parameter`Callback` that will be called for each `envelope`.   
-For `async` methods future will be returned, to retrieve `value` `Envelope` object you have to call `value` method (thread will be locked until the `value` is returned).
+• `http_sync: true` – synchronous; returns Envelope(s).  
+• `http_sync: false` – asynchronous; returns a future whose `.value` is the Envelope.  
+• `callback` executes once per Envelope (async only).
 
-### Basic Usage[​](#basic-usage)
+Maximum channels per call: **200**.
 
-#### Add Channels[​](#add-channels-1)
+---
 
-##### Reference code
+## Add Channels to a Group
 
-This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
-
-```
-`require 'pubnub'  
-  
-def add_channels_to_group(pubnub)  
-  # Async without callback  
-  pubnub.channel_registration(action: :add, channel: 'my_channel', channel_group: :somegroup) do |envelope|  
-    if envelope.status[:error]  
-      puts "Async Error: #{envelope.status[:error]}"  
-    else  
-      puts "Async Success: Channels added to channel group."  
-    end  
-  end  
-  
-  # Sync without callback  
-  begin  
-    envelopes = pubnub.channel_registration(action: :add, channel: 'my_channel', channel_group: :somegroup, http_sync: true)  
-`
-```
-show all 35 lines
-
-### Response[​](#response)
-
-```
-`#  
-    @status = {  
-        :code => 200,  
-        :category => :ack,  
-        :error => false,  
-    }  
->  
-`
+```ruby
+# Signature
+channel_registration(
+    action: :add,
+    channels: channels,
+    channel_groups: channel_groups,
+    http_sync: http_sync,
+    callback: callback
+)
 ```
 
-## List Channels[​](#list-channels)
+### Example
 
-##### Requires Stream Controller add-on
+```ruby
+require 'pubnub'
 
-This method requires that the *Stream Controller* add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
+# Async
+pubnub.channel_registration(
+  action: :add, channel: 'my_channel', channel_group: :somegroup
+) do |envelope|
+  puts envelope.status[:error] ? "Async Error" : "Async Success"
+end
 
-This function lists all the channels of the channel group.
-
-### Method(s)[​](#methods-1)
-
-`Listing Channels` is accomplished by using the following method(s) in the Ruby SDK:
-
-```
-`channel_registration(  
-    action: :get,  
-    channel_group: group,  
-    http_sync: http_sync,  
-    callback: callback  
-)  
-`
+# Sync
+envelopes = pubnub.channel_registration(
+  action: :add, channel: 'my_channel', channel_group: :somegroup, http_sync: true
+)
 ```
 
-*  requiredParameterDescription`action` *Type: SymbolTo get all channels from a `channel groups` you need to specify action as `:get`.`channel_groups` *Type: String, Symbol`Channel groups` to fetch the channels of.`http_sync`Type: BooleanDefault `false`. Method will be executed `asynchronously` and will return future, to get it's `value` you can use `value` method. If set to `true`, method will return array of envelopes (even if there's only one `envelope`).   
-For `sync` methods `Envelope` object will be returned.`callback`Type: Lambda accepting one parameter`Callback` that will be called for each `envelope`.   
-For `async` methods future will be returned, to retrieve `value` `Envelope` object you have to call `value` method (thread will be locked until the `value` is returned).
-
-### Basic Usage[​](#basic-usage-1)
-
-#### List Channels[​](#list-channels-1)
+### Response
 
 ```
-`pubnub.channel_registration(action: :get, group: 'family') do |envelope|  
-    pp envelope  
-end  
-`
+#
+@status = {
+    :code      => 200,
+    :category  => :ack,
+    :error     => false
+}
+>
 ```
 
-### Response[​](#response-1)
+---
 
-```
-`#  
-    @result = {  
-        :data => {  
-            "channels" => ["ben"],  
-            "group" => "family"  
-        }  
-    }  
-    @status = {  
-        :code => 200  
-    }  
->  
-`
+## List Channels in a Group
+
+```ruby
+# Signature
+channel_registration(
+    action: :get,
+    channel_group: group,
+    http_sync: http_sync,
+    callback: callback
+)
 ```
 
-## Remove Channels[​](#remove-channels)
+### Example
 
-##### Requires Stream Controller add-on
-
-This method requires that the *Stream Controller* add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
-
-This function removes the channels from the channel group.
-
-### Method(s)[​](#methods-2)
-
-`Removing Channels` is accomplished by using the following method(s) in the Ruby SDK:
-
-```
-`channel_registration(  
-    action: :remove,  
-    channels: channels,  
-    channel_groups: group,  
-    http_sync: http_sync,  
-    callback: callback  
-)  
-`
+```ruby
+pubnub.channel_registration(action: :get, group: 'family') do |envelope|
+  pp envelope
+end
 ```
 
-*  requiredParameterDescription`action` *Type: SymbolUse `:remove` to remove `channels`.`channels` *Type: String, SymbolSpecify `channels` name to remove from `channel groups`.`channel_groups` *Type: String, SymbolSpecify `channel_groups` name to remove `channels` from.`http_sync`Type: BooleanDefault `false`. Method will be executed `asynchronously` and will return future, to get it's `value` you can use `value` method. If set to `true`, method will return array of envelopes (even if there's only one `envelope`).   
-For `sync` methods `Envelope` object will be returned.`callback`Type: Lambda accepting one parameter`Callback` that will be called for each `envelope`.   
-For `async` methods future will be returned, to retrieve `value` `Envelope` object you have to call `value` method (thread will be locked until the `value` is returned).
-
-### Basic Usage[​](#basic-usage-2)
-
-#### Remove channels[​](#remove-channels-1)
+### Response
 
 ```
-`pubnub.channel_registration(action: :remove, channel: 'son', group: 'family') do |envelope|  
-    pp envelope  
-end  
-`
+#
+@result = {
+    :data => {
+        "channels" => ["ben"],
+        "group"    => "family"
+    }
+}
+@status = { :code => 200 }
+>
 ```
 
-### Response[​](#response-2)
+---
 
-```
-`#  
-    @status = {  
-        :code => 200,  
-        :category => :ack,  
-        :error => false,  
-    }  
->  
-`
-```
+## Remove Channels from a Group
 
-## Delete Channel Group[​](#delete-channel-group)
-
-##### Requires Stream Controller add-on
-
-This method requires that the *Stream Controller* add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
-
-This function removes the channel group.
-
-### Method(s)[​](#methods-3)
-
-`Deleting Channel Group` is accomplished by using the following method(s) in the Ruby SDK:
-
-```
-`channel_registration(  
-    action: :remove,  
-    channel_groups: channel_groups,  
-    http_sync: http_sync,  
-    callback: callback  
-)  
-`
+```ruby
+# Signature
+channel_registration(
+    action: :remove,
+    channels: channels,
+    channel_groups: group,
+    http_sync: http_sync,
+    callback: callback
+)
 ```
 
-*  requiredParameterDescription`action` *Type: SymbolUse `:remove` to remove the channel groups.`channel_groups` *Type: String, SymbolSpecify channel groups name to remove.`http_sync`Type: BooleanDefault `false`. Method will be executed `asynchronously` and will return future, to get it's `value` you can use `value` method. If set to `true`, method will return array of envelopes (even if there's only one `envelope`).   
-For `sync` methods `Envelope` object will be returned.`callback`Type: Lambda accepting one parameter`Callback` that will be called for each `envelope`.   
-For `async` methods future will be returned, to retrieve `value` `Envelope` object you have to call `value` method (thread will be locked until the `value` is returned).
+### Example
 
-### Basic Usage[​](#basic-usage-3)
-
-#### Delete Channel Group[​](#delete-channel-group-1)
-
-```
-`pubnub.channel_registration(action: :remove, channel_group: 'family') do |envelope|  
-    pp envelope  
-end  
-`
+```ruby
+pubnub.channel_registration(
+  action: :remove, channel: 'son', group: 'family'
+) do |envelope|
+  pp envelope
+end
 ```
 
-### Response[​](#response-3)
+### Response
 
 ```
-`#**    @status = {  
-        :code => 200,  
-        :category => :ack,  
-        :error => false,  
-    }  
->  
-`
+#
+@status = {
+    :code     => 200,
+    :category => :ack,
+    :error    => false
+}
+>
 ```
-Last updated on Mar 31, 2025**
+
+---
+
+## Delete a Channel Group
+
+```ruby
+# Signature
+channel_registration(
+    action: :remove,
+    channel_groups: channel_groups,
+    http_sync: http_sync,
+    callback: callback
+)
+```
+
+### Example
+
+```ruby
+pubnub.channel_registration(
+  action: :remove, channel_group: 'family'
+) do |envelope|
+  pp envelope
+end
+```
+
+### Response
+
+```
+#
+@status = {
+    :code     => 200,
+    :category => :ack,
+    :error    => false
+}
+>
+```
+
+_Last updated: Mar 31 2025_

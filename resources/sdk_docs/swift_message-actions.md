@@ -1,27 +1,13 @@
-On this page
-# Message Actions API for Swift Native SDK
+# Message Actions API – Swift SDK (Condensed)
 
-Add or remove actions on published messages to build features like receipts, reactions, or to associate custom metadata to messages. Clients can subscribe to a channel to receive message action events on that channel. They can also fetch past message actions from Message Persistence independently or when they fetch original messages.
+Message Actions let you attach metadata (reactions, receipts, custom data) to published messages.  
+All methods require Message Persistence to be enabled for your key in the Admin Portal.
 
-##### Message Actions vs. Message Reactions
+---
 
-**Message Actions** is the flexible, low-level API for adding any metadata to messages (read receipts, delivery confirmations, custom data), while **Message Reactions** specifically refers to using Message Actions for emoji/social reactions.
+## Add Message Action
 
-In PubNub [Core](/docs/sdks) and [Chat](/docs/chat/overview) SDKs, the same underlying Message Actions API is referred to as **Message Reactions** when used for emoji reactions - it's the same functionality, just different terminology depending on the use case.
-
-## Add Message Action[​](#add-message-action)
-
-##### Requires Message Persistence
-
-This method requires that Message Persistence is [enabled](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) for your key in the [Admin Portal](https://admin.pubnub.com/).
-
-Add an action on a published `message`. Returns the added action in the response.
-
-### Method(s)[​](#methods)
-
-To Add a Message Action you can use the following method(s) in the Swift SDK:
-
-```
+```swift
 `func addMessageAction(  
     channel: String,  
     type actionType: String,  
@@ -33,21 +19,18 @@ To Add a Message Action you can use the following method(s) in the Swift SDK:
 `
 ```
 
-*  requiredParameterDescription`channel` *Type: StringDefault:  
-n/aThe name of the channel`type` *Type: StringDefault:  
-n/aThe Message Action's type`value` *Type: StringDefault:  
-n/aThe Message Action's value`messageTimetoken` *Type: TimetokenDefault:  
-n/aThe publish timetoken of a parent message.`custom`Type: [`PubNub.RequestConfiguration`](/docs/sdks/swift/api-reference/configuration#request-configuration)Default:  
-`PubNub.RequestConfiguration()`An object that allows for per-request customization of PubNub configuration or network session. For more information, refer to the [Request Configuration](/docs/sdks/swift/api-reference/configuration#request-configuration) section.`completion`Type: `((Result<PubNubMessageAction, Error>) -> Void)?`Default:  
-`nil`The async `Result` of the method call.
+Parameters  
+• `channel` (String) – Target channel  
+• `actionType` (String) – Action type  
+• `value` (String) – Action value  
+• `messageTimetoken` (Timetoken) – Parent message timetoken  
+• `requestConfig` (RequestConfiguration, optional) – Per-request overrides  
+• `completion` (Result<PubNubMessageAction, Error>, optional)
 
-### Completion Handler Result[​](#completion-handler-result)
+Success: returns the added `PubNubMessageAction`.  
+Failure: returns `Error`.
 
-#### Success[​](#success)
-
-The `PubNubMessageAction` that was added.
-
-```
+```swift
 `public protocol PubNubMessageAction {  
   
   /// The type of action  
@@ -65,36 +48,19 @@ The `PubNubMessageAction` that was added.
   /// The publisher of the message action  
 `
 ```
-show all 20 lines
 
-#### Failure[​](#failure)
+Example
 
-An `Error` describing the failure.
-
-### Basic Usage[​](#basic-usage)
-
-##### Reference code
-
-This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
-
-```
+```swift
 `  
 `
 ```
 
-## Remove Message Action[​](#remove-message-action)
+---
 
-##### Requires Message Persistence
+## Remove Message Action
 
-This method requires that Message Persistence is [enabled](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) for your key in the [Admin Portal](https://admin.pubnub.com/).
-
-Remove a previously added action on a published message.
-
-### Method(s)[​](#methods-1)
-
-To Remove a Message Action you can use the following method(s) in the Swift SDK:
-
-```
+```swift
 `func removeMessageActions(  
     channel: String,  
     message timetoken: Timetoken,  
@@ -105,47 +71,31 @@ To Remove a Message Action you can use the following method(s) in the Swift SDK:
 `
 ```
 
-*  requiredParameterDescription`channel` *Type: StringDefault:  
-n/aThe name of the channel.`message` *Type: TimetokenDefault:  
-n/aThe publish timetoken of a parent message.`action` *Type: TimetokenDefault:  
-n/aThe action timetoken of a message action to be removed.`custom`Type: `RequestConfiguration`Default:  
-`RequestConfiguration()`An object that allows for per-request customization of PubNub Configuration or Network Session`completion`Type: `((Result<(channel: String, message: Timetoken, action: Timetoken), Error>) -> Void)?`Default:  
-`nil`The async `Result` of the method call
+Parameters  
+• `channel` (String) – Target channel  
+• `timetoken` (Timetoken) – Parent message timetoken  
+• `actionTimetoken` (Timetoken) – Action timetoken to remove  
+• `requestConfig` (RequestConfiguration, optional)  
+• `completion` (Result<(channel, message, action), Error>, optional)
 
-#### Completion Handler Result[​](#completion-handler-result-1)
+Success: tuple `(channel, message Timetoken, action Timetoken)`  
+Failure: `Error`
 
-#### Success[​](#success-1)
+Example
 
-A `Tuple` containing the channel, message `Timetoken`, and action `Timetoken` of the action that was removed.
-
-#### Failure[​](#failure-1)
-
-An `Error` describing the failure.
-
-### Basic Usage[​](#basic-usage-1)
-
-```
+```swift
 `  
 `
 ```
 
-## Get Message Actions[​](#get-message-actions)
+---
 
-##### Requires Message Persistence
+## Get Message Actions
 
-This method requires that Message Persistence is [enabled](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) for your key in the [Admin Portal](https://admin.pubnub.com/).
+Returns actions for a channel, sorted ascending by `actionTimetoken`.  
+Large responses may be truncated; use the returned `PubNubBoundedPage` to paginate.
 
-Get a list of message actions in a `channel`. Returns a list of actions sorted by the action's timetoken in ascending order.
-
-##### Truncated response
-
-Number of message actions in the response may be truncated when internal limits are hit. If the response is truncated, a `more` property will be returned with additional parameters. Send iterative calls to Message Persistence adjusting the parameters to fetch more message actions.
-
-### Method(s)[​](#methods-2)
-
-To Get Message Actions you can use the following method(s) in the Swift SDK:
-
-```
+```swift
 `func fetchMessageActions(  
     channel: String,  
     page: PubNubBoundedPage? = PubNubBoundedPageBase(),  
@@ -155,19 +105,16 @@ To Get Message Actions you can use the following method(s) in the Swift SDK:
 `
 ```
 
-*  requiredParameterDescription`channel` *Type: StringDefault:  
-n/aThe name of the channel.`page`Type: PubNubBoundedPage?Default:  
-`PubNubBoundedPageBase()`The paging object used for pagination. It allows you to specify a range of messages to retrieve based on specific time bounds.`custom`Type: [`PubNub.RequestConfiguration`](/docs/sdks/swift/api-reference/configuration#request-configuration)Default:  
-`PubNub.RequestConfiguration()`An object that allows for per-request customization of PubNub configuration or network session. For more information, refer to the [Request Configuration](/docs/sdks/swift/api-reference/configuration#request-configuration) section.`completion`Type: `((Result<(channel: String, message: Timetoken, action: Timetoken), Error>) -> Void)?`Default:  
-`nil`The async `Result` of the method call.
+Parameters  
+• `channel` (String) – Target channel  
+• `page` (PubNubBoundedPage?, default `PubNubBoundedPageBase()`) – Pagination  
+• `requestConfig` (RequestConfiguration, optional)  
+• `completion` (Result<(actions, nextPage), Error>, optional)
 
-#### Completion Handler Result[​](#completion-handler-result-2)
+Success: `[PubNubMessageAction]` and optional next page.  
+Failure: `Error`.
 
-#### Success[​](#success-2)
-
-An `Array` of `PubNubMessageAction` for the request channel, and the next request `PubNubBoundedPage` (if one exists).
-
-```
+```swift
 `public protocol PubNubMessageAction {  
   
   /// The type of action  
@@ -185,9 +132,8 @@ An `Array` of `PubNubMessageAction` for the request channel, and the next reques
   /// The publisher of the message action  
 `
 ```
-show all 20 lines
 
-```
+```swift
 `public protocol PubNubBoundedPage {  
   
   /// The start value for the next set of remote data  
@@ -202,13 +148,10 @@ show all 20 lines
 `
 ```
 
-#### Failure[​](#failure-2)
+Example
 
-An `Error` describing the failure.
-
-### Basic Usage[​](#basic-usage-2)
-
-```
+```swift
 `**`
 ```
-Last updated on Jun 12, 2025**
+
+_Last updated Jun 12 2025_

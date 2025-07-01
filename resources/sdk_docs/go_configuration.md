@@ -1,109 +1,66 @@
-On this page
-# Configuration API for Go SDK
-Go complete API reference for building real-time applications on PubNub, including basic usage and sample code.
-[View on GoDoc](https://godoc.org/github.com/pubnub/go)
+# PubNub Go SDK – Configuration (Condensed)
 
-## Configuration[​](#configuration)
+This is a stripped-down reference. All properties, signatures, defaults, and examples are intact; descriptive text is minimized.
 
-`pubnub.Config` instance is storage for user-provided information which describe further PubNub client behavior. Configuration instance contains additional set of properties which allow performing precise PubNub client configuration.
+---
 
-### Method(s)[​](#methods)
-
-To create `configuration` instance you can use the following function in the Go SDK:
+## Create a `Config`
 
 ```
 `config := pubnub.NewConfigWithUserId(UserId)  
 `
 ```
 
-*  requiredParameterDescription`SubscribeKey` *Type: stringDefault:  
-n/a`SubscribeKey` from Admin Portal.`PublishKey`Type: stringDefault:  
-None`PublishKey` from Admin Portal (only required if publishing).`SecretKey`Type: stringDefault:  
-None`SecretKey` (only required for modifying/revealing access permissions).`SetUserId` *Type: UserIdDefault:  
-n/a`userId` to use. The `UserId` object takes `String` as an argument. You should set a unique identifier for the user or the device that connects to PubNub.  
+`UserId` **must** be set or the client can’t connect.
 
-It's a UTF-8 encoded string of up to 92 alphanumeric characters.
- If you don't set the `userId`, you won't be able to connect to PubNub.`AuthKey`Type: stringDefault:  
-NoneIf Access Manager is utilized, client will use this `AuthKey` in all restricted requests.`Secure`Type: boolDefault:  
-TrueUse `SSL`.`MessageQueueOverflowCount`Type: intDefault:  
-100When the limit is exceeded by the number of messages received in a single subscribe request, a status event `PNRequestMessageCountExceededCategory` is fired.`ConnectTimeout`Type: intDefault:  
-5How long to wait before giving up connection to client. The value is in seconds.`SubscribeRequestTimeout`Type: intDefault:  
-310How long to keep the `Subscribe` loop running before disconnect.The value is in seconds.`NonSubscribeRequestTimeout`Type: intDefault:  
-10On `Non subscribe` operations, how long to wait for server response.The value is in seconds.`FilterExpression`Type: stringDefault:  
-NoneFeature to subscribe with a custom filter expression.`Origin`Type: stringDefault:  
-`ps.pndsn.com`Custom `Origin` if needed.`MaximumReconnectionRetries`Type: intDefault:  
-unlimited (-1)The config sets how many times to retry to reconnect before giving up.`SetPresenceTimeout`Type: intDefault:  
-0Defines how long the server considers the client alive for presence. This property works similarly to the concept of long polling by sending periodic requests to the PubNub server at a given interval (like every 300 seconds). These requests ensure the client remains active on subscribed channels.   
-   
- If no heartbeat is received within the timeout period, the client is marked inactive, triggering a "timeout" event on the [presence channel](/docs/general/presence/overview).`SetPresenceTimeoutWithCustomInterval`Type: intDefault:  
-0Specifies how often the client will send heartbeat signals to the server. This property offers more granular control over client activity tracking than `SetPresenceTimeout`.   
-   
- Configure this property to achieve a shorter presence timeout if needed, with the interval typically recommended to be `(SetPresenceTimeout / 2) - 1`.`SuppressLeaveEvents`Type: boolDefault:  
-n/aWhen `true` the SDK doesn't send out the `leave` requests.`MaxIdleConnsPerHost`Type: intDefault:  
-30Used to set the value of HTTP Transport's MaxIdleConnsPerHost.`FileMessagePublishRetryLimit`Type: intDefault:  
-5The number of tries made in case of Publish File Message failure.`CryptoModule`Type: `crypto.NewAesCbcCryptor(CipherKey, UseRandomInitializationVector)`   
-   
- `crypto.NewLegacyCryptor(CipherKey, UseRandomInitializationVector)`Default:  
-NoneThe cryptography module used for encryption and decryption of messages and files. Takes the `CipherKey` and `UseRandomInitializationVector` parameters as arguments.   
-   
- For more information, refer to the [CryptoModule](#cryptomodule) section.`CipherKey`Type: stringDefault:  
-NoneThis way of setting this parameter is deprecated, pass it to `CryptoModule` instead.   
-   
- If `CipherKey` is passed, all communications to/from PubNub will be encrypted.`UseRandomInitializationVector`Type: boolDefault:  
-`true`This way of setting this parameter is deprecated, pass it to `CryptoModule` instead.   
-   
- When `true` the initialization vector (IV) is random for all requests (not just for file upload). When `false` the IV is hard-coded for all requests except for file upload.`UUID` *Type: stringDefault:  
-n/aThis parameter is deprecated, use `userId` instead.  
-  
-`UUID` to use. You should set a unique `UUID` to identify the user or the device that connects to PubNub.   
- If you don't set the `UUID`, you won't be able to connect to PubNub.
+---
 
-##### Disabling random initialization vector
+## Config Fields
 
-Disable random initialization vector (IV) only for backward compatibility (<`5.0.0`) with existing applications. Never disable random IV on new applications.
+* **SubscribeKey** `string` – required for all clients.  
+* **PublishKey** `string` – required only if publishing.  
+* **SecretKey** `string` – required for PAM management.  
+* **SetUserId(UserId)** – unique UTF-8 ID (≤ 92 chars).  
+* **AuthKey** `string` – PAM token sent with every request.  
+* **Secure** `bool` (default `true`) – TLS on/off.  
+* **MessageQueueOverflowCount** `int` (default `100`) – fires `PNRequestMessageCountExceededCategory`.  
+* **ConnectTimeout** `int` (sec, default `5`).  
+* **SubscribeRequestTimeout** `int` (sec, default `310`).  
+* **NonSubscribeRequestTimeout** `int` (sec, default `10`).  
+* **FilterExpression** `string` – server-side stream filter.  
+* **Origin** `string` (default `ps.pndsn.com`).  
+* **MaximumReconnectionRetries** `int` (default `-1` = unlimited).  
+* **SetPresenceTimeout(timeoutSec int)** – presence TTL.  
+* **SetPresenceTimeoutWithCustomInterval(timeoutSec, intervalSec int)** – heartbeat control.  
+* **SuppressLeaveEvents** `bool`.  
+* **MaxIdleConnsPerHost** `int` (default `30`).  
+* **FileMessagePublishRetryLimit** `int` (default `5`).  
+* **CryptoModule** `crypto.*` – encryption engine (see below).  
+* **CipherKey / UseRandomInitializationVector** – DEPRECATED (use `CryptoModule`).  
+* **UUID** `string` – DEPRECATED (use `UserId`).  
 
-#### `CryptoModule`[​](#cryptomodule)
+Random IV should stay enabled for all new apps.
 
-`CryptoModule` provides encrypt/decrypt functionality for messages and files. From the 7.1.2 release on, you can configure how the actual encryption/decryption algorithms work.
+---
 
-Each PubNub SDK is bundled with two ways of encryption: the legacy encryption with 128-bit cipher key entropy and the recommended 256 bit AES-CBC encryption. For more general information on how encryption works, refer to the [Message Encryption](/docs/general/setup/data-security#message-encryption) and [File Encryption](/docs/general/setup/data-security#file-encryption) sections.
+## CryptoModule
 
-If you do not explicitly set the `CryptoModule` in your app and have the `cipherKey` and `useRandomInitializationVector` params set in PubNub config, the client defaults to using the legacy encryption.
-
-##### Legacy encryption with 128-bit cipher key entropy
-
-You don't have to change your encryption configuration if you want to keep using the legacy encryption. If you want to use the recommended 256 bit AES-CBC encryption, you must explicitly set that in PubNub config.
-
-##### `CryptoModule` configuration[​](#cryptomodule-configuration)
-
-To configure the `CryptoModule` to encrypt all messages/files, you can use the following methods in the Go SDK:
+Two bundled options:
 
 ```
-`// encrypts using 256 bit AES-CBC cipher (recommended)  
-// decrypts data encrypted with the legacy and the 256 bit AES-CBC ciphers  
+`// 256-bit AES-CBC (recommended)  
 config.CryptoModule = crypto.NewAesCbcCryptoModule("cipherKey", true)  
   
-// encrypts with 128-bit cipher key entropy (legacy)  
-// decrypts data encrypted with the legacy and the 256 bit AES-CBC ciphers  
+// 128-bit legacy cipher  
 config.CryptoModule = crypto.NewLegacyModule("cipherKey", true)  
 `
 ```
 
-Your client can decrypt content encrypted using either of the modules. This way, you can interact with historical messages or messages sent from older clients while encoding new messages using the more secure 256 bit AES-CBC cipher.
+Older SDKs (< 7.1.2) cannot decrypt AES-CBC data.
 
-##### Older SDK versions
+---
 
-Apps built using the SDK versions lower than 7.1.2 will **not** be able to decrypt data encrypted using the 256 bit AES-CBC cipher. Make sure to update your clients or encrypt data using the legacy algorithm.
-
-### Basic Usage[​](#basic-usage)
-
-##### Reference code
-
-This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
-
-##### Required UserId
-
-Always set the `UserId` to uniquely identify the user or device that connects to PubNub. This `UserId` should be persisted, and should remain unchanged for the lifetime of the user or the device. If you don't set the `UserId`, you won't be able to connect to PubNub.
+## Basic Usage Example
 
 ```
 `package main  
@@ -123,15 +80,13 @@ func main() {
 	config.Secure = true  
 `
 ```
-show all 25 lines
+_show all 25 lines_
 
-### Rest Response from Server[​](#rest-response-from-server)
+---
 
-Configured and ready to use client configuration instance.
+## Proxy Configuration
 
-### Proxy Configuration[​](#proxy-configuration)
-
-The following sample configures a client to use a proxy for subscribe requests:
+### Subscribe traffic
 
 ```
 `var pn *pubnub.PubNub  
@@ -151,9 +106,9 @@ transport := &http.Transport{
 proxyURL, err := url.Parse(fmt.Sprintf("http://%s:%s@%s:%d", "proxyUser", "proxyPassword", "proxyServer", 8080))  
 `
 ```
-show all 24 lines
+_show all 24 lines_
 
-The following sample configures a client to use a proxy for *non-subscribe* requests:
+### Non-subscribe traffic
 
 ```
 `var pn *pubnub.PubNub  
@@ -173,46 +128,28 @@ transport := &http.Transport{
 proxyURL, err := url.Parse(fmt.Sprintf("http://%s:%s@%s:%d", "proxyUser", "proxyPassword", "proxyServer", 8080))  
 `
 ```
-show all 24 lines
+_show all 24 lines_
 
-## Initialization[​](#initialization)
+---
 
-Add PubNub to your project using one of the procedures defined in the [Getting Started guide](/docs/sdks/go).
-
-### Description[​](#description)
-
-This function is used for initializing the PubNub Client API context. This function must be called before attempting to utilize any API functionality in order to establish account level credentials such as `PublishKey` and `SubscribeKey`.
-
-### Method(s)[​](#methods-1)
-
-To `Initialize` PubNub you can use the following method(s) in the Go SDK:
+## Initialization
 
 ```
 `pn := pubnub.NewPubNub(config)  
 `
 ```
 
-*  requiredParameterDescription`config` *Type: ConfigGoto [Configuration](#configuration)  for more details.
-
-### Basic Usage[​](#basic-usage-1)
-
-#### Initialize the PubNub client API[​](#initialize-the-pubnub-client-api)
-
-##### Required UserId
-
-Always set the `UserId` to uniquely identify the user or device that connects to PubNub. This `UserId` should be persisted, and should remain unchanged for the lifetime of the user or the device. If you don't set the `UserId`, you won't be able to connect to PubNub.
+Example:
 
 ```
 `package main  
   
 import (  
 	"fmt"  
-  
 	pubnub "github.com/pubnub/go/v7"  
 )  
   
 func main() {  
-	// Configuration  
 	config := pubnub.NewConfigWithUserId("myUniqueUserId")  
 	config.SubscribeKey = "demo"  
 	config.PublishKey = "demo"  
@@ -220,19 +157,9 @@ func main() {
 	// Initialize the PubNub instance  
 `
 ```
-show all 19 lines
+_show all 19 lines_
 
-### Returns[​](#returns)
-
-It returns the PubNub instance for invoking PubNub APIs like `Publish()`, `Subscribe()`, `History()`, `HereNow()`, etc.
-
-### Other Examples[​](#other-examples)
-
-#### Initialize a non-secure client[​](#initialize-a-non-secure-client)
-
-##### Required UserId
-
-Always set the `UserId` to uniquely identify the user or device that connects to PubNub. This `UserId` should be persisted, and should remain unchanged for the lifetime of the user or the device. If you don't set the `UserId`, you won't be able to connect to PubNub.
+Other variants (non-secure / read-only):
 
 ```
 `import (  
@@ -247,14 +174,6 @@ pn := pubnub.NewPubNub(config)
 `
 ```
 
-#### Initialization for a Read-Only client[​](#initialization-for-a-read-only-client)
-
-In the case where a client will only read messages and never publish to a channel, you can simply omit the `PublishKey` when initializing the client:
-
-##### Required UserId
-
-Always set the `UserId` to uniquely identify the user or device that connects to PubNub. This `UserId` should be persisted, and should remain unchanged for the lifetime of the user or the device. If you don't set the `UserId`, you won't be able to connect to PubNub.
-
 ```
 `import (  
     pubnub "github.com/pubnub/go"  
@@ -267,13 +186,11 @@ pn := pubnub.NewPubNub(config)
 `
 ```
 
-## Event Listeners[​](#event-listeners)
+---
 
-You can be notified of connectivity status, message and presence notifications via the listeners.
+## Event Listeners (reference)
 
-Listeners should be added before calling the method.
-
-#### Add Listeners[​](#add-listeners)
+Add, remove, and monitor status:
 
 ```
 `import (  
@@ -293,9 +210,7 @@ go func() {
             //Payload  
 `
 ```
-show all 108 lines
-
-#### Remove Listeners[​](#remove-listeners)
+_show 108 lines_
 
 ```
 `listener := pubnub.NewListener()  
@@ -306,8 +221,6 @@ pn.AddListener(listener)
 pn.RemoveListener(listener)  
 `
 ```
-
-#### Handling Disconnects[​](#handling-disconnects)
 
 ```
 `import (  
@@ -327,42 +240,25 @@ pn.RemoveListener(listener)
         }  
 `
 ```
-show all 17 lines
+_show 17 lines_
 
-#### Listener status events[​](#listener-status-events)
+Key categories include `PNTimeoutCategory`, `PNDisconnectedCategory`, `PNConnectedCategory`, `PNAccessDeniedCategory`, `PNRequestMessageCountExceededCategory`, etc.
 
-CategoryDescription`PNTimeoutCategory`Processing has failed because of request time out.`PNDisconnectedCategory`The SDK is not able to reach PubNub servers because the machine or device are not connected to Internet or this has been lost, your ISP (Internet Service Provider) is having to troubles or perhaps or the SDK is behind of a proxy.`PNConnectedCategory`SDK subscribed with a new mix of channels (fired every time the channel / channel group mix changed).`PNAccessDeniedCategory`The SDK will announce this error when the Access Manager does not allow the subscription to a channel or a channel group.`PNBadRequestCategory`PubNub API server was unable to parse SDK request correctly.`PNCancelledCategory`Request was cancelled by user.`PNLoopStopCategory`Subscription loop has been stopped due some reasons.`PNReconnectedCategory`Subscription loop has been reconnected due some reasons.`PNAcknowledgmentCategory`An API call was successful. This status has additional details based on the type of the successful operation.`PNReconnectionAttemptsExhausted`The SDK loop has been stopped due maximum reconnection exhausted.`PNNoStubMatchedCategory/PNUnknownCategory`PNNoStubMatchedCategory as the StatusCategory means an unknown status category event occurred.`PNRequestMessageCountExceededCategory``PNRequestMessageCountExceededCategory` is fired when the `MessageQueueOverflowCount` limit is exceeded by the number of messages received in a single subscribe request.
+---
 
-## UserId[​](#userid)
-
-These functions are used to set/get a user ID on the fly.
-
-### Method(s)[​](#methods-2)
-
-To set/get `UserId` you can use the following method(s) in Go SDK:
+## UserId Helpers
 
 ```
 `config.SetUserId(UserId(string))  
 `
 ```
 
-*  requiredParameterDescription`UserId` *Type: stringDefault:  
-n/a`UserId` to be used as a device identifier. If you don't set the `UserId`, you won't be able to connect to PubNub.
-
 ```
 `config.GetUserId()  
 `
 ```
 
-This method doesn't take any arguments.
-
-### Basic Usage[​](#basic-usage-2)
-
-#### Set User ID[​](#set-user-id)
-
-##### Required UserId
-
-Always set the `UserId` to uniquely identify the user or device that connects to PubNub. This `UserId` should be persisted, and should remain unchanged for the lifetime of the user or the device. If you don't set the `UserId`, you won't be able to connect to PubNub.
+Example:
 
 ```
 `import (  
@@ -372,13 +268,10 @@ Always set the `UserId` to uniquely identify the user or device that connects to
 config := pubnub.NewConfig()  
 config.SetUserId(UserId("myUniqueUserId"))  
   
-// set UserId in a single line  
+// one-liner  
 config := pubnub.NewConfigWithUserId("userId")  
-  
 `
 ```
-
-#### Get User ID[​](#get-user-id)
 
 ```
 `import (  
@@ -391,29 +284,23 @@ fmt.Println(config.GetUserId)
 `
 ```
 
-## Authentication Key[​](#authentication-key)
+---
 
-Setter and getter for users auth key.
+## AuthKey Helpers
 
-### Method(s)[​](#methods-3)
+Setter / getter:
 
 ```
 `config.AuthKey = string  
 `
 ```
 
-*  requiredParameterDescription`AuthKey` *Type: stringIf Access Manager is utilized, client will use this `AuthKey` in all restricted requests.
-
 ```
 `config.AuthKey  
 `
 ```
 
-This method doesn't take any arguments.
-
-### Basic Usage[​](#basic-usage-3)
-
-#### Set Auth Key[​](#set-auth-key)
+Example:
 
 ```
 `import (  
@@ -421,55 +308,30 @@ This method doesn't take any arguments.
 )  
   
 config := pubnub.NewConfig()  
-  
 config.AuthKey = "my_newauthkey"  
 `
 ```
-
-#### Get Auth Key[​](#get-auth-key)
 
 ```
 `fmt.Println(config.AuthKey)  
 `
 ```
 
-### Returns[​](#returns-1)
+---
 
-None.
-
-## Filter Expression[​](#filter-expression)
-
-##### Requires Stream Controller add-on
-
-This method requires that the *Stream Controller* add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
-
-Stream filtering allows a subscriber to apply a filter to only receive messages that satisfy the conditions of the filter. The message filter is set by the subscribing client(s) but it is applied on the server side thus preventing unwanted messages (those that do not meet the conditions of the filter) from reaching the subscriber.
-
-To set or get message filters, you can use the following methods. To learn more about filtering, refer to the [Publish Messages](/docs/general/messages/publish) documentation.
-
-### Method(s)[​](#methods-4)
+## Filter Expression
 
 ```
 `config.FilterExpression = string  
 `
 ```
 
-*  requiredParameterDescription`filterExpression` *Type: stringPSV2 feature to `Subscribe` with a custom filter expression.
-
 ```
 `config.FilterExpression  
 `
 ```
 
-This method doesn't take any arguments.
-
-### Basic Usage[​](#basic-usage-4)
-
-#### Set Filter Expression[​](#set-filter-expression)
-
-##### Required UserId
-
-Always set the `UserId` to uniquely identify the user or device that connects to PubNub. This `UserId` should be persisted, and should remain unchanged for the lifetime of the user or the device. If you don't set the `UserId`, you won't be able to connect to PubNub.
+Example:
 
 ```
 `import (  
@@ -477,14 +339,12 @@ Always set the `UserId` to uniquely identify the user or device that connects to
 )  
   
 config := pubnub.NewConfig()  
-  
 config.FilterExpression = "such=wow"  
 `
 ```
 
-#### Get Filter Expression[​](#get-filter-expression)
-
 ```
 `fmt.Println(config.FilterExpression)**`
 ```
-Last updated on Apr 22, 2025**
+
+_Last updated Apr 22 2025_

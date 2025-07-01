@@ -1,62 +1,46 @@
-On this page
-# Utility Methods API for Rust SDK
+# Utility Methods API (Rust SDK)
 
-The methods on this page are utility methods that don't fit into other categories.
+These helper methods are available only on a `PubNub` client instance.
 
-## Disconnect[​](#disconnect)
+## Disconnect
 
-Disconnect from PubNub and pause listening for real-time updates from all data streams. Disconnecting may be temporary and is reversible by [reconnecting](#reconnect). When you disconnect, a cursor of the last received message is saved.
+Disconnects from PubNub and pauses real-time updates. Saves a cursor for later catch-up.
 
-##### Client scope
-
-This method is only available on the PubNub object.
-
-### Method(s)[​](#methods)
-
-```
+### Method
+```rust
 `pubnub.disconnect()  
 `
 ```
 
-### Basic Usage[​](#basic-usage)
-
-```
+### Example
+```rust
 `pubnub.disconnect();  
 `
 ```
 
-### Returns[​](#returns)
+Returns: `None`
 
-None
+---
 
-## Reconnect[​](#reconnect)
+## Reconnect
 
-Reconnect to PubNub and resume listening for real-time updates from all data streams. The cursor of the last received message is used for message catch-up between the time you disconnected and reconnected.
+Resumes real-time updates, using an optional cursor for catch-up.
 
-##### Client scope
-
-This method is only available on the PubNub object.
-
-### Method(s)[​](#methods-1)
-
-```
+### Method
+```rust
 `pubnub.reconnect(cursor: OptionSubscriptionCursor>)  
 `
 ```
 
-*  requiredParameterDescription`cursor` *Type: `Option<SubscriptionCursor>`Default:  
-Cursor of the last received message before [`disconnect()`](#disconnect) was calledCursor from which to return any available cached messages. Message retrieval with cursor is not guaranteed and should only be considered a best-effort service. A cursor consists of a timetoken and region: `SubscriptionCursor{timetoken: String, region: u32}`   
-   
- Pass `None` if not needed.
+Parameter  
+• `cursor: Option<SubscriptionCursor>` – `{ timetoken: String, region: u32 }` of last received message (best-effort). Pass `None` to ignore.
 
-### Basic Usage[​](#basic-usage-1)
-
-```
+### Example
+```rust
 `pubnub.reconnect(None);  
 `
 ```
 
-### Returns[​](#returns-1)
+Returns: `None`
 
-None
-Last updated on **Mar 6, 2025**
+_Last updated: Mar 6, 2025_

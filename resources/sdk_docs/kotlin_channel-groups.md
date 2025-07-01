@@ -1,23 +1,14 @@
-On this page
-# Channel Groups API for Kotlin SDK
+# Channel Groups API – Kotlin SDK
 
-##### Breaking changes in v9.0.0
+## Breaking changes in v9.0.0
+• Unified Kotlin and Java codebases, new client instantiation, updated async callbacks/status events.  
+• Applications built with < 9.0.0 must follow the Java/Kotlin migration guide.
 
-PubNub Kotlin SDK version 9.0.0 unifies the codebases for Kotlin and [Java](/docs/sdks/java) SDKs, introduces a new way of instantiating the PubNub client, and changes asynchronous API callbacks and emitted [status events](/docs/sdks/kotlin/status-events). These changes can impact applications built with previous versions (< `9.0.0` ) of the Kotlin SDK.
-
-For more details about what has changed, refer to [Java/Kotlin SDK migration guide](/docs/general/resources/migration-guides/java-kotlin-sdk-migration-guide).
-
-[Channel groups](/docs/general/channels/subscribe#channel-groups) allow PubNub developers to bundle thousands of [channels](/docs/general/channels/overview) into a group that can be identified by a name. These channel groups can then be subscribed to, receiving data from the many back-end channels the channel group contains.
-
-##### Channel group operations
-
-You can't publish to a channel group. You can only subscribe to it. To publish within the channel group, you need to publish to each channel individually.
-
-##### Request execution
-
-Most PubNub Kotlin SDK method invocations return an Endpoint object, which allows you to decide whether to perform the operation synchronously or asynchronously.
-
-You must invoke the `.sync()` or `.async()` method on the Endpoint to execute the request, or the operation **will not** be performed.
+## Key points
+• Channel groups bundle up to thousands of channels.  
+• You can **subscribe** to a group; publishing must target individual channels.  
+• All group operations require the **Stream Controller** add-on (enable it in the Admin Portal).  
+• Every SDK call returns an `Endpoint`; execute with `.sync()` or `.async()` or nothing happens.
 
 ```
 `val channel = pubnub.channel("channelName")  
@@ -32,21 +23,10 @@ channel.publish("This SDK rules!").async { result ->
 `
 ```
 
-## Add Channels[​](#add-channels)
+---
 
-##### Requires Stream Controller add-on
-
-This method requires that the *Stream Controller* add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
-
-This function adds a channel to a channel group.
-
-### Methods[​](#methods)
-
-Adding Channels is accomplished by using the following method(s) in the Kotlin SDK:
-
-##### Maximum number of channels
-
-`200 channels` can be added to the `channel group` per API call.
+## Add Channels to a Group  
+Maximum 200 channels per call.
 
 ```
 `pubnub.addChannelsToChannelGroup(  
@@ -56,34 +36,15 @@ Adding Channels is accomplished by using the following method(s) in the Kotlin S
 `
 ```
 
-*  requiredParameterDescription`channelGroup` *Type: `String`The channel group to add the channels to.`channels` *Type: `List<String>`The channels to add to the channel group.
+Parameters  
+• `channelGroup` (String) – target group.  
+• `channels` (List<String>) – channels to add.  
 
-### Basic Usage[​](#basic-usage)
+Response: no payload; verify via `result.isFailure` / `onFailure`.
 
-##### Reference code
+---
 
-This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
-
-```
-`  
-`
-```
-
-### Response[​](#response)
-
-The `addChannelsToChannelGroup()` doesn't return actionable data, be sure to check result object on the outcome of the operation by checking the `result.isFailure` or handling exception `result.onFailure(exception -> { })`.
-
-## List Channels[​](#list-channels)
-
-##### Requires Stream Controller add-on
-
-This method requires that the *Stream Controller* add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
-
-This function lists all the channels of the channel group.
-
-### Methods[​](#methods-1)
-
-Listing channels is accomplished by using the following method(s) in the Kotlin SDK:
+## List Channels in a Group
 
 ```
 `pubnub.listChannelsForChannelGroup(  
@@ -92,32 +53,15 @@ Listing channels is accomplished by using the following method(s) in the Kotlin 
 `
 ```
 
-*  requiredParameterDescription`channelGroup` *Type: `String`Channel group to fetch the belonging channels
+Parameters  
+• `channelGroup` (String) – group name.  
 
-### Basic Usage[​](#basic-usage-1)
+Returns `PNChannelGroupsAllChannelsResult`  
+• `channels` (List<String>) – channels contained in the group.
 
-```
-`  
-`
-```
+---
 
-### Returns[​](#returns)
-
-The `listChannelsForChannelGroup()` operation returns a `PNChannelGroupsAllChannelsResult` which contains the following operations:
-
-MethodDescription`channels`Type: `List<String>`List of `channels` of a `channel group`.
-
-## Remove Channels[​](#remove-channels)
-
-##### Requires Stream Controller add-on
-
-This method requires that the *Stream Controller* add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
-
-This function removes the channels from the channel group.
-
-### Method(s)[​](#methods-2)
-
-`Removing Channels` is accomplished by using the following method(s) in the Kotlin SDK:
+## Remove Channels from a Group
 
 ```
 `pubnub.removeChannelsFromChannelGroup(  
@@ -127,30 +71,15 @@ This function removes the channels from the channel group.
 `
 ```
 
-*  requiredParameterDescription`channels` *Type: `List<String>`The channels to remove from the channel group`channelGroup` *Type: `String`The channel group to remove channels from
+Parameters  
+• `channels` (List<String>) – channels to remove.  
+• `channelGroup` (String) – group name.  
 
-### Basic Usage[​](#basic-usage-2)
+Response: none; check result for success/failure.
 
-```
-`  
-`
-```
+---
 
-### Returns[​](#returns-1)
-
-The `removeChannelsFromChannelGroup()` doesn't return actionable data, be sure to check result object on the outcome of the operation by checking the `result.isFailure` or handling exception `result.onFailure(exception -> { })`.
-
-## Delete Channel Group[​](#delete-channel-group)
-
-##### Requires Stream Controller add-on
-
-This method requires that the *Stream Controller* add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
-
-This function removes the channel group.
-
-### Method(s)[​](#methods-3)
-
-`Deleting Channel Group` is accomplished by using the following method(s) in the Kotlin SDK:
+## Delete a Channel Group
 
 ```
 `pubnub.deleteChannelGroup(  
@@ -159,16 +88,9 @@ This function removes the channel group.
 `
 ```
 
-*  requiredParameterDescription`channelGroup` *Type: `String`The channel group to remove
+Parameter  
+• `channelGroup` (String) – group to delete.  
 
-### Basic Usage[​](#basic-usage-3)
+Response: none; check result for success/failure.
 
-```
-`  
-`
-```
-
-### Returns[​](#returns-2)
-
-The `deleteChannelGroup()` doesn't return actionable data, be sure to check result object on the outcome of the operation by checking the `result.isFailure` or handling exception `result.onFailure(exception -> { })`.
-Last updated on **May 28, 2025**
+_Last updated: May 28 2025_

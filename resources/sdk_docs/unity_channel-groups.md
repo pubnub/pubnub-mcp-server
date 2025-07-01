@@ -1,28 +1,16 @@
-On this page
-# Channel Groups API for Unity SDK
+# Channel Groups – Unity SDK (Condensed)
 
-[Channel groups](/docs/general/channels/subscribe#channel-groups) allow PubNub developers to bundle thousands of [channels](/docs/general/channels/overview) into a group that can be identified by a name. These channel groups can then be subscribed to, receiving data from the many back-end channels the channel group contains.
+Channel Groups let you bundle thousands of channels under one name and subscribe to that name (publishing must still occur on individual channels).
 
-##### Channel group operations
+All Channel Group operations require the **Stream Controller** add-on (enable it in the Admin Portal).
 
-You can't publish to a channel group. You can only subscribe to it. To publish within the channel group, you need to publish to each channel individually.
+---
 
-## Add Channels[​](#add-channels)
+## Add Channels to a Channel Group
 
-##### Requires Stream Controller add-on
+Maximum 200 channels per request.
 
-This method requires that the *Stream Controller* add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
-
-This function adds a channel to a channel group.
-
-### Method(s)[​](#methods)
-
-`Adding Channels` is accomplished by using the following method(s) in the Unity SDK:
-
-##### Maximum number of channels
-
-`200 channels` can be added to the `channel group` per API call.
-
+### Method
 ```
 `pubnub.AddChannelsToChannelGroup()  
     .ChannelGroup(string)  
@@ -32,58 +20,39 @@ This function adds a channel to a channel group.
 `
 ```
 
-*  requiredParameterDescription`ChannelGroup` *Type: stringThe `ChannelGroup` to add the channels to.`Channels` *Type: ArrayThe `Channels` to add to the channel group.`QueryParam`Type: Dictionary`<string, object>`Dictionary `object` to pass name/value pairs as query `string` params with PubNub URL request for debug purpose.`Async`Type: PNCallback`PNCallback` of type `PNChannelGroupsAddChannelResult`.`Execute` *Type: `System.Action``System.Action` of type `PNChannelGroupsAddChannelResult`.`ExecuteAsync`Type: NoneReturns `Task<PNResult<PNChannelGroupsAddChannelResult>>`.
+Parameters  
+• ChannelGroup (string) – target group  
+• Channels (array) – channels to add  
+• QueryParam (Dictionary<string, object>) – optional URL query pairs  
 
-### Basic Usage[​](#basic-usage)
+Async variants  
+• Execute(Action<PNChannelGroupsAddChannelResult, PNStatus>)  
+• ExecuteAsync() ⇒ Task<PNResult<PNChannelGroupsAddChannelResult>>
 
-#### Adding Channels[​](#adding-channels)
-
-##### Reference code
-
-This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
-
+### Example
 ```
 `using PubnubApi;  
 using PubnubApi.Unity;  
 using UnityEngine;  
   
 public class AddChannelsToGroupExample : MonoBehaviour {  
-    // Reference to a pubnub manager previously setup in Unity Editor  
-    // For more details, see https://www.pubnub.com/docs/sdks/unity#configure-pubnub  
     [SerializeField] private PNManagerBehaviour pubnubManager;  
-  
-    // An editor-serialized string for the channel group ID  
     [SerializeField] private string channelGroupId = "cg1";  
-  
-    // An editor-serialized array for the channels to add  
     [SerializeField] private string[] channelsToAdd = { "ch1", "ch2", "ch3" };  
   
 `
 ```
-show all 34 lines
 
-### Returns[​](#returns)
+### Return
+PNResult<PNChannelGroupsAddChannelResult>  
+• Result – empty object  
+• Status – PNStatus
 
-The `AddChannelsToChannelGroup()` operation returns a `PNResult<PNChannelGroupsAddChannelResult>` which contains the following properties:
+---
 
-Property NameTypeDescription`Result`PNChannelGroupsAddChannelResultReturns a `PNChannelGroupsAddChannelResult` object.`Status`PNStatusReturns a `PNStatus` object.
+## List Channels in a Channel Group
 
-`PNChannelGroupsAddChannelResult` contains the following properties:
-
-Property NameTypeDescription`PNChannelGroupsAddChannelResult`ObjectReturns empty object.`PNStatus`ObjectReturns status of request if error occurred or not.
-
-## List Channels[​](#list-channels)
-
-##### Requires Stream Controller add-on
-
-This method requires that the *Stream Controller* add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
-
-This function lists all the channels of the channel group.
-
-### Method(s)[​](#methods-1)
-
-`Listing Channels` is accomplished by using the following method(s) in the Unity SDK:
-
+### Method
 ```
 `pubnub.ListChannelsForChannelGroup()  
     .ChannelGroup(string)  
@@ -92,12 +61,7 @@ This function lists all the channels of the channel group.
 `
 ```
 
-*  requiredParameterDescription`ChannelGroup` *Type: string`Channel group` to fetch the channels.`QueryParam`Type: Dictionary`<string, object>`Dictionary `object` to pass name/value pairs as query `string` params with PubNub URL request for debug purpose.`Async`Type: PNCallback`PNCallback` of type `PNChannelGroupsAllChannelsResult`.`Execute` *Type: `System.Action``System.Action` of type `PNChannelGroupsAllChannelsResult`.`ExecuteAsync`Type: NoneReturns `Task<PNResult<PNChannelGroupsAllChannelsResult>>`.
-
-### Basic Usage[​](#basic-usage-1)
-
-#### List Channels[​](#list-channels-1)
-
+### Example
 ```
 `PNResultPNChannelGroupsAllChannelsResult> cgListChResponse = await pubnub.ListChannelsForChannelGroup()  
     .ChannelGroup("cg1")  
@@ -105,28 +69,16 @@ This function lists all the channels of the channel group.
 `
 ```
 
-### Returns[​](#returns-1)
+### Return
+PNResult<PNChannelGroupsAllChannelsResult>  
+• Result.Channels – List<string>  
+• Status – PNStatus
 
-The `ListChannelsForChannelGroup()` operation returns a `PNChannelGroupsAllChannelsResult` which contains the following properties:
+---
 
-Property NameTypeDescription`Result`PNChannelGroupsAllChannelsResultReturns a `PNChannelGroupsAllChannelsResult` object.`Status`PNStatusReturns a `PNStatus` object.
+## Remove Channels from a Channel Group
 
-`PNChannelGroupsAllChannelsResult` contains the following property:
-
-Property NameTypeDescription`Channels`List`<string>`List of `channels` of a `channel group`.
-
-## Remove Channels[​](#remove-channels)
-
-##### Requires Stream Controller add-on
-
-This method requires that the *Stream Controller* add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
-
-This function removes the channels from the channel group.
-
-### Method(s)[​](#methods-2)
-
-`Removing Channels` is accomplished by using the following method(s) in the Unity SDK:
-
+### Method
 ```
 `pubnub.RemoveChannelsFromChannelGroup()  
     .ChannelGroup(string)  
@@ -136,12 +88,7 @@ This function removes the channels from the channel group.
 `
 ```
 
-*  requiredParameterDescription`ChannelGroup` *Type: stringSpecifies `ChannelGroup` to remove the channels from.`Channels` *Type: ArrayThe `Channels` to remove from the channel group.`QueryParam`Type: Dictionary`<string, object>`Dictionary `object` to pass name/value pairs as query `string` params with PubNub URL request for debug purpose.`Async`Type: PNCallback`PNCallback` of type `PNChannelGroupsRemoveChannelResult`.`Execute` *Type: `System.Action``System.Action` of type `PNChannelGroupsRemoveChannelResult`.`ExecuteAsync`Type: NoneReturns `Task<PNResult<PNChannelGroupsRemoveChannelResult>>`.
-
-### Basic Usage[​](#basic-usage-2)
-
-#### Remove channels[​](#remove-channels-1)
-
+### Example
 ```
 `PNResultPNChannelGroupsRemoveChannelResult> rmChFromCgResponse = await pubnub.RemoveChannelsFromChannelGroup()  
     .ChannelGroup("family")  
@@ -152,28 +99,16 @@ This function removes the channels from the channel group.
 `
 ```
 
-### Returns[​](#returns-2)
+### Return
+PNResult<PNChannelGroupsRemoveChannelResult>  
+• Result – empty object  
+• Status – PNStatus
 
-The `RemoveChannelsFromChannelGroup()` operation returns a `PNChannelGroupsAddChannelResult` which contains the following properties:
+---
 
-Property NameTypeDescription`Result`PNChannelGroupsRemoveChannelResultReturns a `PNChannelGroupsRemoveChannelResult` object.`Status`PNStatusReturns a `PNStatus` object.
+## Delete a Channel Group
 
-`PNChannelGroupsRemoveChannelResult` contains the following property:
-
-Property NameTypeDescription`PNChannelGroupsRemoveChannelResult`ObjectReturns empty object.
-
-## Delete Channel Group[​](#delete-channel-group)
-
-##### Requires Stream Controller add-on
-
-This method requires that the *Stream Controller* add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
-
-This function removes the channel group.
-
-### Method(s)[​](#methods-3)
-
-`Deleting Channel Group` is accomplished by using the following method(s) in the Unity SDK:
-
+### Method
 ```
 `pubnub.DeleteChannelGroup()  
     .ChannelGroup(string)  
@@ -182,12 +117,7 @@ This function removes the channel group.
 `
 ```
 
-*  requiredParameterDescription`ChannelGroup` *Type: stringSpecifies `ChannelGroup` to remove.`QueryParam`Type: Dictionary`<string, object>`Dictionary `object` to pass name/value pairs as query `string` params with PubNub URL request for debug purpose.`Async`Type: PNCallback`PNCallback` of type `PNChannelGroupsDeleteGroupResult`.`Execute` *Type: `System.Action``System.Action` of type `PNChannelGroupsDeleteGroupResult`.`ExecuteAsync`Type: NoneReturns `Task<PNResult<PNChannelGroupsDeleteGroupResult>>`.
-
-### Basic Usage[​](#basic-usage-3)
-
-#### Delete Channel Group[​](#delete-channel-group-1)
-
+### Example
 ```
 `PNResultPNChannelGroupsDeleteGroupResult> delCgResponse = await pubnub.DeleteChannelGroup()  
     .ChannelGroup("family")  
@@ -195,12 +125,8 @@ This function removes the channel group.
 `
 ```
 
-### Returns[​](#returns-3)
-
-The `DeleteChannelGroup()` operation returns a `PNResult<PNChannelGroupsDeleteGroupResult>` which contains the following properties:
-
-Property NameTypeDescription`Status`intHTTP response status code.`Error`boolThis is `true` if an error occurred in the execution of the operation.
-
+### Return
+PNResult<PNChannelGroupsDeleteGroupResult>  
 ```
 `{**    "status" : 200,  
     "message" : "OK",  
@@ -209,4 +135,5 @@ Property NameTypeDescription`Status`intHTTP response status code.`Error`boolThis
 }  
 `
 ```
-Last updated on May 6, 2025**
+
+_Last updated: May 6, 2025_

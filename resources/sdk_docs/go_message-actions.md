@@ -1,25 +1,18 @@
-On this page
-# Message Actions API for Go SDK
+# Message Actions – Go SDK
 
-Add or remove actions on published messages to build features like receipts, reactions, or to associate custom metadata to messages. Clients can subscribe to a channel to receive message action events on that channel. They can also fetch past message actions from Message Persistence independently or when they fetch original messages.
+Interact with metadata (reactions, receipts, custom data) attached to messages. All APIs below require **Message Persistence to be enabled for the key**.
 
-##### Message Actions vs. Message Reactions
+## Terminology  
+• Message Actions – low-level, generic metadata API  
+• Message Reactions – same API when used specifically for emoji/social reactions  
 
-**Message Actions** is the flexible, low-level API for adding any metadata to messages (read receipts, delivery confirmations, custom data), while **Message Reactions** specifically refers to using Message Actions for emoji/social reactions.
+---
 
-In PubNub [Core](/docs/sdks) and [Chat](/docs/chat/overview) SDKs, the same underlying Message Actions API is referred to as **Message Reactions** when used for emoji reactions - it's the same functionality, just different terminology depending on the use case.
+## Add Message Action
 
-## Add Message Action[​](#add-message-action)
+Adds metadata to an existing message.
 
-##### Requires Message Persistence
-
-This method requires that Message Persistence is [enabled](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) for your key in the [Admin Portal](https://admin.pubnub.com/).
-
-Add an action on a published `message`. Returns the added action in the response.
-
-### Method(s)[​](#methods)
-
-To Add a Message Action you can use the following method(s) in the Go SDK:
+### Method
 
 ```
 `pn.AddMessageAction().  
@@ -30,13 +23,14 @@ To Add a Message Action you can use the following method(s) in the Go SDK:
 `
 ```
 
-*  requiredParameterDescription`Channel` *Type: stringThe channel name.`MessageTimetoken` *Type: stringThe publish timetoken of a parent message.`Action` *Type: pubnub.MessageActionMessage Action Details :-`ActionType`: What feature this action represents -- max `15` characters. `ActionValue`: Details about the action -- max `40` characters.
+### Required parameters  
+• Channel (string) – target channel  
+• MessageTimetoken (string) – timetoken of the parent message  
+• Action (pubnub.MessageAction) – struct with:  
+  – ActionType (≤15 chars)  
+  – ActionValue (≤40 chars)
 
-### Basic Usage[​](#basic-usage)
-
-##### Reference code
-
-This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
+### Example
 
 ```
 `package main  
@@ -56,29 +50,17 @@ func main() {
   
 `
 ```
-show all 45 lines
 
-### Returns[​](#returns)
+### Returns – PNAddMessageActionsResponse  
+• Data (PNMessageActionsResponse)
 
-The `AddMessageAction()` operation returns a `PNAddMessageActionsResponse` which contains the following parameters:
+---
 
-Property NameTypeDescription`Data`PNMessageActionsResponseDetails of type `PNMessageActionsResponse` are [here](#pnmessageactionsresponse)
+## Remove Message Action
 
-#### PNMessageActionsResponse[​](#pnmessageactionsresponse)
+Deletes a previously added action.
 
-Property NameTypeDescription`ActionType`stringWhat feature this action represents.`ActionValue`stringDetails about the action.`ActionTimetoken`stringThe timetoken when the action was added.`MessageTimetoken`stringThe timetoken of the parent message.
-
-## Remove Message Action[​](#remove-message-action)
-
-##### Requires Message Persistence
-
-This method requires that Message Persistence is [enabled](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) for your key in the [Admin Portal](https://admin.pubnub.com/).
-
-Remove a previously added action on a published `message`. Returns an empty response.
-
-### Method(s)[​](#methods-1)
-
-To Remove a Message Action you can use the following method(s) in the Go SDK:
+### Method
 
 ```
 `pn.RemoveMessageAction().  
@@ -89,9 +71,12 @@ To Remove a Message Action you can use the following method(s) in the Go SDK:
 `
 ```
 
-*  requiredParameterDescription`Channel` *Type: stringThe channel name.`MessageTimetoken` *Type: stringThe publish timetoken of a parent message.`ActionTimetoken` *Type: stringThe publish timetoken of the action.
+### Required parameters  
+• Channel (string) – target channel  
+• MessageTimetoken (string) – parent message timetoken  
+• ActionTimetoken (string) – timetoken of the action
 
-### Basic Usage[​](#basic-usage-1)
+### Example
 
 ```
 `res, status, err := pn.RemoveMessageAction()  
@@ -102,27 +87,16 @@ To Remove a Message Action you can use the following method(s) in the Go SDK:
 `
 ```
 
-### Returns[​](#returns-1)
+### Returns – PNRemoveMessageActionsResponse  
+• Data (interface{}) – empty
 
-The `RemoveMessageAction()` operation returns a `PNRemoveMessageActionsResponse` which contains the following parameters:
+---
 
-Property NameTypeDescription`Data`interfaceReturns an empty interface.
+## Get Message Actions
 
-## Get Message Actions[​](#get-message-actions)
+Lists actions on a channel, sorted by action timetoken (asc). Responses may be paginated via the `more` field.
 
-##### Requires Message Persistence
-
-This method requires that Message Persistence is [enabled](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) for your key in the [Admin Portal](https://admin.pubnub.com/).
-
-Get a list of message actions in a `channel`. Returns a list of actions sorted by the action's timetoken in ascending order.
-
-##### Truncated response
-
-Number of message actions in the response may be truncated when internal limits are hit. If the response is truncated, a `more` property will be returned with additional parameters. Send iterative calls to Message Persistence adjusting the parameters to fetch more message actions.
-
-### Method(s)[​](#methods-2)
-
-To Get Message Actions you can use the following method(s) in the Go SDK:
+### Method
 
 ```
 `pn.GetMessageActions().  
@@ -134,9 +108,13 @@ To Get Message Actions you can use the following method(s) in the Go SDK:
 `
 ```
 
-*  requiredParameterDescription`Channel` *Type: stringThe channel name.`Start`Type: stringAction timetoken denoting the start of the range requested (return values will be less than start).`End`Type: stringAction timetoken denoting the end of the range requested (return values will be greater than or equal to end).`Limit`Type: intNumber of actions to return in response..
+### Parameters  
+• Channel (string) – target channel (required)  
+• Start (string) – return actions with timetoken < start  
+• End (string) – return actions with timetoken ≥ end  
+• Limit (int) – max actions to return
 
-### Basic Usage[​](#basic-usage-2)
+### Example
 
 ```
 `res, status, err := pn.GetMessageActions()  
@@ -147,12 +125,22 @@ To Get Message Actions you can use the following method(s) in the Go SDK:
 `
 ```
 
-### Returns[​](#returns-2)
+### Returns – PNGetMessageActionsResponse  
+• Data ([]PNMessageActionsResponse)  
+• More (PNGetMessageActionsMore)
 
-The `GetMessageActions()` operation returns a `PNGetMessageActionsResponse` which contains the following parameters:
+---
 
-Property NameTypeDescription`Data`[]PNMessageActionsResponseDetails of type `PNMessageActionsResponse` are [here](#pnmessageactionsresponse)`More`PNGetMessageActionsMoreDetails of type `PNGetMessageActionsMore` are [here](#pngetmessageactionsmore)
+## Data Structures
 
-#### PNGetMessageActionsMore[​](#pngetmessageactionsmore)
+### PNMessageActionsResponse  
+• ActionType (string) – feature identifier  
+• ActionValue (string) – metadata value  
+• ActionTimetoken (string) – when the action was added  
+• MessageTimetoken (string) – parent message timetoken  
 
-Property NameTypeDescription`URL`stringThe URL of the next set of results.`Start`stringThe start param for the next set of results.`End`stringThe end param for the next set of results.`Limit`intThe limit for the next set of results.Last updated on **Jun 10, 2025**
+### PNGetMessageActionsMore  
+• URL (string) – next page endpoint  
+• Start (string) – `start` for next call  
+• End (string) – `end` for next call  
+• Limit (int) – limit for next call

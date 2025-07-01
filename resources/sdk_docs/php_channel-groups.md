@@ -1,28 +1,16 @@
-On this page
-# Channel Groups API for PHP SDK
+# Channel Groups API – PHP SDK
 
-[Channel groups](/docs/general/channels/subscribe#channel-groups) allow PubNub developers to bundle thousands of [channels](/docs/general/channels/overview) into a group that can be identified by a name. These channel groups can then be subscribed to, receiving data from the many back-end channels the channel group contains.
+Channel Groups bundle multiple channels under a single name.  
+• Subscribe only (publish directly to each channel).  
+• All operations require the **Stream Controller** add-on (enable in Admin Portal).  
 
-##### Channel group operations
+---
 
-You can't publish to a channel group. You can only subscribe to it. To publish within the channel group, you need to publish to each channel individually.
+## Add Channels
 
-## Add Channels[​](#add-channels)
+Maximum 200 channels per call.
 
-##### Requires Stream Controller add-on
-
-This method requires that the *Stream Controller* add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
-
-This function adds a channel to a channel group.
-
-### Method(s)[​](#methods)
-
-`Adding Channels` is accomplished by using the following method(s) in the PHP SDK:
-
-##### Maximum number of channels
-
-`200 channels` can be added to the `channel group` per API call.
-
+### Method
 ```
 `$pubnub->addChannelToChannelGroup()  
     ->channels(string|array)  
@@ -30,17 +18,11 @@ This function adds a channel to a channel group.
     ->sync();  
 `
 ```
+Parameters  
+• `channels` (string|array) – Channels to add.  
+• `channelGroup` (string) – Target group.
 
-*  requiredParameterDescription`channels` *Type: String|ArrayThe `channels` to add to the channel group.`channelGroup` *Type: StringThe `channelGroup` to add the channels to.
-
-### Basic Usage[​](#basic-usage)
-
-#### Add Channels[​](#add-channels-1)
-
-##### Reference code
-
-This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
-
+### Example
 ```
 `  
   
@@ -59,10 +41,8 @@ $pnConfig->setUserId("php-channel-group-demo");
   
 `
 ```
-show all 47 lines
 
-### Rest Response from Server[​](#rest-response-from-server)
-
+### REST Response
 ```
 `{  
     "service" : "channel-registry",  
@@ -73,31 +53,21 @@ show all 47 lines
 `
 ```
 
-## List Channels[​](#list-channels)
+---
 
-##### Requires Stream Controller add-on
+## List Channels
 
-This method requires that the *Stream Controller* add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
-
-This function lists all the channels of the channel group.
-
-### Method(s)[​](#methods-1)
-
-`Listing Channels` is accomplished by using the following method(s) in the PHP SDK:
-
+### Method
 ```
 `$pubnub->listChannelsInChannelGroup()  
     ->channelGroup(string)  
     ->sync();  
 `
 ```
+Parameter  
+• `channelGroup` (string) – Group to query.
 
-*  requiredParameterDescription`channelGroup` *Type: StringThe `channel group` to fetch channels.
-
-### Basic Usage[​](#basic-usage-1)
-
-#### List Channels[​](#list-channels-1)
-
+### Example
 ```
 `$pubnub->listChannelsInChannelGroup()  
     ->channelGroup("cg1")  
@@ -105,8 +75,7 @@ This function lists all the channels of the channel group.
 `
 ```
 
-### Rest Response from Server[​](#rest-response-from-server-1)
-
+### REST Response
 ```
 `{  
     "status" : 200,  
@@ -120,18 +89,11 @@ This function lists all the channels of the channel group.
 `
 ```
 
-## Remove Channels[​](#remove-channels)
+---
 
-##### Requires Stream Controller add-on
+## Remove Channels
 
-This method requires that the *Stream Controller* add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
-
-This function removes the channels from the channel group.
-
-### Method(s)[​](#methods-2)
-
-`Removing Channels` is accomplished by using the following method(s) in the PHP SDK:
-
+### Method
 ```
 `$pubnub->removeChannelFromChannelGroup()  
     ->channels(string|array)  
@@ -139,13 +101,11 @@ This function removes the channels from the channel group.
     ->sync();  
 `
 ```
+Parameters  
+• `channels` (string|array) – Channels to remove.  
+• `channelGroup` (string) – Source group.
 
-*  requiredParameterDescription`channels` *Type: String|Array`channels` to remove from the channel group.`channelGroup` *Type: StringSpecifies `ChannelGroup` to remove.
-
-### Basic Usage[​](#basic-usage-2)
-
-#### Remove channels[​](#remove-channels-1)
-
+### Example
 ```
 `$pubnub->removeChannelFromChannelGroup()  
     ->channels("son")  
@@ -154,8 +114,7 @@ This function removes the channels from the channel group.
 `
 ```
 
-### Rest Response from Server[​](#rest-response-from-server-2)
-
+### REST Response
 ```
 `{  
     "status" : 200,  
@@ -166,31 +125,21 @@ This function removes the channels from the channel group.
 `
 ```
 
-## Delete Channel Group[​](#delete-channel-group)
+---
 
-##### Requires Stream Controller add-on
+## Delete Channel Group
 
-This method requires that the *Stream Controller* add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
-
-This function removes the channel group.
-
-### Method(s)[​](#methods-3)
-
-`Deleting Channel Group` is accomplished by using the following method(s) in the PHP SDK:
-
+### Method
 ```
 `$pubnub->removeChannelGroup()  
     ->channelGroup(string)  
     ->sync();  
 `
 ```
+Parameter  
+• `channelGroup` (string) – Group to delete.
 
-*  requiredParameterDescription`channelGroup` *Type: StringThe `channelGroup` to remove.
-
-### Basic Usage[​](#basic-usage-3)
-
-#### Delete Channel Group[​](#delete-channel-group-1)
-
+### Example
 ```
 `$pubnub->removeChannelGroup()  
     ->channelGroup("family")  
@@ -198,8 +147,7 @@ This function removes the channel group.
 `
 ```
 
-### Rest Response from Server[​](#rest-response-from-server-3)
-
+### REST Response
 ```
 `{**    "status" : 200,  
     "message" : "OK",  
@@ -208,4 +156,5 @@ This function removes the channel group.
 }  
 `
 ```
-Last updated on Apr 2, 2025**
+
+_Last updated: Apr 2 2025_

@@ -1,0 +1,1 @@
+No documentation content was provided to summarize. Please supply the “message-actions” section you’d like condensed, and I’ll produce the streamlined version while preserving all critical technical details and code blocks.

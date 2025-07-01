@@ -1,60 +1,26 @@
-On this page
-# Dart API & SDK Docs 5.2.1
+# Dart API & SDK Docs 5.2.1 (Overview)
 
-In this guide, we'll create a simple "Hello, World" application that demonstrates the core concepts of PubNub:
+Minimal reference to get PubNub working in any Dart or Flutter project.  
+Two paths are shown below; replace `demo` keys with your own.
 
-- Setting up a connection
+---
 
-- Sending messages
+## Prerequisites
+• Dart or Flutter SDK installed  
+• PubNub account (publish & subscribe keys)
 
-- Receiving messages in real-time
+---
 
-## Overview[​](#overview)
+## Setup
 
-This guide will help you get up and running with PubNub in your Dart application. Since Dart is commonly used across different platforms, we provide two implementation paths:
+### Get your PubNub keys
+1. Log in to the PubNub Admin Portal.  
+2. Create / select an app → copy publish & subscribe keys.
 
-- **Flutter app development**: For developers building mobile or web applications with Flutter
+### Install the SDK  
+<details><summary>Flutter</summary>
 
-- **Non-Flutter platforms**: For developers using Dart in other environments (server-side, CLI, etc.)
-
-The core PubNub concepts and API usage remain the same across both paths, but implementation details like lifecycle management and UI updates differ. Select the appropriate tab in each section to see platform-specific guidance.
-
-## Prerequisites[​](#prerequisites)
-
-Before we dive in, make sure you have:
-
-- A basic understanding of Dart
-
-- Flutter SDK or Dart SDK installed
-
-- Your preferred IDE (VS Code, Android Studio, etc.)
-
-- A PubNub account (we'll help you set this up!)
-
-## Setup[​](#setup)
-
-### Get your PubNub keys[​](#get-your-pubnub-keys)
-
-First things first – you'll need your PubNub keys to get started. Here's how to get them:
-
-- [Sign in](https://admin.pubnub.com/#/login) or [create an account](https://admin.pubnub.com/#/signup) on the PubNub Admin Portal.
-
-- Create a new app (or use an existing one).
-
-- Find your publish and subscribe keys in the app's dashboard.
-
-When you create a new app, PubNub automatically generates your first set of keys. While you can use the same keys for development and production, we recommend creating separate keysets for each environment for better security and management.
-
-### Install the SDK[​](#install-the-sdk)
-
-##### SDK version
-
-Always use the latest SDK version to have access to the newest features and avoid security vulnerabilities, bugs, and performance issues.
-
-- Flutter app development
-- Non-Flutter platforms
-
-To integrate PubNub into your Flutter project, add this dependency to your `pubspec.yaml` file:
+Add to `pubspec.yaml`:
 
 ```
 `dependencies:  
@@ -64,25 +30,22 @@ To integrate PubNub into your Flutter project, add this dependency to your `pubs
 `
 ```
 
-Then run:
+Fetch:
 
 ```
 `flutter pub get  
 `
 ```
 
-Don't forget to add internet permission:
-
-For Android, add to your `AndroidManifest.xml`:
+Android internet permission:
 
 ```
 `uses-permission android:name="android.permission.INTERNET" />  
 `
 ```
+</details>
 
-For iOS, no additional steps are needed as internet access is permitted by default.
-
-To integrate PubNub into your Dart project, add this dependency to your `pubspec.yaml` file:
+<details><summary>Non-Flutter (pure Dart)</summary>
 
 ```
 `dependencies:  
@@ -90,29 +53,20 @@ To integrate PubNub into your Dart project, add this dependency to your `pubspec
 `
 ```
 
-Then run:
-
 ```
 `dart pub get  
 `
 ```
+</details>
 
-#### Source code[​](#source-code)
+Source code: https://github.com/pubnub/dart
 
-You can also access the source code directly from the [Dart SDK](https://github.com/pubnub/dart) repository.
+---
 
-View the [supported platforms](/docs/sdks/dart/platform-support) for more information about compatibility.
+## Steps
 
-## Steps[​](#steps)
-
-### Initialize PubNub[​](#initialize-pubnub)
-
-- Flutter app development
-- Non-Flutter platforms
-
-In your Flutter project, add the PubNub initialization code to your main application file. This is the minimum configuration you need to send and receive messages with PubNub in your Flutter application.
-
-Make sure to replace the demo keys with your app's publish and subscribe keys from the Admin Portal.
+### 1. Initialize PubNub  
+<details><summary>Flutter</summary>
 
 ```
 `// Import required packages  
@@ -132,10 +86,9 @@ class _PubNubAppState extends StatePubNubApp> {
   // Channel name  
 `
 ```
+</details>
 
-show all 60 linesIn the IDE of your choice, create a new Dart file with the following content. This is the minimum configuration you need to send and receive messages with PubNub.
-
-Make sure to replace the demo keys with your app's publish and subscribe keys from the Admin Portal.
+<details><summary>Non-Flutter</summary>
 
 ```
 `// Import required packages  
@@ -151,17 +104,10 @@ var pubnub = PubNub(
 );  
 `
 ```
+</details>
 
-For more information, refer to the [Configuration](/docs/sdks/dart/api-reference/configuration) section of the SDK documentation.
-
-### Set up event listeners[​](#set-up-event-listeners)
-
-Listeners help your app react to events and messages. You can implement custom app logic to respond to each type of message or event.
-
-- Flutter app development
-- Non-Flutter platforms
-
-In your Flutter application, add this code to your `setupPubNub()` method:
+### 2. Set up event listeners  
+<details><summary>Flutter</summary>
 
 ```
 `void setupPubNub() {  
@@ -182,8 +128,6 @@ In your Flutter application, add this code to your `setupPubNub()` method:
 `
 ```
 
-show all 19 linesNow, let's update the `build` method to display messages:
-
 ```
 `@override  
 Widget build(BuildContext context) {  
@@ -203,14 +147,13 @@ Widget build(BuildContext context) {
 `
 ```
 
-show all 44 linesDon't forget to add the controller:
-
 ```
 `final TextEditingController _messageController = TextEditingController();  
 `
 ```
+</details>
 
-Add the following code to set up listeners for messages:
+<details><summary>Non-Flutter</summary>
 
 ```
 `// Define the channel  
@@ -230,19 +173,10 @@ subscription.presence.listen((presence) {
 });  
 `
 ```
+</details>
 
-For more information, refer to the [Publish and Subscribe](/docs/sdks/dart/api-reference/publish-and-subscribe) section of the SDK documentation.
-
-### Publish messages[​](#publish-messages)
-
-When you publish a message to a channel, PubNub delivers that message to everyone who is subscribed to that channel.
-
-A message can be any type of JSON-serializable data (such as objects, arrays, integers, strings) that is smaller than 32 KiB.
-
-- Flutter app development
-- Non-Flutter platforms
-
-Add a method to publish messages in your Flutter application:
+### 3. Publish messages  
+<details><summary>Flutter</summary>
 
 ```
 `Futurevoid> sendMessage(String text) async {  
@@ -262,8 +196,9 @@ Add a method to publish messages in your Flutter application:
     // Show error to user  
 `
 ```
+</details>
 
-show all 20 linesHere's how to publish messages in a Dart application:
+<details><summary>Non-Flutter</summary>
 
 ```
 `Futurevoid> publishMessage() async {  
@@ -283,33 +218,17 @@ show all 20 linesHere's how to publish messages in a Dart application:
   
 `
 ```
-show all 17 lines
+</details>
 
-### Run the app[​](#run-the-app)
-
-- Flutter app development
-- Non-Flutter platforms
-
-To test your Flutter application:
-
-1. $1
-
-2. $1
-
-3. $1
-
-4. $1
-
-5. $1
-
-To test your Dart application, save your code to a file (e.g., `pubnub_example.dart`) and run it with:
+### 4. Run the app  
+<details><summary>Non-Flutter</summary>
 
 ```
 `dart pubnub_example.dart  
 `
 ```
 
-When you run the application, you should see output similar to the following:
+Expected output:
 
 ```
 `Message to send: {text: Hello, world!, sender: dart_user}  
@@ -317,13 +236,12 @@ Received message: {text: Hello, world!, sender: dart_user}
 Message "Sent" with timetoken: 16967543908123456  
 `
 ```
+</details>
 
-## Complete example[​](#complete-example)
+---
 
-Here's the complete working example that puts everything together.
-
-- Flutter app development
-- Non-Flutter platforms
+## Complete examples  
+<details><summary>Flutter (truncated)</summary>
 
 ```
 `import 'package:flutter/material.dart';  
@@ -343,7 +261,10 @@ class _PubNubAppState extends StatePubNubApp> {
   late PubNub pubnub;  
 `
 ```
-show all 138 lines
+</details>
+
+<details><summary>Pure Dart (truncated)</summary>
+
 ```
 `import 'package:pubnub/pubnub.dart';  
   
@@ -362,30 +283,9 @@ Futurevoid> main() async {
     
 `
 ```
-show all 45 lines
+</details>
 
-### Run the app[​](#run-the-app-1)
-
-- Flutter app development
-- Non-Flutter platforms
-
-To run your Flutter application:
-
-1. $1
-
-2. $1
-
-3. $1
-
-4. $1
-
-To run your Dart application:
-
-1. $1
-
-2. $1
-
-When you run the application, you should see output similar to the following:
+Sample output:
 
 ```
 `Message to send: {text: Hello, world!, sender: dart_user}  
@@ -395,58 +295,22 @@ Cleanup complete.
 `
 ```
 
-Congratulations! You've just subscribed to a channel and sent your first message with PubNub.
+---
 
-### Troubleshooting[​](#troubleshooting)
+## Troubleshooting (quick)
 
-If you don't see the expected output, here are some common issues and how to fix them:
+• No connection → check keys, internet, firewalls  
+• Message not received → verify channel & publish success  
+• Build errors → confirm dependency & imports, run `pub get`
 
-IssuePossible SolutionsNo connection message
-- Check your internet connection.
-- Verify your publish and subscribe keys are correct.
-- Make sure you're not behind a firewall blocking PubNub's connections.
+---
 
-Message not received
-- Double-check that you're subscribed to the correct channel.
-- Verify that the message was actually sent (check for any error messages).
-- Make sure you're waiting long enough for the message to be delivered.
+## Next steps
 
-Build errors
-- Ensure you've added the PubNub dependency correctly in your pubspec.yaml.
-- Run `dart pub get` or `flutter pub get` to update dependencies.
-- Make sure all imports are correct.
+1. Presence, typing indicators, storage & playback, Access Manager  
+2. Example apps:  
+   • GitHub Dart SDK  
+   • Flutter Simple Chat  
+3. Docs & community: Discord, support portal, AI assistant
 
-## Next steps[​](#next-steps)
-
-Great job! 🎉 You've successfully created your first PubNub application with Dart. Here are some exciting things you can explore next:
-
-- Build chat
-- Advanced features
-- Real examples
-- More help
-
-- Build a full-featured chat application with user presence and typing indicators.
-
-- Implement user [Presence](/docs/sdks/dart/api-reference/presence) to show who's online.
-
-- Add typing indicators and read receipts.
-
-- Try out [Presence](/docs/sdks/dart/api-reference/presence) to track online/offline status.
-
-- Implement [Message Persistence](/docs/sdks/dart/api-reference/storage-and-playback) to store and retrieve messages.
-
-- Use [Access Manager](/docs/sdks/dart/api-reference/access-manager) to secure your channels.
-
-- Explore our [GitHub repository](https://github.com/pubnub/dart) for more code.
-
-- Check out the [Flutter Simple Chat](https://github.com/pubnub/flutter-ref-app-simple-chat) sample app.
-
-- Check out our [SDK reference documentation](/docs/sdks/dart/api-reference/configuration) for detailed API information.
-
-- Join our [Discord community](https://discord.gg/pubnub) to connect with other developers.
-
-- Visit our [support portal](https://support.pubnub.com/) for additional resources.
-
-- Ask our AI assistant (the looking glass icon at the top of the page) for help.
-
-Last updated on **May 7, 2025**
+_Last updated May 7 2025_

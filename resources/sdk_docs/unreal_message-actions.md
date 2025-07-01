@@ -1,28 +1,17 @@
-On this page
-# Message Actions API for Unreal SDK
+# Message Actions API – Unreal SDK (condensed)
 
-Add or remove actions on published messages to build features like receipts, reactions, or to associate custom metadata to messages. Clients can subscribe to a channel to receive message action events on that channel. They can also fetch past message actions from Message Persistence independently or when they fetch original messages.
+Add or remove metadata (reactions, receipts, custom data, etc.) on published messages.  
+Requires Message Persistence to be enabled on your PubNub keys.
 
-### Usage in Blueprints and C++
+### Terminology
+• Message Actions – low-level API for attaching any metadata.  
+• Message Reactions – same API when used specifically for emoji/social reactions.
 
-##### Message Actions vs. Message Reactions
+---
 
-**Message Actions** is the flexible, low-level API for adding any metadata to messages (read receipts, delivery confirmations, custom data), while **Message Reactions** specifically refers to using Message Actions for emoji/social reactions.
+## Add Message Action
 
-In PubNub [Core](/docs/sdks) and [Chat](/docs/chat/overview) SDKs, the same underlying Message Actions API is referred to as **Message Reactions** when used for emoji reactions - it's the same functionality, just different terminology depending on the use case.
-
-## Add Message Action[​](#add-message-action)
-
-##### Requires Message Persistence
-
-This method requires that Message Persistence is [enabled](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) for your key in the [Admin Portal](https://admin.pubnub.com/).
-
-Add a action to a published message.
-
-### Method(s)[​](#methods)
-
-- Blueprint
-- C++
+### Method(s)
 
 ```
 `PubnubSubsystem->AddMessageAction(  
@@ -34,24 +23,18 @@ Add a action to a published message.
 );  
 `
 ```
-*  requiredParameterDescription`Channel` *Type: `FString`The channel to publish the message action to.`MessageTimeToken` *Type: `FString`The timetoken of a published message to apply the action to.`ActionType` *Type: `EPubnubActionType`Enum action type. Available values:   
- 
-- `pbactypReaction`
-- `pbactypReceipt`
-- `pbactypCustom`
-- `pbactypEdited`
-- `pbactypDeleted`
 
-`Value` *Type: `FString`A String describing the action to be added.`OnAddMessageActionResponse` *Type: [`FOnAddMessageActionsResponse`](#fonaddmessageactionsresponse)The [callback function](/docs/sdks/unreal/api-reference/configuration#add-callback-function) used to handle the result.
+Parameter | Type | Notes
+---|---|---
+Channel | FString | Target channel.
+MessageTimeToken | FString | Timetoken of the message to annotate.
+ActionType | EPubnubActionType | pbactypReaction • pbactypReceipt • pbactypCustom • pbactypEdited • pbactypDeleted
+Value | FString | Action payload.
+OnAddMessageActionResponse | FOnAddMessageActionsResponse | Result callback.
 
-### Basic Usage[​](#basic-usage)
+### Example (C++)
 
-##### Reference code
-
-This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
-
-#### MyGameMode.h[​](#mygamemodeh)
-
+#### MyGameMode.h
 ```
 `// NOTE: This example requires correct PubnubSDK configuration in plugins settings and adding "PubnubLibrary" to PublicDependencyModuleNames in your build.cs  
 // More info in the documentation: https://www.pubnub.com/docs/sdks/unreal/api-reference/configuration  
@@ -70,10 +53,8 @@ UCLASS()
 class MYPROJECT_API AMyGameMode : public AGameModeBase  
 `
 ```
-show all 24 lines
 
-#### MyGameMode.cpp[​](#mygamemodecpp)
-
+#### MyGameMode.cpp
 ```
 `#include "MyGameMode.h"  
 #include "PubnubSubsystem.h"  
@@ -92,28 +73,20 @@ void AMyGameMode::AddMessageReactionExample()
 	FString MessageTimeToken = "5610547826969050";  
 `
 ```
-show all 30 lines
 
-### Returns[​](#returns)
+### Returns
 
-This method returns the [`FOnAddMessageActionsResponse`](#fonaddmessageactionsresponse) struct.
+`FOnAddMessageActionsResponse`
 
-#### FOnAddMessageActionsResponse[​](#fonaddmessageactionsresponse)
+Field | Type | Description
+---|---|---
+MessageActionTimetoken | FString | Timetoken indicating when the action was added.
 
-FieldTypeDescription`MessageActionTimetoken``FString`Timetoken indicating when the message action was added.
+---
 
-## Remove Message Action[​](#remove-message-action)
+## Remove Message Action
 
-##### Requires Message Persistence
-
-This method requires that Message Persistence is [enabled](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) for your key in the [Admin Portal](https://admin.pubnub.com/).
-
-Remove a previously added action from a published message. Returns an empty response.
-
-### Method(s)[​](#methods-1)
-
-- Blueprint
-- C++
+### Method(s)
 
 ```
 `PubnubSubsystem->RemoveMessageAction(  
@@ -123,10 +96,14 @@ Remove a previously added action from a published message. Returns an empty resp
 );  
 `
 ```
-*  requiredParameterDescription`Channel` *Type: `FString`The channel the message action was published to.`MessageTimeToken` *Type: `FString`The timetoken of a published message to delete the action of.`ActionTimeToken` *Type: `FString`The timetoken of the published action to delete.
 
-### Basic Usage[​](#basic-usage-1)
+Parameter | Type | Notes
+---|---|---
+Channel | FString | Channel containing the message.
+MessageTimeToken | FString | Timetoken of the original message.
+ActionTimeToken | FString | Timetoken of the action to remove.
 
+### Example
 ```
 `#include "Kismet/GameplayStatics.h"  
 #include "PubnubSubsystem.h"  
@@ -143,26 +120,16 @@ PubnubSubsystem->RemoveMessageAction(Channel, MessageTimeToken, ActionTimeToken)
 `
 ```
 
-### Returns[​](#returns-1)
+Returns: none.
 
-This method doesn't have any return value.
+---
 
-## Get Message Actions[​](#get-message-actions)
+## Get Message Actions
 
-##### Requires Message Persistence
+Returns actions sorted by `actionTimetoken` (ascending).  
+Paginate using `start`/`end`; response may include `more` cursor when truncated.
 
-This method requires that Message Persistence is [enabled](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) for your key in the [Admin Portal](https://admin.pubnub.com/).
-
-Get a list of message actions in a `channel`. Returns a list of actions sorted by the action's timetoken in ascending order.
-
-##### Truncated response
-
-Number of message actions in the response may be truncated when internal limits are hit. If the response is truncated, a `more` property will be returned with additional parameters. Send iterative calls to Message Persistence adjusting the parameters to fetch more message actions.
-
-### Method(s)[​](#methods-2)
-
-- Blueprint
-- C++
+### Method(s)
 
 ```
 `PubnubSubsystem->GetMessageActions(  
@@ -174,10 +141,16 @@ Number of message actions in the response may be truncated when internal limits 
 );  
 `
 ```
-*  requiredParameterDescription`Channel` *Type: `FString`The channel the message action was published to.`Start`Type: `FString`Previously-returned cursor bookmark for fetching the next page. Use `""` if you don’t want to paginate with a start bookmark.`End`Type: `FString`Previously-returned cursor bookmark for fetching the previous page. Ignored if you also supply the start parameter. Use `""` if you don’t want to paginate with an end bookmark.`SizeLimit`Type: intNumber of objects to return in response. Available values: `1` - `100`. If you set `0`, the default value of `100` is used.`OnGetMessageActionsResponse` *Type: [`FOnGetMessageActionsResponse`](#fongetmessageactionsresponse)The [callback function](/docs/sdks/unreal/api-reference/configuration#add-callback-function) used to handle the result.
 
-### Basic Usage[​](#basic-usage-2)
+Parameter | Type | Notes
+---|---|---
+Channel | FString | Channel to query.
+Start | FString | Cursor for next page (`""` if unused).
+End | FString | Cursor for previous page (`""` if unused).
+SizeLimit | int | 1-100 (0 ➜ default 100).
+OnGetMessageActionsResponse | FOnGetMessageActionsResponse | Result callback.
 
+### Example
 ```
 `#include "Kismet/GameplayStatics.h"  
 #include "PubnubSubsystem.h"  
@@ -196,20 +169,17 @@ FString End = "";
   
 `
 ```
-show all 17 lines
 
-### Returns[​](#returns-2)
+### Returns
 
-This method returns the [`FOnGetMessageActionsResponse`](#fongetmessageactionsresponse) struct.
+`FOnGetMessageActionsResponse`
 
-#### FOnGetMessageActionsResponse[​](#fongetmessageactionsresponse)
+Field | Type | Description
+---|---|---
+Status | int | HTTP response code.
+MessageActions | TArray<FPubnubMessageActionData>& | List of actions.
 
-  
-
-FieldTypeDescription`Status``int`HTTP code of the result of the operation.`MessageActions``TArray<FPubnubMessageActionData>&`An array of [`FPubnubMessageActionData`](/docs/sdks/unreal/api-reference/storage-and-playback#fpubnubmessageactiondata) structs which are the message actions sent on a given channel.
-
-#### JSON Response[​](#json-response)
-
+#### Sample JSON
 ```
 `{  
   "status": 200,   
@@ -224,7 +194,11 @@ FieldTypeDescription`Status``int`HTTP code of the result of the operation.`Messa
 `
 ```
 
-## History with Message Actions[​](#history-with-message-actions)
+---
 
-You can choose to return message actions when fetching historical message. Refer to [Fetch History](/docs/sdks/unreal/api-reference/storage-and-playback#fetch-history) for more details.
-Last updated on **Jun 10, 2025**
+## History with Message Actions
+
+When fetching history, you can include message actions.  
+Refer to Fetch History docs for details.
+
+_Last updated: Jun 10 2025_

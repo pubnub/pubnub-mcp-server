@@ -1,21 +1,14 @@
-On this page
 # File Sharing API for PHP SDK
 
-Allows users to upload and share files. You can upload any file of up to 5 MB in size. This feature is commonly used in social apps to share images, or in medical apps to share medical records for patients.
+Upload files (≤ 5 MB) to a channel; subscribers receive a file event (`id`, `filename`, optional `description`).
 
-When a file is uploaded on a `channel`, it's stored and managed using a storage service, and associated with your key. Subscribers to that `channel` receive a file event which contains a file `ID`, `filename`, and optional `description`.
+---
 
-## Send file[​](#send-file)
+## Send file <a id="send-file"></a>
 
-Upload the file to a specified channel.
+Upload a file and automatically publish its metadata.
 
-This method covers the entire process of sending a file, including preparation, uploading the file to a cloud storage service, and post-uploading messaging on a channel.
-
-For the last messaging step, `sendFile` internally calls the [`publishFileMessage`](#publish-file-message) method to publish a message on the channel.
-
-The published message contains metadata about the file, such as the file identifier and name, enabling others on the channel to find out about the file and access it.
-
-### Method(s)[​](#methods)
+### Method(s)
 
 ```
 `$pubnub->sendFile()  
@@ -33,25 +26,20 @@ The published message contains metadata about the file, such as the file identif
 `
 ```
 
-*  requiredParameterDescription`channel` *Type: stringDefault:  
-n/aChannel for the file.`fileName` *Type: stringDefault:  
-n/aName of the file to send.`message`Type: string or arrayDefault:  
-n/aMessage which should be sent along with file to specified `channel`.`shouldStore`Type: BooleanDefault:  
-`True`Whether PubNub published `file message` should be stored in `channel` history.`shouldCompress`Type: BooleanDefault:  
-`True`Whether the request payload should be compressed.`ttl`Type: IntegerDefault:  
-n/aHow long message should be stored in channel's storage.`fileHandle` *Type: ResourceDefault:  
-n/aPointer to a resource to be read and placed in the buffer.`fileContent` *Type: bytes or PHP file objectDefault:  
-n/aInput stream with file content.`meta`Type: string or arrayDefault:  
-n/a`Meta` data object which can be used with the filtering ability.`customMessageType`Type: stringDefault:  
-n/aA case-sensitive, alphanumeric string from 3 to 50 characters describing the business-specific label or category of the message. Dashes `-` and underscores `_` are allowed. The value cannot start with special characters or the string `pn_` or `pn-`.   
-   
- Examples: `text`, `action`, `poll`.
+* required  
+  * `channel` *string* — channel for the file.  
+  * `fileName` *string* — name of the file to send.
+* optional  
+  * `message` *string | array* — message sent with the file.  
+  * `shouldStore` *Boolean* (default `True`) — store published file message in history.  
+  * `shouldCompress` *Boolean* (default `True`) — gzip request payload.  
+  * `ttl` *Int* — message retention (seconds).  
+  * `fileHandle` *Resource* — file pointer to read.  
+  * `fileContent` *bytes | File* — file content stream.  
+  * `meta` *string | array* — metadata for message filtering.  
+  * `customMessageType` *string* — 3-50 chars, alphanumeric/`-`/`_`; cannot start with special chars, `pn_`, or `pn-`.
 
-### Basic Usage[​](#basic-usage)
-
-##### Reference code
-
-This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
+### Basic Usage
 
 ```
 `  
@@ -71,21 +59,21 @@ $pnConfig->setUserId("php-file-upload-demo");
   
 `
 ```
-show all 71 lines
 
-### Returns[​](#returns)
+### Returns
 
-The `sendFile()` operation returns an `PNSendFileResult` which contains the following fields:
+`PNSendFileResult`
 
-#### PNSendFileResult[​](#pnsendfileresult)
+Property | Type | Description  
+---------|------|------------  
+`name`   | string | uploaded file name.  
+`fileId` | string | uploaded file ID.
 
-Property NameTypeDescription`name`stringName of the uploaded file.`fileId`stringID of the uploaded file.
+---
 
-## List channel files[​](#list-channel-files)
+## List channel files <a id="list-channel-files"></a>
 
-Retrieve list of files uploaded to `Channel`.
-
-### Method(s)[​](#methods-1)
+### Method(s)
 
 ```
 `$pubnub->listFiles()  
@@ -94,33 +82,40 @@ Retrieve list of files uploaded to `Channel`.
 `
 ```
 
-*  requiredParameterDescription`channel` *Type: stringDefault:  
-n/aChannel to get the list of files.
+* required `channel` *string* — channel to query.
 
-### Basic Usage[​](#basic-usage-1)
+### Basic Usage
 
 ```
 `  
 `
 ```
 
-### Returns[​](#returns-1)
+### Returns
 
-The `listFiles()` operation returns an `PNGetFilesResult` which contains the following fields:
+`PNGetFilesResult`
 
-#### PNGetFilesResult[​](#pngetfilesresult)
+Property | Type | Description  
+---------|------|------------  
+`next`  | string | forward-pagination cursor.  
+`prev`  | string | backward-pagination cursor.  
+`count` | Int    | number of files returned.  
+`data`  | array  | array of `PNGetFilesItem`.
 
-Property NameTypeDescription`next`stringRandom string returned from the server, indicating a specific position in a data set. Used for forward pagination, it fetches the next page, allowing you to continue from where you left off.`prev`stringRandom string returned from the server, indicating a specific position in a data set. Used for backward pagination, it fetches the previous page, enabling access to earlier data.`count`IntNumber of files returned.`data`ArrayArray of `PNGetFilesItem`.
+`PNGetFilesItem`
 
-`PNGetFilesItem` contains the following properties:
+Property | Type | Description  
+---------|------|------------  
+`id`           | string | file ID.  
+`name`         | string | file name.  
+`size`         | string | file size.  
+`creationTime` | string | creation timestamp.
 
-Property NameTypeDescription`id`string`Id` of the uploaded file.`name`string`Name` of the upload file.`size`string`Size` of the uploaded file.`creationTime`stringTime of creation.
+---
 
-## Get File Url[​](#get-file-url)
+## Get File Url <a id="get-file-url"></a>
 
-Generate URL which can be used to download file from target `Channel`.
-
-### Method(s)[​](#methods-2)
+### Method(s)
 
 ```
 `$pubnub.getFileDownloadUrl()  
@@ -131,28 +126,31 @@ Generate URL which can be used to download file from target `Channel`.
 `
 ```
 
-*  requiredParameterDescription`channel` *Type: stringName of `channel` to which the file has been uploaded.`fileName` *Type: stringName under which the uploaded file is stored.`fileId` *Type: stringUnique identifier for the file, assigned during upload.
+Parameters (all required)  
+* `channel` *string* — target channel.  
+* `fileName` *string* — stored filename.  
+* `fileId` *string* — unique file ID.
 
-### Basic Usage[​](#basic-usage-2)
+### Basic Usage
 
 ```
 `  
 `
 ```
 
-### Returns[​](#returns-2)
+### Returns
 
-The `getFileDownloadUrl()` operation returns an `PNGetFileDownloadURLResult` which contains the following fields:
+`PNGetFileDownloadURLResult`
 
-#### PNGetFileDownloadURLResult[​](#pngetfiledownloadurlresult)
+Property | Type  | Description  
+---------|-------|------------  
+`fileUrl` | string | download URL.
 
-Property NameTypeDescription`fileUrl`string`URL` to be used to download the requested file.
+---
 
-## Download file[​](#download-file)
+## Download file <a id="download-file"></a>
 
-Download file from specified `Channel`.
-
-### Method(s)[​](#methods-3)
+### Method(s)
 
 ```
 `$pubnub.downloadFile()  
@@ -163,28 +161,31 @@ Download file from specified `Channel`.
 `
 ```
 
-*  requiredParameterDescription`channel` *Type: stringName of `channel` to which the file has been uploaded.`fileName` *Type: stringName under which the uploaded file is stored.`fileId` *Type: stringUnique identifier for the file, assigned during upload.
+Required  
+* `channel` *string*  
+* `fileName` *string*  
+* `fileId` *string*
 
-### Basic Usage[​](#basic-usage-3)
+### Basic Usage
 
 ```
 `  
 `
 ```
 
-### Returns[​](#returns-3)
+### Returns
 
-The `downloadFile()` operation returns an `PNDownloadFileResult` which contains the following fields:
+`PNDownloadFileResult`
 
-#### PNDownloadFileResult[​](#pndownloadfileresult)
+Property | Type | Description  
+---------|------|------------  
+`fileContent` | bytes | downloaded file content.
 
-Property NameTypeDescription`fileContent`bytesThe file that was uploaded.
+---
 
-## Delete file[​](#delete-file)
+## Delete file <a id="delete-file"></a>
 
-Delete file from specified `Channel`.
-
-### Method(s)[​](#methods-4)
+### Method(s)
 
 ```
 `$pubnub.deleteFile()  
@@ -195,33 +196,34 @@ Delete file from specified `Channel`.
 `
 ```
 
-*  requiredParameterDescription`channel` *Type: stringThe `channel` from which to delete the file.`fileId` *Type: stringUnique identifier of the file to be deleted.`fileName` *Type: stringName of the file to be deleted.
+Required  
+* `channel` *string* — channel to delete from.  
+* `fileId`  *string* — file ID.  
+* `fileName` *string* — file name.
 
-### Basic Usage[​](#basic-usage-4)
+### Basic Usage
 
 ```
 `  
 `
 ```
 
-### Returns[​](#returns-4)
+### Returns
 
-The `deleteFile()` operation returns an `PNDeleteFileResult` which contains the following fields:
+`PNDeleteFileResult`
 
-Property NameTypeDescription`status`IntReturns a status code.
+Property | Type | Description  
+---------|------|------------  
+`status` | Int  | HTTP status code.
 
-## Publish file message[​](#publish-file-message)
+---
 
-Publish the uploaded file message to a specified channel.
+## Publish file message <a id="publish-file-message"></a>
 
-This method is called internally by [`sendFile`](#send-file) as part of the file-sending process to publish the message with the file (already uploaded in a storage service) on a channel.
+Publish metadata for an already-uploaded file.  
+Use when `sendFile` upload succeeded but message publish must be retried.
 
-This message includes the file's unique identifier and name elements, which are needed to construct download links and inform channel subscribers that the file is available for download.
-
-You can call this method when `sendFile` fails and returns the `status.operation === PNPublishFileMessageOperation` error.
-In that case, you can use the data from the `status` object to try again and use `publishFileMessage` to manually resend a file message to a channel without repeating the upload step.
-
-### Method(s)[​](#methods-5)
+### Method(s)
 
 ```
 `$pubnub.publishFileMessage()  
@@ -237,19 +239,19 @@ In that case, you can use the data from the `status` object to try again and use
 `
 ```
 
-*  requiredParameterDescription`channel` *Type: StringDefault:  
-n/aName of `channel` to publish file message.`file_id` *Type: StringDefault:  
-n/aUnique identifier of the file.`file_name` *Type: StringDefault:  
-n/aName of the file.`message`Type: DictionaryDefault:  
-n/aThe payload.`meta`Type: DictionaryDefault:  
-n/aMeta data object which can be used with the filtering ability.`should_store`Type: BooleanDefault:  
-`True`Set to `False` to *not* store this message in history. By default, messages are stored according to the retention policy you set on your key.`ttl`Type: IntDefault:  
-`0`How long the message should be stored in the channel's history. If not specified, defaults to the key set's retention value.`customMessageType`Type: stringDefault:  
-n/aA case-sensitive, alphanumeric string from 3 to 50 characters describing the business-specific label or category of the message. Dashes `-` and underscores `_` are allowed. The value cannot start with special characters or the string `pn_` or `pn-`.   
-   
- Examples: `text`, `action`, `poll`.
+Required  
+* `channel` *string* — target channel.  
+* `file_id` *string* — file ID.  
+* `file_name` *string* — file name.
 
-### Basic Usage[​](#basic-usage-5)
+Optional  
+* `message` *dict* — payload.  
+* `meta` *dict* — metadata.  
+* `should_store` *Boolean* (default `True`).  
+* `ttl` *Int* (default `0`).  
+* `customMessageType` *string* — see rules above.
+
+### Basic Usage
 
 ```
 `pubnub.publishFileMessage()  
@@ -262,12 +264,12 @@ n/aA case-sensitive, alphanumeric string from 3 to 50 characters describing the 
 `
 ```
 
-### Returns[​](#returns-5)
+### Returns
 
-The `publish_file_message()` operation returns an `PNPublishFileMessageResult` which contains the following fields:
+`PNPublishFileMessageResult`
 
-#### PNPublishFileMessageResult[​](#pnpublishfilemessageresult)
+Property | Type | Description  
+---------|------|------------  
+`timestamp` | string | publish timetoken.
 
-The `publishFileMessage()` operation returns a `PNPublishFileMessageResult` which contains the following property:
-
-Property NameTypeDescription`timestamp`stringThe timetoken when the message was published.Last updated on **Apr 2, 2025**
+_Last updated Apr 2 2025_

@@ -1,192 +1,158 @@
-On this page
-# Utility Methods API for Dart SDK
+# Utility Methods API (Dart SDK)
 
-The methods on this page are utility methods that don't fit into other categories.
+## pause()
+Force the SDK to stop all requests to PubNub when there are active subscribe channels.
 
-## Pause[​](#pause)
-
-Call the `pause()` method to force the SDK to stop all requests to PubNub server when there are active subscribe channels.
-
-### Method(s)[​](#methods)
-
-To `pause()` the data transmission you can use the following method(s) in Dart SDK.
-
+### Method
+```dart
+pause()
 ```
-`pause()  
-`
-```
+(No parameters)
 
-This method doesn't take any arguments.
+### Example
+```dart
+import 'package:pubnub/pubnub.dart';
 
-### Basic Usage[​](#basic-usage)
+void main() async {
+  var pubnub = PubNub(
+    defaultKeyset: Keyset(
+      subscribeKey: 'demo',
+      publishKey: 'demo',
+      userId: UserId('myUniqueUserId'),
+    ),
+  );
 
-##### Reference code
+  var channel = "getting_started";
+  var subscription = pubnub.subscribe(channels: {channel});
 
-This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
-
-```
-`import 'package:pubnub/pubnub.dart';  
-  
-void main() async {  
-  // Create PubNub instance with default keyset.  
-  var pubnub = PubNub(  
-    defaultKeyset: Keyset(  
-      subscribeKey: 'demo',  
-      publishKey: 'demo',  
-      userId: UserId('myUniqueUserId'),  
-    ),  
-  );  
-  
-  // Subscribe to a channel  
-  var channel = "getting_started";  
-  var subscription = pubnub.subscribe(channels: {channel});  
-`
-```
-show all 24 lines
-
-## Resume[​](#resume)
-
-Call the `resume()` method to force the SDK to try and reach out PubNub.
-
-### Method(s)[​](#methods-1)
-
-To `resume()` the data transmission you can use the following method(s) in Dart SDK.
-
-```
-`resume()  
-`
+  // Temporarily stop network traffic
+  subscription.pause();
+}
 ```
 
-### Basic Usage[​](#basic-usage-1)
+---
 
+## resume()
+Resume network communication after `pause()`.
+
+### Method
+```dart
+resume()
 ```
-`subscribtion.resume()  
-`
-```
+(No parameters)
 
-This method doesn't take any arguments.
-
-## Encrypt File[​](#encrypt-file)
-
-Encrypts file content in bytes format.
-
-##### Deprecated
-
-The `cipherKey` parameter in this method is deprecated. We recommend that you configure a separate instance of the [crypto module](/docs/sdks/dart/api-reference/configuration#cryptomodule) and use it for partial encryption.   
-   
- If you pass `cipherKey` as an argument, it overrides the crypto module configuration and the legacy encryption with 128-bit cipher key entropy is used.
-
-### Method(s)[​](#methods-2)
-
-```
-`pubnub.files.encryptFile(  
-  Listint> bytes,  
-  {CipherKey? cipherKey,  
-  Keyset? keyset,  
-  String? using}  
-)  
-`
+### Example
+```dart
+subscription.resume();
 ```
 
-*  requiredParameterDescription`bytes` *Type: List`<int>`File content in bytes.`cipherKey`Type: cipherKeyA `cipherKey` to override `Keyset.cipherKey`. For more information, refer to [Configuration](/docs/sdks/dart/api-reference/configuration).`keyset`Type: `Keyset`Override for the PubNub default keyset configuration.`using`Type: `String`Keyset name from the `keysetStore` to be used for this method call.
+---
 
-### Basic Usage[​](#basic-usage-2)
+## Encrypt File
+Encrypt byte data.
 
-```
-`// create cryptoModule  
-var cryptoModule = CryptoModule.aesCbcCryptoModule(CipherKey.fromUtf8('abcd'));  
-  
-// encrypt file data   NOTE: same method because it works at byte level  
-var encryptedFileData = cryptoModule.encrypt(fileData);  
-`
-```
+**Deprecated:** `cipherKey` overrides the crypto-module configuration and uses legacy 128-bit encryption. Prefer configuring a dedicated crypto module.
 
-### Returns[​](#returns)
-
-Byte List of encrypted data.
-
-## Decrypt File[​](#decrypt-file)
-
-Decrypts file content in bytes format.
-
-##### Deprecated
-
-The `cipherKey` parameter in this method is deprecated. We recommend that you configure a separate instance of the [crypto module](/docs/sdks/dart/api-reference/configuration#cryptomodule) and use it for partial encryption.   
-   
- If you pass `cipherKey` as an argument, it overrides the crypto module configuration and the legacy encryption with 128-bit cipher key entropy is used.
-
-### Method(s)[​](#methods-3)
-
-```
-`pubnub.files.decryptFile(  
-  Listint> bytes,  
-  {CipherKey? cipherKey,  
-  Keyset? keyset,  
-  String? using})  
-`
+### Method
+```dart
+pubnub.files.encryptFile(
+  List<int> bytes, {
+  CipherKey? cipherKey,
+  Keyset? keyset,
+  String? using,
+})
 ```
 
-*  requiredParameterDescription`bytes` *Type: List`<int>`File content in bytes.`cipherKey`Type: cipherKeyA `cipherKey` to override `Keyset.cipherKey`. For more information, refer to [Configuration](/docs/sdks/dart/api-reference/configuration).`keyset`Type: `Keyset`Override for the PubNub default keyset configuration.`using`Type: `String`Keyset name from the `keysetStore` to be used for this method call.
+Parameter | Type | Description
+--------- | ---- | -----------
+`bytes` | `List<int>` | File bytes (required).
+`cipherKey` | `CipherKey?` | Overrides `Keyset.cipherKey` (deprecated).
+`keyset` | `Keyset?` | Override default keyset.
+`using` | `String?` | Named keyset from `keysetStore`.
 
-### Basic Usage[​](#basic-usage-3)
+### Example
+```dart
+// Configure crypto module
+var cryptoModule = CryptoModule.aesCbcCryptoModule(
+  CipherKey.fromUtf8('abcd'),
+);
 
-```
-`// create cryptoModule  
-var cryptoModule = CryptoModule.aesCbcCryptoModule(CipherKey.fromUtf8('abcd'));  
-  
-// encrypt file data   NOTE: same method because it works at byte level  
-var encryptedFileData = cryptoModule.encrypt(fileData);  
-  
-// decrypt file data   
-var decryptedFileData = cryptoModule.decrypt(encryptedFileData);  
-  
-// create file again from decrypted file bytes  
-File('decryptedFile.jpg').writeAsBytesSync(decryptedFileData);  
-`
-```
-
-### Returns[​](#returns-1)
-
-Byte list of decrypted data.
-
-## Time[​](#time)
-
-This function returns the current timetoken value from the PubNub network.
-
-##### Algorithm constructing the timetoken
-
-```
-`timetoken = (Unix epoch time in seconds) * 10000000  
-`
+// Encrypt file data
+var encryptedFileData = cryptoModule.encrypt(fileData);
 ```
 
-Example of creating a timetoken for a specific time and date:
+### Returns
+`List<int>` — encrypted bytes.
 
-```
-`08/19/2013 @ 9:20pm in UTC = 1376961606  
-timetoken = 1376961606 * 10000000  
-timetoken = 13769616060000000  
-`
-```
+---
 
-### Method(s)[​](#methods-4)
+## Decrypt File
+Decrypt byte data.
 
-To fetch Time you can use the following method(s) in Dart SDK:
+**Deprecated:** Same `cipherKey` note as in Encrypt File.
 
-```
-`time()  
-`
-```
-
-### Basic Usage[​](#basic-usage-4)
-
-```
-`var response = await pubnub.time();  
-`
+### Method
+```dart
+pubnub.files.decryptFile(
+  List<int> bytes, {
+  CipherKey? cipherKey,
+  Keyset? keyset,
+  String? using,
+})
 ```
 
-### Returns[​](#returns-2)
+Parameter | Type | Description
+--------- | ---- | -----------
+`bytes` | `List<int>` | File bytes (required).
+`cipherKey` | `CipherKey?` | Overrides `Keyset.cipherKey` (deprecated).
+`keyset` | `Keyset?` | Override default keyset.
+`using` | `String?` | Named keyset from `keysetStore`.
 
-The `time()` operation returns a `Timetoken` which contains the following operations:
+### Example
+```dart
+var cryptoModule = CryptoModule.aesCbcCryptoModule(
+  CipherKey.fromUtf8('abcd'),
+);
 
-MethodDescription`value`Type: `int`Returns an `int` representation of current timetoken.Last updated on **Jun 30, 2025**
+var encryptedFileData = cryptoModule.encrypt(fileData);
+
+// Decrypt
+var decryptedFileData = cryptoModule.decrypt(encryptedFileData);
+
+// Save decrypted file
+File('decryptedFile.jpg').writeAsBytesSync(decryptedFileData);
+```
+
+### Returns
+`List<int>` — decrypted bytes.
+
+---
+
+## time()
+Retrieve the current PubNub timetoken.
+
+### Timetoken algorithm
+```text
+timetoken = (Unix epoch time in seconds) * 10000000
+```
+
+Example:
+```text
+08/19/2013 @ 9:20pm UTC = 1376961606
+timetoken = 1376961606 * 10000000
+timetoken = 13769616060000000
+```
+
+### Method
+```dart
+time()
+```
+
+### Example
+```dart
+var response = await pubnub.time();
+```
+
+### Returns
+`Timetoken`  
+• `value` → `int` — current timetoken.

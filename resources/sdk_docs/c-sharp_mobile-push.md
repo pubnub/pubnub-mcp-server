@@ -1,19 +1,15 @@
-On this page
 # Mobile Push Notifications API for C# SDK
 
-Mobile Push Notifications feature enables developers to bridge native PubNub publishing with 3rd-party push notification services including Google Android FCM (Firebase Cloud Messaging) and Apple iOS APNs (Apple Push Notification service).
+Mobile Push Notifications let you publish through PubNub and deliver through FCM/GCM or APNs (incl. APNS2) without extra server code.  
+Feature must be enabled for your key in the Admin Portal.
 
-By using the Mobile Push Notifications feature, developers can eliminate the need for developing, configuring, and maintaining additional server-side components for third-party push notification providers.
+---
 
-To learn more, read about [Mobile Push Notifications](/docs/general/push/send).
+## Request Execution
 
-##### Request execution
+Use `try/catch`; SDK throws on bad client-side parameters, otherwise inspect `PNStatus` for network/server errors.
 
-We recommend using `try` and `catch` statements when working with the C# SDK.
-
-If there's an issue with the provided API parameter values, like missing a required parameter, the SDK throws an exception. However, if there is a server-side API execution issue or a network problem, the error details are contained within the `status`.
-
-```
+```csharp
 `try  
 {  
     PNResultPNPublishResult> publishResponse = await pubnub.Publish()  
@@ -32,17 +28,13 @@ catch (Exception ex)
 `
 ```
 
-## Add Device to Channel[​](#add-device-to-channel)
+---
 
-##### Requires Mobile Push Notifications add-on
+## Add Device to Channel
 
-This method requires that the Mobile Push Notifications add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
+Enables push on the specified channels for a device token.
 
-Enable mobile push notifications on provided set of channels.
-
-### Method(s)[​](#methods)
-
-To run `Adding Device to Channel` you can use the following method(s) in the C# SDK:
+### Method
 
 ```
 `pubnub.AddPushNotificationsOnChannels()  
@@ -55,38 +47,33 @@ To run `Adding Device to Channel` you can use the following method(s) in the C# 
 `
 ```
 
-*  requiredParameterDescription`PushType` *Type: PNPushTypeAccepted values: `PNPushType.GCM`, `PNPushType.FCM`, `PNPushType.APNS2`.`Channels` *Type: ArrayAdd mobile push notifications on the specified `Channels`.`DeviceId` *Type: stringDevice ID.`Environment`Type: `PushEnvironment``PNPushType.APNS2` only. Apple APNs server (refer to [this Apple document](https://developer.apple.com/documentation/usernotifications/setting_up_a_remote_notification_server/sending_notification_requests_to_apns#2947606)) to contact. Valid values are Development and Production.`Topic`Type: string`PNPushType.APNS2` only. Notification topic name (usually the application's bundle identifier).`QueryParam`Type: Dictionary`<string, object>`Dictionary `object` to pass name/value pairs as query `string` params with PubNub URL request for debug purpose.`Async`Type: PNCallback`PNCallback` of type `PNPushAddChannelResult`.   
-   
- This parameter is deprecated and will be removed in a future version. Please use the `ExecuteAsync` parameter instead.`Execute` *Type: PNCallback`PNCallback` of type `PNPushAddChannelResult`.`ExecuteAsync`Type: NoneReturns `PNResult<PNPushAddChannelResult>`.
+Parameters (all required unless noted):
 
-### Basic Usage[​](#basic-usage)
+* PushType – `PNPushType.GCM`, `PNPushType.FCM`, `PNPushType.APNS2`.  
+* Channels – array of channel names to enable.  
+* DeviceId – push token / device ID.  
+* Environment – `Development` or `Production` (APNS2 only).  
+* Topic – bundle identifier / topic (APNS2 only).  
+* QueryParam – optional `Dictionary<string,object>` for extra URL query params.  
+* ExecuteAsync – returns `PNResult<PNPushAddChannelResult>` (preferred).  
+  * Legacy `Async/Execute` callbacks still supported but deprecated.
 
-##### Reference code
-
-This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
-
-#### Add Device to Channel[​](#add-device-to-channel-1)
+#### Example
 
 ```
 `  
 `
 ```
 
-### Returns[​](#returns)
+Returns no payload; verify success via `status.IsError()`.
 
-The `AddPushNotificationsOnChannels()` does not return actionable data, be sure to check the status object on the outcome of the operation by checking the `status.isError()`.
+---
 
-## List Channels For Device[​](#list-channels-for-device)
+## List Channels For Device
 
-##### Requires Mobile Push Notifications add-on
+Lists all channels on which the provided device token is enabled.
 
-This method requires that the Mobile Push Notifications add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
-
-Request for all channels on which push notification has been enabled using specified pushToken.
-
-### Method(s)[​](#methods-1)
-
-To run `Listing Channels For Device` you can use the following method(s) in the C# SDK:
+### Method
 
 ```
 `pubnub.AuditPushChannelProvisions()  
@@ -98,36 +85,31 @@ To run `Listing Channels For Device` you can use the following method(s) in the 
 `
 ```
 
-*  requiredParameterDescription`DeviceId` *Type: stringDevice ID.`PushType` *Type: PNPushTypeAccepted values: `PNPushType.GCM`, `PNPushType.FCM`, `PNPushType.APNS2`.`Environment`Type: `PushEnvironment``PNPushType.APNS2` only. Apple APNs server (refer to [this Apple document](https://developer.apple.com/documentation/usernotifications/setting_up_a_remote_notification_server/sending_notification_requests_to_apns#2947606)) to contact. Valid values are Development and Production.`Topic`Type: string`PNPushType.APNS2` only. Notification topic name (usually the application's bundle identifier).`QueryParam`Type: Dictionary`<string, object>`Dictionary `object` to pass name/value pairs as query `string` params with PubNub URL request for debug purpose.`Async`Type: PNCallback`PNCallback` of type `PNPushListProvisionsResult`.   
-   
- This parameter is deprecated and will be removed in a future version. Please use the `ExecuteAsync` parameter instead.`Execute` *Type: PNCallback`PNCallback` of type `PNPushListProvisionsResult`.`ExecuteAsync`Type: NoneReturns `PNResult<PNPushListProvisionsResult>`.
+Parameters:
 
-### Basic Usage[​](#basic-usage-1)
+* DeviceId – push token / device ID.  
+* PushType – `PNPushType.GCM`, `PNPushType.FCM`, `PNPushType.APNS2`.  
+* Environment, Topic – as described above (APNS2 only).  
+* QueryParam – optional.  
+* ExecuteAsync – returns `PNResult<PNPushListProvisionsResult>`.
 
-#### List Channels For Device[​](#list-channels-for-device-1)
+#### Example
 
 ```
 `  
 `
 ```
 
-### Returns[​](#returns-1)
+Return object:  
+`PNPushListProvisionsResult.Channels` → `List<string>` of enabled channels.
 
-The `AuditPushChannelProvisions()` operation returns a `PNPushListProvisionsResult` which contains the following property:
+---
 
-Property NameTypeDescription`Channels`List`<string>`List of `channels` associated for mobile push notifications.
+## Remove Device From Channel
 
-## Remove Device From Channel[​](#remove-device-from-channel)
+Disables push on the specified channels for a device token.
 
-##### Requires Mobile Push Notifications add-on
-
-This method requires that the Mobile Push Notifications add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
-
-Disable mobile push notifications on provided set of channels.
-
-### Method(s)[​](#methods-2)
-
-To run `Removing Device From Channel` you can use the following method(s) in the C# SDK:
+### Method
 
 ```
 `pubnub.RemovePushNotificationsFromChannels()  
@@ -140,34 +122,25 @@ To run `Removing Device From Channel` you can use the following method(s) in the
 `
 ```
 
-*  requiredParameterDescription`DeviceId` *Type: stringDevice ID.`Channels` *Type: ArrayRemove mobile push notifications on the specified `Channels`.`PushType` *Type: PNPushTypeAccepted values: `PNPushType.GCM`, `PNPushType.FCM`, `PNPushType.APNS2`.`Environment`Type: `PushEnvironment``PNPushType.APNS2` only. Apple APNs server (refer to [this Apple document](https://developer.apple.com/documentation/usernotifications/setting_up_a_remote_notification_server/sending_notification_requests_to_apns#2947606)) to contact. Valid values are Development and Production.`Topic`Type: string`PNPushType.APNS2` only. Notification topic name (usually the application's bundle identifier).`QueryParam`Type: Dictionary`<string, object>`Dictionary `object` to pass name/value pairs as query `string` params with PubNub URL request for debug purpose.`Async`Type: PNCallback`PNCallback` of type `PNPushRemoveChannelResult`.   
-   
- This parameter is deprecated and will be removed in a future version. Please use the `ExecuteAsync` parameter instead.`Execute` *Type: PNCallback`PNCallback` of type `PNPushRemoveChannelResult`.`ExecuteAsync`Type: NoneReturns `PNResult<PNPushRemoveChannelResult>`.
+Parameters mirror *Add Device* with `Channels` indicating channels to remove.  
+`ExecuteAsync` returns `PNResult<PNPushRemoveChannelResult>`.
 
-### Basic Usage[​](#basic-usage-2)
-
-#### Remove Device From Channel[​](#remove-device-from-channel-1)
+#### Example
 
 ```
 `  
 `
 ```
 
-### Returns[​](#returns-2)
+No payload; check `status.IsError()`.
 
-The `RemovePushNotificationsFromChannels()` does not return actionable data, be sure to check the status object on the outcome of the operation by checking the `status.isError()`.
+---
 
-## Remove all mobile push notifications[​](#remove-all-mobile-push-notifications)
+## Remove All Mobile Push Notifications
 
-##### Requires Mobile Push Notifications add-on
+Unregisters the device token from **all** channels.
 
-This method requires that the Mobile Push Notifications add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
-
-Disable mobile push notifications from all channels registered with the specified pushToken.
-
-### Method(s)[​](#methods-3)
-
-To run `Remove all mobile push notifications`, you can use the following method(s) in the C# SDK:
+### Method
 
 ```
 `pubnub.RemoveAllPushNotificationsFromDeviceWithPushToken()  
@@ -179,21 +152,18 @@ To run `Remove all mobile push notifications`, you can use the following method(
 `
 ```
 
-*  requiredParameterDescription`DeviceId` *Type: stringDevice ID`PushType` *Type: PNPushTypeAccepted values: `PNPushType.GCM`, `PNPushType.FCM`, `PNPushType.APNS2`.`Environment`Type: `PushEnvironment``PNPushType.APNS2` only. Apple APNs server (refer to [this Apple document](https://developer.apple.com/documentation/usernotifications/setting_up_a_remote_notification_server/sending_notification_requests_to_apns#2947606)) to contact. Valid values are Development and Production.`Topic`Type: string`PNPushType.APNS2` only. Notification topic name (usually the application's bundle identifier).`QueryParam`Type: Dictionary`<string, object>`Dictionary `object` to pass name/value pairs as query `string` params with PubNub URL request for debug purpose.`Async`Type: PNCallback`PNCallback` of type `PNPushRemoveAllChannelsResult`.   
-   
- This parameter is deprecated and will be removed in a future version. Please use the `ExecuteAsync` parameter instead.`Execute` *Type: PNCallback`PNCallback` of type `PNPushRemoveAllChannelsResult`.`ExecuteAsync`Type: NoneReturns `PNResult<PNPushRemoveAllChannelsResult>`.
+Parameters as above (no Channels list).  
+`ExecuteAsync` returns `PNResult<PNPushRemoveAllChannelsResult>`.
 
-### Basic Usage[​](#basic-usage-3)
-
-#### Remove all mobile push notifications[​](#remove-all-mobile-push-notifications-1)
+#### Example
 
 ```
 `  
 `
 ```
 
-### Returns[​](#returns-3)
+Return object contains only `PNStatus` (empty data payload).
 
-The `RemoveAllPushNotificationsFromDeviceWithPushToken()` operation returns a `PNPushRemoveAllChannelsResult` which contains the following property:
+---
 
-Property NameTypeDescription`PNPushRemoveAllChannelsResult`ObjectReturns empty object.`PNStatus`ObjectReturns `status` of request if error occurred or not.Last updated on **Jun 30, 2025**
+Last updated: **Jun 30, 2025**

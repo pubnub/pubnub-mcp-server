@@ -1,62 +1,18 @@
-On this page
-# Rust API & SDK Docs 0.6.0
+# Rust API & SDK Docs 0.6.0 – Overview (Condensed)
 
-In this guide, we'll create a simple "Hello, World" application that demonstrates the core concepts of PubNub:
+This section keeps every code block, method signature, parameter list, and essential configuration detail while removing redundant prose.
 
-- Setting up a connection
+---
 
-- Sending messages
+## Prerequisites
+• Rust + Cargo installed  
+• PubNub account and keyset
 
-- Receiving messages in real-time
+---
 
-## Overview[​](#overview)
+## Installation
 
-This guide will help you get up and running with PubNub in your Rust application. Since Rust is commonly used across different platforms, we provide two implementation paths:
-
-- **Server-side applications**: For developers building backend services and applications with Rust
-
-- **Embedded systems**: For developers using Rust in resource-constrained environments (embedded devices, WebAssembly)
-
-The core PubNub concepts and API usage remain the same across both paths, but implementation details like feature selection and memory management differ. Select the appropriate tab in each section to see platform-specific guidance.
-
-##### Feature selection
-
-The Rust SDK is designed to be modular with support for different feature sets. You can enable or disable specific features based on your needs, which is especially useful for embedded systems with limited resources.
-
-## Prerequisites[​](#prerequisites)
-
-Before we dive in, make sure you have:
-
-- A basic understanding of Rust
-
-- Rust and Cargo installed on your system
-
-- A PubNub account (we'll help you set this up!)
-
-## Setup[​](#setup)
-
-### Get your PubNub keys[​](#get-your-pubnub-keys)
-
-First things first – you'll need your PubNub keys to get started. Here's how to get them:
-
-- [Sign in](https://admin.pubnub.com/#/login) or [create an account](https://admin.pubnub.com/#/signup) on the PubNub Admin Portal
-
-- Create a new app (or use an existing one)
-
-- Find your publish and subscribe keys in the app's dashboard
-
-When you create a new app, PubNub automatically generates your first set of keys. While you can use the same keys for development and production, we recommend creating separate keysets for each environment for better security and management.
-
-### Install the SDK[​](#install-the-sdk)
-
-##### SDK version
-
-Always use the latest SDK version to have access to the newest features and avoid security vulnerabilities, bugs, and performance issues.
-
-- Server-side applications
-- Embedded systems
-
-Add `pubnub` to your Rust project in the [`Cargo.toml`](https://doc.rust-lang.org/cargo/getting-started/installation.html) file:
+### Server-side (full feature set)
 
 ```
 `[dependencies]  
@@ -67,28 +23,7 @@ tokio = { version = "1", features = ["full"] }
 `
 ```
 
-Then in your `main.rs` file:
-
-```
-`use pubnub::dx::*;  
-use pubnub::core::*;  
-use serde_json::json;  
-  
-#[tokio::main]  
-async fn main() -> Result(), Boxdyn std::error::Error>> {  
-    // Set up PubNub configuration  
-    let pubnub = PubNubClientBuilder::with_reqwest_transport()  
-        .with_keyset(Keyset {  
-            subscribe_key: "demo",      // Replace with your subscribe key  
-            publish_key: Some("demo"),  // Replace with your publish key  
-            secret_key: None,  
-        })  
-        .with_user_id("rust-server-user")  
-        .build()?;  
-`
-```
-
-show all 22 linesFor embedded systems or WebAssembly targets, you'll want to optimize for size and disable features you don't need:
+### Embedded / no_std (minimal footprint)
 
 ```
 `[dependencies]  
@@ -98,8 +33,6 @@ serde = { version = "1.0", default-features = false }
 `
 ```
 
-The `pubnub` crate is `no_std` compatible, making it suitable for embedded environments:
-
 ```
 `[dependencies]  
 # Minimal configuration for embedded systems  
@@ -108,18 +41,11 @@ serde = { version = "1.0", default-features = false }
 `
 ```
 
-You can also download the source code directly from the [GitHub repository](https://github.com/pubnub/rust).
+---
 
-## Steps[​](#steps)
+## Initialize PubNub
 
-### Initialize PubNub[​](#initialize-pubnub)
-
-- Server-side applications
-- Embedded systems
-
-In your Rust project, create a new file (e.g., `main.rs`) with the following content. This is the minimum configuration you need to send messages with PubNub.
-
-Make sure to replace the placeholder keys with your publish and subscribe keys from the Admin Portal.
+### Server-side
 
 ```
 `use pubnub::dx::*;  
@@ -140,7 +66,7 @@ async fn main() -> Result(), Boxdyn std::error::Error>> {
 `
 ```
 
-show all 22 linesFor embedded systems, you'll want to be more careful with memory usage. The following example shows how to structure your code, but you'll need to adapt it to your specific embedded environment:
+### Embedded (conceptual custom transport)
 
 ```
 `// Note: This is a conceptual example.   
@@ -160,21 +86,10 @@ impl Transport for MinimalTransport {
     // ...  
 `
 ```
-show all 42 lines
-##### note
 
-The embedded example above is conceptual. For an actual implementation, you'll need to create a custom transport layer that implements the `Transport` trait for your specific environment.
+---
 
-For more information, refer to the [Configuration](/docs/sdks/rust/api-reference/configuration) section of the SDK documentation.
-
-### Set up event listeners[​](#set-up-event-listeners)
-
-Listeners help your app react to events and messages. You can implement custom app logic to respond to each type of message or event.
-
-- Server-side applications
-- Embedded systems
-
-Using Rust's async streams makes it easy to process events as they arrive:
+## Event Listeners
 
 ```
 `// Import required event handling traits  
@@ -195,7 +110,7 @@ tokio::spawn(subscription.stream().for_each(|event| async move {
 `
 ```
 
-show all 35 linesIf you only want to listen for specific events, you can use specialized streams:
+Selective stream:
 
 ```
 `// Only listen for message events on a specific channel  
@@ -213,7 +128,7 @@ tokio::spawn(
 `
 ```
 
-For embedded systems, you might want to use a more compact approach to event handling:
+Compact embedded variant:
 
 ```
 `// Use a more compact approach for resource-constrained environments  
@@ -227,16 +142,9 @@ tokio::spawn(subscription.messages_stream().for_each(|message| async move {
 `
 ```
 
-For more information, refer to the [Event Listeners](/docs/sdks/rust/api-reference/configuration#event-listeners) section of the SDK documentation.
+---
 
-### Create a subscription[​](#create-a-subscription)
-
-To receive messages sent to a particular channel, you need to subscribe to it. This setup allows you to receive real-time updates whenever anyone publishes to that channel.
-
-- Server-side applications
-- Embedded systems
-
-Create a subscription to one or more channels using the subscription parameters:
+## Subscribing
 
 ```
 `use pubnub::subscribe::SubscriptionParams;  
@@ -257,7 +165,7 @@ subscription.subscribe();
 `
 ```
 
-show all 18 linesFor embedded systems, you might want to be more careful with resource usage:
+Embedded minimal:
 
 ```
 `// Create a minimal subscription with only required features  
@@ -270,14 +178,11 @@ subscription.subscribe();
 `
 ```
 
-### Publish messages[​](#publish-messages)
+---
 
-When you publish a message to a channel, PubNub delivers that message to everyone who is subscribed to that channel. A message can be any type of JSON-serializable data smaller than 32 KiB.
+## Publishing
 
-- Server-side applications
-- Embedded systems
-
-Let's publish a message to our channel:
+Server-side:
 
 ```
 `// Wait a moment for the subscription to establish  
@@ -298,7 +203,7 @@ match pubnub
 `
 ```
 
-show all 17 linesFor embedded systems, you might want to minimize memory usage during publishing:
+Embedded:
 
 ```
 `// Create a simple message with minimal allocations  
@@ -318,16 +223,12 @@ match result {
         // Process the timetoken if needed  
 `
 ```
-show all 25 lines
 
-### Clean up resources[​](#clean-up-resources)
+---
 
-When your application is shutting down or a component using PubNub is being removed, it's important to properly clean up resources to avoid memory leaks and ensure network connections are closed gracefully.
+## Cleanup
 
-- Server-side applications
-- Embedded systems
-
-To properly clean up resources, unsubscribe from channels and remove listeners:
+Server-side:
 
 ```
 `// Unsubscribe from the channel  
@@ -344,9 +245,7 @@ println!("Cleaned up PubNub resources");
 `
 ```
 
-This is particularly important in long-running applications that may create and dispose of multiple PubNub clients or subscriptions.
-
-For embedded systems, proper cleanup is even more critical due to limited resources:
+Embedded:
 
 ```
 `// Unsubscribe from channels to stop receiving messages  
@@ -358,20 +257,11 @@ pubnub.destroy();
 `
 ```
 
-In memory-constrained environments, make sure to clean up as soon as you're done with a resource to free memory.
+---
 
-### Run the app[​](#run-the-app)
+## Running
 
-- Server-side applications
-- Embedded systems
-
-To run your application:
-
-1. $1
-
-2. $1
-
-If you're using async code, make sure your `Cargo.toml` includes tokio:
+Standard target:
 
 ```
 `[dependencies]  
@@ -382,8 +272,6 @@ tokio = { version = "1", features = ["full"] }
 `
 ```
 
-And your main function should have the tokio runtime attribute:
-
 ```
 `#[tokio::main]  
 async fn main() -> Result(), Boxdyn std::error::Error>> {  
@@ -393,11 +281,7 @@ async fn main() -> Result(), Boxdyn std::error::Error>> {
 `
 ```
 
-For embedded systems, the process will depend on your specific target:
-
-Configure your build for your target architecture
-
-If using `no_std`, ensure you've properly set up your Cargo.toml:
+Embedded target:
 
 ```
 `[dependencies]  
@@ -406,11 +290,9 @@ pubnub = { version = "0.6.0", default-features = false, features = ["serde", "pu
 `
 ```
 
-Build with `cargo build --target your-target-triple`
+---
 
-Flash to your device using the appropriate tools for your platform
-
-When you run the application, you should see output similar to the following:
+### Sample Run Output
 
 ```
 `PubNub client initialized successfully!  
@@ -422,9 +304,9 @@ Global listener: Received message on channel 'my_channel': {"text":"Hello, world
 `
 ```
 
-## Complete example[​](#complete-example)
+---
 
-Here's the complete working example that puts everything together:
+## Complete Example
 
 ```
 `use pubnub::subscribe::Subscriber;  
@@ -444,55 +326,13 @@ async fn main() -> Result(), Boxdyn std::error::Error>> {
     let publish_key = "demo";  // Replace with your publish key  
 `
 ```
-show all 117 lines
 
-### Troubleshooting[​](#troubleshooting)
+(See full file in SDK repository.)
 
-If you don't see the expected output, here are some common issues and how to fix them:
+---
 
-IssuePossible SolutionsNo connection message
-- Check your internet connection.
-- Verify your publish and subscribe keys are correct.
-- Make sure you're not behind a firewall blocking PubNub's connections.
+## Next Steps (quick links)
+• Presence • Access Manager • CryptoModule  
+• GitHub examples • SDK reference • Discord community • Support portal
 
-Message not received
-- Double-check that you're subscribed to the correct channel.
-- Verify that the message was actually sent (check for any error messages).
-- Make sure you're waiting long enough for the message to be delivered.
-
-Build errors
-- Ensure you've added the PubNub dependency correctly.
-- Check that you're using a compatible version of Rust (1.65.0+ is recommended).
-- Make sure all imports are correct.
-
-Runtime errors
-- If using async code, ensure you've set up the tokio runtime correctly.
-- Make sure you're handling errors properly with proper match statements or the `?` operator.
-
-## Next steps[​](#next-steps)
-
-Great job! 🎉 You've successfully created your first PubNub application with Rust. Here are some exciting things you can explore next:
-
-- Advanced features
-- Real examples
-- More help
-
-- Try out [Presence](/docs/sdks/rust/api-reference/presence) to track online/offline status.
-
-- Use [Access Manager](/docs/sdks/rust/api-reference/access-manager) to secure your channels.
-
-- Explore message encryption with the built-in [CryptoModule](/docs/sdks/rust/api-reference/configuration#cryptomodule).
-
-- Look at the [examples folder](https://github.com/pubnub/rust/tree/master/examples) in the repository.
-
-- Explore our [GitHub repository](https://github.com/pubnub/rust/) for more code samples.
-
-- Check out our [SDK reference documentation](/docs/sdks/rust/api-reference/configuration) for detailed API information.
-
-- Join our [Discord community](https://discord.gg/pubnub) to connect with other developers.
-
-- Visit our [support portal](https://support.pubnub.com/) for additional resources.
-
-- Ask our AI assistant (the looking glass icon at the top of the page) for help.
-
-Last updated on **Jun 9, 2025**
+_Last updated Jun 9 2025_

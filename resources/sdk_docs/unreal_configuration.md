@@ -1,41 +1,26 @@
-On this page
-# Configuration API for Unreal SDK
+# PubNub Unreal SDK – Configuration (Condensed)
 
-Unreal complete API reference for building real-time applications on PubNub, including basic usage and sample code.
+## Configuration and Initialization  
 
-## Configuration and Initialization[​](#configuration-and-initialization)
+Configure the SDK in Project Settings → Plugins → **PubNub SDK**.
 
-You can configure the PubNub SDK in Unreal Editor as follows:
+Configuration options (all optional unless noted):
 
-In the Unreal Editor window, click the **Settings** dropdown and select **Project Settings**.
+| Setting | Type | Purpose |
+|---|---|---|
+| **Publish Key** | string | Key from the Admin Portal; required for publishing. |
+| **Subscribe Key** | string | Key from the Admin Portal; required for subscribing. |
+| **Secret Key** | string | Needed only for access-control operations. |
+| **Initialize Automatically** | bool | Auto-calls `Init Pubnub`. |
+| **Set Secret Key Automatically** | bool | Auto-calls `Set Secret Key`. |
 
-In the **Project Settings** window, scroll down to the **Plugins** section and click **Pubnub SDK**. The **Plugins - Pubnub SDK** view opens.
+Always set a unique, persistent **User ID** before connecting.
 
-In the **Plugins - Pubnub SDK** view, provide the desired values for the available configuration options.
+---
 
-*  requiredPropertyDescriptionPublish KeyType: stringPublish Key from [Admin Portal](https://admin.pubnub.com/) (only required if publishing).Subscribe Key *Type: stringSubscribe Key from [Admin Portal](https://admin.pubnub.com/).Secret KeyType: stringSecret Key from [Admin Portal](https://admin.pubnub.com/), only required for access control operations.Initialize AutomaticallyType: BooleanWhether to initialize the SDK without having to invoke the `Init Pubnub` command.Set Secret Key AutomaticallyType: BooleanWhether to initialize the SDK with the provided secret key without having to invoke the `Set Secret Key` command.
+## Event Listeners  
 
-### Basic Usage[​](#basic-usage)
-
-### Usage in Blueprints and C++
-
-  
-
-##### Required User ID
-
-Always set the User ID to uniquely identify the user or device that connects to PubNub. This User ID should be persisted, and should remain unchanged for the lifetime of the user or the device. If you don't set the User ID, you won't be able to connect to PubNub.
-
-- Project settings
-- Blueprint
-
-## Event Listeners[​](#event-listeners)
-
-In PubNub Unreal SDK, the listeners notify you of message events and errors. All events emitted on a particular channel are received through `OnMessageReceived` but differ in their JSON payload. Refer to [Event types](#event-types) for more information.
-
-### Add Listeners[​](#add-listeners)
-
-- Blueprint
-- C++
+All channel events arrive through `OnMessageReceived`; errors through `OnPubnubError`.  
 
 Actor.h
 ```
@@ -72,14 +57,8 @@ void MyGameInstance::BeginPlay()
       
 `
 ```
-show all 32 lines
 
-### Add Subscription Status Listener[​](#add-subscription-status-listener)
-
-You need to add a subscription status listener to get notified when the subscription status changes. For more information on subscriptions, refer to [SDK Connection Lifecycle](/docs/general/setup/connection-management#sdk-connection-lifecycle).
-
-- Blueprint
-- C++
+### Subscription Status Listener  
 
 Actor.h
 ```
@@ -108,14 +87,7 @@ void AMyActor::OnSubscriptionStatusChanged(EPubnubSubscriptionStatus Status, con
 `
 ```
 
-### Add Callback Function[​](#add-callback-function)
-
-Responses to functions are handled using response delegates and callback functions.
-
-All functions with a response type need a callback function to handle the response. Let's look into an example implementation of a callback function for the `ListUsersFromChannel` function.
-
-- Blueprint
-- C++
+### Callback Example (ListUsersFromChannel)  
 
 Actor.h
 ```
@@ -148,16 +120,16 @@ void AMyActor::YourFunction()
     
 `
 ```
-show all 25 lines
 
-## Event Types[​](#event-types)
+---
 
-All message events are routed through `OnMessageReceived` but have a different JSON structure. The following list shows examples of the event payload emitted for different event types.
+## Event Payload Samples  
 
-### Objects[​](#objects)
+All below are returned through `OnMessageReceived`.
 
-#### Set User Metadata[​](#set-user-metadata)
+### Objects  
 
+#### Set User Metadata
 ```
 `{  
   "source": "objects",  
@@ -174,8 +146,7 @@ All message events are routed through `OnMessageReceived` but have a different J
 `
 ```
 
-#### Set Channel Metadata[​](#set-channel-metadata)
-
+#### Set Channel Metadata
 ```
 `{  
   "source": "objects",  
@@ -192,8 +163,7 @@ All message events are routed through `OnMessageReceived` but have a different J
 `
 ```
 
-#### Set Member[​](#set-member)
-
+#### Set Member
 ```
 `{  
   "source": "objects",  
@@ -212,10 +182,8 @@ All message events are routed through `OnMessageReceived` but have a different J
   }  
 `
 ```
-show all 16 lines
 
-#### Set Membership[​](#set-membership)
-
+#### Set Membership
 ```
 `{  
   "source": "objects",  
@@ -234,12 +202,12 @@ show all 16 lines
   }  
 `
 ```
-show all 16 lines
 
-### Presence[​](#presence)
+### Presence  
 
-#### Presence Join[​](#presence-join)
+Presence events contain fields: `Event`, `Uuid`, `Timestamp`, `Occupancy`, `State`, `Channel`, `Subscription`, `Timetoken`, `UserMetadata`, `Join`, `Timeout`, `Leave`, `HereNowRefresh`.
 
+#### Join
 ```
 `{  
     "Event": "join",  
@@ -259,8 +227,7 @@ show all 16 lines
 `
 ```
 
-#### Presence Leave[​](#presence-leave)
-
+#### Leave
 ```
 `{  
     "Event": "leave",  
@@ -280,8 +247,7 @@ show all 16 lines
 `
 ```
 
-#### Presence Timeout[​](#presence-timeout)
-
+#### Timeout
 ```
 `{  
     "Event": "timeout",  
@@ -301,8 +267,7 @@ show all 16 lines
 `
 ```
 
-#### State Change Event[​](#state-change-event)
-
+#### State-Change
 ```
 `{  
     "Event": "state-change",  
@@ -321,39 +286,8 @@ show all 16 lines
     "Leave": null,  
 `
 ```
-show all 17 lines
 
-#### Presence Interval[​](#presence-interval)
-
-```
-`{  
-    "Event": "interval",  
-    "Uuid": "175c2c67-b2a9-470d-8f4b-1db94f90e39e",  
-    "Timestamp": 1345546797,  
-    "Occupancy": 2,  
-    "State": null,  
-    "Channel": "my_channel",  
-    "Subscription": "",  
-    "Timetoken": 15034141109823424,  
-    "UserMetadata": null,  
-    "Join": null,  
-    "Timeout": null,  
-    "Leave": null,  
-    "HereNowRefresh": false  
-}  
-`
-```
-
-When a channel is in interval mode with `presence_deltas` `pnconfig` flag enabled, the interval message may also include the following fields which contain an array of changed User IDs since the last interval message.
-
-- joined
-
-- left
-
-- timedout
-
-For example, this interval message indicates there were 2 new User IDs that joined and 1 timed out User ID since the last interval:
-
+#### Interval (with deltas)
 ```
 `{  
     "Event": "interval",  
@@ -373,8 +307,7 @@ For example, this interval message indicates there were 2 new User IDs that join
 `
 ```
 
-If the full interval message is greater than `30KB` (since the max publish payload is `∼32KB`), none of the extra fields will be present. Instead there will be a `here_now_refresh` boolean field set to `true`. This indicates to the user that they should do a `hereNow` request to get the complete list of users present in the channel.
-
+#### Interval (payload > 30 KB)
 ```
 `{**    "Event": "interval",  
     "Uuid": "175c2c67-b2a9-470d-8f4b-1db94f90e39e",  
@@ -392,4 +325,5 @@ If the full interval message is greater than `30KB` (since the max publish paylo
 }  
 `
 ```
-Last updated on Jun 16, 2025**
+
+_Last updated Jun 16 2025_

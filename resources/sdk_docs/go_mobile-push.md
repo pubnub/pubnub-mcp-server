@@ -1,254 +1,171 @@
-On this page
-# Mobile Push Notifications API for Go SDK
+# Mobile Push Notifications – Go SDK
 
-Mobile Push Notifications feature enables developers to bridge native PubNub publishing with 3rd-party push notification services including Google Android FCM (Firebase Cloud Messaging) and Apple iOS APNs (Apple Push Notification service).
+Mobile Push Notifications bridge PubNub with APNs (Apple) and FCM/GCM (Google).  
+All methods below require the *Mobile Push Notifications* add-on to be enabled for your key.
 
-By using the Mobile Push Notifications feature, developers can eliminate the need for developing, configuring, and maintaining additional server-side components for third-party push notification providers.
+---
 
-To learn more, read about [Mobile Push Notifications](/docs/general/push/send).
+## Add Device to Channel
 
-## Add Device to Channel[​](#add-device-to-channel)
+Enable push notifications on one or more channels.
 
-##### note
-Requires *Mobile Push Notifications* add-on
-This method requires that the Mobile Push Notifications add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
-
-Enable mobile push notifications on a provided set of channels.
-
-### Method(s)[​](#methods)
-
-To run `Adding Device to Channel` you can use the following method(s) in the Go SDK:
-
-```
-`pn.AddPushNotificationsOnChannels().  
-        Channels([]string).  
-        DeviceIDForPush(string).  
-        PushType(PNPushTypeGCM|PNPushTypeAPNS2).  
-        Topic(string).  
-        Environment(PNPushEnvironment).  
-        QueryParam(map[string]string).  
-        Execute()  
-`
+```go
+pn.AddPushNotificationsOnChannels().
+        Channels([]string).              // required
+        DeviceIDForPush(string).          // required
+        PushType(PNPushTypeGCM | PNPushTypeAPNS2 | PNPushTypeFCM). // required
+        Topic(string).                   // APNS2 only
+        Environment(PNPushEnvironment).  // APNS2 only
+        QueryParam(map[string]string).
+        Execute()
 ```
 
-*  requiredParameterDescription`Channels` *Type: []stringDefault:  
-n/a`channels` to add to the channel group`DeviceIDForPush` *Type: stringDefault:  
-n/aDevice ID.`PushType` *Type: PNPushTypeGCM  
-PNPushTypeAPNS2  
-PNPushTypeFCMDefault:  
-`Not set`Accepted values: `PNPushTypeGCM`, `PNPushTypeAPNS2`, `PNPushTypeFCM`.`Topic`Type: stringDefault:  
-`Not set`Notifications topic name (usually it is application's bundle identifier).`Environment`Type: PNPushEnvironmentDefault:  
-`PNPushEnvironmentDevelopment`Works only if `PNPushType` set to `PNPushTypeAPNS2`. Accepted values: `PNPushEnvironmentDevelopment`, `PNPushEnvironmentProduction`.`QueryParam`Type: map[string]stringDefault:  
-n/aQueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
+Parameter | Type | Note
+----------|------|-----
+Channels | []string | Channels to add
+DeviceIDForPush | string | Device token / registration ID
+PushType | enum | PNPushTypeGCM, PNPushTypeFCM, PNPushTypeAPNS2
+Topic | string | APNS2 bundle ID
+Environment | PNPushEnvironment | PNPushEnvironmentDevelopment (default) or PNPushEnvironmentProduction
+QueryParam | map[string]string | Extra query parameters
 
-### Basic Usage[​](#basic-usage)
+### Example
 
-##### Reference code
+```go
+// FCM / GCM
+pn.AddPushNotificationsOnChannels().
+        Channels([]string{"ch1", "ch2"}).
+        DeviceIDForPush("device_id").
+        PushType(pubnub.PNPushTypeGCM).
+        Execute()
 
-This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
-
-#### Add Device to Channel[​](#add-device-to-channel-1)
-
-```
-`package main  
-  
-import (  
-	"fmt"  
-	"log"  
-  
-	pubnub "github.com/pubnub/go/v7"  
-)  
-  
-func main() {  
-	// Configure the PubNub instance with demo keys  
-	config := pubnub.NewConfigWithUserId("myUniqueUserId")  
-	config.SubscribeKey = "demo"  
-	config.PublishKey = "demo"  
-  
-`
-```
-show all 52 lines
-
-### Returns[​](#returns)
-
-The `AddPushNotificationsOnChannels()` does not return actionable data, be sure to check the status object on the outcome of the operation by checking the `status.Error`.
-
-## List Channels For Device[​](#list-channels-for-device)
-
-##### note
-Requires *Mobile Push Notifications* add-on
-This method requires that the Mobile Push Notifications add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
-
-Request for all channels on which push notification has been enabled using specified pushToken.
-
-### Method(s)[​](#methods-1)
-
-To run `Listing Channels For Device` you can use the following method(s) in the Go SDK:
-
-```
-`pn.ListPushProvisions().  
-        DeviceIDForPush(string).  
-        PushType(PNPushTypeGCM| PNPushTypeAPNS2).  
-        Topic(string).  
-        Environment(PNPushEnvironment).  
-        QueryParam(map[string]string).  
-        Execute()  
-`
+// APNS2
+pn.AddPushNotificationsOnChannels().
+        Channels([]string{"ch1"}).
+        DeviceIDForPush("device_id").
+        PushType(pubnub.PNPushTypeAPNS2).
+        Topic("com.example.bundle_id").
+        Environment(pubnub.PNPushEnvironmentProduction).
+        Execute()
 ```
 
-*  requiredParameterDescription`DeviceIDForPush` *Type: stringDefault:  
-n/aDevice ID.`PushType` *Type: PNPushTypeGCM  
-PNPushTypeAPNS2  
-PNPushTypeFCMDefault:  
-`Not set`Accepted values: `PNPushTypeGCM`, `PNPushTypeAPNS2`, `PNPushTypeFCM`.`Topic`Type: stringDefault:  
-`Not set`Notifications topic name (usually it is application's bundle identifier).`Environment`Type: PNPushEnvironmentDefault:  
-`PNPushEnvironmentDevelopment`Works only if `PNPushType` set to `PNPushTypeAPNS2`. Accepted values: `PNPushEnvironmentDevelopment`, `PNPushEnvironmentProduction`.`QueryParam`Type: map[string]stringDefault:  
-n/aQueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
+Return: No data; inspect `status.Error`.
 
-### Basic Usage[​](#basic-usage-1)
+---
 
-#### List Channels For Device[​](#list-channels-for-device-1)
+## List Channels for Device
 
-```
-`// GCM/FCM  
-pn.ListPushProvisions().  
-        DeviceIDForPush("device_id").  
-        PushType(pubnub.PNPushTypeGCM).  
-        Execute()  
-  
-// APNS2  
-pn.ListPushProvisions().  
-        DeviceIDForPush("device_id").  
-        PushType(pubnub.PNPushTypeAPNS2).  
-        Topic("com.example.bundle_id").  
-        Environment(pubnub.PNPushEnvironmentProduction).  
-        Execute()  
-`
+List all channels on which push is enabled for the given device.
+
+```go
+pn.ListPushProvisions().
+        DeviceIDForPush(string).          // required
+        PushType(PNPushTypeGCM | PNPushTypeAPNS2 | PNPushTypeFCM). // required
+        Topic(string).                   // APNS2 only
+        Environment(PNPushEnvironment).  // APNS2 only
+        QueryParam(map[string]string).
+        Execute()
 ```
 
-### Returns[​](#returns-1)
+Returns `ListPushProvisionsRequestResponse`:
 
-The `ListPushProvisions()` operation returns a `ListPushProvisionsRequestResponse` which contains the following operations:
-
-MethodDescription`Channels`Type: []stringList of `channels` associated for mobile push notifications.
-
-## Remove Device From Channel[​](#remove-device-from-channel)
-
-##### note
-Requires *Mobile Push Notifications* add-on
-This method requires that the Mobile Push Notifications add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
-
-Disable mobile push notifications on a provided set of channels.
-
-### Method(s)[​](#methods-2)
-
-To run `Removing Device From Channel` you can use the following method(s) in the Go SDK:
-
-```
-`pn.RemovePushNotificationsFromChannels().  
-        Channels([]string).  
-        DeviceIDForPush(string).  
-        PushType(PNPushTypeGCM|PNPushTypeAPNS2).  
-        Topic(string).  
-        Environment(PNPushEnvironment).  
-        QueryParam(map[string]string).  
-        Execute()  
-`
+```go
+type ListPushProvisionsRequestResponse struct {
+    Channels []string
+}
 ```
 
-*  requiredParameterDescription`Channels` *Type: []stringDefault:  
-n/a`channels` to add to the channel group`DeviceIDForPush` *Type: stringDefault:  
-n/aDevice ID.`PushType` *Type: PNPushTypeGCM  
-PNPushTypeAPNS  
-PNPushTypeAPNS2  
-PNPushTypeFCMDefault:  
-`Not set`Accepted values: `PNPushTypeGCM`, `PNPushTypeAPNS2`, `PNPushTypeFCM`.`Topic`Type: stringDefault:  
-`Not set`Notifications topic name (usually it is application's bundle identifier).`Environment`Type: PNPushEnvironmentDefault:  
-`PNPushEnvironmentDevelopment`Works only if `PNPushType` set to `PNPushTypeAPNS2`. Accepted values: `PNPushEnvironmentDevelopment`, `PNPushEnvironmentProduction`.`QueryParam`Type: map[string]stringDefault:  
-n/aQueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
+### Example
 
-### Basic Usage[​](#basic-usage-2)
+```go
+// GCM / FCM
+resp, status, err := pn.ListPushProvisions().
+        DeviceIDForPush("device_id").
+        PushType(pubnub.PNPushTypeGCM).
+        Execute()
 
-#### Remove Device From Channel[​](#remove-device-from-channel-1)
-
-```
-`// FCM/GCM  
-pn.RemovePushNotificationsFromChannels().  
-        Channels([]string{"ch"}).  
-        DeviceIDForPush("device_id").  
-        PushType(pubnub.PNPushTypeGCM).  
-        Execute()  
-  
-// APNS2  
-pn.RemovePushNotificationsFromChannels().  
-        Channels([]string{"ch"}).  
-        DeviceIDForPush("device_id").  
-        PushType(pubnub.PNPushTypeAPNS2).  
-        Topic("com.example.bundle_id").  
-        Environment(pubnub.PNPushEnvironmentProduction).  
-        Execute()  
-`
+// APNS2
+resp, status, err := pn.ListPushProvisions().
+        DeviceIDForPush("device_id").
+        PushType(pubnub.PNPushTypeAPNS2).
+        Topic("com.example.bundle_id").
+        Environment(pubnub.PNPushEnvironmentProduction).
+        Execute()
 ```
 
-### Returns[​](#returns-2)
+---
 
-The `RemovePushNotificationsFromChannels()` does not return actionable data, be sure to check the status object on the outcome of the operation by checking the `status.Error`.
+## Remove Device from Channel
 
-## Remove all mobile push notifications[​](#remove-all-mobile-push-notifications)
+Disable push notifications on the specified channels.
 
-##### note
-Requires *Mobile Push Notifications* add-on
-This method requires that the Mobile Push Notifications add-on is enabled for your key in the [Admin Portal](https://admin.pubnub.com/). Read the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) on enabling add-on features on your keys.
-
-Disable mobile push notifications from all channels registered with the specified pushToken.
-
-### Method(s)[​](#methods-3)
-
-To run `Remove all mobile push notifications`, you can use the following method(s) in the Go SDK:
-
-```
-`pn.RemoveAllPushNotifications().  
-        DeviceIDForPush(string).  
-        PushType(PNPushTypeGCM| PNPushTypeAPNS2).  
-        Topic(string).  
-        Environment(PNPushEnvironment).  
-        QueryParam(map[string]string).  
-        Execute()  
-`
+```go
+pn.RemovePushNotificationsFromChannels().
+        Channels([]string).              // required
+        DeviceIDForPush(string).          // required
+        PushType(PNPushTypeGCM | PNPushTypeAPNS2 | PNPushTypeFCM). // required
+        Topic(string).                   // APNS2 only
+        Environment(PNPushEnvironment).  // APNS2 only
+        QueryParam(map[string]string).
+        Execute()
 ```
 
-*  requiredParameterDescription`DeviceIDForPush` *Type: stringDefault:  
-n/aDevice ID.`PushType` *Type: PNPushTypeGCM  
-PNPushTypeAPNS  
-PNPushTypeAPNS2  
-PNPushTypeFCMDefault:  
-`Not set`Accepted values: `PNPushTypeGCM`, `PNPushTypeAPNS2`, `PNPushTypeFCM`.`Topic`Type: stringDefault:  
-`Not set`Notifications topic name (usually it is application's bundle identifier).`Environment`Type: PNPushEnvironmentDefault:  
-`PNPushEnvironmentDevelopment`Works only if `PNPushType` set to `PNPushTypeAPNS2`. Accepted values: `PNPushEnvironmentDevelopment`, `PNPushEnvironmentProduction`.`QueryParam`Type: map[string]stringDefault:  
-n/aQueryParam accepts a map, the keys and values of the map are passed as the query string parameters of the URL called by the API.
+### Example
 
-### Basic Usage[​](#basic-usage-3)
+```go
+// FCM / GCM
+pn.RemovePushNotificationsFromChannels().
+        Channels([]string{"ch"}).
+        DeviceIDForPush("device_id").
+        PushType(pubnub.PNPushTypeGCM).
+        Execute()
 
-#### Remove all mobile push notifications[​](#remove-all-mobile-push-notifications-1)
-
-```
-`// FCM/GCM  
-pn.RemoveAllPushNotifications().  
-        DeviceIDForPush("device_id").  
-        PushType(pubnub.PNPushTypeGCM).  
-        Execute()  
-  
-// APNS2  
-pn.RemoveAllPushNotifications().  
-        DeviceIDForPush("device_id").  
-        PushType(pubnub.PNPushTypeAPNS2).  
-        Topic("com.example.bundle_id").  
-        Environment(pubnub.PNPushEnvironmentProduction).  
-        Execute()  
-`
+// APNS2
+pn.RemovePushNotificationsFromChannels().
+        Channels([]string{"ch"}).
+        DeviceIDForPush("device_id").
+        PushType(pubnub.PNPushTypeAPNS2).
+        Topic("com.example.bundle_id").
+        Environment(pubnub.PNPushEnvironmentProduction).
+        Execute()
 ```
 
-### Returns[​](#returns-3)
+Return: No data; inspect `status.Error`.
 
-The `RemoveAllPushNotifications()` does not return actionable data, be sure to check the status object on the outcome of the operation by checking the `status.Error`.
-Last updated on **Mar 31, 2025**
+---
+
+## Remove All Mobile Push Notifications
+
+Disable push notifications on **all** channels for the device.
+
+```go
+pn.RemoveAllPushNotifications().
+        DeviceIDForPush(string).          // required
+        PushType(PNPushTypeGCM | PNPushTypeAPNS2 | PNPushTypeFCM). // required
+        Topic(string).                   // APNS2 only
+        Environment(PNPushEnvironment).  // APNS2 only
+        QueryParam(map[string]string).
+        Execute()
+```
+
+### Example
+
+```go
+// FCM / GCM
+pn.RemoveAllPushNotifications().
+        DeviceIDForPush("device_id").
+        PushType(pubnub.PNPushTypeGCM).
+        Execute()
+
+// APNS2
+pn.RemoveAllPushNotifications().
+        DeviceIDForPush("device_id").
+        PushType(pubnub.PNPushTypeAPNS2).
+        Topic("com.example.bundle_id").
+        Environment(pubnub.PNPushEnvironmentProduction).
+        Execute()
+```
+
+Return: No data; inspect `status.Error`.
+
+_Last updated: Mar 31 2025_
