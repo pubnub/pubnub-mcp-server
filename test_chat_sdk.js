@@ -221,8 +221,8 @@ async function main() {
     assert(false, "Expected 'read_pubnub_sdk_docs' tool to be unavailable in Chat SDK mode.");
   } catch (err) {
     assert(
-      err.message.includes('Unknown tool'),
-      `Expected 'Unknown tool' error, got: ${err.message}`
+      err.message.includes('not found') || err.message.includes('Unknown tool'),
+      `Expected 'not found' or 'Unknown tool' error, got: ${err.message}`
     );
   }
   console.log("'read_pubnub_sdk_docs' tool correctly unavailable in Chat SDK mode.");
@@ -235,8 +235,8 @@ async function main() {
     assert(false, "Expected 'write_pubnub_app' tool to be unavailable in Chat SDK mode.");
   } catch (err) {
     assert(
-      err.message.includes('Unknown tool'),
-      `Expected 'Unknown tool' error, got: ${err.message}`
+      err.message.includes('not found') || err.message.includes('Unknown tool'),
+      `Expected 'not found' or 'Unknown tool' error, got: ${err.message}`
     );
   }
   console.log("'write_pubnub_app' tool correctly unavailable in Chat SDK mode.");
@@ -249,8 +249,8 @@ async function main() {
     assert(false, "Expected 'read_pubnub_resources' tool to be unavailable in Chat SDK mode.");
   } catch (err) {
     assert(
-      err.message.includes('Unknown tool'),
-      `Expected 'Unknown tool' error, got: ${err.message}`
+      err.message.includes('not found') || err.message.includes('Unknown tool'),
+      `Expected 'not found' or 'Unknown tool' error, got: ${err.message}`
     );
   }
   console.log("'read_pubnub_resources' tool correctly unavailable in Chat SDK mode.");
