@@ -46,7 +46,7 @@ const toolDefinitions = {};
 const languages = [
     'javascript', 'python', 'java', 'go', 'ruby',
     'swift', 'objective-c', 'c-sharp', 'php', 'dart',
-    'rust', 'unity', 'kotlin', 'unreal',
+    'rust', 'unity', 'kotlin', 'unreal', 'c-core',
 ];
 const apiReferences = [
     'configuration',
