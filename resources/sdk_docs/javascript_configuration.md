@@ -60,7 +60,7 @@ Create a client with account credentials and options:
   publishKey: string,        // optional for read-only clients  
   userId: string,            // required, replaces uuid  
   secretKey: string,         // servers only, grants root PAM perms  
-  authKey: string,  
+  authKey: string,           // client authentication token (NOT the same as Access Manager tokens)  
   logVerbosity: boolean,     // default false  
   ssl: boolean,              // default true (>=4.20.0)  
   origin: string|string[],   // default "ps.pndsn.com"  
@@ -94,6 +94,40 @@ Key parameter notes (omit unchanged values for brevity):
   • `PubNub.NoneRetryPolicy()`  
   • `PubNub.LinearRetryPolicy({ delay, maximumRetry, excluded })`  
   • `PubNub.ExponentialRetryPolicy({ minimumDelay, maximumDelay, maximumRetry, excluded })`  
+
+---
+
+## ⚠️ Common Confusion: authKey vs token
+
+**IMPORTANT**: Do not confuse these two concepts when implementing Access Manager V3:
+
+- **`authKey`** (configuration parameter): Used in client initialization to authenticate the client
+  ```javascript
+  const pubnub = new PubNub({
+    subscribeKey: 'mySubscribeKey',
+    publishKey: 'myPublishKey',
+    userId: 'myUserId',
+    authKey: 'myAuthToken'  // ✅ CORRECT: Use authKey for client configuration
+  });
+  ```
+
+- **`token`** (method parameter): Used in Access Manager V3 methods like `grantToken()`, `setToken()`, etc.
+  ```javascript
+  // ✅ CORRECT: token is used in Access Manager methods
+  const generatedToken = await pubnub.grantToken({...});
+  pubnub.setToken(generatedToken);
+  ```
+
+**Common Mistake**: Never use `token` as a configuration parameter in client initialization:
+```javascript
+// ❌ INCORRECT: Do not use 'token' in client configuration
+const pubnub = new PubNub({
+  subscribeKey: 'mySubscribeKey',
+  publishKey: 'myPublishKey',
+  userId: 'myUserId',
+  token: 'myAuthToken'  // ❌ WRONG: This will not work
+});
+```
 
 ---
 

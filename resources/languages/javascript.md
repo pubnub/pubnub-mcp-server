@@ -145,4 +145,61 @@ try {
 }
 ```
 
+----------------------------------------
+
+TITLE: PubNub Configuration with Access Manager V3 Authentication - JavaScript
+DESCRIPTION: Shows how to initialize the PubNub client with Access Manager V3 authentication. Note the use of authKey parameter (not token) for client configuration.
+SOURCE: PubNub Documentation
+
+LANGUAGE: JavaScript
+CODE:
+```
+const pubnub = new PubNub({
+  publishKey: 'myPublishKey',
+  subscribeKey: 'mySubscribeKey',
+  userId: 'myUniqueUserId',
+  authKey: 'myAccessManagerToken'  // ✅ CORRECT: Use authKey for client configuration
+});
+
+// Access Manager methods use 'token' parameter
+const token = await pubnub.grantToken({
+  ttl: 60,
+  authorized_uuid: 'user123',
+  resources: {
+    channels: {
+      'channel1': { read: true, write: true }
+    }
+  }
+});
+
+// Set the token using Access Manager method
+pubnub.setToken(token);
+```
+
+----------------------------------------
+
+TITLE: Common Mistake - Using 'token' instead of 'authKey' in Configuration
+DESCRIPTION: Shows the incorrect way to configure PubNub with Access Manager authentication. Never use 'token' as a configuration parameter.
+SOURCE: PubNub Documentation
+
+LANGUAGE: JavaScript  
+CODE:
+```
+// ❌ INCORRECT: Do not use 'token' in client configuration
+const pubnub = new PubNub({
+  publishKey: 'myPublishKey',
+  subscribeKey: 'mySubscribeKey',
+  userId: 'myUniqueUserId',
+  token: 'myAccessManagerToken'  // ❌ WRONG: This will not work
+});
+
+// ✅ CORRECT: Use 'authKey' for client configuration
+const pubnub = new PubNub({
+  publishKey: 'myPublishKey',
+  subscribeKey: 'mySubscribeKey',
+  userId: 'myUniqueUserId',
+  authKey: 'myAccessManagerToken'  // ✅ CORRECT: Use authKey
+});
+```
+
 

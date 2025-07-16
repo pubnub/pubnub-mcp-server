@@ -2,6 +2,27 @@
 
 This section summarizes the Access-Manager-specific APIs while keeping every original code block, method signature, parameter description, limits, and examples.
 
+> **🔑 Important: authKey vs token Distinction**
+> 
+> - **Client Configuration**: Use `authKey` parameter when initializing PubNub client
+>   ```javascript
+>   const pubnub = new PubNub({
+>     subscribeKey: 'mySubscribeKey',
+>     publishKey: 'myPublishKey', 
+>     userId: 'myUserId',
+>     authKey: 'myAuthToken'  // ✅ CORRECT for client configuration
+>   });
+>   ```
+> 
+> - **Access Manager Methods**: Use `token` parameter in methods like `grantToken()`, `setToken()`, etc.
+>   ```javascript
+>   // ✅ CORRECT: token used in Access Manager methods
+>   const token = await pubnub.grantToken({...});
+>   pubnub.setToken(token);
+>   ```
+> 
+> **Never use `token` as a configuration parameter in client initialization - it will not work.**
+
 ---
 
 ## grantToken

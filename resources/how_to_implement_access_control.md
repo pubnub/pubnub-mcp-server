@@ -43,11 +43,35 @@ PubNub Access Manager (PAM) provides fine-grained control over who can access yo
         //   subscribeKey: "YOUR_SUB_KEY",
         //   publishKey: "YOUR_PUB_KEY", // Only if client publishes directly
         //   userId: "ClientUserID",
-        //   authKey: "the_auth_key_from_server"
+        //   authKey: "the_auth_key_from_server"  // ✅ CORRECT: Use authKey for client config
         //   // ssl: true // usually default
         // });
         ```
     *   The SDK will automatically use the `authKey` to sign requests.
+
+> **⚠️ Common Mistake: Configuration Parameter Name**
+> 
+> When initializing the PubNub client with Access Manager authentication:
+> 
+> - **✅ CORRECT**: Use `authKey` parameter
+>   ```javascript
+>   const pubnub = new PubNub({
+>     subscribeKey: 'mySubscribeKey',
+>     userId: 'myUserId',
+>     authKey: 'myAuthToken'  // ✅ This is the correct parameter name
+>   });
+>   ```
+> 
+> - **❌ INCORRECT**: Do not use `token` parameter
+>   ```javascript
+>   const pubnub = new PubNub({
+>     subscribeKey: 'mySubscribeKey',
+>     userId: 'myUserId',
+>     token: 'myAuthToken'  // ❌ This will not work
+>   });
+>   ```
+> 
+> The `token` parameter is used in Access Manager methods like `grantToken()` and `setToken()`, not in client initialization.
 
 4.  **Revoking Permissions:**
     *   Permissions can be revoked by your server using a `revoke` request, similar to granting. This invalidates the specified permissions for an auth-key on the given resources.
