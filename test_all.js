@@ -83,6 +83,7 @@ function waitForOutput(process, substring, timeout = 10000) {
     await runCommand('node', ['test_sse.js']);
     await runCommand('bash', ['test_tools_model.sh']);
     await runCommand('node', ['test_tools_consistency.js']);
+    await runCommand('bash', ['test_authkey_usage.sh']);
     //await runCommand('bash', ['benchmark_mcp.sh']);
 
     console.log('\nAll tests passed.');
