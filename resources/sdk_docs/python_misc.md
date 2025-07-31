@@ -1,16 +1,22 @@
-# Utility Methods – Python SDK (Misc)
+# Utility Methods API – Python SDK (misc)
+
+Essential usage, method signatures, parameters, and return types are retained below.  
+All code blocks are unchanged from the source.
+
+---
 
 ## disconnect()
-Force-stop all PubNub requests (active subscriptions only).
 
-Method
+Stop all current PubNub requests.
+
+### Method
 ```
 `disconnect()  
 `
 ```
-Arguments: none.
+(No arguments)
 
-Example
+### Example
 ```
 `import os  
 from pubnub.pnconfiguration import PNConfiguration  
@@ -33,21 +39,23 @@ def main():
 ---
 
 ## reconnect()
-Re-establish PubNub connectivity.
 
-Method
+Force the SDK to restore connectivity.
+
+### Method
 ```
 `pubnub.reconnect()  
 `
 ```
-Arguments: none.
+(No arguments)
 
 ---
 
 ## time()
-Returns a 17-digit Unix epoch timetoken.
 
-Timetoken formula
+Returns a 17-digit timetoken (Unix epoch × 10,000,000).
+
+Algorithm
 ```
 `timetoken = (Unix epoch time in seconds) * 10000000  
 `
@@ -60,38 +68,42 @@ timetoken = 13769616060000000
 `
 ```
 
-Method
+### Method
 ```
 `pubnub.time()  
 `
 ```
 
-Fetch token
+### Example
 ```
 `envelope = pubnub.time().sync()  
 `
 ```
 
-Return (`PNTimeResponse`)
-• int – current timetoken as int  
-• str – current timetoken as str  
-• date_time – current timetoken as date  
+### Returns – PNTimeResponse
+• int – timetoken  
+• str – timetoken  
+• date_time – datetime representation  
 
-(Do not confuse with `timestamp()` which is `int(time.time())`.)
+(For seconds-precision use `timestamp()` → `int(time.time())`.)
 
 ---
 
 ## get_subscribed_channels()
-List current channel subscriptions.
 
-Method: `pubnub.get_subscribed_channels()`
+List currently subscribed channels.
+
+Method  
+`pubnub.get_subscribed_channels()`
 
 Example
 ```
 `channels = pubnub.get_subscribed_channels()  
 `
 ```
+
 Returns
+`List`
 ```
 `["my_ch1", "my_ch2"]  
 `
@@ -100,16 +112,20 @@ Returns
 ---
 
 ## get_subscribed_channel_groups()
-List current channel-group subscriptions.
 
-Method: `pubnub.get_subscribed_channel_groups()`
+List currently subscribed channel groups.
+
+Method  
+`pubnub.get_subscribed_channel_groups()`
 
 Example
 ```
 `channels = pubnub.get_subscribed_channel_groups()  
 `
 ```
+
 Returns
+`List`
 ```
 `["my_group1", "my_group2"]  
 `
@@ -118,15 +134,16 @@ Returns
 ---
 
 ## encrypt_file()
-Encrypt binary data.
 
-Method
+Encrypt data.
+
+### Method
 ```
 `pubnub.crypto.encrypt_file(file)  
 `
 ```
 Parameter  
-• `file` (bytes) – data to encrypt.
+• `file` (bytes) – data to encrypt
 
 Example
 ```
@@ -135,24 +152,31 @@ Example
 encrypted_payload = pubnub.encrypt(payload_to_encrypt)  
 `
 ```
-Returns: bytes (encrypted).
+
+Returns: bytes (encrypted data)
 
 ---
 
 ## decrypt_file()
-Decrypt binary data.
 
-Method
+Decrypt data.
+
+### Method
 ```
 `pubnub.crypto.decrypt_file(file)  
 `
 ```
 Parameter  
-• `file` (bytes) – data to decrypt.
+• `file` (bytes) – data to decrypt
 
 Example
 ```
 `decrypted_payload = pubnub.decrypt(payload_to_decrypt_in_bytes)  
 `
 ```
-Returns: bytes (decrypted).
+
+Returns: bytes (decrypted data)
+
+---
+
+_Last updated: **Jul 15, 2025**_

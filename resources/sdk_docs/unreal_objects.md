@@ -1,12 +1,13 @@
-# PubNub Unreal SDK – App Context (Objects)
+# App Context API – Unreal SDK (Objects)
 
-This condensed reference keeps every method signature, parameter list, struct definition, and example code/JSON exactly as in the original docs. Narrative descriptions were removed.
+This condensed reference keeps every code block, method signature, struct, field definition, and example from the original page while stripping redundant prose.
 
 ---
 
 ## User
 
-### Get Metadata for All Users
+### Get metadata for all users
+Returns a paginated list of `User` metadata.
 
 ```
 `PubnubSubsystem->GetAllUserMetadata(  
@@ -20,89 +21,94 @@ This condensed reference keeps every method signature, parameter list, struct de
 );  
 `
 ```
-*OnGetAllUserMetadataResponse* [`FOnGetAllUserMetadataResponse`](#fongetallusermetadataresponse)  
-*Include* [`FPubnubGetAllInclude`](#fpubnubgetallinclude)  
-*Limit* int  
-*Filter* `FString`  
-*Sort* [`FPubnubGetAllSort`](#fpubnubgetallsort)  
-*PageNext* `FString`  
-*PagePrev* `FString`  
-*Count* `EPubnubTribool`
+*Parameters*  
+`OnGetAllUserMetadataResponse` [`FOnGetAllUserMetadataResponse`](#fongetallusermetadataresponse)  
+`Include` [`FPubnubGetAllInclude`](#fpubnubgetallinclude)  
+`Limit` int (default 100)  
+`Filter` `FString`  
+`Sort` [`FPubnubGetAllSort`](#fpubnubgetallsort)  
+`PageNext | PagePrev` `FString`  
+`Count` `EPubnubTribool`
 
 #### FPubnubGetAllInclude
-Field | Type
---- | ---
-IncludeCustom | bool  
-IncludeStatus | bool  
-IncludeType | bool  
-IncludeTotalCount | bool  
+Field | Type | Description
+--- | --- | ---
+IncludeCustom | bool | Include Custom
+IncludeStatus | bool | Include Status
+IncludeType | bool | Include Type
+IncludeTotalCount | bool | Include total count
 
 #### FPubnubGetAllSort
-Field | Type
---- | ---
-GetAllSort | `TArray<FPubnubGetAllSingleSort>`  
+Field | Type | Description
+--- | --- | ---
+GetAllSort | `TArray<FPubnubGetAllSingleSort>` | Sort order
 
-#### Basic Usage (raw)
-
+#### Sample – raw
 ```
 `#include "Kismet/GameplayStatics.h"  
 #include "PubnubSubsystem.h"  
-...  
+UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
+UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
+FOnGetAllUserMetadataResponse OnGetAllUserMetadataResponse;  
+OnGetAllUserMetadataResponse.BindDynamic(this, &AMyActor::OnGetAllUserMetadataResponse);  
+int Limit = 10;  
+EPubnubTribool Count = PT_False;  
 // Fetch all user metadata using Raw method  
 `
 ```
-show all 16 lines
+show all 16 lines  
 
-#### Basic Usage (non-raw)
-
+#### Sample – non-raw
 ```
 `#include "Kismet/GameplayStatics.h"  
 #include "PubnubSubsystem.h"  
-...  
+UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
+UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
+FOnGetAllUserMetadataResponse OnGetAllUserMetadataResponse;  
+OnGetAllUserMetadataResponse.BindDynamic(this, &AMyActor::OnGetAllUserMetadataResponse);  
+FPubnubGetAllInclude Include;  
+Include.IncludeCustom = true;  
+Include.IncludeStatus = true;  
 `
 ```
-show all 32 lines
+show all 32 lines  
 
-#### FOnGetAllUserMetadataResponse
-Field | Type
---- | ---
-Status | int  
-UsersData | `TArray<FPubnubUserData>&`  
-PageNext | FString  
-PagePrev | FString  
+#### Response structs
+##### FOnGetAllUserMetadataResponse
+Field | Type | Description
+--- | --- | ---
+Status | int | HTTP status
+UsersData | `TArray<FPubnubUserData>&` | User list
+PageNext | FString | Next page
+PagePrev | FString | Previous page
 
-#### FPubnubUserData
-Field | Type
---- | ---
-UserID | FString  
-UserName | FString  
-ExternalID | FString  
-ProfileUrl | FString  
-Email | FString  
-Custom | FString  
-Status | FString  
-Type | FString  
-Updated | FString  
-ETag | FString  
+##### FPubnubUserData
+`UserID, UserName, ExternalID, ProfileUrl, Email, Custom, Status, Type, Updated, ETag` – all `FString`.
 
-##### JSON
+##### Example JSON
 ```
 `{  
     "Uuids": [  
         {  
             "Uuid": "uuid-1",  
             "Name": "John Doe",  
-            ...  
-        }  
-    ]  
-}  
+            "Email": "john.doe@pubnub.com",  
+            "ExternalId": "",  
+            "ProfileUrl": "",  
+            "Custom": "",  
+            "Updated": "2020-06-17T16:28:14.060718Z"  
+        },  
+        {  
+            "Uuid": "uuid-2",  
+            "Name": "Bob Cat",  
+            "Email": "bobc@example.com",  
 `
 ```
+show all 29 lines  
 
 ---
 
-### Get User Metadata
-
+### Get user metadata
 ```
 `PubnubSubsystem->GetUserMetadata(  
     FString Include,   
@@ -111,32 +117,39 @@ ETag | FString
 );  
 `
 ```
-*Include* `FString`  
-*User* `FString`  
-*OnGetUserMetadataResponse* [`FOnGetUserMetadataResponse`](#fongetusermetadataresponse)
+*Parameters* `Include` `FString`, `User` `FString`, `OnGetUserMetadataResponse` [`FOnGetUserMetadataResponse`](#fongetusermetadataresponse)
 
-Basic usage identical pattern:
-
+Sample:
 ```
 `#include "Kismet/GameplayStatics.h"  
 #include "PubnubSubsystem.h"  
-...  
+UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
+UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
+FOnGetUserMetadataResponse OnGetUserMetadataResponse;  
+OnGetUserMetadataResponse.BindDynamic(this, &AMyActor::OnGetUserMetadataResponse);  
+FString Include = "";  
+FString User = "uuid-1";   
 PubnubSubsystem->GetUserMetadata(Include, Limit, Start, End, Count, OnGetUserMetadataResponse);  
 `
 ```
 
-#### FOnGetUserMetadataResponse
-Field | Type
---- | ---
-Status | int  
-UserData | `FPubnubUserData`
-
-JSON identical to previous single-user sample.
+JSON:
+```
+`{  
+    "Uuid": "uuid-1",  
+    "Name": "John Doe",  
+    "Email": "john.doe@pubnub.com",  
+    "ExternalId": "",  
+    "ProfileUrl": "",  
+    "Custom": "",  
+    "Updated": "2020-06-17T16:28:14.060718Z"  
+}  
+`
+```
 
 ---
 
-### Set User Metadata
-
+### Set user metadata
 ```
 `PubnubSubsystem->SetUserMetadata(  
     FString User,   
@@ -145,42 +158,50 @@ JSON identical to previous single-user sample.
 );  
 `
 ```
-*User* `FString`  
-*Include* `FString`  
-*UserMetadataObj* `FString`
-
+Sample:
 ```
 `#include "Kismet/GameplayStatics.h"  
 #include "PubnubSubsystem.h"  
-...  
+UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
+UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
+FString User = "user123";  
+FString Include = "";  
+FString UserMetadataObj = "{\"name\":\"John Doe\",\"email\":\"johndoe@example.com\"}";  
 PubnubSubsystem->SetUserMetadata(User, Include, UserMetadataObj);  
 `
 ```
-Returns JSON identical to single-user payload.
+Return JSON identical to Get user metadata.
 
-Additional iterative update example preserved:
-
+##### Iterative update example
 ```
 `#include "PubnubSubsystem.h"  
 #include "GameFramework/Actor.h"  
-...  
+#include "Kismet/GameplayStatics.h"  
+UCLASS()  
+class MYPROJECT_API AMyActor : public AActor  
+{  
+    GENERATED_BODY()  
+protected:  
+    virtual void BeginPlay() override;  
+private:  
 `
 ```
-show all 70 lines
+show all 70 lines  
 
 ---
 
-### Remove User Metadata
-
+### Remove user metadata
 ```
 `PubnubSubsystem->RemoveUserMetadata(FString User);  
 `
 ```
-
+Sample:
 ```
 `#include "Kismet/GameplayStatics.h"  
 #include "PubnubSubsystem.h"  
-...  
+UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
+UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
+FString User = "user123";  
 PubnubSubsystem->RemoveUserMetadata(User);  
 `
 ```
@@ -189,8 +210,7 @@ PubnubSubsystem->RemoveUserMetadata(User);
 
 ## Channel
 
-### Get Metadata for All Channels
-
+### Get metadata for all channels
 ```
 `PubnubSubsystem->GetAllChannelMetadata(  
     FOnGetAllChannelMetadataResponse OnGetAllChannelMetadataResponse,   
@@ -203,61 +223,167 @@ PubnubSubsystem->RemoveUserMetadata(User);
 );  
 `
 ```
-Parameter list mirrors user variant.
 
-Basic usages, raw & non-raw, retained (see code blocks).
+Raw sample:
+```
+`#include "Kismet/GameplayStatics.h"  
+#include "PubnubSubsystem.h"  
+UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
+UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
+FOnGetAllChannelMetadataResponse OnGetAllChannelMetadataResponse;  
+OnGetAllChannelMetadataResponse.BindDynamic(this, &AMyActor::OnGetAllChannelMetadataResponse);  
+int Limit = 10;  
+EPubnubTribool Count = PT_False;  
+// Fetch all channel metadata using Raw method  
+`
+```
+show all 16 lines  
 
-#### FOnGetAllChannelMetadataResponse
-Field | Type
---- | ---
-Status | int  
-ChannelsData | `TArray<FPubnubChannelData>&`  
-PageNext | FString  
-PagePrev | FString  
+Non-raw:
+```
+`#include "Kismet/GameplayStatics.h"  
+#include "PubnubSubsystem.h"  
+UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
+UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
+FOnGetAllChannelMetadataResponse OnGetAllChannelMetadataResponse;  
+OnGetAllChannelMetadataResponse.BindDynamic(this, &AMyActor::OnGetAllChannelMetadataResponse);  
+FPubnubGetAllInclude Include;  
+Include.IncludeCustom = true;  
+Include.IncludeStatus = true;  
+`
+```
+show all 32 lines  
 
-#### FPubnubChannelData
-Field | Type
---- | ---
-ChannelID | FString  
-ChannelName | FString  
-Description | FString  
-Custom | FString  
-Status | FString  
-Type | FString  
-Updated | FString  
-ETag | FString  
-
-JSON sample preserved.
+JSON:
+```
+`{  
+    "Channels": [  
+        {  
+            "Channel": "my-channel",  
+            "Name": "My channel",  
+            "Description": "A channel that is mine",  
+            "Custom": "",  
+            "Updated": "2020-06-17T16:52:19.562469Z"  
+        },  
+        {  
+            "Channel": "main",  
+            "Name": "Main channel",  
+            "Description": "The main channel",  
+            "Custom": {  
+                "public": true,  
+`
+```
+show all 26 lines  
 
 ---
 
-### Get / Set / Remove Channel Metadata
-
-Method signatures, parameters, basic usage code, JSON examples are all preserved exactly as in original (see blocks below).
-
+### Get channel metadata
 ```
-`PubnubSubsystem->GetChannelMetadata(...);  
+`PubnubSubsystem->GetChannelMetadata(  
+    FString Include,   
+    FString Channel,   
+    FOnGetChannelMetadataResponse OnGetChannelMetadataResponse  
+);  
+`
+```
+Sample:
+```
+`#include "Kismet/GameplayStatics.h"  
+#include "PubnubSubsystem.h"  
+UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
+UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
+FOnGetChannelMetadataResponse OnGetChannelMetadataResponse;  
+OnGetChannelMetadataResponse.BindDynamic(this, &AMyActor::OnGetChannelMetadataResponse);  
+FString Include = "";  
+FString Channel = "my-channel";   
+PubnubSubsystem->GetChannelMetadata(Include, Channel, OnGetChannelMetadataResponse);  
+`
+```
+JSON:
+```
+`{  
+    "Channel": "my-channel",  
+    "Name": "My channel",  
+    "Description": "A channel that is mine",  
+    "Custom": "",  
+    "Updated": "2020-06-17T16:52:19.562469Z"  
+}  
 `
 ```
 
+---
+
+### Set channel metadata
 ```
-`PubnubSubsystem->SetChannelMetadata(...);  
+`PubnubSubsystem->SetChannelMetadata(  
+    FString Channel,   
+    FString Include,   
+    FString ChannelMetadataObj  
+);  
+`
+```
+Sample:
+```
+`#include "Kismet/GameplayStatics.h"  
+#include "PubnubSubsystem.h"  
+UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
+UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
+FString Channel = "myChannel";  
+FString Include = "";  
+FString ChannelMetadataObj = "{\"name\":\"PubNub channel\",\"description\":\"The channel for announcements\"}";  
+PubnubSubsystem->SetChannelMetadata(Channel, Include, ChannelMetadataObj);  
+`
+```
+Return JSON:
+```
+`{  
+    "Channel": "my-channel",  
+    "Name": "PubNub channel",  
+    "Description": "The channel for announcements",  
+    "Updated": "2020-06-17T16:52:19.562469Z"  
+}  
 `
 ```
 
-Iterative update full example retained (70-line block).
+Iterative example:
+```
+`#include "PubnubSubsystem.h"  
+#include "GameFramework/Actor.h"  
+#include "Kismet/GameplayStatics.h"  
+UCLASS()  
+class MYPROJECT_API AMyActor : public AActor  
+{  
+    GENERATED_BODY()  
+protected:  
+    virtual void BeginPlay() override;  
+private:  
+`
+```
+show all 70 lines  
 
+---
+
+### Remove channel metadata
 ```
 `PubnubSubsystem->RemoveChannelMetadata(FString Channel);  
 `
 ```
+Sample:
+```
+`#include "Kismet/GameplayStatics.h"  
+#include "PubnubSubsystem.h"  
+UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
+UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
+FString Channel = "myChannel";  
+PubnubSubsystem->RemoveChannelMetadata(Channel);  
+`
+```
 
 ---
 
-## Channel Memberships
+## Channel memberships
 
-### Get Channel Memberships
-
+### Get channel memberships
 ```
 `PubnubSubsystem->GetMemberships(  
     FString User,   
@@ -271,14 +397,60 @@ Iterative update full example retained (70-line block).
 );  
 `
 ```
-All parameter structs (`FPubnubMembershipInclude`, `FPubnubMembershipSort`) and usage blocks kept.
+Raw sample:
+```
+`#include "Kismet/GameplayStatics.h"  
+#include "PubnubSubsystem.h"  
+UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
+UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
+FString Channel = "randomChannel";  
+FOnGetMembershipsResponse OnGetMembershipResponse;  
+OnGetMembershipResponse.BindDynamic(this, &AMyActor::OnGetMembershipResponse);  
+User UserId = "user-1"  
+int Limit = 10;  
+`
+```
+show all 18 lines  
 
-Response struct/JSON retained.
+Non-raw:
+```
+`#include "Kismet/GameplayStatics.h"  
+#include "PubnubSubsystem.h"  
+UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
+UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
+FOnGetMembershipsResponse OnGetMembershipResponse;  
+OnGetMembershipResponse.BindDynamic(this, &AMyActor::OnGetMembershipResponse);  
+FPubnubMembershipInclude Include;  
+Include.IncludeCustom = true;  
+Include.IncludeStatus = true;  
+`
+```
+show all 33 lines  
+
+JSON:
+```
+`{  
+    "Memberships": [  
+        {  
+            "ChannelMetadata": {  
+                "Channel": "my-channel",  
+                "Name": "My channel",  
+                "Description": "A channel that is mine",  
+                "Custom": "",  
+                "Updated": "2020-06-17T16:55:44.632042Z"  
+            },  
+            "Custom": {  
+                "starred": false  
+            },  
+            "Updated": "2020-06-17T17:05:25.987964Z"  
+        },  
+`
+```
+show all 38 lines  
 
 ---
 
-### Set / Remove Channel Memberships
-
+### Set channel memberships
 ```
 `PubnubSubsystem->SetMemberships(  
     FString User,   
@@ -287,7 +459,23 @@ Response struct/JSON retained.
 );  
 `
 ```
+Sample:
+```
+`#include "Kismet/GameplayStatics.h"  
+#include "PubnubSubsystem.h"  
+UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
+UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
+FString User = "user123";  
+FString Include = "";  
+FString SetObj = "{\"channels\": [{\"channel123\": {\"name\":\"Channel One\"}}]}";  
+PubnubSubsystem->SetMemberships(User, Include, SetObj);  
+`
+```
+Return JSON identical to Get channel memberships.
 
+---
+
+### Remove channel memberships
 ```
 `PubnubSubsystem->RemoveMemberships(  
     FString User,   
@@ -296,14 +484,44 @@ Response struct/JSON retained.
 );  
 `
 ```
-Both code samples and JSON responses remain.
+Sample:
+```
+`#include "Kismet/GameplayStatics.h"  
+#include "PubnubSubsystem.h"  
+UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
+UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
+FString User = "user123";  
+FString Include = "";  
+FString RemoveObj = "[{\"channel\": {\"id\": \"some-channel-id\"}}, {\"channel\": {\"id\": \"channel-0-id\"}}]";  
+PubnubSubsystem->RemoveMemberships(User, Include, RemoveObj);  
+`
+```
+JSON:
+```
+`{  
+    "Memberships": [  
+        {  
+            "ChannelMetadata": {  
+                "Channel": "my-channel",  
+                "Name": "my channel",  
+                "Description": "A channel that is mine",  
+                "Custom": "",  
+                "Updated": "2019-02-20T23:11:20.89375"  
+            },  
+            "Custom": {  
+                "role": "admin"  
+            },  
+            "Updated": "2020-06-17T17:05:25.987964Z"  
+        },  
+`
+```
+show all 36 lines  
 
 ---
 
-## Channel Members
+## Channel members
 
-### Get Channel Members
-
+### Get channel members
 ```
 `PubnubSubsystem->GetChannelMembers(  
     FString Channel,   
@@ -317,14 +535,60 @@ Both code samples and JSON responses remain.
 );  
 `
 ```
-Include/sort structs and both usage blocks remain.
+Raw sample:
+```
+`#include "Kismet/GameplayStatics.h"  
+#include "PubnubSubsystem.h"  
+UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
+UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
+FOnGetChannelMembersResponse OnGetMembersResponse;  
+OnGetMembersResponse.BindDynamic(this, &AMyActor::OnGetMembersResponse);  
+FString Channel = "my-channel";  
+int Limit = 10;  
+EPubnubTribool Count = PT_False;  
+`
+```
+show all 17 lines  
 
-Response structs (`FOnGetChannelMembersResponse`, `FPubnubGetChannelMembersWrapper`) and JSON retained.
+Non-raw:
+```
+`#include "Kismet/GameplayStatics.h"  
+#include "PubnubSubsystem.h"  
+UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
+UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
+FOnGetChannelMembersResponse OnGetMembersResponse;  
+OnGetMembersResponse.BindDynamic(this, &AMyActor::OnGetMembersResponse);  
+FPubnubMemberInclude Include;  
+Include.IncludeCustom = true;  
+Include.IncludeStatus = true;  
+`
+```
+show all 33 lines  
+
+JSON:
+```
+`{  
+    "ChannelMembers": [  
+        {  
+            "UuidMetadata": {  
+                "Uuid": "uuid-1",  
+                "Name": "John Doe",  
+                "Email": "john.doe@pubnub.com",  
+                "ExternalId": "",  
+                "ProfileUrl": "",  
+                "Custom": "",  
+                "Updated": "2019-02-20T23:11:20.89375"  
+            },  
+            "Custom": {  
+                "role": "admin"  
+            },  
+`
+```
+show all 39 lines  
 
 ---
 
-### Set / Remove Channel Members
-
+### Set channel members
 ```
 `PubnubSubsystem->SetChannelMembers(  
     FString Channel,   
@@ -333,7 +597,23 @@ Response structs (`FOnGetChannelMembersResponse`, `FPubnubGetChannelMembersWrapp
 );  
 `
 ```
+Sample:
+```
+`#include "Kismet/GameplayStatics.h"  
+#include "PubnubSubsystem.h"  
+UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
+UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
+FString Channel = "myChannel";  
+FString Include = "";  
+FString SetObj = "[{\"uuid\": {\"id\": \"some-user-id\"}, \"custom\": {\"starred\": true}}, {\"uuid\": {\"id\": \"user-0-id\"}, \"custom\": {\"some_key\": \"some_value\"}}]";  
+PubnubSubsystem->SetChannelMembers(Channel, Include, SetObj);  
+`
+```
+Return JSON identical to Get channel members.
 
+---
+
+### Remove channel members
 ```
 `PubnubSubsystem->RemoveChannelMembers(  
     FString Channel,   
@@ -342,8 +622,38 @@ Response structs (`FOnGetChannelMembersResponse`, `FPubnubGetChannelMembersWrapp
 );  
 `
 ```
-All example code and JSON responses are preserved.
+Sample:
+```
+`#include "Kismet/GameplayStatics.h"  
+#include "PubnubSubsystem.h"  
+UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
+UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
+FString Channel = "myChannel";  
+FString Include = "";  
+FString RemoveObj = "[{\"uuid\": {\"id\": \"some-user-id\"}}, {\"uuid\": {\"id\": \"user-0-id\"}}]";;  
+PubnubSubsystem->RemoveChannelMembers(Channel, Include, RemoveObj);  
+`
+```
+JSON:
+```
+`{**    "ChannelMembers": [  
+        {  
+            "UuidMetadata": {  
+                "Uuid": "uuid-1",  
+                "Name": "John Doe",  
+                "Email": "john.doe@pubnub.com",  
+                "ExternalId": "",  
+                "ProfileUrl": "",  
+                "Custom": "",  
+                "Updated": "2019-02-20T23:11:20.89375"  
+            },  
+            "Custom": {  
+                "role": "admin"  
+            },  
+`
+```
+show all 39 lines  
 
 ---
 
-_Last updated: Apr 29, 2025_
+_Last updated Jul 15 2025_

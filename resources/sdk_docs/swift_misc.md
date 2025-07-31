@@ -1,130 +1,127 @@
-# Utility Methods API – Swift Native SDK (Misc)
+# Utility Methods API — Swift SDK (Misc)
 
-Below are concise references for utility calls. All code blocks, signatures, parameters, and essential details from the source are retained.
+Essential signatures, parameters, return types, and sample snippets are retained below. All code blocks appear unmodified.
 
----
+## Encrypt <a name="encrypt"></a>
 
-## Encrypt <a id="encrypt"></a>
+For Crypto module setup see: `/configuration#cryptomodule`.
 
-Availability: See [Crypto module configuration](/docs/sdks/swift/api-reference/configuration#cryptomodule).
-
-### Method
-```swift
+### Method(s)
+```
 `func encrypt(data: Data)  
 `
 ```
-• **data** (Data, required) – Message to encrypt.
+* **data** (Data) – message to encrypt.
 
 ### Returns
-• **Success:** Encrypted `Data`.  
-• **Failure:** `Error`.
+* Success – encrypted `Data`.  
+* Failure – `Error`.
 
-### Example
-```swift
+### Sample
+#### Encrypt part of message
+```
 `  
 `
 ```
 
 ---
 
-## Decrypt <a id="decrypt"></a>
+## Decrypt <a name="decrypt"></a>
 
-Availability: See [Crypto module configuration](/docs/sdks/swift/api-reference/configuration#cryptomodule).
+Refer to Crypto module configuration as above.
 
-### Method
-```swift
+### Method(s)
+```
 `func decrypt(data: Data) -> ResultData, Error>  
 `
 ```
-• **data** (Data, required) – Data to decrypt.
+* **data** (Data) – data to decrypt.
 
 ### Returns
-• **Success:** Original `Data`.  
-• **Failure:** `Error`.
+* Success – original `Data`.  
+* Failure – `Error`.
 
-### Example
-```swift
+### Sample
+#### Decrypt part of message
+```
 `  
 `
 ```
 
 ---
 
-## Disconnect <a id="disconnect"></a>
+## Disconnect <a name="disconnect"></a>
 
-Stops all active subscriptions.
+Stops active subscriptions.
 
-### Method
-```swift
+### Method(s)
+```
 `func disconnect( )  
 `
 ```
 
-### Example
-```swift
+### Sample
+```
 `  
 `
 ```
 
 ---
 
-## Reconnect <a id="reconnect"></a>
+## Reconnect <a name="reconnect"></a>
 
-Forces the SDK to reach PubNub again.
+Forces the SDK to re-establish connection.
 
-### Method
-```swift
+### Method(s)
+```
 `func reconnect(at timetoken: Timetoken? = nil)  
 `
 ```
-• **at** (Timetoken, optional) – Timetoken at which to resume subscription.
+* **at** (Timetoken, optional) – timetoken at which to resume.
 
-### Example
-```swift
+### Sample
+```
 `  
 `
 ```
 
 ---
 
-## Time <a id="time"></a>
+## Time <a name="time"></a>
 
-Returns a 17-digit precision Unix epoch timetoken.
-
-### Timetoken Algorithm
-```swift
+Returns 17-digit Unix epoch timetoken.  
+Formula:  
+```
 `timetoken = (Unix epoch time in seconds) * 1_000_000_000  
 `
 ```
-
-Example:
-```swift
+Example:  
+```
 `// 08/19/2013 @ 9:20 PM UTC = 1376961606  
 timetoken = 1376961606 * 1_000_000_000  
 timetoken = 1376961606000000000  
 `
 ```
 
-### Method
-```swift
+### Method(s)
+```
 `func time(  
   custom requestConfig: PubNub.RequestConfiguration = PubNub.RequestConfiguration(),  
   completion: ((ResultTimetoken, Error>) -> Void)?  
 )  
 `
 ```
-• **custom** (PubNub.RequestConfiguration, optional) – Per-request config (default `PubNub.RequestConfiguration()`).  
-• **completion** (`((Result<Timetoken, Error>) -> Void)?`, optional) – Result callback.
+* **custom** (PubNub.RequestConfiguration, default `PubNub.RequestConfiguration()`) – per-request overrides.  
+* **completion** (`((Result<Timetoken, Error>) -> Void)?`, default `nil`) – async result.
 
 #### Completion Result
-• **Success:** Current `Timetoken`.  
-• **Failure:** `Error`.
+* Success – current `Timetoken`.  
+* Failure – `Error`.
 
-### Example
-```swift
+### Sample
+#### Get PubNub timetoken
+```
 `**`
 ```
 
----
-
-_Last updated: Jun 12, 2025_
+_Last updated: Jul 15, 2025_

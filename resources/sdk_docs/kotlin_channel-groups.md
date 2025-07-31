@@ -1,16 +1,14 @@
-# Channel Groups API – Kotlin SDK
+# Channel Groups API – PubNub Kotlin SDK
 
 ## Breaking changes in v9.0.0
-• Unified Kotlin and Java codebases, new client instantiation, updated async callbacks/status events.  
-• Applications built with < 9.0.0 must follow the Java/Kotlin migration guide.
+• Unified Java/Kotlin codebases, new client instantiation, new async callbacks/status events.  
+• Applications < 9.0.0 must follow the Java/Kotlin migration guide.
 
 ## Key points
-• Channel groups bundle up to thousands of channels.  
-• You can **subscribe** to a group; publishing must target individual channels.  
-• All group operations require the **Stream Controller** add-on (enable it in the Admin Portal).  
-• Every SDK call returns an `Endpoint`; execute with `.sync()` or `.async()` or nothing happens.
+• Channel Groups bundle many channels under one name. You can subscribe to—​but **not publish** to—a channel group.  
+• All requests return an `Endpoint`; execute with `.sync()` or `.async()`.
 
-```
+```kotlin
 `val channel = pubnub.channel("channelName")  
   
 channel.publish("This SDK rules!").async { result ->  
@@ -23,65 +21,83 @@ channel.publish("This SDK rules!").async { result ->
 `
 ```
 
----
+## Add channels to a group  
+Requires Stream Controller add-on.
 
-## Add Channels to a Group  
 Maximum 200 channels per call.
 
-```
+```kotlin
 `pubnub.addChannelsToChannelGroup(  
     channelGroup: String,  
-    channels: ListString>  
+    channels: List<String>  
 ).async { result -> }  
 `
 ```
 
 Parameters  
-• `channelGroup` (String) – target group.  
-• `channels` (List<String>) – channels to add.  
+• `channelGroup` (String): target group.  
+• `channels` (List<String>): channels to add.
 
-Response: no payload; verify via `result.isFailure` / `onFailure`.
+```kotlin
+`  
+`
+```
+
+Return: no payload; check `result.isFailure` / `onFailure`.
 
 ---
 
-## List Channels in a Group
+## List channels in a group  
+Requires Stream Controller add-on.
 
-```
+```kotlin
 `pubnub.listChannelsForChannelGroup(  
     channelGroup: String  
 ).async { result -> }  
 `
 ```
 
-Parameters  
-• `channelGroup` (String) – group name.  
+Parameter  
+• `channelGroup` (String): group name.
+
+```kotlin
+`  
+`
+```
 
 Returns `PNChannelGroupsAllChannelsResult`  
-• `channels` (List<String>) – channels contained in the group.
+• `channels`: `List<String>`.
 
 ---
 
-## Remove Channels from a Group
+## Remove channels from a group  
+Requires Stream Controller add-on.
 
-```
+```kotlin
 `pubnub.removeChannelsFromChannelGroup(  
-    channels: ListString>,  
+    channels: List<String>,  
     channelGroup: String  
 ).async { result -> }  
 `
 ```
 
 Parameters  
-• `channels` (List<String>) – channels to remove.  
-• `channelGroup` (String) – group name.  
+• `channels` (List<String>): channels to remove.  
+• `channelGroup` (String): source group.
 
-Response: none; check result for success/failure.
+```kotlin
+`  
+`
+```
+
+Return: no payload; evaluate `result`.
 
 ---
 
-## Delete a Channel Group
+## Delete a channel group  
+Requires Stream Controller add-on.
 
-```
+```kotlin
 `pubnub.deleteChannelGroup(  
     channelGroup: String  
 ).async { result -> }  
@@ -89,8 +105,13 @@ Response: none; check result for success/failure.
 ```
 
 Parameter  
-• `channelGroup` (String) – group to delete.  
+• `channelGroup` (String): group to delete.
 
-Response: none; check result for success/failure.
+```kotlin
+`  
+`
+```
 
-_Last updated: May 28 2025_
+Return: no payload; evaluate `result`.
+
+_Last updated: Jul 15 2025_

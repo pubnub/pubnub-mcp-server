@@ -1,77 +1,58 @@
-# Publish/Subscribe API – Unreal SDK (condensed)
+# PubNub Unreal SDK – Publish / Subscribe (Condensed)
 
-The sections below keep every code block, method signature, parameter list, and all critical limits/requirements while removing redundant prose.
+This short reference keeps every method signature, struct definition, enum, parameter, limit, and code example from the original docs. Redundant prose has been removed.
 
 ---
 
 ## Publish
 
-Real-time (<30 ms) message fan-out to all channel subscribers.
+Requirements & limits  
+• App must be initialized with a `publishKey`  
+• Sender needn’t be subscribed to the channel  
+• One channel per call (no multi-channel publish)  
+• Payload: any JSON-serializable type; **don’t pre-serialize** `message` or `meta`  
+• Max size = 32 KiB (URI + channel + escaped JSON). Optimal < 1800 bytes  
+• Publish serially: next message only after success. Memory queue = 100 messages  
+• Throttle bursts (≈ ≤ 5 msg/s) to avoid drops
 
-Essentials  
-• Initialize PubNub with a `publishKey`.  
-• Not required to be subscribed to publish.  
-• One channel per call (no multi-channel publish).  
-• Payload: any JSON-serializable type; **don’t pre-serialize** `message`/`meta`.  
-• Max size: **32 KiB** (optimum <1.8 KB) → oversize ⇒ *Message Too Large*.  
-• Message queue per subscriber: 100; publish next message only after success response.  
-• Optional `CustomMessageType` (3-50 chars, `[A-Za-z0-9_-]`, not starting with `pn_`/`pn-`).  
-• Suggested throttle: ≤5 msgs/s.
-
-### Method(s)
-
-- Blueprint  
-- C++
+### Method
 
 ```
-PubnubSubsystem->PublishMessage(  
+`PubnubSubsystem->PublishMessage(  
     FString Channel,  
     FString Message,   
     FPubnubPublishSettings PublishSettings = FPubnubPublishSettings()  
 );  
+`
 ```
 
-#### Parameters
+### FPubnubPublishSettings
 
-* `Message`  (FString, required) – payload.  
-* `Channel`  (FString, required) – destination channel.  
-* `PublishSettings` (FPubnubPublishSettings) – publish options.
+* StoreInHistory (bool, default true) – include in storage/History API  
+* MetaData (FString) – JSON object used by server-side filters  
+* PublishMethod (EPubnubPublishMethod)  
+  - `PPM_SendViaGET`  
+  - `PPM_SendViaPOST`  
+  - `PPM_UsePATCH`  
+  - `PPM_SendViaPOSTwithGZIP`  
+  - `PPM_UsePATCHwithGZIP`  
+  - `PPM_UseDELETE`  
+* Replicate (bool) – false ⇒ only Functions receive the message  
+* CustomMessageType (FString 3-50 chars, a-z A-Z 0-9 - _) – e.g. `text`, `action`
 
-#### FPubnubPublishSettings
+### Examples
 
-* `StoreInHistory` (bool, default true) – make message retrievable via History API.  
-* `MetaData` (FString) – JSON metadata for filtering.  
-* `PublishMethod` (EPubnubPublishMethod):  
-  • `PPM_SendViaGET` • `PPM_SendViaPOST` • `PPM_UsePATCH`  
-  • `PPM_SendViaPOSTwithGZIP` • `PPM_UsePATCHwithGZIP` • `PPM_UseDELETE`  
-* `Replicate` (bool) – replicate to all subscribers (`true`) or Functions only (`false`).  
-* `CustomMessageType` (FString) – user label, e.g., `text`, `action`, `poll`.
+#### Minimal publish
 
-### Basic Usage
-
-#### Publish a message to a channel
-
-##### MyGameMode.h
 ```
-`// NOTE: This example requires correct PubnubSDK configuration in plugins settings and adding "PubnubLibrary" to PublicDependencyModuleNames in your build.cs  
-// More info in the documentation: https://www.pubnub.com/docs/sdks/unreal/api-reference/configuration  
+`// NOTE: This example requires correct PubnubSDK configuration …  
   
 #pragma once  
-  
-#include "CoreMinimal.h"  
-#include "GameFramework/GameModeBase.h"  
-#include "MyGameMode.generated.h"  
-  
-/**  
- *   
- */  
-UCLASS()  
-//Replace MYPROJECT with name of your project  
+…  
 class MYPROJECT_API AMyGameMode : public AGameModeBase  
 `
 ```
 
-##### MyGameMode.cpp
 ```
 `#include "MyGameMode.h"  
 #include "PubnubSubsystem.h"  
@@ -79,21 +60,18 @@ class MYPROJECT_API AMyGameMode : public AGameModeBase
   
 void AMyGameMode::PublishMessageExample()  
 {  
-	// Get PubnubSubsystem from the game instance  
-	UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
-	UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
+    UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
+    UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
   
-	// Ensure user ID is set  
-	PubnubSubsystem->SetUserID("my_user_id");  
+    PubnubSubsystem->SetUserID("my_user_id");  
   
-	FString Channel = "randomChannel";  
-	FString Message = "{ \"text\" : \"This is my message\" }";  
+    FString Channel = "randomChannel";  
+    FString Message = "{ \"text\" : \"This is my message\" }";  
 `
 ```
 
-Subscribe to `randomChannel` (see Subscribe section) before running the example.
+#### POST + GZIP
 
-### Other Example – POST with GZIP
 ```
 `#include "Kismet/GameplayStatics.h"  
 #include "PubnubSubsystem.h"  
@@ -104,44 +82,38 @@ UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>(
 FString Channel = "randomChannel";  
 FString Message = "{ \"text\" : \"This is my message\" }";  
   
-// Create the publish settings  
 FPubnubPublishSettings PublishSettings;  
 PublishSettings.PublishMethod = EPubnubPublishMethod::PPM_SendViaPOSTwithGZIP;  
   
-// Publish the message using the specified publish settings  
 PubnubSubsystem->PublishMessage(Channel, Message, PublishSettings);  
 `
 ```
 
-Return: none.
+(Return: none. Check listener for ACK: `[1,"Sent", "<timetoken>"]`)
 
 ---
 
 ## Signal
 
-Lightweight message (< 64 bytes payload) to all channel subscribers.
+• Same semantics as Publish, but payload limit **64 bytes** (payload only)  
 
-### Method(s)
+### Method
 
 ```
-PubnubSubsystem->Signal(  
+`PubnubSubsystem->Signal(  
     FString Channel,   
     FString Message,  
     FPubnubSignalSettings SignalSettings = FPubnubSignalSettings()  
 );  
+`
 ```
 
-#### Parameters
+### FPubnubSignalSettings
 
-* `Message` (FString, required) – payload.  
-* `Channel` (FString, required) – destination.  
-* `SignalSettings` (FPubnubSignalSettings).
+* CustomMessageType (FString) – same rules as above
 
-#### FPubnubSignalSettings
+### Example
 
-* `CustomMessageType` (same rules as Publish).
-
-### Basic Usage
 ```
 `#include "Kismet/GameplayStatics.h"  
 #include "PubnubSubsystem.h"  
@@ -152,51 +124,41 @@ UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>(
 FString Channel = "randomChannel";  
 FString Message = "{ \"text\" : \"This is my signal\" }";  
   
-// Create the signal settings  
 FPubnubSignalSettings SignalSettings;  
 PublishSettings.CustomMessageType = "text-message";  
   
-// Send the signal  
 PubnubSubsystem->Signal(Channel, Message, SignalSettings);  
 `
 ```
 
-Return: none.
+(Return: none)
 
 ---
 
 ## Subscribe
 
-Creates an open socket and streams messages/events.
-
 Key points  
-• Requires `subscribeKey` set at initialization.  
-• New subscriber receives only messages published **after** `Subscribe` completes.  
-• Add event listeners **before** subscribing.  
-• Presence: enable add-on and set `ReceivePresenceEvents` or subscribe to `<channel>-pnpres`.  
-• Wildcard subscribe (`a.*`) needs Stream Controller add-on (one level only).  
-• Unsubscribing from **all** channels resets timetoken (possible message gaps).
+• Requires `subscribeKey` at initialization  
+• Opens a long-lived socket; receive via event listeners  
+• Add listeners *before* calling subscribe  
+• Unsubscribing from **all** channels resets the timetoken (possible gaps)
 
-### Method(s)
+### Methods
 
 ```
- // subscribe to a channel  
- PubnubSubsystem->SubscribeToChannel(FString Channel, FPubnubSubscriptionSettinngs SubscriptionSettings);  
- // subscribe to a channel group  
- PubnubSubsystem->SubscribeToGroup(FString GroupName, FPubnubSubscriptionSettinngs SubscriptionSettings);  
+`// subscribe to a channel  
+PubnubSubsystem->SubscribeToChannel(FString Channel, FPubnubSubscriptionSettinngs SubscriptionSettings);  
+// subscribe to a channel group  
+PubnubSubsystem->SubscribeToGroup(FString GroupName, FPubnubSubscriptionSettinngs SubscriptionSettings);  
+`
 ```
 
-#### Parameters
+### FPubnubSubscriptionSettings
 
-* `Channel` (FString) – channel ID.  
-* `GroupName` (FString) – channel group.  
-* `SubscriptionSettings` (FPubnubSubscriptionSettings).
+* ReceivePresenceEvents (bool) – true ⇒ presence events for this channel
 
-#### FPubnubSubscriptionSettings
+### Basic subscribe
 
-* `ReceivePresenceEvents` (bool) – include presence events.
-
-### Basic Usage
 ```
 `#include "Kismet/GameplayStatics.h"  
 #include "PubnubSubsystem.h"  
@@ -206,112 +168,79 @@ UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>(
   
 FString Channel = "randomChannel";  
   
-// Subscribe  
 PubnubSubsystem->SubscribeToChannel(Channel, SubscriptionSettings);  
 `
 ```
 
-#### Presence Subscribe Example
+### Presence subscribe (Presence add-on required)
+
 ```
-`#include "Kismet/GameplayStatics.h"  
-#include "PubnubSubsystem.h"  
-  
-UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
-UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
-  
-FString Channel = "randomChannel";  
-  
-// Create the subscription settings  
+`…  
 FPubnubSubscriptionSettings SubscriptionSettings;  
 SubscriptionSettings.ReceivePresenceEvents = true;  
   
-// Subscribe  
 PubnubSubsystem->SubscribeToChannel(Channel, SubscriptionSettings);  
 `
 ```
 
-#### Wildcard Subscribe Example
+### Wildcard subscribe (Stream Controller add-on)
+
 ```
-`#include "Kismet/GameplayStatics.h"  
-#include "PubnubSubsystem.h"  
-  
-UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
-UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
-  
+`…  
 FString Channel = "foo.*";  
-  
-// Subscribe  
 PubnubSubsystem->Subscribe(Channel);  
 `
 ```
 
-Return: none (messages provided via listener).
+(Return: none – events arrive through listener)
 
 ---
 
 ## Unsubscribe
 
-### Method(s)
+### Methods
+
 ```
- // unsubscribe from a channel  
- PubnubSubsystem->UnsubscribeFromChannel(FString Channel);  
- // unsubscribe from a channel group  
- PubnubSubsystem->UnsubscribeFromGroup(FString GroupName);  
+`// unsubscribe from a channel  
+PubnubSubsystem->UnsubscribeFromChannel(FString Channel);  
+// unsubscribe from a channel group  
+PubnubSubsystem->UnsubscribeFromGroup(FString GroupName);  
+`
 ```
 
-### Basic Usage
+### Sample
+
 ```
-`#include "Kismet/GameplayStatics.h"  
-#include "PubnubSubsystem.h"  
-  
-UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
-UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
-  
-FString Channel = "randomChannel";  
-FString ChannelGroupName = "randomChannelGroup";  
-  
-// Subscribe  
+`…  
 PubnubSubsystem->Subscribe(Channel);  
 PubnubSubsystem->SubscribeToGroup(ChannelGroupName);  
-  
-// Unsubscribe  
 PubnubSubsystem->UnsubscribeFromChannel(Channel);  
 `
 ```
 
-Return: none.
+(Return: none)
 
 ---
 
 ## Unsubscribe All
 
-### Method(s)
+### Method
+
 ```
-PubnubSubsystem->UnsubscribeFromAll();  
+`PubnubSubsystem->UnsubscribeFromAll();  
+`
 ```
 
-### Basic Usage
+### Sample
+
 ```
-`#include "Kismet/GameplayStatics.h"  
-#include "PubnubSubsystem.h"  
-  
-UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
-UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
-  
-FString Channel = "randomChannel";  
-FString ChannelGroupName = "randomChannelGroup";  
-  
-// Subscribe  
+`…  
 PubnubSubsystem->Subscribe(Channel);  
 PubnubSubsystem->SubscribeToGroup(ChannelGroupName);  
-  
-// Unsubscribe all  
 PubnubSubsystem->UnsubscribeFromAll();  
 `
 ```
 
-Return: none.
+(Return: none)
 
----
-
-_Last updated: Jun 16 2025_
+_Last updated: Jul 15 2025_

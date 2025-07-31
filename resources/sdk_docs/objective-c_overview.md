@@ -1,13 +1,15 @@
-# Objective-C SDK 5.8.0 – Overview (Condensed)
+# Objective-C API & SDK 5.8.0 – Overview (Condensed)
 
-## 1. PubNub Account  
-Sign in or create an account at https://admin.pubnub.com to generate your app’s **publish** and **subscribe** keys (create separate keysets for prod/test).
+## 1. PubNub account
+Sign in or create an account at https://admin.pubnub.com, then create an app/keyset and copy its _Publish_ and _Subscribe_ keys.
+
+---
 
 ## 2. Download the SDK  
 
-### CocoaPods  
+### CocoaPods
 ```bash
-gem install cocoapods       # or: gem update cocoapods
+gem install cocoapods        # or: gem update cocoapods
 pod init
 ```
 
@@ -16,43 +18,50 @@ platform :ios, '14.0'
 
 target 'application-target-name' do
   use_frameworks!
-  pod "PubNub", "~> 5"
+  pod 'PubNub', '~> 5'
 end
 ```
 
-```objective-c
+```bash
+pod install         # open the generated .xcworkspace
+```
+
+```objc
 #import <PubNub/PubNub.h>
 ```
 
-### Carthage  
-```ruby
-# Cartfile
+### Carthage
+```ogdl
 github "pubnub/objective-c" ~> 4
 ```
+
 ```bash
-carthage update --no-use-binaries
-carthage update --platform ios --no-use-binaries   # mac / tvos / watchos also available
+carthage update --no-use-binaries            # all platforms
+carthage update --platform ios --no-use-binaries
 ```
-After building, add `PubNub.framework` to “Embedded Binaries” and:  
-```objective-c
+Add `PubNub.framework` to Embedded Binaries, then:
+
+```objc
 #import <PubNub/PubNub.h>
 ```
 
-### Source  
-GitHub: https://github.com/pubnub/objective-c  
-Platform support: /docs/sdks/objective-c/platform-support
+### Source
+https://github.com/pubnub/objective-c  
+(See platform support page for details)
 
-## 3. Configure PubNub  
-```objective-c
+---
+
+## 3. Configure PubNub
+```objc
 @interface AppDelegate () <PNEventsListener>
 
-// Keep a strong reference to the client
+// Keep a strong reference to the client.
 @property (nonatomic, strong) PubNub *client;
 
 @end
 ```
 
-```objective-c
+```objc
 // Minimum configuration
 PNConfiguration *configuration =
   [PNConfiguration configurationWithPublishKey:@"myPublishKey"
@@ -62,17 +71,19 @@ configuration.uuid = @"myUniqueUUID";
 self.client = [PubNub clientWithConfiguration:configuration];
 ```
 
-## 4. Add Event Listeners  
-```objective-c
+---
+
+## 4. Add event listeners
+```objc
 [self.client addListener:self];
 
 - (void)client:(PubNub *)client didReceiveMessage:(PNMessageResult *)message {
-  // message.data.message contains the payload
   if (![message.data.channel isEqualToString:message.data.subscription]) {
-      // Received via channel group
+    // Message received on a channel group.
   } else {
-      // Received via channel
+    // Message received on a channel.
   }
+
   NSLog(@"Received message: %@ on channel %@ at %@",
         message.data.message[@"msg"],
         message.data.channel,
@@ -80,26 +91,30 @@ self.client = [PubNub clientWithConfiguration:configuration];
 }
 ```
 
-## 5. Publish & Subscribe  
-Subscribe:  
-```objective-c
+---
+
+## 5. Publish & Subscribe
+Subscribe:
+```objc
 [self.client subscribeToChannels:@[@"hello-world-channel"] withPresence:YES];
 ```
 
-Publish (typically after `PNConnectedCategory` status):  
-```objective-c
-[self.client publish:@{ @"msg": @"Hello" }
-            toChannel:targetChannel
+Publish (e.g. after `PNConnectedCategory` status):
+```objc
+[self.client publish:@{ @"msg": @"Hello" } toChannel:targetChannel
       withCompletion:^(PNPublishStatus *publishStatus) {
 }];
 ```
 
-## 6. Combined Example (macOS snippet)
-```objective-c
-// -- MACOS -->
+---
 
-@interface AppDelegate () <PNEventsListener>
+## 6. Full example (excerpt)
+```objc
+!-- MACOS -->
 
+@interface AppDelegate () PNEventsListener>
+
+// Stores reference on PubNub client to make sure what it won't be released.
 @property (nonatomic, strong) PubNub *client;
 
 @end
@@ -107,18 +122,17 @@ Publish (typically after `PNConnectedCategory` status):
 @implementation PNAppDelegate
 
 - (void)applicationDidFinishLaunching:(NSNotification *)aNotification {
+  // Initialize and configure PubNub client instance
   PNConfiguration *configuration =
     [PNConfiguration configurationWithPublishKey:@"myPublishKey"
                                      subscribeKey:@"mySubscribeKey"];
-  ...
-}
-```
-
-## 7. Console Output Example  
-```text
-Received message: Hello on channel hello-world-channel at 15844898827972406
 ```
 
 ---
 
-You are now ready to send and receive real-time messages with the Objective-C SDK. For detailed API docs, see: /docs/sdks/objective-c/api-reference/configuration
+Expected console output:
+```text
+Received message: Hello on channel hello-world-channel at 15844898827972406
+```
+
+For detailed API usage, see the SDK reference sections on Configuration, Event Listeners, and Publish/Subscribe.

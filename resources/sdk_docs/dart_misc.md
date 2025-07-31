@@ -1,158 +1,191 @@
-# Utility Methods API (Dart SDK)
+# Utility Methods API – Dart SDK (Misc)
 
-## pause()
-Force the SDK to stop all requests to PubNub when there are active subscribe channels.
+Concise reference to rarely-used helpers. All code, signatures, parameters, and return types are unchanged.
+
+## Pause
+
+Force the SDK to stop all PubNub requests while subscriptions are active.
 
 ### Method
-```dart
-pause()
+
 ```
-(No parameters)
+`pause()  
+`
+```
+
+No arguments.
 
 ### Example
-```dart
-import 'package:pubnub/pubnub.dart';
 
-void main() async {
-  var pubnub = PubNub(
-    defaultKeyset: Keyset(
-      subscribeKey: 'demo',
-      publishKey: 'demo',
-      userId: UserId('myUniqueUserId'),
-    ),
-  );
-
-  var channel = "getting_started";
-  var subscription = pubnub.subscribe(channels: {channel});
-
-  // Temporarily stop network traffic
-  subscription.pause();
-}
+```
+`import 'package:pubnub/pubnub.dart';  
+  
+void main() async {  
+  // Create PubNub instance with default keyset.  
+  var pubnub = PubNub(  
+    defaultKeyset: Keyset(  
+      subscribeKey: 'demo',  
+      publishKey: 'demo',  
+      userId: UserId('myUniqueUserId'),  
+    ),  
+  );  
+  
+  // Subscribe to a channel  
+  var channel = "getting_started";  
+  var subscription = pubnub.subscribe(channels: {channel});  
+`
 ```
 
 ---
 
-## resume()
-Resume network communication after `pause()`.
+## Resume
+
+Resume all halted PubNub requests.
 
 ### Method
-```dart
-resume()
+
 ```
-(No parameters)
+`resume()  
+`
+```
+
+No arguments.
 
 ### Example
-```dart
-subscription.resume();
+
+```
+`subscribtion.resume()  
+`
 ```
 
 ---
 
-## Encrypt File
-Encrypt byte data.
+## Encrypt file
 
-**Deprecated:** `cipherKey` overrides the crypto-module configuration and uses legacy 128-bit encryption. Prefer configuring a dedicated crypto module.
+Encrypt file content provided as a list of bytes.
+
+> Deprecated: `cipherKey` argument overrides the crypto module and falls back to legacy 128-bit encryption. Prefer configuring a separate crypto module instance.
 
 ### Method
-```dart
-pubnub.files.encryptFile(
-  List<int> bytes, {
-  CipherKey? cipherKey,
-  Keyset? keyset,
-  String? using,
-})
+
+```
+`pubnub.files.encryptFile(  
+  Listint> bytes,  
+  {CipherKey? cipherKey,  
+  Keyset? keyset,  
+  String? using}  
+)  
+`
 ```
 
 Parameter | Type | Description
---------- | ---- | -----------
-`bytes` | `List<int>` | File bytes (required).
-`cipherKey` | `CipherKey?` | Overrides `Keyset.cipherKey` (deprecated).
-`keyset` | `Keyset?` | Override default keyset.
-`using` | `String?` | Named keyset from `keysetStore`.
+--- | --- | ---
+`bytes` | List`<int>` | File content in bytes (required).
+`cipherKey` | cipherKey | Overrides `Keyset.cipherKey`.
+`keyset` | Keyset | Alternate keyset.
+`using` | String | Keyset name from `keysetStore`.
 
 ### Example
-```dart
-// Configure crypto module
-var cryptoModule = CryptoModule.aesCbcCryptoModule(
-  CipherKey.fromUtf8('abcd'),
-);
 
-// Encrypt file data
-var encryptedFileData = cryptoModule.encrypt(fileData);
+```
+`// create cryptoModule  
+var cryptoModule = CryptoModule.aesCbcCryptoModule(CipherKey.fromUtf8('abcd'));  
+  
+// encrypt file data   NOTE: same method because it works at byte level  
+var encryptedFileData = cryptoModule.encrypt(fileData);  
+`
 ```
 
 ### Returns
-`List<int>` — encrypted bytes.
+
+List`<int>` (encrypted bytes).
 
 ---
 
-## Decrypt File
-Decrypt byte data.
+## Decrypt file
 
-**Deprecated:** Same `cipherKey` note as in Encrypt File.
+Decrypt file bytes.
+
+> Deprecated: same `cipherKey` caveat as above.
 
 ### Method
-```dart
-pubnub.files.decryptFile(
-  List<int> bytes, {
-  CipherKey? cipherKey,
-  Keyset? keyset,
-  String? using,
-})
+
+```
+`pubnub.files.decryptFile(  
+  Listint> bytes,  
+  {CipherKey? cipherKey,  
+  Keyset? keyset,  
+  String? using})  
+`
 ```
 
 Parameter | Type | Description
---------- | ---- | -----------
-`bytes` | `List<int>` | File bytes (required).
-`cipherKey` | `CipherKey?` | Overrides `Keyset.cipherKey` (deprecated).
-`keyset` | `Keyset?` | Override default keyset.
-`using` | `String?` | Named keyset from `keysetStore`.
+--- | --- | ---
+`bytes` | List`<int>` | File content in bytes (required).
+`cipherKey` | cipherKey | Overrides `Keyset.cipherKey`.
+`keyset` | Keyset | Alternate keyset.
+`using` | String | Keyset name from `keysetStore`.
 
 ### Example
-```dart
-var cryptoModule = CryptoModule.aesCbcCryptoModule(
-  CipherKey.fromUtf8('abcd'),
-);
 
-var encryptedFileData = cryptoModule.encrypt(fileData);
-
-// Decrypt
-var decryptedFileData = cryptoModule.decrypt(encryptedFileData);
-
-// Save decrypted file
-File('decryptedFile.jpg').writeAsBytesSync(decryptedFileData);
+```
+`// create cryptoModule  
+var cryptoModule = CryptoModule.aesCbcCryptoModule(CipherKey.fromUtf8('abcd'));  
+  
+// encrypt file data   NOTE: same method because it works at byte level  
+var encryptedFileData = cryptoModule.encrypt(fileData);  
+  
+// decrypt file data   
+var decryptedFileData = cryptoModule.decrypt(encryptedFileData);  
+  
+// create file again from decrypted file bytes  
+File('decryptedFile.jpg').writeAsBytesSync(decryptedFileData);  
+`
 ```
 
 ### Returns
-`List<int>` — decrypted bytes.
+
+List`<int>` (decrypted bytes).
 
 ---
 
-## time()
-Retrieve the current PubNub timetoken.
+## Time
 
-### Timetoken algorithm
-```text
-timetoken = (Unix epoch time in seconds) * 10000000
+Retrieve the current network timetoken.
+
+Algorithm:  
+
+```
+`timetoken = (Unix epoch time in seconds) * 10000000  
+`
 ```
 
-Example:
-```text
-08/19/2013 @ 9:20pm UTC = 1376961606
-timetoken = 1376961606 * 10000000
-timetoken = 13769616060000000
+Example:  
+
+```
+`08/19/2013 @ 9:20pm in UTC = 1376961606  
+timetoken = 1376961606 * 10000000  
+timetoken = 13769616060000000  
+`
 ```
 
 ### Method
-```dart
-time()
+
+```
+`time()  
+`
 ```
 
 ### Example
-```dart
-var response = await pubnub.time();
+
+```
+`var response = await pubnub.time();  
+`
 ```
 
 ### Returns
+
 `Timetoken`  
-• `value` → `int` — current timetoken.
+• `value` (int) – current timetoken.
+
+_Last updated Jul 15 2025_

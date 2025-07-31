@@ -1,14 +1,12 @@
-# Publish/Subscribe API – Kotlin SDK (v9+)
-
-> All code blocks, method signatures, parameters, and limits are kept exactly as in the original doc.  
-> Call `.sync()` or `.async{}` on every Endpoint (or nothing happens).
-
-##### Breaking changes in 9.0.0  
-Single Kotlin/Java code-base, new client instantiation, new async callbacks & status events. See migration guide.
+# Publish/Subscribe API – Kotlin SDK (v 9+)  
+This condensed guide keeps every code block, method signature, parameter list, and all critical limits/configuration settings.  
+For pre-9 projects see the Java/Kotlin migration guide—v9 introduces a unified client, new instantiation, and new async callbacks/status events.
 
 ---
 
-## Publish
+## Request execution (`.sync()` / `.async()`)  
+
+You **must** call `sync()` or `async { … }` on every Endpoint.
 
 ```
 `val channel = pubnub.channel("channelName")  
@@ -23,51 +21,68 @@ channel.publish("This SDK rules!").async { result ->
 `
 ```
 
+---
+
+## Publish  
+
+Requirements  
+• `publishKey` in client config  
+• Single channel only (create it via `pubnub.channel(name)`)  
+• Message ≤ 32 KiB (optimum < 1800 B)  
+• JSON-serializable payload (no pre-serialization)  
+• Optional end-to-end TLS (`ssl=true`) and client-side encryption  
+• Optional `customMessageType` (3–50 chars, no `pn_`, `pn-`)  
+
+Best practice: serialize publishes, ensure `[1,"Sent",…]` before next send, throttle bursts, keep queue < 100.
+
+### Method
+
 ```
 `val channel = pubnub.channel("channelName")  
   
 channel.publish(  
-    message: Any,  
-    shouldStore: Boolean,  
-    meta: Any,  
-    queryParam: MapString, String>,  
-    usePost: Boolean,  
-    ttl: Integer,  
-    customMessageType: String  
+    message: Any,                       // required payload  
+    shouldStore: Boolean = accountDefault,  
+    meta: Any? = null,                 // filtering metadata  
+    queryParam: Map<String, String>? = null,  
+    usePost: Boolean = false,  
+    ttl: Int? = null,                  // hours; see rules below  
+    customMessageType: String? = null  
 ).async { result -> /* check result */ }  
 `
 ```
 
-Essentials  
-• Requires `publishKey`; channel must exist; one channel per call.  
-• Message: any JSON-serializable value (don’t pre-serialize).  
-• Max size 32 KiB (optimal < 1 800 B).  
-• Optional `customMessageType` (3-50 alphanum, `-`, `_`, not starting with `pn_`/`pn-`).  
-• `shouldStore` + `ttl` rules:  
-  1) store + ttl 0 → no expiry;  
-  2) store + ttl X → expire after X h (unless unlimited retention);  
-  3) not store → ttl ignored.  
-• Soft in-memory queue limit 100 msgs per subscriber.
+TTL rules  
+1. `shouldStore=true` & `ttl=0` → stored, no expiry  
+2. `shouldStore=true` & `ttl=X` → expiry X h (ignored if unlimited retention)  
+3. `shouldStore=false` → `ttl` ignored  
+4. Unset `ttl` → key-level default expiry.
 
-Response: `PNPublishResult?.timetoken : Long`
+### Response  
+`PNPublishResult?.timetoken : Long`
 
-Examples
+### Examples  
+
 ```
 `  
 `
 ```
+
 ```
 `  
 `
 ```
+
 ```
 `  
 `
 ```
+
 ```
 `  
 `
 ```
+
 ```
 `  
 `
@@ -75,24 +90,26 @@ Examples
 
 ---
 
-## Fire
+## Fire (Functions/Illuminate only)  
+
+• Same `publishKey` & channel requirements  
+• **Not** replicated, persisted, or delivered to subscribers
+
+### Method  
 
 ```
 `val channel = pubnub.channel("channelName")  
   
 channel.fire(  
     message: Any,  
-    meta: Any,  
-    usePost: Boolean,  
+    meta: Any? = null,  
+    usePost: Boolean = false,  
 ).async { result -> /* check result */ }  
 `
 ```
 
-Essentials  
-• Requires `publishKey`; channel must exist.  
-• Triggers Functions/Illuminate only; **not** delivered to subscribers, not stored in history.
-
-Response: `PNPublishResult?.timetoken : Long`
+### Response  
+`PNPublishResult?.timetoken : Long`
 
 ```
 `  
@@ -101,24 +118,24 @@ Response: `PNPublishResult?.timetoken : Long`
 
 ---
 
-## Signal
+## Signal  
+
+Fast, lightweight 64-byte payload; never persisted, cheaper than messages. Keep signals on separate channels from messages.
+
+### Method  
 
 ```
 `val channel = pubnub.channel("myChannel")  
   
 channel.signal(  
     message: Any,  
-    customMessageType: String  
+    customMessageType: String? = null  
 ).async { result -> }  
 `
 ```
 
-Essentials  
-• Requires `publishKey`.  
-• Payload ≤ 64 B; not persisted; cheaper than message; cannot trigger push.  
-• Use separate channels for signals vs. messages.
-
-Response: `PNPublishResult?.timetoken : Long`
+### Response  
+`PNPublishResult?.timetoken : Long`
 
 ```
 `  
@@ -127,9 +144,14 @@ Response: `PNPublishResult?.timetoken : Long`
 
 ---
 
-## Subscribe
+## Subscribe  
 
-### Entity-level subscription
+Requires `subscribeKey`. Two scopes:  
+
+1. `Subscription` – entity-local  
+2. `SubscriptionSet` – client-wide
+
+### Create a Subscription  
 
 ```
 `// Entity-based, local-scoped  
@@ -148,35 +170,35 @@ subscription.subscribe()
 `
 ```
 
-### Client-level subscription set
+### Create a SubscriptionSet  
 
 ```
 `// client-based, general-scoped  
   
 pubnub.subscriptionSetOf(  
-    channels: SetString>,  
-    channelGroups: SetString>,  
-    options: SubscriptionOptions  
+    channels: Set<String>,            // can be empty  
+    channelGroups: Set<String>,       // can be empty  
+    options: SubscriptionOptions      // default = EmptyOptions  
 )  
 `
 ```
 
-`SubscriptionOptions`  
-• `receivePresenceEvents()` – deliver presence.  
-• `filter { PNEvent -> Boolean }` – custom event filter.
+#### SubscriptionOptions helpers  
+• `receivePresenceEvents()` – include presence updates  
+• `filter { PNEvent -> Boolean }` – custom filter
 
-Subscribe with timetoken:
+#### Subscribe with timetoken  
 
 ```
 `subscriptionSet.subscribe(SubscriptionCursor(timetoken = yourTimeToken))  
 `
 ```
 
-Returns: none (events delivered via listeners).
-
 ---
 
-## Event Listeners
+## Event listeners  
+
+Attach to `Subscription`, `SubscriptionSet`, or (status only) `PubNub`.
 
 Add generic listener:
 
@@ -184,23 +206,8 @@ Add generic listener:
 `fun addListener(listener: EventListener)  
 `
 ```
-```
-`  
-`
-```
 
-Assign per-event listener / remove:
-
-```
-`  
-`
-```
-```
-`  
-`
-```
-
-Connection status (client-scope):
+Add connection-status listener (PubNub-scope):
 
 ```
 `pubnub.addListener(object : StatusListener() {  
@@ -211,33 +218,39 @@ Connection status (client-scope):
 })  
 `
 ```
+
+Sample placeholders:
+
 ```
 `  
 `
 ```
+
+```
+`  
+`
+```
+
+To remove a specific event listener, assign `null` to that handler.
 
 ---
 
-## Unsubscribe
+## Unsubscribe  
 
 ```
 `  
 `
 ```
-```
-`  
-`
-```
 
-## Unsubscribe All (client scope)
+## Unsubscribe all (PubNub-scope)  
 
 ```
 `  
 `
 ```
-```
-`  
-`
-```
+
+No return values.
 
 ---
+
+All original code blocks are preserved verbatim above.

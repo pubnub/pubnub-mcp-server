@@ -1,30 +1,30 @@
-# Publish/Subscribe – Ruby SDK (condensed)
+# Publish/Subscribe API – Ruby SDK (Condensed)
 
-Below are the essential APIs, parameters, constraints, and examples exactly as used in the PubNub Ruby SDK.  
-All code blocks appear unmodified.
+Below is an abridged version of the PubNub Publish/Subscribe documentation.  
+All code blocks, method signatures, parameters, and server-response examples are preserved verbatim.
 
 ---
 
 ## Publish
 
-Essentials  
-* Requires `publish_key` during initialization; subscriber status not required to publish.  
-* One channel per call; max payload 32 KiB (optimum < 1800 B).  
-* No manual JSON serialization for `message` / `meta`.  
-* Optional TLS: set `ssl: true`; optional encryption via Crypto module.  
-* Optional `custom_message_type` (3–50 chars, not starting with `pn_`/`pn-`).  
-* In-memory subscriber queue: 100 messages → throttle bursts (≈ ≤ 5 msg/s).  
-* Check `[1,"Sent", ...]` success response before sending next message; retry on failure.
+Essential facts
+* `publish_key` required at initialization; subscription to the same channel not required.
+* One channel per call; max payload 32 KiB (optimum < 1800 bytes).
+* Supports SSL/TLS (`ssl: true`) and optional message encryption.
+* Message is any JSON-serializable object. **Do NOT pre-serialize `message` or `meta`.**
+* Soft in-memory queue limit: 100 messages per subscriber.
+* Optional `custom_message_type` (3–50 characters; no `pn_` / `pn-` prefix).
 
-#### Method
+### Method
+
 ```
 `publish(  
     channel: String,  
     message: Object,  
-    store: Boolean,           # default true  
-    compressed: Boolean,      # default false  
+    store: Boolean,  
+    compressed: Boolean,  
     publish_key: String,  
-    http_sync: Boolean,       # default false  
+    http_sync: Boolean,  
     custom_message_type: String,  
     meta: Object,  
     callback: Lambda  
@@ -32,8 +32,8 @@ Essentials
 `
 ```
 
-#### Examples
-##### Basic
+### Sample code
+
 ```
 `require 'pubnub'  
   
@@ -52,29 +52,37 @@ def main
   pubnub = PubNub.new(  
 `
 ```
+(show all 28 lines)
 
-##### JSON payload
+#### REST response
+
+```
+`[1, "Sent", "13769558699541401"]  
+`
+```
+
+### Other publish examples
+
 ```
 `pubnub.publish(  
     message: {  
-        key: { inner_key: :value }  
+        key: {  
+            inner_key: :value  
+        }  
     },  
     custom_message_type: 'text-message',  
     channel: :whatever,  
-    meta: { sender_uuid: 'user123-uuid', priority: 'high', location: 'office' }  
+    meta: {  
+        sender_uuid: 'user123-uuid',  
+        priority: 'high',  
+        location: 'office'  
+    }  
 )  
 `
 ```
 
-##### Skip storage
 ```
 `pubnub.publish(message: 'Not gonna store that', store: false)  
-`
-```
-
-##### Server response
-```
-`[1, "Sent", "13769558699541401"]  
 `
 ```
 
@@ -82,27 +90,31 @@ def main
 
 ## Fire
 
-* Executes Functions/Event Handlers only.  
-* Message isn’t replicated, stored, or delivered to channel subscribers.
+Sends data only to Functions Event Handlers/Illuminate.  
+No replication, storage, or delivery to channel subscribers.
 
-#### Method
+### Method
+
 ```
 `fire(  
     channel: channel,  
     message: message,  
-    compressed: compressed,     # default false  
+    compressed: compressed,  
     publish_key: publish_key,  
-    http_sync: http_sync,       # default false  
+    http_sync: http_sync,  
     callback: callback  
 )  
 `
 ```
 
-#### Example
+### Example
+
 ```
 `pubnub.fire(  
     channel: 'my_channel',  
-    message: { text: 'Hi!' }  
+    message: {  
+        text: 'Hi!'  
+    }  
 ) do |envelope|  
     puts envelope.status  
 end  
@@ -113,31 +125,35 @@ end
 
 ## Signal
 
-* Lightweight message to all subscribers.  
-* Payload limit: 64 bytes (contact support to raise).  
+Lightweight (< 64 bytes payload) real-time signalling to current subscribers.
 
-#### Method
+### Method
+
 ```
 `pubnub.signal(  
     message: Object,  
     channel: String,  
-    compressed: Boolean,        # default false  
+    compressed: Boolean,  
     custom_message_type: String  
 )  
 `
 ```
 
-#### Example
+### Example
+
 ```
 `pubnub.signal(  
     channel: 'foo',  
-    message: { msg: 'Hello Signals' },  
+    message: {  
+        msg: 'Hello Signals'  
+    },  
     custom_message_type: 'text-message'  
 );  
 `
 ```
 
-##### Server response
+#### REST response
+
 ```
 `[1, "Sent", "13769558699541401"]  
 `
@@ -147,15 +163,17 @@ end
 
 ## Subscribe
 
-Key facts  
-* Opens a socket and streams messages/events; requires `subscribe_key`.  
-* Use `restore: true` to auto-reconnect and fetch missed messages (default timeout 320 s).  
-* Event delivery via listener callbacks.  
-* Wildcards/channel groups need Stream Controller add-on.  
-* Presence events require Presence add-on.  
-* Unsubscribing from *all* channels resets last timetoken (possible gaps).
+Creates a socket to receive messages, signals, and presence events.
 
-#### Method
+Key points
+* Requires `subscribe_key`.
+* `restore: true` will attempt reconnection and catch-up.
+* Wildcard channels and Channel Groups require Stream Controller add-on.
+* Presence events require Presence add-on.
+* Use `envelope.status` to confirm connectivity before publishing.
+
+### Method
+
 ```
 `subscribe(  
     channels: channels,  
@@ -163,13 +181,14 @@ Key facts
     presence: presence,  
     presence_callback: presence_callback,  
     with_presence: with_presence,  
-    http_sync: http_sync,        # default false  
+    http_sync: http_sync,  
     callback: callback  
 )  
 `
 ```
 
-#### Basic example
+### Basic example
+
 ```
 `# Subscribe to channel 'my_channel'.  
 pubnub.subscribe(  
@@ -178,13 +197,15 @@ pubnub.subscribe(
 `
 ```
 
-##### Response
+#### REST response
+
 ```
 `[[], "Time Token"]  
 `
 ```
 
-#### Multiple channels / groups / presence
+### Multiplex / Presence / Wildcard examples
+
 ```
 `# Subscribe to channels (with presence) and groups  
 pubnub.subscribe(  
@@ -197,9 +218,6 @@ pubnub.subscribe(
 `
 ```
 
-#### Presence, wildcard, state & other reference snippets
-All original samples are retained below for quick copy-paste:
-
 ```
 `# Subscribes to room0, room0-pnpres, room1, room1-pnpres, room2, room2-pnpres  
 pubnub.subscribe(  
@@ -208,6 +226,8 @@ pubnub.subscribe(
 )  
 `
 ```
+
+##### Presence event samples
 
 ```
 `{  
@@ -241,7 +261,9 @@ pubnub.subscribe(
     "action": "state-change",  
     "uuid": "76c2c571-9a2b-d074-b4f8-e93e09f49bd",  
     "timestamp": 1345549797,  
-    "data": { "isTyping": true }  
+    "data": {  
+        "isTyping": true  
+    }  
 }  
 `
 ```
@@ -272,6 +294,9 @@ pubnub.subscribe(
 }  
 `
 ```
+
+##### Wildcard subscribe
+
 ```
 `# Subscribe to wildcard channel 'ruby.*' (make sure you have wildcard subscribe enabled in your pubnub admin console!)  
 # specify two different callbacks for messages from channels and presence events in channels.  
@@ -280,6 +305,9 @@ pubnub.subscribe(
 )  
 `
 ```
+
+##### Subscribe with state (Presence required)
+
 ```
 `require 'pubnub'  
   
@@ -293,9 +321,15 @@ pubnub = Pubnub.new(
 )  
   
 callback = Pubnub::SubscribeCallback.new(  
-    message: ->(envelope) { puts "MESSAGE: #{envelope.result[:data]}" },  
+    message: ->(envelope) {  
+        puts "MESSAGE: #{envelope.result[:data]}"  
+    },  
 `
 ```
+(show all 32 lines)
+
+##### Channel group subscribe
+
 ```
 `# Subscribe to group  
 pubnub.subscribe(  
@@ -303,6 +337,9 @@ pubnub.subscribe(
 )  
 `
 ```
+
+##### Presence on a channel group
+
 ```
 `pubnub = Pubnub.new(  
     subscribe_key: :demo,  
@@ -310,13 +347,21 @@ pubnub.subscribe(
 )  
   
 callback = Pubnub::SubscribeCallback.new(  
-    message:  ->(_envelope) { },  
-    presence: ->(envelope) { puts "PRESENCE: #{envelope.result[:data]}" },  
-    status:   ->(_envelope) { }  
+    message:  ->(_envelope) {  
+    },  
+    presence: ->(envelope) {  
+        puts "PRESENCE: #{envelope.result[:data]}"  
+    },  
+    status:   ->(_envelope) {  
+    }  
 )  
   
 `
 ```
+(show all 18 lines)
+
+##### Subscribe sync loop
+
 ```
 `require 'pubnub'  
 pubnub = Pubnub.new(  
@@ -335,21 +380,23 @@ end
 
 ## Unsubscribe
 
-* Removes specified channels/groups; socket closes when none remain.  
-* Unsubscribing from *all* then subscribing resets timetoken (possible gaps).
+Removes specified channels/groups; closes socket when none remain.  
+Unsubscribing from *all* channels resets last `timetoken` (possible message gaps).
 
-#### Method
+### Method
+
 ```
 `unsubscribe(  
     channels: channels,  
     channel_groups: group,  
-    http_sync: http_sync,        # default false  
+    http_sync: http_sync,  
     callback: callback  
 )  
 `
 ```
 
-#### Basic example
+### Example
+
 ```
 `pubnub.unsubscribe(  
     channel: 'my_channel'  
@@ -359,7 +406,8 @@ end
 `
 ```
 
-##### Response
+#### Response
+
 ```
 `#  
     @status = {  
@@ -374,7 +422,8 @@ end
 `
 ```
 
-#### Multiple channels / groups
+### Multiple channel/group examples
+
 ```
 `pubnub.unsubscribe(  
     channel: ['chan1','chan2','chan3']  
@@ -383,6 +432,7 @@ end
 end  
 `
 ```
+
 ```
 `pubnub.unsubscribe(  
     channel: ['chan1','chan2','chan3']  
@@ -391,24 +441,25 @@ end
 end  
 `
 ```
+
 ```
 `{  
     "action" : "leave"  
 }  
 `
 ```
+
 ```
 `pubnub.leave(channel_group: "cg1") do |envelope|  
     puts envelope.status  
 end  
 `
 ```
+
 ```
 `pubnub.leave(group: ["cg1", "cg2"]) do |envelope|**    puts envelope  
 end  
 `
 ```
 
----
-
-_Last updated Jun 16 2025_
+_Last updated: Jul 15 2025_

@@ -1,34 +1,34 @@
-# Message Actions API (Kotlin SDK)
+# Message Actions API for Kotlin SDK
 
 ## Breaking changes in v9.0.0
-• Kotlin and Java SDKs merged.  
-• New client instantiation, new async callbacks, different status events.  
-See the Java/Kotlin migration guide for details.
+v9.0.0 unifies Kotlin and Java SDKs, introduces a new client instantiation model, and changes async callbacks/status events. Review the Java/Kotlin SDK migration guide before upgrading.
 
 ## Request execution
-Every SDK call returns an `Endpoint`. **Always finish with `.sync()` or `.async {}`**.
+All API calls return an Endpoint; invoke `.sync()` or `.async()` to execute.
 
-```kotlin
+```
 `val channel = pubnub.channel("channelName")  
   
 channel.publish("This SDK rules!").async { result ->  
-    result.onFailure { ex -> /* error */ }  
-          .onSuccess { /* success */ }  
+    result.onFailure { exception ->  
+        // Handle error  
+    }.onSuccess { value ->  
+        // Handle successful method result  
+    }  
 }  
 `
 ```
 
-## Message Actions vs. Reactions
-“Message Actions” = generic metadata (receipts, custom data).  
-“Message Reactions” = using actions specifically for emoji reactions.  
-Same API.
+## Message Actions vs. Message Reactions
+Message Actions is the low-level API for attaching metadata (receipts, custom data, etc.). When used for emoji/social reactions, it’s referred to as Message Reactions.
 
 ---
 
-## Add Message Action (Requires Message Persistence)
+## Add Message Reaction  
+Requires Message Persistence to be enabled.
 
 ### Method
-```kotlin
+```
 `pubnub.addMessageAction(  
     channel: String,  
     messageAction: PNMessageAction  
@@ -36,35 +36,35 @@ Same API.
 `
 ```
 
-Parameters  
-• `channel` (String) – target channel  
-• `messageAction` (PNMessageAction) – see structure below
+### Parameters  
+• `channel: String` – Target channel.  
+• `messageAction: PNMessageAction` – Contains `type`, `value`, and original message `messageTimetoken`.
 
-### Returns
-`PNAddMessageActionResult`  
-• `type` (String)  
-• `value` (String)  
-• `uuid` (String) – publisher  
-• `actionTimetoken` (String) – action creation time  
-• `messageTimetoken` (Long) – original message time
+### Returns (`PNAddMessageActionResult`)
+• `type: String` – Action type.  
+• `value: String` – Action value.  
+• `uuid: String` – Publisher UUID.  
+• `actionTimetoken: String` – Action creation timetoken.  
+• `messageTimetoken: Long` – Original message timetoken.
 
 ### PNMessageAction
-• `type` (String)  
-• `value` (String)  
-• `messageTimetoken` (Long)
+• `type: String`  
+• `value: String`  
+• `messageTimetoken: Long`
 
-#### Basic usage
-```kotlin
+##### Sample code
+```
 `  
 `
 ```
 
 ---
 
-## Remove Message Action (Requires Message Persistence)
+## Remove Message Reaction  
+Requires Message Persistence.
 
 ### Method
-```kotlin
+```
 `pubnub.removeMessageAction(  
     channel: String,  
     messageTimetoken: Long,  
@@ -73,58 +73,58 @@ Parameters
 `
 ```
 
-Parameters  
-• `channel` (String) – channel name  
-• `messageTimetoken` (Long) – original message time  
-• `actionTimetoken` (Long) – action time
+### Parameters  
+• `channel: String` – Channel name.  
+• `messageTimetoken: Long` – Original message timetoken.  
+• `actionTimetoken: Long` – Timetoken of the action to remove.
 
-Returns: empty (success/error only)
+### Returns  
+No actionable data (empty response).
 
-#### Basic usage
-```kotlin
+##### Sample code
+```
 `  
 `
 ```
 
 ---
 
-## Get Message Actions (Requires Message Persistence)
+## Get Message Reactions  
+Requires Message Persistence.
 
 ### Method
-```kotlin
+```
 `pubnub.getMessageActions(  
     channel: String,  
     page: PNBoundedPage  
-)  
-`
+)`  
 ```
 
-Parameters  
-• `channel` (String)  
-• `page` (PNBoundedPage) – pagination; `limit` <= 100, `start`, `end`
+### Parameters  
+• `channel: String` – Channel to query.  
+• `page: PNBoundedPage` – Pagination object (`limit` ≤ 100, `start`, `end`).
 
-### Returns
-List<PNGetMessageActionsResult?>
+### Returns (`PNGetMessageActionsResult?`)
+• `type: String`  
+• `value: String`  
+• `uuid: String`  
+• `actionTimetoken: String`  
+• `messageTimetoken: Long`  
+• `page: PNBoundedPage?` – Indicates additional data availability.
 
-Each item:  
-• `type` (String)  
-• `value` (String)  
-• `uuid` (String)  
-• `actionTimetoken` (String)  
-• `messageTimetoken` (Long)  
-• `page` (PNBoundedPage) – non-null when more data is available
-
-#### Basic usage
-```kotlin
+##### Sample code
+```
 `  
 `
 ```
 
 ---
 
-## Other example
-```kotlin
+## Other examples
+
+#### Fetch messages with paging
+```
 `**`
 ```
 
-_Last updated: Jun 10 2025_
+_Last updated: Jul 15, 2025_

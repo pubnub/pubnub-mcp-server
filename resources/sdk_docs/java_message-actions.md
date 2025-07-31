@@ -1,14 +1,12 @@
-# Message Actions API – Java SDK (v9+)
+# Message Actions API (Java SDK ≥ 9.0.0)
 
-*Requires Message Persistence to be enabled in the Admin Portal.*
+Message Actions (a.k.a. Message Reactions) let you attach metadata—emoji, receipts, custom data—to any published message. All operations require Message Persistence to be enabled for your key.
 
-v9.0.0 unified Java/Kotlin SDKs, changed client instantiation, async callbacks, and status events. See the migration guide for upgrading from < 9.0.0.
-
-Message Actions let you attach arbitrary metadata (reactions, receipts, etc.) to existing messages and receive those events in real time or via history.
+> v9.0.0 introduces unified Java/Kotlin codebases, a new client–instantiation pattern, and new async callbacks/status events. For details see the Java/Kotlin migration guide.
 
 ---
 
-## Add Message Action
+## Add Message Reaction
 
 ### Method
 
@@ -19,36 +17,38 @@ Message Actions let you attach arbitrary metadata (reactions, receipts, etc.) to
 `
 ```
 
-### Parameters
+Parameter | Type | Description
+--- | --- | ---
+channel | String | Channel to add the message action to.
+messageAction | PNMessageAction | Contains type, value, and the original message’s publish timetoken.
+async | Consumer<Result> | Consumer of `PNAddMessageActionResult`.
 
-* `channel` (String) – target channel.  
-* `messageAction` (PNMessageAction) – object with `type`, `value`, and the original message’s publish `timetoken`.  
-* `async` (Consumer<Result>) – callback returns `PNAddMessageActionResult`.
+### Returns — PNAddMessageActionResult
+Method | Type | Meaning
+--- | --- | ---
+getType() | String | Action type.
+getValue() | String | Action value.
+getUuid() | String | Publisher UUID.
+getActionTimetoken() | Long | Creation timetoken of this action.
+getMessageTimetoken() | Long | Original message timetoken.
 
-### Basic usage
+### PNMessageAction (builder / setters)
+Method | Type | Purpose
+--- | --- | ---
+setType() | String | Define action type.
+setValue() | String | Define action value.
+setMessageTimetoken() | Long | Timetoken of message the action refers to.
+
+### Sample
 
 ```
 `  
 `
 ```
 
-### Result (`PNAddMessageActionResult`)
-
-* `getType()` → String – action type  
-* `getValue()` → String – action value  
-* `getUuid()` → String – publisher UUID  
-* `getActionTimetoken()` → Long – action creation timetoken  
-* `getMessageTimetoken()` → Long – original message timetoken  
-
-#### PNMessageAction setters
-
-* `setType(String)`  
-* `setValue(String)`  
-* `setMessageTimetoken(Long)`
-
 ---
 
-## Remove Message Action
+## Remove Message Reaction
 
 ### Method
 
@@ -60,27 +60,26 @@ Message Actions let you attach arbitrary metadata (reactions, receipts, etc.) to
 `
 ```
 
-### Parameters
+Parameter | Type | Description
+--- | --- | ---
+channel | String | Channel containing the action.
+messageTimetoken | Long | Timetoken of the parent message.
+actionTimetoken | Long | Timetoken of the action to remove.
+async | Consumer<Result> | Consumer of `PNRemoveMessageActionResult`.
 
-* `channel` (String) – channel name  
-* `messageTimetoken` (Long) – original message timetoken  
-* `actionTimetoken` (Long) – timetoken of the action to remove  
-* `async` (Consumer<Result>) – callback returns `PNRemoveMessageActionResult` (empty payload)
+### Returns  
+No payload (empty result).
 
-### Basic usage
+### Sample
 
 ```
 `  
 `
 ```
 
-*No data is returned.*
-
 ---
 
-## Get Message Actions
-
-Returns actions ordered by `actionTimetoken` ascending. Responses may be truncated; when `more` is returned, re-query with provided values.
+## Get Message Reactions
 
 ### Method
 
@@ -93,35 +92,32 @@ Returns actions ordered by `actionTimetoken` ascending. Responses may be truncat
 `
 ```
 
-### Parameters
+Parameter | Type | Default | Description
+--- | --- | --- | ---
+channel | String | — | Channel name.
+start | Long | — | Return actions with timetoken < start.
+end | Long | — | Return actions with timetoken ≥ end.
+limit | Integer | 100 | Max 100 actions.
+async | Consumer<Result> | — | Consumer of `PNGetMessageActionsResult`.
 
-* `channel` (String) – required  
-* `start` (Long) – return actions with `timetoken` < start  
-* `end` (Long) – return actions with `timetoken` ≥ end  
-* `limit` (Integer, default/max 100) – number of actions  
-* `async` (Consumer<Result>) – callback returns `PNGetMessageActionsResult`
+If results are truncated, a `more` object is returned; use its values for subsequent paged calls.
 
-### Basic usage
+### Returns — PNGetMessageActionsResult list
+Same getters as `PNAddMessageActionResult` (type, value, uuid, actionTimetoken, messageTimetoken).
+
+### Sample
 
 ```
 `  
 `
 ```
 
-### Result (`PNGetMessageActionsResult`)
-
-* `getType()` → String  
-* `getValue()` → String  
-* `getUuid()` → String  
-* `getActionTimetoken()` → Long  
-* `getMessageTimetoken()` → Long  
-
 ---
 
-### Other Example – Fetch Messages with paging
+## Other Examples
 
 ```
 `**`
 ```
 
-_Last updated: Jun 10, 2025_
+_Last updated Jul 15 2025_

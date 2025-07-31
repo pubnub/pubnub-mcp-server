@@ -1,18 +1,16 @@
-# Utility Methods – Ruby SDK (Misc)
+# Utility Methods API – Ruby SDK (Misc)
 
 ## Time
 
-Returns a 17-digit Unix epoch (“timetoken”).
+Returns a 17-digit timetoken (Unix epoch [s] × 10 000 000).
 
-##### Algorithm
-
+##### Algorithm constructing the timetoken
 ```
 `timetoken = (Unix epoch time in seconds) * 10000000  
 `
 ```
 
-##### Convert between Time and timetoken
-
+##### Convert between `Time` and timetoken
 ```
 `now = Time.now  
 2012-11-02 14:27:11 -0700  
@@ -25,8 +23,7 @@ Time.at(timetoken / 10000000)
 `
 ```
 
-### Ruby API
-
+### Method
 ```
 `time(  
     http_sync: http_sync,  
@@ -35,16 +32,11 @@ Time.at(timetoken / 10000000)
 `
 ```
 
-Parameters  
-• **http_sync** (Boolean, default `false`)  
-  – `false`: asynchronous, returns a future; call `.value` to obtain the `Envelope`.  
-  – `true` : synchronous, returns an `Envelope` (inside an array if multiple results).  
+Parameter details  
+• `http_sync` (Boolean, default `false`) – `true` ➜ synchronous, returns an `Envelope` (or an array of them); `false` ➜ asynchronous, returns a future (`value` blocks until available).  
+• `callback` (Proc/Lambda) – executed once per `Envelope`.
 
-• **callback** (Lambda)  
-  – Executed for each `Envelope` in async mode. Not used when `http_sync: true`.
-
-### Example
-
+### Sample code
 ```
 `require 'pubnub'  
   
@@ -65,10 +57,9 @@ def main
 ```
 (show all 26 lines)
 
-### Server Response
-
+### REST response example
 ```
 `13769501243685161**`
 ```
 
-_Last updated: Mar 31 2025_
+_Last updated: Jul 15 2025_

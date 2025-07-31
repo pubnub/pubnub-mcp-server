@@ -1,11 +1,12 @@
-# Access Manager v3 – C# SDK (Concise Reference)
+# Access Manager v3 – C# SDK (Condensed)
 
-Access Manager lets your server issue time-limited tokens that encode fine-grained permissions for PubNub resources.  
-Enable the **Access Manager** add-on (and, for revocation, “Revoke v3 Token”) in the Admin Portal before using these APIs.
+> ALL code blocks, method signatures, parameters, and examples are preserved verbatim.
 
 ---
 
-## Error Handling Pattern
+## Request Execution
+
+We recommend wrapping SDK calls in `try/catch`.  
 ```
 `try  
 {  
@@ -15,154 +16,71 @@ Enable the **Access Manager** add-on (and, for revocation, “Revoke v3 Token”
         .ExecuteAsync();  
   
     PNStatus status = publishResponse.Status;  
-  
     Console.WriteLine("Server status code : " + status.StatusCode.ToString());  
 }  
 catch (Exception ex)  
 {  
     Console.WriteLine($"Request can't be executed due to error: {ex.Message}");  
-}  
-`
+}`  
 ```
 
 ---
 
-## GrantToken()
+## Grant Token
 
-### Signature
-```
-`pubnub.GrantToken()  
-      .TTL(int)                      // 1-43 200 minutes (required)  
-      .Meta(Dictionary<string,object>)  
-      .AuthorizedUuid(string)        // restrict token to single UUID  
-      .Resources(PNTokenResources)   // explicit lists  
-      .Patterns(PNTokenPatterns)     // RegEx permissions  
-      .QueryParam(Dictionary<string,object>)  
-`
-```
+Requires *Access Manager* add-on.
 
-`Execute( PNCallback<PNAccessManagerTokenResult> )`  
-`ExecuteAsync() → PNResult<PNAccessManagerTokenResult>`
-
-### Permission Objects
-• `PNTokenResources` / `PNTokenPatterns`  
-  • `Channels` - `read, write, get, manage, update, join, delete`  
-  • `ChannelGroups` - `read, manage`  
-  • `Uuids` - `get, update, delete`  
-  (use `PNTokenAuthValues` booleans: `Read, Write, Manage, Delete, Get, Update, Join`)
-
-At least one permission (resource or pattern) is mandatory.
-
-### Return
-`PNResult<PNAccessManagerTokenResult>` → `Token` (string) and `PNStatus`.
-```
-`{ "Token":"p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6...WGJI"}  
-`
-```
-
-### Examples
-_All sample blocks preserved as supplied in original doc_
-```
-`  
-`
-```
-```
-`  
-`
-```
-```
-`  
-`
-```
-
----
-
-## RevokeToken()
-
-### Signature
-```
-`pubnub.RevokeToken()  
-        .Token(string)               // previously issued token (required)  
-        .QueryParam(Dictionary<string,object>)  
-`
-```
-
-`Execute( PNCallback<PNAccessManagerRevokeTokenResult> )`  
-`ExecuteAsync() → PNResult<PNAccessManagerRevokeTokenResult>`
-
-### Examples
-```
-`  
-`
-```
-
----
-
-## ParseToken()
-
-```
-`ParseToken(String token)  
-`
-```
-Returns decoded permissions object (useful for debugging).
-```
-`  
-`
-```
-```
-`  
-`
-```
-
----
-
-## SetAuthToken()  (client-side)
-
-```
-`SetAuthToken(String token)  
-`
-```
-Applies a new token to the current PubNub instance.
-```
-`  
-`
-```
-
----
-
-## Deprecated: Spaces & Users GrantToken()
-
-(Use standard `GrantToken()` instead.)
-
-### Signature
+### Method
 ```
 `pubnub.GrantToken()  
       .TTL(int)  
-      .Meta(Dictionary<string,object>)  
-      .AuthorizedUserId(string)  
-      .Resources(PNTokenResources)    // Spaces, Users  
-      .Patterns(PNTokenPatterns)      // RegEx for Spaces, Users  
-      .QueryParam(Dictionary<string,object>)  
-`
-```
-Permissions: `Spaces` and `Users` with the same action flags as above.
-
-### Return / Example Token
-Same as current API.
-```
-`{ "Token":"p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6...WGJI"}  
-`
+      .Meta(Dictionarystring, object>)  
+      .AuthorizedUuid(string)  
+      .Resources(PNTokenResources)  
+      .Patterns(PNTokenPatterns)  
+      .QueryParam(Dictionarystring, object>)`  
 ```
 
-### Example Blocks
+### Parameters (essential)
+
+* **TTL (int)** – 1 … 43 ,200 min (required).  
+* **AuthorizedUuid (string)** – restricts token to one client.  
+* **Resources / Patterns** – `PNTokenResources / PNTokenPatterns` objects with per-resource `PNTokenAuthValues`.  
+* **Meta** – `Dictionary<string,object>` (scalar values only).  
+* **Execute / ExecuteAsync** – sync callback or `PNResult<PNAccessManagerTokenResult>`.
+
+`PNTokenAuthValues` boolean flags: `Read`, `Write`, `Manage`, `Delete`, `Get`, `Update`, `Join`.
+
+At least one permission must be set on Channels, ChannelGroups, or Uuids (or RegEx patterns).
+
+### Sample Code
 ```
 `  
 `
 ```
+
+### Return
+`PNResult<PNAccessManagerTokenResult>` → `Token` string.
+```
+`{ "Token":"p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI" }`  
+```
+
+### Error
+HTTP 400 on invalid input (e.g., bad RegEx, timestamp, or permissions).
+
+#### Example: Mixed permissions in one call
 ```
 `  
 `
 ```
+
+#### Example: RegEx read access
+```
+`  
+`
+```
+
+#### Example: Resources + RegEx in one grant
 ```
 `  
 `
@@ -170,9 +88,85 @@ Same as current API.
 
 ---
 
-## Error Codes
-400 Bad Request – invalid/missing arguments (TTL, RegEx, timestamp, etc.)  
-403 Forbidden – unauthorized or bad token  
-503 Service Unavailable – network/server issue
+## Revoke Token
 
-_Last updated Jun 30 2025_
+Requires *Access Manager* add-on (enable “Revoke v3 Token” in portal).
+
+### Method
+```
+`pubnub.RevokeToken()  
+        .Token(string)  
+        .QueryParam(Dictionarystring, object>)`  
+```
+
+### Parameters
+* **Token (string)** – previously granted v3 token.  
+* **Execute / ExecuteAsync** – returns `PNResult<PNAccessManagerRevokeTokenResult>`.
+
+### Sample
+```
+`  
+`
+```
+
+### Errors
+May return 400, 403, 503.
+
+---
+
+## Parse Token
+```
+`ParseToken(String token)`  
+```
+Returns decoded permission object.
+```
+`  
+`
+```
+
+---
+
+## Set Token
+```
+`SetAuthToken(String token)`  
+```
+No return value.
+```
+`  
+`
+```
+
+---
+
+## Grant Token – Spaces & Users (Deprecated)
+
+Use the standard `GrantToken()` instead. API, parameters, and code blocks remain identical except:
+
+* `AuthorizedUserId` replaces `AuthorizedUuid`.
+* Resources/Patterns contain `Spaces` and `Users`.
+
+### Method
+```
+`pubnub.GrantToken()  
+      .TTL(int)  
+      .Meta(Dictionarystring, object>)  
+      .AuthorizedUserId(string)  
+      .Resources(PNTokenResources)  
+      .Patterns(PNTokenPatterns)  
+      .QueryParam(Dictionarystring, object>)`  
+```
+
+`PNTokenResources / PNTokenPatterns` hold `Spaces` and `Users`.
+
+### Sample / Other Examples
+```
+`  
+`
+```
+
+### Error
+Same 400 response rules as current API.
+
+---
+
+_Last updated: Jul 15 2025_

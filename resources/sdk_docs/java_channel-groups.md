@@ -1,109 +1,108 @@
-# Channel Groups API (Java SDK)
+# Channel Groups API – Java SDK
 
-## Notes for v9.0.0  
-Version 9.0.0 merges Java and Kotlin SDKs, changes client instantiation, async callbacks, and status events. See the Java/Kotlin SDK migration guide for details.
+> PubNub Java SDK v9.0.0 merges Java & Kotlin codebases, introduces a new client constructor, and changes async callbacks/status events. Applications built with <9.0.0 **must** follow the migration guide.
 
-## Channel Group Operations
-• You can only *subscribe* to a channel group; publishing must target individual channels.  
-• Stream Controller add-on required for all operations below.  
-• Max 200 channels may be added per call.
+Channel Groups bundle many channels under one name.  
+• You can **subscribe**, **not publish**, to a group.  
+• Every operation below requires the **Stream Controller** add-on.
 
 ---
 
-## Add Channels
+## Add channels to a channel group
+Maximum 200 channels per call.
 
-### Method
+```java
+this.pubnub.addChannelsToChannelGroup()
+    .channelGroup(String)
+    .channels(Array)
 ```
-`this.pubnub.addChannelsToChannelGroup()  
-    .channelGroup(String)  
-    .channels(Array)  
-`
-```
-Parameters  
-• `channelGroup` (String): target group  
-• `channels` (Array): channels to add  
-• `async` (Consumer<Result<PNChannelGroupsAddChannelResult>>)
 
-### Basic Usage
+Parameter | Type | Description
+--------- | ---- | -----------
+channelGroup | String | Target group
+channels | Array<String> | Channels to add
+async | Consumer<Result<PNChannelGroupsAddChannelResult>> | Completion callback
+
+Sample:
+
 ```
 `  
 `
 ```
 
-### Response  
-No actionable data; inspect `result.isFailure()` or `result.onFailure(...)`.
+Response: no payload—use `result.isFailure()` or `result.onFailure(e -> { ... })`.
 
 ---
 
-## List Channels
+## List channels in a channel group
 
-### Method
+```java
+pubnub.listChannelsForChannelGroup()
+    .channelGroup(String)
+    .async(result -> { /* check result */ });
 ```
-`pubnub.listChannelsForChannelGroup()  
-    .channelGroup(String)  
-    .async(result -> { /* check result */ });  
-`
-```
-Parameters  
-• `channelGroup` (String): group to query  
-• `async` (Consumer<Result<PNChannelGroupsAllChannelsResult>>)
 
-### Basic Usage
+Parameter | Type | Description
+--------- | ---- | -----------
+channelGroup | String | Group to query
+async | Consumer<Result<PNChannelGroupsAllChannelsResult>> | Completion callback
+
+Sample:
+
 ```
 `  
 `
 ```
 
-### Returns  
-`PNChannelGroupsAllChannelsResult`  
+Return object: `PNChannelGroupsAllChannelsResult`  
 • `getChannels()` → `List<String>`
 
 ---
 
-## Remove Channels
+## Remove channels from a channel group
 
-### Method
+```java
+pubnub.removeChannelsFromChannelGroup()
+    .channelGroup(String)
+    .channels(Array)
 ```
-`pubnub.removeChannelsFromChannelGroup()  
-    .channelGroup(String)  
-    .channels(Array)  
-`
-```
-Parameters  
-• `channels` (Array): channels to remove  
-• `channelGroup` (String): target group  
-• `async` (Consumer<Result<PNChannelGroupsRemoveChannelResult>>)
 
-### Basic Usage
+Parameter | Type | Description
+--------- | ---- | -----------
+channels | Array<String> | Channels to remove
+channelGroup | String | Target group
+async | Consumer<Result<PNChannelGroupsRemoveChannelResult>> | Completion callback
+
+Sample:
+
 ```
 `  
 `
 ```
 
-### Response  
-No actionable data; inspect `result.isFailure()` or `result.onFailure(...)`.
+Response: no payload—check `result.isFailure()` / `onFailure`.
 
 ---
 
-## Delete Channel Group
+## Delete a channel group
 
-### Method
+```java
+pubnub.deleteChannelGroup()
+    .channelGroup(String)
 ```
-`pubnub.deleteChannelGroup()  
-    .channelGroup(String)  
-`
-```
-Parameters  
-• `channelGroup` (String): group to delete  
-• `async` (Consumer<Result<PNChannelGroupsDeleteGroupResult>>)
 
-### Basic Usage
+Parameter | Type | Description
+--------- | ---- | -----------
+channelGroup | String | Group to delete
+async | Consumer<Result<PNChannelGroupsDeleteGroupResult>> | Completion callback
+
+Sample:
+
 ```
 `  
 `
 ```
 
-### Response  
-No actionable data; inspect `result.isFailure()` or `result.onFailure(...)`.
+Response: no payload—check `result.isFailure()` / `onFailure`.
 
-_Last updated: May 28 2025_
+_Last updated: Jul 15 2025_

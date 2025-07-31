@@ -1,28 +1,22 @@
-# PubNub JavaScript SDK – Publish & Subscribe (Condensed)
+# Publish/Subscribe API – JavaScript SDK (Condensed)
 
-This condensed reference keeps every code block, method signature, parameter list, and critical technical detail from the original documentation while removing redundant prose.
-
----
-
-## Initialization
-
-• `publishKey` required for `publish()`/`fire()`  
-• `subscribeKey` required for `subscribe()`  
-• TLS: set `ssl: true` at initialization  
-• Optional end-to-end encryption: configure `cryptoModule`
+##### Supported async patterns  
+Callbacks, Promises, Async/Await (recommended).
 
 ---
 
 ## Publish
 
-### Limits & Best Practices
-• One channel per call, ≤ 32 KiB payload (ideal < 1.8 KiB)  
-• Publish serially, confirm success, retry on failure  
-• Message queue per subscriber: 100; throttle bursts (≈ 5 msg/s)  
-• Do **not** JSON-serialize `message` or `meta`.
+`publish()` delivers a JSON-serializable `message` (≤ 32 KiB, optimal < 1800 B) to all subscribers of a single `channel`.  
+Requirements & notes:  
+• Initialize with a `publishKey`.  
+• SSL/TLS via `ssl:true`; optional payload encryption.  
+• One channel per publish; send serially and check success (`[1,"Sent", "..."]`).  
+• In-memory queue = 100 messages—throttle bursts (≈ ≤ 5 msg/s).  
+• Optional `customMessageType` (3-50 alphanum, `-`/`_` allowed, not `pn_`/`pn-`).  
+• Do NOT pre-serialize `message`/`meta`.
 
 ### Method
-
 ```
 `pubnub.publish({  
     message: any,  
@@ -35,29 +29,12 @@ This condensed reference keeps every code block, method signature, parameter lis
 }): PromisePublishResponse>;  
 `
 ```
-
-Parameter notes  
-• `message` – any JSON value  
-• `channel` – target channel  
-• `storeInHistory` (default `true`) – disable to skip persistence  
-• `sendByPost` – HTTP POST + compression  
-• `ttl` – per-message TTL (hours)  
-• `customMessageType` – 3-50 chars, alphanumeric/`-_`, cannot start with `pn_`/`pn-`
-
-### Basic Usage
-
-```
-`  
-`
-```
-
-```
-`  
-`
-```
+Parameter highlights  
+• `storeInHistory` (default `true`).  
+• `sendByPost` (default `false`) uses compressed HTTP POST.  
+• `ttl` – Message Persistence TTL (hours).  
 
 ### Response
-
 ```
 `type PublishResponse = {  
     timetoken: number  
@@ -65,28 +42,35 @@ Parameter notes
 `
 ```
 
-### Other Examples
-
+### Code samples (kept verbatim)
+#### Publish a message to a channel
 ```
 `  
 `
 ```
-
 ```
 `  
 `
 ```
+(Subscribe beforehand to see the message.)
 
+Other examples:
 ```
 `  
 `
 ```
-
 ```
 `  
 `
 ```
-
+```
+`  
+`
+```
+```
+`  
+`
+```
 ```
 `  
 `
@@ -96,10 +80,9 @@ Parameter notes
 
 ## Fire
 
-`fire()` triggers Functions/Event Handlers only—no replication, no history.
+`fire()` sends a message only to Functions Event Handlers / Illuminate; it is NOT replicated nor stored in history.
 
 ### Method
-
 ```
 `fire({  
     Object message,  
@@ -110,8 +93,7 @@ Parameter notes
 `
 ```
 
-### Example
-
+### Sample
 ```
 `  
 `
@@ -121,10 +103,9 @@ Parameter notes
 
 ## Signal
 
-Payload limit: 64 bytes (contact support to raise).
+Lightweight messages (payload ≤ 64 B by default) to all channel subscribers.
 
 ### Method
-
 ```
 `pubnub.signal({  
     message: string,  
@@ -134,15 +115,7 @@ Payload limit: 64 bytes (contact support to raise).
 `
 ```
 
-### Example
-
-```
-`  
-`
-```
-
 ### Response
-
 ```
 `type SignalResponse = {  
     timetoken: number  
@@ -150,20 +123,25 @@ Payload limit: 64 bytes (contact support to raise).
 `
 ```
 
+### Sample
+```
+`  
+`
+```
+
 ---
 
 ## Subscribe
 
-### subscription vs. subscriptionSet
-• `subscription` – entity-scoped  
-• `subscriptionSet` – client/global scope
+Requires `subscribeKey`. Creates a TCP socket and listens for messages/events.
 
-### subscriptionOptions
-• `receivePresenceEvents` (boolean)  
-• `cursor?: { timetoken?: string; region?: number }`
+Subscription types  
+• `subscription` – entity-scoped.  
+• `subscriptionSet` – client-scoped.
 
-### Create Subscriptions
+Cursor (best-effort replay): `{ timetoken?: string; region?: number }`.
 
+### Create subscription
 ```
 `// entity-based, local-scoped  
 const channel = pubnub.channel('channel_1');  
@@ -171,6 +149,7 @@ channel.subscription(subscriptionOptions)
 `
 ```
 
+### Create subscription set
 ```
 `// client-based, general-scoped  
 pubnub.subscriptionSet({  
@@ -181,26 +160,19 @@ pubnub.subscriptionSet({
 `
 ```
 
-### Start Listening
-
+### Subscribe
 ```
 `subscription.subscribe()  
 subscriptionSet.subscribe()  
 `
 ```
+Returns: void.
 
+### Examples
 ```
 `  
 `
 ```
-
-#### Other Examples
-
-```
-`  
-`
-```
-
 ```
 `  
 `
@@ -208,45 +180,39 @@ subscriptionSet.subscribe()
 
 ---
 
-## Entities (Helpers)
+## Entities
 
-Create a local reference, then call `.subscription()` as needed.
-
+Factory methods (local only):
 ```
 `pubnub.channel(string)  
 `
 ```
-
-```
-`  
-`
-```
-
 ```
 `pubnub.channelGroup(string)  
 `
 ```
-
-```
-`  
-`
-```
-
 ```
 `pubnub.channelMetadata(string)  
 `
 ```
-
-```
-`  
-`
-```
-
 ```
 `pubnub.userMetadata(string)  
 `
 ```
 
+Samples:
+```
+`  
+`
+```
+```
+`  
+`
+```
+```
+`  
+`
+```
 ```
 `  
 `
@@ -254,50 +220,42 @@ Create a local reference, then call `.subscription()` as needed.
 
 ---
 
-## Event Listeners
+## Event listeners
 
-Attach listeners to `subscription`, `subscriptionSet`, or the PubNub client.
-
-```
-`  
-`
-```
-
-### Connection Status Listener (client-only)
+Attach with `addListener()` to `subscription`, `subscriptionSet`, or client (connection status).
 
 ```
 `  
 `
 ```
-
 ```
 `  
 `
 ```
+
+Connection-status listener (client only):
+```
+`  
+`
+```
+```
+`  
+`
+```
+Returns: subscription status object.
 
 ---
 
 ## Unsubscribe
 
+Stop updates for a subscription or set:
 ```
 `subscription.unsubscribe()  
   
 subscriptionSet.unsubscribe()  
 `
 ```
-
-```
-`  
-`
-```
-
-## Unsubscribe All (client scope)
-
-```
-`pubnub.unsubscribeAll()  
-`
-```
-
+Sample:
 ```
 `  
 `
@@ -305,4 +263,18 @@ subscriptionSet.unsubscribe()
 
 ---
 
-All original code blocks are preserved; only explanatory text has been condensed.
+## Unsubscribe all (client scope)
+
+```
+`pubnub.unsubscribeAll()  
+`
+```
+Sample:
+```
+`  
+`
+```
+
+---
+
+(End of condensed documentation – all original code blocks preserved.)

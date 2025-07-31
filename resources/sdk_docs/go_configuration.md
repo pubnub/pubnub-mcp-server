@@ -1,350 +1,268 @@
-# PubNub Go SDK – Configuration (Condensed)
+# PubNub Go SDK – Configuration (condensed)
 
-This is a stripped-down reference. All properties, signatures, defaults, and examples are intact; descriptive text is minimized.
-
----
-
-## Create a `Config`
-
-```
-`config := pubnub.NewConfigWithUserId(UserId)  
-`
-```
-
-`UserId` **must** be set or the client can’t connect.
+Complete API reference: https://godoc.org/github.com/pubnub/go
 
 ---
 
-## Config Fields
+## 1. Creating a configuration object
+```go
+config := pubnub.NewConfigWithUserId(UserId)
+```
 
-* **SubscribeKey** `string` – required for all clients.  
-* **PublishKey** `string` – required only if publishing.  
-* **SecretKey** `string` – required for PAM management.  
-* **SetUserId(UserId)** – unique UTF-8 ID (≤ 92 chars).  
-* **AuthKey** `string` – PAM token sent with every request.  
-* **Secure** `bool` (default `true`) – TLS on/off.  
-* **MessageQueueOverflowCount** `int` (default `100`) – fires `PNRequestMessageCountExceededCategory`.  
-* **ConnectTimeout** `int` (sec, default `5`).  
-* **SubscribeRequestTimeout** `int` (sec, default `310`).  
-* **NonSubscribeRequestTimeout** `int` (sec, default `10`).  
-* **FilterExpression** `string` – server-side stream filter.  
-* **Origin** `string` (default `ps.pndsn.com`).  
-* **MaximumReconnectionRetries** `int` (default `-1` = unlimited).  
-* **SetPresenceTimeout(timeoutSec int)** – presence TTL.  
-* **SetPresenceTimeoutWithCustomInterval(timeoutSec, intervalSec int)** – heartbeat control.  
-* **SuppressLeaveEvents** `bool`.  
-* **MaxIdleConnsPerHost** `int` (default `30`).  
-* **FileMessagePublishRetryLimit** `int` (default `5`).  
-* **CryptoModule** `crypto.*` – encryption engine (see below).  
-* **CipherKey / UseRandomInitializationVector** – DEPRECATED (use `CryptoModule`).  
-* **UUID** `string` – DEPRECATED (use `UserId`).  
+## 2. Config fields
 
-Random IV should stay enabled for all new apps.
+| Field | Type | Default | Notes |
+|-------|------|---------|-------|
+| SubscribeKey* | string | — | Required. From Admin Portal. |
+| PublishKey | string | — | Required only if publishing. |
+| SecretKey | string | — | Required only for PAM grant/revoke. |
+| SetUserId* | UserId | — | Required. UTF-8 string ≤92 chars. |
+| AuthKey | string | — | Sent with PAM–protected requests. |
+| Secure | bool | true | TLS on/off. |
+| MessageQueueOverflowCount | int | 100 | Fires `PNRequestMessageCountExceededCategory`. |
+| ConnectTimeout | int | 5 s | Dial timeout. |
+| SubscribeRequestTimeout | int | 310 s | Long-poll duration. |
+| NonSubscribeRequestTimeout | int | 10 s | REST call timeout. |
+| FilterExpression | string | — | Stream Controller filter. |
+| Origin | string | ps.pndsn.com | Custom domain if needed. |
+| MaximumReconnectionRetries | int | −1 | −1 = unlimited. |
+| SetPresenceTimeout | int | 0 | Presence TTL. |
+| SetPresenceTimeoutWithCustomInterval | int | 0 | Heartbeat interval. Recommended `(timeout/2)-1`. |
+| SuppressLeaveEvents | bool | false | Skip leave. |
+| MaxIdleConnsPerHost | int | 30 | HTTP transport tuning. |
+| FileMessagePublishRetryLimit | int | 5 | Retries on file-publish failure. |
+| CryptoModule | crypto.Module | — | See section below. |
+| CipherKey (deprecated) | string | — | Pass via CryptoModule instead. |
+| UseRandomInitializationVector (deprecated) | bool | true | Pass via CryptoModule instead. |
+| UUID (deprecated) | string | — | Use `UserId` instead. |
+
+*required
+
+### Disable random IV  
+Only for pre-5.0.0 compatibility. Never disable for new apps.
 
 ---
 
-## CryptoModule
+## 3. CryptoModule
 
-Two bundled options:
+Two built-in modules:
 
+```go
+// 256-bit AES-CBC (recommended)
+config.CryptoModule = crypto.NewAesCbcCryptoModule("cipherKey", true)
+
+// 128-bit legacy cipher (backward-compatible)
+config.CryptoModule = crypto.NewLegacyModule("cipherKey", true)
 ```
-`// 256-bit AES-CBC (recommended)  
-config.CryptoModule = crypto.NewAesCbcCryptoModule("cipherKey", true)  
-  
-// 128-bit legacy cipher  
-config.CryptoModule = crypto.NewLegacyModule("cipherKey", true)  
-`
-```
+If `CryptoModule` is **not** set, the SDK falls back to legacy encryption when `CipherKey` is present.
 
-Older SDKs (< 7.1.2) cannot decrypt AES-CBC data.
+Older SDKs (< 7.1.2) can’t decrypt 256-bit AES-CBC data.
 
 ---
 
-## Basic Usage Example
+## 4. Sample configuration snippet
+```go
+package main
 
+import (
+	"fmt"
+	crypto "github.com/pubnub/go/v7/crypto"
+	pubnub "github.com/pubnub/go/v7"
+)
+
+func main() {
+	config := pubnub.NewConfigWithUserId("myUniqueUserId")
+	config.SubscribeKey = "demo"
+	config.PublishKey  = "demo"
+	config.SecretKey   = "mySecretKey"
+	config.Secure      = true
+	// …
+}
 ```
-`package main  
-  
-import (  
-	"fmt"  
-	crypto "github.com/pubnub/go/v7/crypto"  
-	pubnub "github.com/pubnub/go/v7"  
-)  
-  
-func main() {  
-	// Configure the PubNub instance  
-	config := pubnub.NewConfigWithUserId("myUniqueUserId")  
-	config.SubscribeKey = "demo"  // Use Demo keys for testing  
-	config.PublishKey = "demo"  
-	config.SecretKey = "mySecretKey"  
-	config.Secure = true  
-`
-```
-_show all 25 lines_
+(show all 25 lines)
 
 ---
 
-## Proxy Configuration
+## 5. Proxy configuration
 
-### Subscribe traffic
+Subscribe requests:
+```go
+var pn *pubnub.PubNub
+config = pubnub.NewConfigWithUserId(UserId("myUniqueUserId"))
+config.UseHTTP2 = false
 
-```
-`var pn *pubnub.PubNub  
-config = pubnub.NewConfigWithUserId(UserId("myUniqueUserId")  
-config.UseHTTP2 = false  
-  
-pn = pubnub.NewPubNub(config)  
-  
-transport := &http.Transport{  
-    MaxIdleConnsPerHost: pn.Config.MaxIdleConnsPerHost,  
-    Dial: (&net.Dialer{  
-        Timeout:   time.Duration(pn.Config.ConnectTimeout) * time.Second,  
-        KeepAlive: 30 * time.Minute,  
-    }).Dial,  
-    ResponseHeaderTimeout: time.Duration(pn.Config.SubscribeRequestTimeout) * time.Second,  
-}  
-proxyURL, err := url.Parse(fmt.Sprintf("http://%s:%s@%s:%d", "proxyUser", "proxyPassword", "proxyServer", 8080))  
-`
-```
-_show all 24 lines_
+pn = pubnub.NewPubNub(config)
 
-### Non-subscribe traffic
+transport := &http.Transport{
+    MaxIdleConnsPerHost: pn.Config.MaxIdleConnsPerHost,
+    Dial: (&net.Dialer{
+        Timeout:   time.Duration(pn.Config.ConnectTimeout) * time.Second,
+        KeepAlive: 30 * time.Minute,
+    }).Dial,
+    ResponseHeaderTimeout: time.Duration(pn.Config.SubscribeRequestTimeout) * time.Second,
+}
+proxyURL, err := url.Parse(fmt.Sprintf("http://%s:%s@%s:%d", "proxyUser", "proxyPassword", "proxyServer", 8080))
+```
+(show all 24 lines)
 
+Non-subscribe requests:
+```go
+var pn *pubnub.PubNub
+config = pubnub.NewConfigWithUserId(UserId("myUniqueUserId"))
+config.UseHTTP2 = false
+
+pn = pubnub.NewPubNub(config)
+
+transport := &http.Transport{
+    MaxIdleConnsPerHost: pn.Config.MaxIdleConnsPerHost,
+    Dial: (&net.Dialer{
+        Timeout:   time.Duration(pn.Config.ConnectTimeout) * time.Second,
+        KeepAlive: 30 * time.Minute,
+    }).Dial,
+    ResponseHeaderTimeout: time.Duration(pn.Config.NonSubscribeRequestTimeout) * time.Second,
+}
+proxyURL, err := url.Parse(fmt.Sprintf("http://%s:%s@%s:%d", "proxyUser", "proxyPassword", "proxyServer", 8080))
 ```
-`var pn *pubnub.PubNub  
-config = pubnub.NewConfigWithUserId(UserId("myUniqueUserId")  
-config.UseHTTP2 = false  
-  
-pn = pubnub.NewPubNub(config)  
-  
-transport := &http.Transport{  
-    MaxIdleConnsPerHost: pn.Config.MaxIdleConnsPerHost,  
-    Dial: (&net.Dialer{  
-        Timeout:   time.Duration(pn.Config.ConnectTimeout) * time.Second,  
-        KeepAlive: 30 * time.Minute,  
-    }).Dial,  
-    ResponseHeaderTimeout: time.Duration(pn.Config.NonSubscribeRequestTimeout) * time.Second,  
-}  
-proxyURL, err := url.Parse(fmt.Sprintf("http://%s:%s@%s:%d", "proxyUser", "proxyPassword", "proxyServer", 8080))  
-`
-```
-_show all 24 lines_
+(show all 24 lines)
 
 ---
 
-## Initialization
-
+## 6. Initializing the client
+```go
+pn := pubnub.NewPubNub(config)
 ```
-`pn := pubnub.NewPubNub(config)  
-`
-```
+Returns a ready-to-use `*pubnub.PubNub` instance (publish, subscribe, history, etc.).
 
 Example:
+```go
+package main
 
-```
-`package main  
-  
-import (  
-	"fmt"  
-	pubnub "github.com/pubnub/go/v7"  
-)  
-  
-func main() {  
-	config := pubnub.NewConfigWithUserId("myUniqueUserId")  
-	config.SubscribeKey = "demo"  
-	config.PublishKey = "demo"  
-  
-	// Initialize the PubNub instance  
-`
-```
-_show all 19 lines_
+import (
+	"fmt"
+	pubnub "github.com/pubnub/go/v7"
+)
 
-Other variants (non-secure / read-only):
+func main() {
+	config := pubnub.NewConfigWithUserId("myUniqueUserId")
+	config.SubscribeKey = "demo"
+	config.PublishKey  = "demo"
 
+	pn := pubnub.NewPubNub(config)
+	// …
+}
 ```
-`import (  
-    pubnub "github.com/pubnub/go"  
-)  
-  
-config := pubnub.NewConfigWithUserId("userId")  
-config.PublishKey = "my-pub-key"  
-config.SubscribeKey = "my-sub-key"  
-  
-pn := pubnub.NewPubNub(config)  
-`
-```
+(show all 19 lines)
 
-```
-`import (  
-    pubnub "github.com/pubnub/go"  
-)  
-  
-config := pubnub.NewConfigWithUserId("userId")  
-config.SubscribeKey = "my-sub-key"  
-  
-pn := pubnub.NewPubNub(config)  
-`
+Other variants:
+
+Non-secure client:
+```go
+import (
+    pubnub "github.com/pubnub/go"
+)
+
+config := pubnub.NewConfigWithUserId("userId")
+config.PublishKey   = "my-pub-key"
+config.SubscribeKey = "my-sub-key"
+
+pn := pubnub.NewPubNub(config)
 ```
 
----
+Read-only client (omit PublishKey):
+```go
+import (
+    pubnub "github.com/pubnub/go"
+)
 
-## Event Listeners (reference)
+config := pubnub.NewConfigWithUserId("userId")
+config.SubscribeKey = "my-sub-key"
 
-Add, remove, and monitor status:
-
-```
-`import (  
-    pubnub "github.com/pubnub/go"  
-)  
-  
-listener := pubnub.NewListener()  
-  
-go func() {  
-    for {  
-        select {  
-        case signal := listener.Signal:  
-            //Channel  
-            fmt.Println(signal.Channel)  
-            //Subscription  
-            fmt.Println(signal.Subscription)  
-            //Payload  
-`
-```
-_show 108 lines_
-
-```
-`listener := pubnub.NewListener()  
-  
-pn.AddListener(listener)  
-  
-// some time later  
-pn.RemoveListener(listener)  
-`
-```
-
-```
-`import (  
-    pubnub "github.com/pubnub/go"  
-)  
-  
- go func() {  
-    for {  
-        select {  
-        case status := listener.Status:  
-            switch status.Category {  
-            case pubnub.PNDisconnectedCategory:  
-                // handle disconnect here  
-            }  
-        case listener.Message:  
-        case listener.Presence:  
-        }  
-`
-```
-_show 17 lines_
-
-Key categories include `PNTimeoutCategory`, `PNDisconnectedCategory`, `PNConnectedCategory`, `PNAccessDeniedCategory`, `PNRequestMessageCountExceededCategory`, etc.
-
----
-
-## UserId Helpers
-
-```
-`config.SetUserId(UserId(string))  
-`
-```
-
-```
-`config.GetUserId()  
-`
-```
-
-Example:
-
-```
-`import (  
-    pubnub "github.com/pubnub/go"  
-)  
-  
-config := pubnub.NewConfig()  
-config.SetUserId(UserId("myUniqueUserId"))  
-  
-// one-liner  
-config := pubnub.NewConfigWithUserId("userId")  
-`
-```
-
-```
-`import (  
-    pubnub "github.com/pubnub/go"  
-)  
-  
-config := pubnub.NewConfig()  
-  
-fmt.Println(config.GetUserId)  
-`
+pn := pubnub.NewPubNub(config)
 ```
 
 ---
 
-## AuthKey Helpers
+## 7. Event listeners (add/remove/handle status)
 
-Setter / getter:
+Add listener:
+```go
+import (
+    pubnub "github.com/pubnub/go"
+)
 
+listener := pubnub.NewListener()
+
+go func() {
+    for {
+        select {
+        case signal := listener.Signal:
+            fmt.Println(signal.Channel)
+            fmt.Println(signal.Subscription)
+            // …
 ```
-`config.AuthKey = string  
-`
+(show all 108 lines)
+
+Remove listener:
+```go
+listener := pubnub.NewListener()
+
+pn.AddListener(listener)
+
+// some time later
+pn.RemoveListener(listener)
 ```
 
-```
-`config.AuthKey  
-`
-```
+Handle disconnects:
+```go
+import (
+    pubnub "github.com/pubnub/go"
+)
 
-Example:
+go func() {
+    for {
+        select {
+        case status := listener.Status:
+            switch status.Category {
+            case pubnub.PNDisconnectedCategory:
+                // handle disconnect here
+            }
+        case listener.Message:
+        case listener.Presence:
+        }
+```
+(show all 17 lines)
 
-```
-`import (  
-    pubnub "github.com/pubnub/go"  
-)  
-  
-config := pubnub.NewConfig()  
-config.AuthKey = "my_newauthkey"  
-`
-```
+Key status categories: `PNTimeout`, `PNDisconnected`, `PNConnected`, `PNAccessDenied`, `PNBadRequest`, `PNCancelled`, `PNLoopStop`, `PNReconnected`, `PNAcknowledgment`, `PNReconnectionAttemptsExhausted`, `PNNoStubMatched/PNUnknown`, `PNRequestMessageCountExceeded`.
 
+---
+
+## 8. UserId helpers
+```go
+config.SetUserId(UserId("myUniqueUserId"))
+uid := config.GetUserId()
 ```
-`fmt.Println(config.AuthKey)  
-`
+Alternative inline:
+```go
+config := pubnub.NewConfigWithUserId("userId")
 ```
 
 ---
 
-## Filter Expression
-
-```
-`config.FilterExpression = string  
-`
-```
-
-```
-`config.FilterExpression  
-`
+## 9. AuthKey helpers
+```go
+config.AuthKey = "my_newauthkey"
+fmt.Println(config.AuthKey)
 ```
 
-Example:
+---
 
+## 10. FilterExpression helpers
+```go
+config.FilterExpression = "such=wow"
+fmt.Println(config.FilterExpression)
 ```
-`import (  
-    pubnub "github.com/pubnub/go"  
-)  
-  
-config := pubnub.NewConfig()  
-config.FilterExpression = "such=wow"  
-`
-```
+(Stream Controller add-on required)
 
-```
-`fmt.Println(config.FilterExpression)**`
-```
+---
 
-_Last updated Apr 22 2025_
+*(Last updated Jul 16 2025)*

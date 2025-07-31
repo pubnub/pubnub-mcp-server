@@ -1,12 +1,12 @@
-# Channel Groups API – PHP SDK
+# Channel Groups API – PHP SDK (condensed)
 
-Channel Groups bundle multiple channels under a single name.  
-• Subscribe only (publish directly to each channel).  
-• All operations require the **Stream Controller** add-on (enable in Admin Portal).  
+Channel groups bundle many channels under a single name.  
+• Subscribe only – publishing must be done on individual channels.  
+• All operations below require the **Stream Controller** add-on to be enabled for your keys.
 
 ---
 
-## Add Channels
+## Add channels
 
 Maximum 200 channels per call.
 
@@ -19,10 +19,10 @@ Maximum 200 channels per call.
 `
 ```
 Parameters  
-• `channels` (string|array) – Channels to add.  
-• `channelGroup` (string) – Target group.
+• `channels` String | Array – channels to add  
+• `channelGroup` String – target group
 
-### Example
+### Sample
 ```
 `  
   
@@ -42,7 +42,7 @@ $pnConfig->setUserId("php-channel-group-demo");
 `
 ```
 
-### REST Response
+### Server response
 ```
 `{  
     "service" : "channel-registry",  
@@ -55,7 +55,7 @@ $pnConfig->setUserId("php-channel-group-demo");
 
 ---
 
-## List Channels
+## List channels
 
 ### Method
 ```
@@ -65,9 +65,9 @@ $pnConfig->setUserId("php-channel-group-demo");
 `
 ```
 Parameter  
-• `channelGroup` (string) – Group to query.
+• `channelGroup` String – group to query
 
-### Example
+### Sample
 ```
 `$pubnub->listChannelsInChannelGroup()  
     ->channelGroup("cg1")  
@@ -75,7 +75,7 @@ Parameter
 `
 ```
 
-### REST Response
+### Server response
 ```
 `{  
     "status" : 200,  
@@ -91,7 +91,7 @@ Parameter
 
 ---
 
-## Remove Channels
+## Remove channels
 
 ### Method
 ```
@@ -102,10 +102,10 @@ Parameter
 `
 ```
 Parameters  
-• `channels` (string|array) – Channels to remove.  
-• `channelGroup` (string) – Source group.
+• `channels` String | Array – channels to remove  
+• `channelGroup` String – target group
 
-### Example
+### Sample
 ```
 `$pubnub->removeChannelFromChannelGroup()  
     ->channels("son")  
@@ -114,7 +114,7 @@ Parameters
 `
 ```
 
-### REST Response
+### Server response
 ```
 `{  
     "status" : 200,  
@@ -127,7 +127,7 @@ Parameters
 
 ---
 
-## Delete Channel Group
+## Delete channel group
 
 ### Method
 ```
@@ -137,9 +137,9 @@ Parameters
 `
 ```
 Parameter  
-• `channelGroup` (string) – Group to delete.
+• `channelGroup` String – group to delete
 
-### Example
+### Sample
 ```
 `$pubnub->removeChannelGroup()  
     ->channelGroup("family")  
@@ -147,7 +147,7 @@ Parameter
 `
 ```
 
-### REST Response
+### Server response
 ```
 `{**    "status" : 200,  
     "message" : "OK",  
@@ -157,4 +157,4 @@ Parameter
 `
 ```
 
-_Last updated: Apr 2 2025_
+_Last updated: Jul 15 2025_

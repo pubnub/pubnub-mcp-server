@@ -1,14 +1,14 @@
-# File Sharing API for PHP SDK
+# File Sharing API – PHP SDK (Condensed)
 
-Upload files (≤ 5 MB) to a channel; subscribers receive a file event (`id`, `filename`, optional `description`).
+Upload, list, download, delete, and publish messages for files (≤ 5 MB) on a channel. Subscribers receive events with the file ID, name, and optional description.
 
 ---
 
-## Send file <a id="send-file"></a>
+## Send file
 
-Upload a file and automatically publish its metadata.
+Uploads and publishes the file (calls `publishFileMessage` internally).
 
-### Method(s)
+### Method
 
 ```
 `$pubnub->sendFile()  
@@ -26,54 +26,46 @@ Upload a file and automatically publish its metadata.
 `
 ```
 
-* required  
-  * `channel` *string* — channel for the file.  
-  * `fileName` *string* — name of the file to send.
-* optional  
-  * `message` *string | array* — message sent with the file.  
-  * `shouldStore` *Boolean* (default `True`) — store published file message in history.  
-  * `shouldCompress` *Boolean* (default `True`) — gzip request payload.  
-  * `ttl` *Int* — message retention (seconds).  
-  * `fileHandle` *Resource* — file pointer to read.  
-  * `fileContent` *bytes | File* — file content stream.  
-  * `meta` *string | array* — metadata for message filtering.  
-  * `customMessageType` *string* — 3-50 chars, alphanumeric/`-`/`_`; cannot start with special chars, `pn_`, or `pn-`.
+### Parameters
 
-### Basic Usage
+* **channel** *(string, required)* – Target channel.  
+* **fileName** *(string, required)* – Name to store.  
+* **message** *(string | array)* – Message published with the file.  
+* **shouldStore** *(Boolean, default true)* – Store message in history.  
+* **shouldCompress** *(Boolean, default true)* – Compress payload.  
+* **ttl** *(Int)* – Message TTL (secs).  
+* **fileHandle** *(Resource)* – Resource pointer to read from.  
+* **fileContent** *(bytes | File)* – Raw file data.  
+* **meta** *(string | array)* – Metadata for filtering.  
+* **customMessageType** *(string)* – 3–50 chars, alphanum, `-` or `_` allowed.
+
+### Returns: `PNSendFileResult`
+
+* **name** *(string)* – File name.  
+* **fileId** *(string)* – File ID.
+
+### Sample
 
 ```
-`  
-  
-// Include Composer autoloader (adjust path if needed)  
-require_once 'vendor/autoload.php';  
-  
-use PubNub\PNConfiguration;  
-use PubNub\PubNub;  
-use PubNub\Exceptions\PubNubServerException;  
-  
-// Create configuration  
-$pnConfig = new PNConfiguration();  
-$pnConfig->setSubscribeKey("demo");  
-$pnConfig->setPublishKey("demo");  
-$pnConfig->setUserId("php-file-upload-demo");  
-  
+`
+// Include Composer autoloader
+require_once 'vendor/autoload.php';
+
+use PubNub\PNConfiguration;
+use PubNub\PubNub;
+
+$pnConfig = new PNConfiguration();
+$pnConfig->setSubscribeKey("demo");
+$pnConfig->setPublishKey("demo");
+$pnConfig->setUserId("php-file-upload-demo");
 `
 ```
 
-### Returns
-
-`PNSendFileResult`
-
-Property | Type | Description  
----------|------|------------  
-`name`   | string | uploaded file name.  
-`fileId` | string | uploaded file ID.
-
 ---
 
-## List channel files <a id="list-channel-files"></a>
+## List channel files
 
-### Method(s)
+### Method
 
 ```
 `$pubnub->listFiles()  
@@ -82,40 +74,27 @@ Property | Type | Description
 `
 ```
 
-* required `channel` *string* — channel to query.
+### Parameter
 
-### Basic Usage
+* **channel** *(string, required)* – Channel to query.
 
-```
-`  
-`
-```
+### Returns: `PNGetFilesResult`
 
-### Returns
+* **next / prev** *(string)* – Pagination tokens.  
+* **count** *(int)* – Number of files returned.  
+* **data** *(array<PNGetFilesItem>)* – File entries.
 
-`PNGetFilesResult`
-
-Property | Type | Description  
----------|------|------------  
-`next`  | string | forward-pagination cursor.  
-`prev`  | string | backward-pagination cursor.  
-`count` | Int    | number of files returned.  
-`data`  | array  | array of `PNGetFilesItem`.
-
-`PNGetFilesItem`
-
-Property | Type | Description  
----------|------|------------  
-`id`           | string | file ID.  
-`name`         | string | file name.  
-`size`         | string | file size.  
-`creationTime` | string | creation timestamp.
+`PNGetFilesItem`  
+* **id** *(string)* – File ID.  
+* **name** *(string)* – File name.  
+* **size** *(string)* – File size.  
+* **creationTime** *(string)* – ISO timestamp.
 
 ---
 
-## Get File Url <a id="get-file-url"></a>
+## Get file URL
 
-### Method(s)
+### Method
 
 ```
 `$pubnub.getFileDownloadUrl()  
@@ -126,31 +105,21 @@ Property | Type | Description
 `
 ```
 
-Parameters (all required)  
-* `channel` *string* — target channel.  
-* `fileName` *string* — stored filename.  
-* `fileId` *string* — unique file ID.
+### Parameters
 
-### Basic Usage
+* **channel** *(string, required)*  
+* **fileId** *(string, required)*  
+* **fileName** *(string, required)*  
 
-```
-`  
-`
-```
+### Returns: `PNGetFileDownloadURLResult`
 
-### Returns
-
-`PNGetFileDownloadURLResult`
-
-Property | Type  | Description  
----------|-------|------------  
-`fileUrl` | string | download URL.
+* **fileUrl** *(string)* – Direct download URL.
 
 ---
 
-## Download file <a id="download-file"></a>
+## Download file
 
-### Method(s)
+### Method
 
 ```
 `$pubnub.downloadFile()  
@@ -161,31 +130,19 @@ Property | Type  | Description
 `
 ```
 
-Required  
-* `channel` *string*  
-* `fileName` *string*  
-* `fileId` *string*
+### Parameters
 
-### Basic Usage
+* **channel**, **fileId**, **fileName** – Same as above.
 
-```
-`  
-`
-```
+### Returns: `PNDownloadFileResult`
 
-### Returns
-
-`PNDownloadFileResult`
-
-Property | Type | Description  
----------|------|------------  
-`fileContent` | bytes | downloaded file content.
+* **fileContent** *(bytes)* – File data.
 
 ---
 
-## Delete file <a id="delete-file"></a>
+## Delete file
 
-### Method(s)
+### Method
 
 ```
 `$pubnub.deleteFile()  
@@ -196,34 +153,21 @@ Property | Type | Description
 `
 ```
 
-Required  
-* `channel` *string* — channel to delete from.  
-* `fileId`  *string* — file ID.  
-* `fileName` *string* — file name.
+### Parameters
 
-### Basic Usage
+* **channel**, **fileId**, **fileName** – Same as above.
 
-```
-`  
-`
-```
+### Returns: `PNDeleteFileResult`
 
-### Returns
-
-`PNDeleteFileResult`
-
-Property | Type | Description  
----------|------|------------  
-`status` | Int  | HTTP status code.
+* **status** *(int)* – HTTP status code.
 
 ---
 
-## Publish file message <a id="publish-file-message"></a>
+## Publish file message
 
-Publish metadata for an already-uploaded file.  
-Use when `sendFile` upload succeeded but message publish must be retried.
+Publishes a message that references an already-uploaded file.
 
-### Method(s)
+### Method
 
 ```
 `$pubnub.publishFileMessage()  
@@ -239,19 +183,18 @@ Use when `sendFile` upload succeeded but message publish must be retried.
 `
 ```
 
-Required  
-* `channel` *string* — target channel.  
-* `file_id` *string* — file ID.  
-* `file_name` *string* — file name.
+### Parameters
 
-Optional  
-* `message` *dict* — payload.  
-* `meta` *dict* — metadata.  
-* `should_store` *Boolean* (default `True`).  
-* `ttl` *Int* (default `0`).  
-* `customMessageType` *string* — see rules above.
+* **channel** *(string, required)* – Channel.  
+* **fileId** *(string, required)* – File ID.  
+* **fileName** *(string, required)* – File name.  
+* **message** *(string | array)* – Payload.  
+* **meta** *(string | array)* – Metadata.  
+* **shouldStore** *(Boolean, default true)* – Store in history.  
+* **ttl** *(Int, default 0)* – TTL.  
+* **customMessageType** *(string)* – Business label (3–50 chars).
 
-### Basic Usage
+### Sample
 
 ```
 `pubnub.publishFileMessage()  
@@ -264,12 +207,8 @@ Optional
 `
 ```
 
-### Returns
+### Returns: `PNPublishFileMessageResult`
 
-`PNPublishFileMessageResult`
+* **timestamp** *(string)* – Publish timetoken.
 
-Property | Type | Description  
----------|------|------------  
-`timestamp` | string | publish timetoken.
-
-_Last updated Apr 2 2025_
+_Last updated: Jul 15 2025_

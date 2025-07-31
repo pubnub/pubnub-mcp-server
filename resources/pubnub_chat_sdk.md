@@ -130,6 +130,30 @@ Initialize [Chat SDK](/docs/chat/chat-sdk/build/configuration#initialize-pubnub)
 
 For this app, you must set these envs for `VITE_PUBNUB_SUB_KEY` and `VITE_PUBNUB_PUB_KEY` in the separate `.env` file (copy of the `.env.example` file).
 
+### Chat SDK Configuration with Access Manager V3 Authentication
+
+When using Access Manager V3 authentication with the Chat SDK, you must use the `authKey` parameter (not `token`) for client configuration:
+
+```javascript
+// ✅ CORRECT: Use authKey for Chat SDK configuration
+const chat = await Chat.init({
+  subscribeKey: import.meta.env.VITE_PUBNUB_SUB_KEY,
+  publishKey: import.meta.env.VITE_PUBNUB_PUB_KEY,
+  userId: randomizedUsers[0].id,
+  authKey: 'myAccessManagerToken'  // ✅ CORRECT: Use authKey for client configuration
+});
+
+// ❌ INCORRECT: Do not use 'token' in Chat SDK configuration
+const chat = await Chat.init({
+  subscribeKey: import.meta.env.VITE_PUBNUB_SUB_KEY,
+  publishKey: import.meta.env.VITE_PUBNUB_PUB_KEY,
+  userId: randomizedUsers[0].id,
+  token: 'myAccessManagerToken'  // ❌ WRONG: This will not work
+});
+```
+
+**Important:** The Chat SDK uses the same parameter naming convention as the core PubNub JavaScript SDK. Always use `authKey` for client configuration, while Access Manager methods use the `token` parameter.
+
 ### Set up users[​](#set-up-users "Direct link to Set up users")
 
 This sample app uses two hardcoded sample users - a support agent and a customer.

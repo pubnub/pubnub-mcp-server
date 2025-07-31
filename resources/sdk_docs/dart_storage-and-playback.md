@@ -1,182 +1,245 @@
-# PubNub Dart SDK – Storage & Playback (Message Persistence)
+# Message Persistence API – Dart SDK (Storage & Playback)
 
-Message Persistence must be enabled for your key in the Admin Portal.  
-Retention options: 1 day, 7 days, 30 days, 3 months, 6 months, 1 year, Unlimited.  
-All timetokens are 17-digit values (10 ns resolution).
+Message Persistence lets you store and retrieve messages, reactions, and files. Retention is configurable (1 day – Unlimited). AES-256 encryption is supported.
 
 ---
 
-## 1. Batch History – `fetchMessages()`
+## Batch History (`fetchMessages`)
 
-```dart
-pubnub.batch.fetchMessages(
-  Set<String> channels,                // required
-  { Keyset?    keyset,
-    String?    using,
-    int?       count,
-    Timetoken? start,
-    Timetoken? end,
-    bool?      reverse,
-    bool?      includeMeta,
-    bool       includeMessageActions = false,
-    bool       includeMessageType   = true,
-    bool?      includeCustomMessageType,
-    bool       includeUUID          = true }
-)
+Requires Message Persistence enabled.
+
+Maximum per request  
+• 1 channel: 100 messages  
+• ≤500 channels: 25 messages/channel  
+
+Paging: use `start`, `end`, and `count`.  
+Timetoken rules  
+• `start` only ⇒ older than `start`  
+• `end` only ⇒ `end` and newer  
+• both ⇒ between (inclusive `end`)
+
+### Method
+
+```
+`pubnub.batch.fetchMessages(  
+  SetString> channels,  
+  {Keyset? keyset,  
+  String? using,  
+  int? count,  
+  Timetoken? start,  
+  Timetoken? end,  
+  bool? reverse,  
+  bool? includeMeta,  
+  bool includeMessageActions = false,  
+  bool includeMessageType = true,  
+  bool includeCustomMessageType,  
+  bool includeUUID = true}  
+)   
+`
 ```
 
-Parameter summary  
-• `channels` Set<String> – channels to fetch (25 per channel & 500 channels max; 1 channel if `includeMessageActions = true`).  
-• `count` int – max msgs per channel (100 or 25 with actions).  
-• `start` / `end` Timetoken – page window (`start` exclusive, `end` inclusive).  
-• `reverse` bool – `true` = oldest → newest.  
-• `includeMeta`, `includeMessageActions`, `includeMessageType`, `includeCustomMessageType`, `includeUUID` – toggles for extra fields.
+Parameters  
+• channels (Set<String>) – required  
+• keyset (Keyset) – override default keyset  
+• using (String) – keyset name from `keysetStore`  
+• count (int) – per-channel message limit (≤100 or 25)  
+• start/end (Timetoken) – time range  
+• reverse (bool, default false) – oldest-first order  
+• includeMeta (bool, default false) – include message `meta`  
+• includeMessageActions (bool, default false) – include actions (single channel only)  
+• includeMessageType (bool, default true) – include internal type  
+• includeCustomMessageType (bool, default false) – include custom type  
+• includeUUID (bool, default true) – include sender UUID
 
-### Basic usage – last 25 messages
+### Sample
 
-```dart
-import 'package:pubnub/pubnub.dart';
-
-void main() async {
-  var pubnub = PubNub(
-    defaultKeyset: Keyset(
-      subscribeKey: 'demo',
-      publishKey:  'demo',
-      userId:      UserId('myUniqueUserId'),
-    ),
-  );
-
-  Set<String> channels = {'my_channel'};
-  var result = await pubnub.batch.fetchMessages(channels, count: 25);
-  print(result.channels['my_channel']);
-}
+```
+`import 'package:pubnub/pubnub.dart';  
+  
+void main() async {  
+  var pubnub = PubNub(  
+    defaultKeyset: Keyset(  
+      subscribeKey: 'demo',  
+      publishKey: 'demo',  
+      userId: UserId('myUniqueUserId'),  
+    ),  
+  );  
+  
+  SetString> channels = {'my_channel'};  
+  
+`
 ```
 
-### Paging example
+### Paging Example
 
-```dart
-var messages = <BatchHistoryResultEntry>[];
-var channel  = 'my_channel';
-BatchHistoryResult? loopResult;
-Timetoken? start;
-int? count;
-
-do {
-  loopResult = await pubnub.batch.fetchMessages({channel}, start: start, count: count);
-  messages.addAll(loopResult.channels[channel]!);
-
-  if (loopResult.more != null) {
-    var more = loopResult.more as MoreHistory;
-    start = Timetoken(BigInt.parse(more.start));
-    count = more.count;
-  }
-} while (loopResult.more != null);
+```
+`  var messages = BatchHistoryResultEntry>[];  
+  var channel = 'my_channel';  
+  var loopResult, start, count;  
+  do {  
+    loopResult =  
+        await pubnub.batch.fetchMessages({channel}, start: start, count: count);  
+  
+    messages.addAll((loopResult as BatchHistoryResult).channels[channel]!);  
+  
+    if ((loopResult).more != null) {  
+      var more = loopResult.more as MoreHistory;  
+      start = Timetoken(BigInt.parse(more.start));  
+      count = more.count;  
+    }  
+  } while (loopResult.more != null);  
+`
 ```
 
-### Return type
+### Returns
 
-`Map<String, List<BatchHistoryResultEntry>>` where each entry contains:  
-`message`, `timetoken`, `uuid`, `actions`, `messageType`, `customMessageType`, `meta`, `error`.
+`Map<String, List<BatchHistoryResultEntry>>`  
+Each `BatchHistoryResultEntry` contains: `message`, `timetoken`, `uuid`, `actions`, `messageType`, `customMessageType`, `meta`, `error`.
 
 ---
 
-## 2. Delete Messages – `delete()`
+## Delete Messages (`delete`)
 
-Enable **Delete-From-History** in the Admin Portal and initialize the SDK with a secret key.
+Requires Message Persistence + “Enable Delete-From-History” (Admin Portal). Requires secret key.
 
-```dart
-pubnub.delete()   // internal helper
+### Method
 
-// Practical call:
-await pubnub
-  .channel('channel-name')
-  .messages(
-    from: Timetoken(BigInt.parse('123345')),      // start inclusive
-    to:   Timetoken(BigInt.parse('123538293')),   // end exclusive
-  )
-  .delete();
+```
+`pubnub.delete()   
+`
 ```
 
-### Delete a single message
+Parameters  
+• channels (List<String>) – target channels  
+• start (Long) – inclusive lower bound  
+• end (Long) – exclusive upper bound
 
-```dart
-await pubnub
-  .channel('channel-name')
-  .messages(
-    from: Timetoken(BigInt.parse('15526611838554309')), // publishTT - 1
-    to:   Timetoken(BigInt.parse('15526611838554310')), // publishTT
-  )
-  .delete();
+### Sample
+
+```
+`await pubnub  
+  .channel('channel-name')  
+  .messages(  
+    from: Timetoken(BigInt.parse('123345')),  
+    to: Timetoken(BigInt.parse('123538293')),  
+  )  
+  .delete();  
+`
 ```
 
----
+Delete a single message (publish timetoken = 15526611838554310):
 
-## 3. Message Counts – `countMessages()`
-
-```dart
-pubnub.batch.countMessages(
-  dynamic channels,                // Set<String> OR Map<String,Timetoken>
-  { Keyset?    keyset,
-    String?    using,
-    Timetoken? timetoken }          // required when channels is Set
-)
 ```
-
-Returns `CountMessagesResult` → `Map<String, int>` (channel → message count).
-
-Example:
-
-```dart
-var result = await pubnub.batch.countMessages(
-  {'my_channel'},
-  timetoken: Timetoken(BigInt.from(13406746780720711)),
-);
-print(result.channels['my_channel']);
-```
-
-(With unlimited retention, only the last 7 days are counted.)
-
----
-
-## 4. History (Deprecated)
-
-Prefer `fetchMessages()`; legacy helpers remain:
-
-```dart
-// Fetch paginated history on a single channel
-var history = pubnub.channel('my_channel').history(
-  order:     ChannelHistoryOrder.descending,  // newest→oldest by default
-  chunkSize: 100                              // max per page
-);
-
-// Equivalent fluent API
-pubnub.channel('my_channel').messages();
-```
-
-`PaginatedChannelHistory` fields: `messages`, `chunkSize`, `order`, `startTimetoken`, `endTimetoken`, `hasMore`; methods: `Future more()`, `void reset()`.
-
-### Example – three oldest messages
-
-```dart
-var history = pubnub
-    .channel('my_channel')
-    .history(order: ChannelHistoryOrder.ascending, chunkSize: 3);
-await history.more();
-print(history.messages);
-```
-
-### Paging
-
-```dart
-var history = pubnub.channel('asdf').history(
-  chunkSize: 100,
-  order:     ChannelHistoryOrder.descending,
-);
-
-await history.more();          // next page
-print(history.messages);
+`await pubnub  
+  .channel('channel-name')  
+  .messages(  
+    from: Timetoken(BigInt.parse('15526611838554309')),  
+    to: Timetoken(BigInt.parse('15526611838554310')),  
+  )  
+  .delete();  
+`
 ```
 
 ---
 
-Last updated: Jun 10 2025
+## Message Counts (`countMessages`)
+
+Requires Message Persistence. For unlimited retention keys, counts cover last 7 days.
+
+### Method
+
+```
+`pubnub.batch.countMessages(  
+  dynamic channels,  
+  {Keyset? keyset,   
+  String? using,   
+  Timetoken? timetoken}  
+)  
+`
+```
+
+Parameters  
+• channels – `Map<String, Timetoken>` or `Set<String>`  
+• keyset – override default  
+• using – keyset name  
+• timetoken – required if `channels` is a set
+
+### Sample
+
+```
+`var result = await pubnub.batch.countMessages({'my_channel'},  
+    timetoken: Timetoken(BigInt.from(13406746780720711)));  
+`
+```
+
+Returns: `CountMessagesResult.channels` (`Map<String,int>`)
+
+---
+
+## History (Deprecated)
+
+Legacy, single-channel history. Use `fetchMessages` instead.
+
+### Method
+
+```
+`pubnub.channel(String).history(  
+  {ChannelHistoryOrder order = ChannelHistoryOrder.descending,  
+  int chunkSize = 100}  
+)  
+  
+// OR  
+  
+pubnub.channel(String).messages()  
+`
+```
+
+Parameters  
+• order – `ascending` | `descending` (default)  
+• chunkSize (int, ≤100)
+
+### Samples
+
+Retrieve last 100:
+
+```
+`var history = pubnub.channel('my_channel').history(chunkSize: 100);  
+`
+```
+
+Oldest 3 messages:
+
+```
+`var history = pubnub  
+    .channel('my_channel')  
+    .history(order: ChannelHistoryOrder.ascending, chunkSize: 3)  
+`
+```
+
+Response:
+
+```
+`{  
+    "messages":[  
+        { "Timetoken": 0, "message": "Pub1" },  
+        { "Timetoken": 0, "message": "Pub2" },  
+        { "Timetoken": 0, "message": "Pub3" }  
+    ],  
+`
+```
+
+Paging:
+
+```
+`var history = pubnub.channel('asdf').history(chunkSize: 100, order: ChannelHistoryOrder.descending);**// To fetch next page:  
+await history.more();  
+// To access messages:  
+print(history.messages);  
+`
+```
+
+`PaginatedChannelHistory` exposes `messages`, `more()`, `reset()`, `hasMore`, `startTimetoken`, `endTimetoken`, `chunkSize`, `order`.
+
+---
+
+Last updated Jul 15 2025

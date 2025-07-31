@@ -1,13 +1,13 @@
-# Utility Methods API – JavaScript SDK (misc)
+# Utility Methods API — JavaScript SDK (Misc)
 
-> All code blocks from the original document are kept verbatim.  
-> Deprecated parameters fall back to legacy 128-bit encryption and override any configured `cryptoModule`.
+Concise reference of utility calls. All original code blocks and technical details are preserved.
 
 ---
 
 ## Encrypt
+• `cipherKey` is deprecated; prefer configuring a `cryptoModule`. Passing a key here forces legacy 128-bit encryption.
 
-### Signature
+### Method
 ```
 `encrypt(  
     data: string,  
@@ -15,12 +15,13 @@
 )  
 `
 ```
-
 Parameters  
-• `data` (string | bytes) – data to encrypt  
-• `customCipherKey?` (string) – overrides `cryptoModule`, uses legacy scheme
+• `data` (string | bytes, required) – content to encrypt  
+• `customCipherKey` (string, optional) – overrides `cryptoModule`, uses legacy 128-bit
 
-### Example – encrypt part of message
+Returns: encrypted data (string).
+
+#### Sample
 ```
 `  
 `
@@ -29,15 +30,13 @@ Parameters
 `  
 `
 ```
-
-### Returns  
-Encrypted data (`string`)
 
 ---
 
-## Encrypt File
+## Encrypt file
+• `key` is deprecated; use `cryptoModule`.
 
-### Signature
+### Method
 ```
 `pubnub.encryptFile(  
     key: string,  
@@ -45,53 +44,48 @@ Encrypted data (`string`)
 ): PromisePubNubFile>;  
 `
 ```
-
 Parameters  
-• `key` (string) – cipher key  
-• `file` (PubNubFile) – file to encrypt
+• `key` (string, required) – cipher key  
+• `file` (PubNubFile, required) – file to encrypt
 
-### Example
+Returns: `Promise<PubNubFile>`.
+
+#### Sample
 ```
 `  
 `
 ```
 
-### Returns  
-`Promise<PubNubFile>`
-
 ---
 
 ## Decrypt
+• `cipherKey` deprecated; falls back to `cryptoModule`.
 
-### Signature
+### Method
 ```
 `decrypt(  
     data: string,  
     customCipherKey?: string  
 `
 ```
-
 Parameters  
-• `data` (string) – data to decrypt  
-• `customCipherKey?` (string) – overrides `cryptoModule`; otherwise the configured module is used
+• `data` (string, required) – data to decrypt  
+• `customCipherKey` (string, optional) – overrides `cryptoModule`, legacy 128-bit
 
-### Example
+Returns: decrypted data (object). Throws verbose error on failure.
+
+#### Sample
 ```
 `  
 `
 ```
 
-### Returns  
-Decrypted data (`object`)
-
-### Errors  
-`decrypt()` throws a descriptive error on failure.
-
 ---
 
-## Decrypt File
+## Decrypt file
+Uses legacy 128-bit encryption.
 
-### Signature
+### Method
 ```
 `pubnub.decryptFile(  
     key: string,  
@@ -99,19 +93,17 @@ Decrypted data (`object`)
 ): PromisePubNubFile>;  
 `
 ```
-
 Parameters  
-• `key` (string) – cipher key  
-• `file` (PubNubFile) – file to decrypt
+• `key` (string, required) – cipher key  
+• `file` (PubNubFile, required) – file to decrypt
 
-### Example
+Returns: `Promise<PubNubFile>`.
+
+#### Sample
 ```
 `  
 `
 ```
-
-### Returns  
-`Promise<PubNubFile>`
 
 ---
 
@@ -119,26 +111,25 @@ Parameters
 
 ### Extracting
 Node.js  
-• `file.toBuffer()` → `Promise<Buffer>`  
-• `file.toStream()` → `Promise<Readable>`  
-• `file.toString(encoding)` → `string`
+• `file.toBuffer(): Promise<Buffer>`  
+• `file.toStream(): Promise<Readable>`  
+• `file.toString(encoding)`
 
 Browser  
-• `file.toFile()` → `Promise<File>`  
-• `file.toBlob()` → `Promise<Blob>`  
-• `file.toArrayBuffer()` → `Promise<ArrayBuffer>`  
-• `file.toString(encoding)` → `string`
+• `file.toFile(): Promise<File>`  
+• `file.toBlob(): Promise<Blob>`  
+• `file.toArrayBuffer(): Promise<ArrayBuffer>`  
+• `file.toString(encoding)`
 
-React / React Native  
-• `file.toBlob()` → `Promise<Blob>`
+React / React-Native  
+• `file.toBlob(): Promise<Blob>`
 
 ### Creating
 ```
 `pubnub.File.create(input: FileInput): PubNubFile;  
 `
 ```
-
-Node.js – streams
+Node.js inputs  
 ```
 `{  
     stream: Readable,  
@@ -147,8 +138,6 @@ Node.js – streams
 }  
 `
 ```
-
-Node.js – buffers
 ```
 `{  
     data: Buffer,  
@@ -157,8 +146,6 @@ Node.js – buffers
 }  
 `
 ```
-
-Node.js – strings
 ```
 `{  
     data: string,  
@@ -168,14 +155,11 @@ Node.js – strings
 }  
 `
 ```
-
-Browsers – File API
+Browser inputs  
 ```
 `File  
 `
 ```
-
-Browsers – strings
 ```
 `{  
     data: string,  
@@ -184,8 +168,6 @@ Browsers – strings
 }  
 `
 ```
-
-Browsers – ArrayBuffer
 ```
 `{  
     data: ArrayBuffer,  
@@ -198,15 +180,14 @@ Browsers – ArrayBuffer
 ---
 
 ## disconnect
-Stops all requests when subscribed.
+Stops all PubNub requests when subscribed.
 
-### Signature
+### Method
 ```
 `disconnect()  
 `
 ```
-
-### Example
+#### Sample
 ```
 `  
 `
@@ -215,15 +196,14 @@ Stops all requests when subscribed.
 ---
 
 ## reconnect
-Attempts reconnection.
+Attempts to re-establish PubNub connectivity.
 
-### Signature
+### Method
 ```
 `reconnect()  
 `
 ```
-
-### Example
+#### Sample
 ```
 `  
 `
@@ -231,31 +211,28 @@ Attempts reconnection.
 
 ---
 
-## setProxy (Node.js)
-Assign or update proxy at runtime.
+## setProxy (Node.js only)
+Assign or change proxy settings at runtime.
 
-### Signature
+### Method
 ```
 `setProxy({String hostname, Number port, String protocol})  
 `
 ```
-
 Parameters  
-• `hostname` (String) – IP/URI  
-• `port` (Number) – proxy port  
-• `protocol` (String, default `http`) – `http`, `https`, `socks5`, `socks4`, `pac`
+• `hostname` (string) – proxy IP/URI  
+• `port` (number) – proxy port  
+• `protocol` (string, default `http`) – `http`, `https`, `socks5`, `socks4`, `pac`
 
-### Example
+#### Sample
 ```
 `  
 `
 ```
 
-#### Delete proxy at runtime
+Delete proxy at runtime
 ```
 `**`
 ```
 
----
-
-_Last updated: Jun 30, 2025_
+_Last updated: Jul 15 2025_

@@ -1,211 +1,239 @@
-# Publish/Subscribe API – C# SDK (Condensed)
+# Publish/Subscribe – C# SDK (Condensed)
 
-##### Request execution
+## Request Execution
+
+Use try/catch to handle parameter errors (exception) and transport/API errors (`PNStatus`).
+
 ```csharp
-try
-{
-    PNResult<PNPublishResult> publishResponse = await pubnub.Publish()
-        .Message("Why do Java developers wear glasses? Because they can't C#.")
-        .Channel("my_channel")
-        .ExecuteAsync();
+try  
+{  
+    PNResult<PNPublishResult> publishResponse = await pubnub.Publish()  
+        .Message("Why do Java developers wear glasses? Because they can't C#.")  
+        .Channel("my_channel")  
+        .ExecuteAsync();  
 
-    PNStatus status = publishResponse.Status;
-    Console.WriteLine("Server status code : " + status.StatusCode);
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"Request can't be executed due to error: {ex.Message}");
-}
+    Console.WriteLine($"Server status : {publishResponse.Status.StatusCode}");  
+}  
+catch (Exception ex)  
+{  
+    Console.WriteLine($"Request can't be executed: {ex.Message}");  
+}  
 ```
 
 ---
 
 ## Publish
-* Initialize with `publishKey`.  
-* SSL/TLS: enable by setting `ssl = true` at initialization.  
-* Payload: any JSON-serializable object; do **not** pre-serialize `message` or `meta`.  
-* Max size: 32 KiB (optimum < 1800 bytes).  
-* One channel per call; publish serially; queue limit 100 messages.  
 
-### Method(s)
+• Requires `publishKey`.  
+• One channel per call.  
+• Max payload ≈ 32 KiB (optimum < 1.8 KB).  
+• Throughput limited by subscriber capacity (in-memory queue = 100).  
+• Optional SSL/TLS and message encryption.  
+• Do **not** pre-serialize `message` / `meta`.
+
+### Method
+
 ```csharp
-pubnub.Publish()
-      .Message(object)                 // required
-      .Channel(string)                 // required
-      .ShouldStore(bool)
-      .Meta(Dictionary<string,object>)
-      .UsePOST(bool)
-      .Ttl(int)
-      .QueryParam(Dictionary<string,object>)
-      .CustomMessageType(string)
+pubnub.Publish()  
+      .Message(object)                  // required  
+      .Channel(string)                  // required  
+      .ShouldStore(bool)                // override history setting  
+      .Meta(Dictionary<string,object>)  // for filter expressions  
+      .UsePOST(bool)                    // default: GET  
+      .Ttl(int)                         // per-message TTL  
+      .QueryParam(Dictionary<string,object>)  
+      .CustomMessageType(string)        // 3-50 chars: text, action, …  
 ```
 
-Parameter | Type | Notes
----|---|---
-Message | object | Payload
-Channel | string | Destination channel
-ShouldStore | bool | Overrides key history setting
-Meta | Dictionary<string,object> | For filter expressions
-UsePOST | bool | Force POST
-Ttl | int | Message TTL in storage
-QueryParam | Dictionary<string,object> | Extra URL params
-CustomMessageType | string | 3–50 chars, a–z A–Z 0–9, `_` or `-`
+### Return
 
-Execution helpers (deprecated → use `Execute/ExecuteAsync`):
-`Sync`, `Async`.
+`Task<PNResult<PNPublishResult>>` →  
+• `PNPublishResult.Timetoken : long`  
+• `PNStatus` (HTTP code, error info)
 
-### Returns
-`PNResult<PNPublishResult>`  
-`PNPublishResult.Timetoken : long`
-
-### Basic usage
-```csharp
-
+### Code Samples
 ```
-
-#### Other examples
-```csharp  // synchronous publish
-
-```
-```csharp  // publish with metadata
-
-```
-```csharp  // store message for 10 hours
-
-```
-```csharp  // FCM/APNS payload
-
+`  
+`
 ```
 
 ---
 
 ## Fire
-Sends data only to Functions Event Handlers; not replicated or stored.
 
-### Method(s)
+Sends payload only to Functions/Illuminate Event Handlers (no replication, history, or delivery to subscribers).
+
+### Method
+
 ```csharp
-pubnub.Fire()
-      .Message(object)                 // required
-      .Channel(string)                 // required
-      .Meta(Dictionary<string,object>)
-      .UsePOST(bool)
-      .QueryParam(Dictionary<string,object>)
+pubnub.Fire()  
+      .Message(object)                  // required  
+      .Channel(string)                  // required  
+      .Meta(Dictionary<string,object>)  
+      .UsePOST(bool)  
+      .QueryParam(Dictionary<string,object>)  
 ```
 
-### Basic usage
-```csharp
-
+### Code Sample
+```
+`  
+`
 ```
 
 ---
 
 ## Signal
-Lightweight 64-byte messages to subscribers.
 
-### Method(s)
+Lightweight (≤ 64 B payload) broadcast to channel subscribers.
+
+### Method
+
 ```csharp
-pubnub.Signal()
-      .Message(object)                 // required
-      .Channel(string)                 // required
-      .CustomMessageType(string)
-```
-
-### Basic usage
-```csharp
-
+pubnub.Signal()  
+      .Message(object)                  // required  
+      .Channel(string)                  // required  
+      .CustomMessageType(string)  
 ```
 
 ### Response
+
 `Timetoken : long`
+
+### Code Sample
+```
+`  
+`
+```
 
 ---
 
 ## Subscribe
-Opens a socket and streams messages/events.
 
-* Requires `subscribeKey`.
-* Use entity-level `Subscription` or client-level `SubscriptionSet`.
-* Keep a strong reference to subscriptions.
+Requires `subscribeKey`. Opens streaming TCP socket for messages/events.
 
-### Create a subscription
+### Create Subscription (single entity)
+
 ```csharp
-// entity-based
+// entity-scoped
 Channel firstChannel = pubnub.Channel("first");
-Subscription subscription = firstChannel.Subscription(SubscriptionOptions options);
+Subscription sub = firstChannel.Subscription(SubscriptionOptions options);
 ```
 
-### Create a subscription set
+### Create Subscription Set (multi-entity)
+
 ```csharp
-// client-based
-SubscriptionSet subscriptionSet = pubnub.SubscriptionSet(
-    channels: string[],
-    channelGroups: string[],
+// client-scoped
+SubscriptionSet set = pubnub.SubscriptionSet(
+    channels: string[], 
+    channelGroups: string[], 
     options: SubscriptionOptions
 );
 ```
 
-`SubscriptionOptions.ReceivePresenceEvents`
+Keep strong references to `Subscription` / `SubscriptionSet`.
 
-### Subscribe method
+#### SubscriptionOptions
+
+`ReceivePresenceEvents` – deliver presence updates.
+
+### Subscribe Method
+
 ```csharp
 subscription.Subscribe<object>(SubscriptionCursor cursor)
 ```
-`cursor` = `{ Timetoken : long?; Region : int? }`
+`cursor` = `{ Timetoken?: long; Region?: int }` (best-effort replay).
 
-#### Basic usage
-```csharp
-
+### Code Samples
+```
+`  
+`
+```
+```
+`  
+`
 ```
 
-#### Combine two subscriptions into a set
-```csharp
-
-```
-
-(Returns: none)
+No return value.
 
 ---
 
 ## Entities
-Factory helpers (local objects):
+
+Create local representations to build subscriptions.
+
 ```csharp
-pubnub.Channel(string)           // Channel
-pubnub.ChannelGroup(string)      // ChannelGroup
-pubnub.ChannelMetadata(string)   // ChannelMetadata
-pubnub.UserMetadata(string)      // UserMetadata
+pubnub.Channel(string)
+pubnub.ChannelGroup(string)
+pubnub.ChannelMetadata(string)
+pubnub.UserMetadata(string)
 ```
-```csharp
-pubnub.Channel("channelName");
-pubnub.ChannelGroup("channelGroupName");
-pubnub.ChannelMetadata("channelMetadata");
-pubnub.UserMetadata("userMetadata");
+Samples
+```
+`  
+`
+```
+```
+`  
+`
+```
+```
+`  
+`
+```
+```
+`  
+`
 ```
 
 ---
 
-## Event listeners
-Attach to `Subscription`, `SubscriptionSet`, or PubNub client.
+## Event Listeners
 
-Method | Signature
----|---
-Add generic listener | *(implementation specific)*
-Add connection status listener | `pubnub.AddListener(listener)`
+Attach to `Subscription`, `SubscriptionSet`, or client.
+
+```
+`  
+`
+```
+
+Add connection status listener:
 
 ```csharp
-
+pubnub.AddListener(listener)
+```
+Sample
+```
+`  
+`
 ```
 
 ---
 
 ## Unsubscribe
+
 ```csharp
-subscription.Unsubscribe<object>();
-subscriptionSet.Unsubscribe<object>();
+subscription.Unsubscribe<object>()
+subscriptionSet.Unsubscribe<object>()
+```
+Sample
+```
+`  
+`
 ```
 
-## Unsubscribe All  (client scope)
+---
+
+## Unsubscribe All (client-wide)
+
 ```csharp
-pubnub.UnsubscribeAll<object>();
+pubnub.UnsubscribeAll<object>()
+```
+Sample
+```
+`  
+`
 ```
 
-(Returns: none)
+---
+
+(All original code blocks retained verbatim.)

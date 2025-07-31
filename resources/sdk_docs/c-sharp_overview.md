@@ -1,37 +1,21 @@
-# C# API & SDK Docs 7.3.14 – Overview
+# C# API & SDK Docs 7.3.15 (Overview)
 
-This condensed guide shows the minimum you need to:
-
-1. Install the correct NuGet package  
-2. Initialize PubNub with your keys  
-3. Add listeners, subscribe, and publish  
-
-All code blocks, commands, and critical details are preserved.
-
----
+This condensed overview keeps all critical technical details, method signatures, parameters, and every original code block.
 
 ## SDK Packages
-
-* **Pubnub** – .NET Framework 4.6.1+  
-* **PubnubPCL** – .NET Standard 2.0+ (.NET Core, Xamarin)  
-* **PubnubUWP** – UWP  
-
----
+* `Pubnub` – .NET Framework 4.6.1+
+* `PubnubPCL` – .NET Standard 2.0+ (.NET Core, Xamarin, etc.)
+* `PubnubUWP` – Universal Windows Platform
 
 ## Prerequisites
+* C# development environment (VS 2019/2022, VS Code, Rider, etc.)
+* .NET Framework 4.6.1+ or .NET Core 2.0+
+* Valid PubNub publish & subscribe keys
 
-* C# IDE (Visual Studio / VS Code / Rider)  
-* .NET Framework 4.6.1+ or .NET Core 2.0+  
-* PubNub publish & subscribe keys  
-
----
-
-## Get Your PubNub Keys
-
-1. Log in to the [PubNub Admin Portal](https://admin.pubnub.com/).  
-2. Create (or open) an app → copy the publish & subscribe keys.  
-
----
+## Get PubNub Keys
+1. Sign in / create account on the PubNub Admin Portal.  
+2. Create (or select) an app to obtain **publish** & **subscribe** keys.  
+   • For production, create separate keysets for each environment.
 
 ## Install the SDK
 
@@ -49,7 +33,7 @@ dotnet add package PubnubUWP
 `
 ```
 
-### Package Manager Console
+### Package Manager Console in Visual Studio
 
 ```
 `# For .NET Core / .NET Standard / Xamarin  
@@ -63,20 +47,17 @@ Install-Package PubnubUWP
 `
 ```
 
-Source code: <https://github.com/pubnub/c-sharp>
-
----
+Latest releases are also on GitHub: <https://github.com/pubnub/c-sharp>
 
 ## Initialize PubNub
-
-Replace the demo keys with your own.
 
 ```
 `  
 `
 ```
 
----
+• Configure `PNConfiguration` with your publish/subscribe keys, then instantiate `Pubnub`.  
+• Initialize once (for example, in `Main` or a service class).
 
 ## Set Up Event Listeners
 
@@ -85,25 +66,26 @@ Replace the demo keys with your own.
 `
 ```
 
----
+• Attach a listener to receive messages, presence events, and status updates.  
+• Add listeners before subscribing.
 
-## Subscribe to a Channel
-
-```
-`  
-`
-```
-
----
-
-## Publish a Message
+## Subscribe to Channels
 
 ```
 `  
 `
 ```
 
----
+• Call `Subscribe()` (or `Subscribe<string>()`) with one or more channel names.
+
+## Publish Messages (≤ 32 KiB, JSON-serializable)
+
+```
+`  
+`
+```
+
+• Use `await pubnub.Publish().Channel("my_channel").Message(obj).ExecuteAsync();`
 
 ## Expected Console Output
 
@@ -119,8 +101,6 @@ Press any key to exit...
 `
 ```
 
----
-
 ## Complete Example
 
 ```
@@ -128,14 +108,18 @@ Press any key to exit...
 `
 ```
 
----
+## Troubleshooting
 
-## Troubleshooting (Quick Checklist)
+• No connection → check internet, keys, firewall.  
+• Message not received → verify same channel, publish success, listener added before subscribe.  
+• Build errors → confirm correct NuGet package, `using PubnubApi;`, and target framework version.
 
-* No connection → check internet, keys, firewall.  
-* No message → same channel name, verify publish success, listeners added before `Subscribe`.  
-* Build errors → correct NuGet package, `using PubnubApi;`, compatible .NET version.  
+## Next Steps
 
----
+Explore:
+* Presence, Message Persistence, Access Manager
+* Functions, Mobile Push, Unity Chat SDK
+* Full C# API reference & samples on GitHub  
+* Community support via Discord & support portal
 
-Last updated: **Jun 30, 2025**
+_Last updated Jul 15 2025_

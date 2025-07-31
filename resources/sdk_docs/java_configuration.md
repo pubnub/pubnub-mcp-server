@@ -1,118 +1,130 @@
-# Configuration API – PubNub Java SDK (v9.x)
+# Configuration API – PubNub Java SDK (v9+)
 
-## Overview  
-`PNConfiguration` stores all runtime options for the PubNub client.  
-• Configuration is **immutable** after it’s passed to the PubNub constructor.  
-• Use **value overrides** (see below) for per-request changes.
+> All code blocks, method signatures, parameter names, types, defaults, and option values are preserved exactly as in the original documentation.
 
 ---
 
-## Instantiate `PNConfiguration`
+## 1. Create `PNConfiguration`
 
+``` 
+`import com.pubnub.api.java.v2.PNConfiguration;  
+  
+PNConfiguration.builder(UserId userId, String subscribeKey).build()  
+`
 ```
-import com.pubnub.api.java.v2.PNConfiguration;
 
-PNConfiguration.builder(UserId userId, String subscribeKey).build()
+### Configuration properties
+
+• `subscribeKey` Type: String Default: n/a – Admin-portal subscribe key  
+• `publishKey` Type: String Default: n/a – publish key (only if publishing)  
+• `secretKey` Type: String Default: n/a – secret key (server only)  
+• `logVerbosity` Type: PNLogVerbosity Default: PNLogVerbosity.NONE – set PNLogVerbosity.BODY to log network calls  
+• `cacheBusting` Type: Boolean Default: n/a – shuffle sub-domains behind misbehaving proxy  
+• `secure` Type: Boolean Default: true – enable TLS  
+• `connectTimeout` Type: Int Default: 5 – seconds  
+• `subscribeTimeout` Type: Int Default: 310 – seconds  
+• `nonSubscribeRequestTimeout` Type: Int Default: 10 – seconds  
+• `filterExpression` Type: String Default: Not set – server–side message filter  
+• `heartbeatNotificationOptions` Type: PNHeartbeatNotificationOptions Default: PNHeartbeatNotificationOptions.FAILURES  
+• `origin` Type: String Default: n/a – custom domain  
+• `retryConfiguration` Type: RetryConfiguration Default: RetryConfiguration.Exponential – subscribe only  
+  – `RetryConfiguration.None.INSTANCE`  
+  – `RetryConfiguration.Linear(delayInSec, maxRetryNumber, excludedOperations)`  
+  – `RetryConfiguration.Exponential(minDelayInSec, maxDelayInSec, maxRetryNumber, excludedOperations)`  
+  – `excludedOperations` takes a list of `RetryableEndpointGroup` enums (e.g., `SUBSCRIBE`)  
+• `presenceTimeout` Type: Int Default: 300 – seconds, min 20  
+• `heartbeatInterval` Type: Int Default: 0 – seconds, ≥ 3 when enabled  
+• `proxy` Type: Proxy Default: n/a  
+• `proxySelector` Type: ProxySelector Default: n/a  
+• `proxyAuthenticator` Type: Authenticator Default: n/a  
+• `googleAppEngineNetworking` Type: Boolean Default: n/a  
+• `suppressLeaveEvents` Type: Boolean Default: false  
+• `maintainPresenceState` Type: Boolean Default: true  
+• `cryptoModule` Type: CryptoModule.createAesCbcCryptoModule(...) or CryptoModule.createLegacyCryptoModule(...) – see below  
+• `includesInstanceIdentifier` Type: Boolean Default: false  
+• `includeRequestIdentifier` Type: Boolean Default: true  
+• `maximumConnections` Type: Int? Default: n/a  
+• `certificatePinner` Type: CertificatePinner Default: n/a  
+• `httpLoggingInterceptor` Type: HttpLoggingInterceptor Default: n/a  
+• `sslSocketFactory` Type: SSLSocketFactory Default: n/a  
+• `x509ExtendedTrustManager` Type: X509ExtendedTrustManager Default: n/a  
+• `connectionSpec` Type: ConnectionSpec Default: n/a  
+• `hostnameVerifier` Type: HostnameVerifier Default: n/a  
+• `fileMessagePublishRetryLimit` Type: Int Default: 5  
+• `dedupOnSubscribe` Type: Boolean Default: n/a  
+• `maximumMessagesCacheSize` Type: Int Default: n/a  
+• `pnsdkSuffixes` Type: Map<String,String> Default: n/a  
+• `managePresenceListManually` Type: Boolean Default: n/a  
+• `authKey` Type: String Default: Not set – deprecated (Access Manager v2)
+
+---
+
+## 2. `cryptoModule`
+
+``` 
+`// encrypts using 256-bit AES-CBC cipher (recommended)  
+// decrypts data encrypted with the legacy and the 256-bit AES-CBC ciphers  
+pnConfiguration.cryptoModule = CryptoModule.createAesCbcCryptoModule("enigma", true):  
+  
+// encrypts with 128-bit cipher key entropy (legacy)  
+// decrypts data encrypted with the legacy and the 256-bit AES-CBC ciphers  
+pnConfiguration.cryptoModule = CryptoModule.createLegacyCryptoModule("enigma", true);  
+`
+```
+• 256-bit AES-CBC (recommended) or legacy 128-bit encryption.  
+• Clients < 6.3.6 cannot decrypt 256-bit AES-CBC.
+
+---
+
+## 3. Per-call value overrides
+
+``` 
+`  
+`
+```
+Use `PnConfigurationOverride.from()` to override on a single request:  
+`subscribeKey`, `publishKey`, `secretKey`, `retryConfiguration`, `userId`, `includeInstanceIdentifier`, `includeRequestIdentifier`, `cryptoModule`, `connectTimeout`, `nonSubscribeReadTimeout`.
+
+---
+
+## 4. `userId` helpers
+
+``` 
+`import com.pubnub.api.java.v2.PNConfiguration;  
+  
+pnConfiguration.setUserId(String userId);  
+`
+```
+
+``` 
+`import com.pubnub.api.java.v2.PNConfiguration;  
+  
+pnConfiguration.getUserId();  
+`
 ```
 
 ---
 
-## Parameters (builder setters)
+## 5. Filter expression helpers
 
-* `subscribeKey` (String, required) – key from Admin Portal.  
-* `publishKey` (String) – only required if you publish.  
-* `secretKey` (String) – only for access-manager operations (server-side only).  
-* `logVerbosity` (PNLogVerbosity, default `NONE`) – set `BODY` to log HTTP bodies.  
-* `cacheBusting` (Boolean) – shuffle sub-domains when behind faulty proxy.  
-* `secure` (Boolean, default `true`) – enable TLS.  
-* `connectTimeout` (Int, default 5 s) – connection timeout.  
-* `subscribeTimeout` (Int, default 310 s) – subscribe request timeout.  
-* `nonSubscribeRequestTimeout` (Int, default 10 s) – read timeout for non-subscribe calls.  
-* `filterExpression` (String) – server-side stream filter.  
-* `heartbeatNotificationOptions` (PNHeartbeatNotificationOptions, default `FAILURES`).  
-* `origin` (String) – custom origin if required.  
-* `retryConfiguration` (RetryConfiguration, default `Exponential` subscribe-only)  
-  • `RetryConfiguration.None.INSTANCE`  
-  • `RetryConfiguration.Linear(delayInSec, maxRetry, excludedOperations)`  
-  • `RetryConfiguration.Exponential(minDelay, maxDelay, maxRetry, excludedOperations)`  
-  • `excludedOperations` list of `RetryableEndpointGroup` (e.g., `SUBSCRIBE`).  
-* `presenceTimeout` (Int, default 300 s, min 20 s) – server considers client alive.  
-* `heartbeatInterval` (Int, default 0 s) – manual heartbeat; usually `(presenceTimeout/2)-1`.  
-* `proxy` (java.net.Proxy) – HTTP proxy.  
-* `proxySelector` (ProxySelector)  
-* `proxyAuthenticator` (Authenticator)  
-* `googleAppEngineNetworking` (Boolean).  
-* `suppressLeaveEvents` (Boolean, default false).  
-* `maintainPresenceState` (Boolean, default true).  
-* `cryptoModule` (CryptoModule) – see “Crypto Module” below.  
-* `includesInstanceIdentifier` (Boolean, default false).  
-* `includeRequestIdentifier` (Boolean, default true).  
-* `maximumConnections` (Int?) – okhttp `setMaxRequestsPerHost`.  
-* `certificatePinner` (CertificatePinner).  
-* `httpLoggingInterceptor` (HttpLoggingInterceptor).  
-* `sslSocketFactory` (SSLSocketFactory).  
-* `x509ExtendedTrustManager` (X509ExtendedTrustManager).  
-* `connectionSpec` (ConnectionSpec).  
-* `hostnameVerifier` (HostnameVerifier).  
-* `fileMessagePublishRetryLimit` (Int, default 5).  
-* `dedupOnSubscribe` (Boolean).  
-* `maximumMessagesCacheSize` (Int).  
-* `pnsdkSuffixes` (Map<String,String>).  
-* `managePresenceListManually` (Boolean).  
-* `authKey` (String, deprecated) – see Access Manager v2 docs.
+``` 
+`import com.pubnub.api.java.v2.PNConfiguration;  
+  
+pnConfiguration.setFilterExpression(String filterExpression);  
+`
+```
+
+``` 
+`import com.pubnub.api.java.v2.PNConfiguration;  
+  
+pnConfiguration.getFilterExpression();  
+`
+```
 
 ---
 
-## Crypto Module
+### Breaking changes (v9.0.0)
 
-```
- // 256-bit AES-CBC (recommended)
- pnConfiguration.cryptoModule = CryptoModule.createAesCbcCryptoModule("enigma", true);
+• Unified Java/Kotlin codebase, new client instantiation pattern, new async callbacks/status events. Refer to the migration guide if upgrading from < 9.0.0.
 
- // 128-bit legacy encryption
- pnConfiguration.cryptoModule = CryptoModule.createLegacyCryptoModule("enigma", true);
-```
-
-• Either module can decrypt messages created by the other.  
-• SDKs older than 6.3.6 can’t decrypt AES-CBC 256-bit data.
-
----
-
-## Value Override (per-request)
-
-```
-PNConfigurationOverride.from(pnConfiguration)
-    // set only the fields you want to override
-```
-
-Overridable fields: `subscribeKey`, `publishKey`, `secretKey`, `retryConfiguration`, `userId`, `includeInstanceIdentifier`, `includeRequestIdentifier`, `cryptoModule`, `connectTimeout`, `nonSubscribeReadTimeout`.
-
----
-
-## User ID helpers
-
-```
-import com.pubnub.api.java.v2.PNConfiguration;
-
-pnConfiguration.setUserId(String userId);
-pnConfiguration.getUserId();
-```
-
-`userId` is required for successful connection.
-
----
-
-## Filter Expression helpers
-
-```
-import com.pubnub.api.java.v2.PNConfiguration;
-
-pnConfiguration.setFilterExpression(String filterExpression);
-pnConfiguration.getFilterExpression();
-```
-
-Server-side message filtering requires the Stream Controller add-on.
-
----
-
-_Last updated 2025-05-28_
+_Last updated Jul 16 2025_

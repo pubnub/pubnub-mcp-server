@@ -1,120 +1,131 @@
-# Configuration API for Objective-C SDK (condensed)
+# PubNub Objective-C SDK – Configuration (Condensed)
 
-Use `PNConfiguration` to control all PubNub client behavior.
+## 1. Create a configuration object
 
-## 1. Create a configuration
-
-```objective-c
-+ (instancetype)configurationWithPublishKey:(NSString *)publishKey   
+```
+`+ (instancetype)configurationWithPublishKey:(NSString *)publishKey   
                                subscribeKey:(NSString *)subscribeKey;  
                                      userID:(NSString *)userID  
+`
 ```
 
-• publishKey (NSString) – key for publish operations.  
-• subscribeKey (NSString) – key for subscriptions.  
-• userID (NSString, ≤92 UTF-8 chars) – unique user/device identifier (required).
+• `publishKey` `NSString` – publish capability.  
+• `subscribeKey` `NSString` – subscribe capability.  
+• `userID` `NSString` – unique ID (92 UTF-8 chars max); **must be set**.
 
-### Core properties
+## 2. PNConfiguration properties
 
-| Property | Type / Default | Purpose |
-|----------|----------------|---------|
-| heartbeatNotificationOptions | PNHeartbeatNotificationOptions (`PNHeartbeatNotifyFailure` default) | Control success/failure callbacks for heartbeats. |
-| stripMobilePayload | BOOL | Remove mobile-push payload before delivering messages. |
-| subscribeMaximumIdleTime | NSTimeInterval, default `310` | Max seconds between server events before reconnect. |
-| nonSubscribeRequestTimeout | NSTimeInterval, default `10` | Timeout for non-subscribe requests. |
-| presenceHeartbeatValue | NSInteger, default `300` | How long server sees client as alive. |
-| presenceHeartbeatInterval | NSInteger, default `(presenceHeartbeatValue/2)-1` | How often SDK sends heartbeats. |
-| keepTimeTokenOnListChange | BOOL, default `YES` | Keep last timetoken when channel list changes. |
-| catchUpOnSubscriptionRestore | BOOL, default `YES` | Fetch missed messages after reconnect. |
-| applicationExtensionSharedGroupIdentifier | NSString | App extension shared cache identifier. |
-| requestMessageCountThreshold | NSUInteger | Max messages allowed in single response. |
-| maximumMessagesCacheSize | NSUInteger, default `100` | De-duplication cache size. |
-| completeRequestsBeforeSuspension | BOOL, default `YES` | Finish in-flight calls before app suspension. |
-| suppressLeaveEvents | BOOL | Skip presence leave events on unsubscribe. |
-| origin | NSString | Custom PubNub domain if needed. |
-| requestRetry | PNRequestRetryConfiguration | Custom endpoint retry logic (see §2). |
-| cryptoModule | PNCryptoModule* | Message/file encryption module (see §3). |
-| cipherKey / useRandomInitializationVector | Deprecated – set via `cryptoModule` instead. |
+• `heartbeatNotificationOptions` `PNHeartbeatNotificationOptions` – bitmask:  
+  • `PNHeartbeatNotifySuccess`, `PNHeartbeatNotifyFailure` (default), `PNHeartbeatNotifyAll`, `PNHeartbeatNotifyNone`.
 
-Disable random IV only when maintaining backward compatibility (< 4.16.0).
+• `stripMobilePayload` `BOOL` – remove mobile-push payload from received messages.
 
----
+• `subscribeMaximumIdleTime` `NSTimeInterval` – max idle on subscribe (default 310 s).
 
-## 2. `requestRetry`
+• `nonSubscribeRequestTimeout` `NSTimeInterval` – timeout for non-subscribe calls (default 10 s).
 
-Factory methods (all in `PNRequestRetryConfiguration`) and examples are kept verbatim.
+• `presenceHeartbeatValue` `NSInteger` – presence timeout (default 300 s).  
+• `presenceHeartbeatInterval` `NSInteger` – heartbeat interval (recommend `(value/2)-1`, min 3 s).
 
-##### Default linear delay
+• `keepTimeTokenOnListChange` `BOOL` – keep previous timetoken on resubscribe (default YES).
 
-```objective-c
-+ (instancetype)configurationWithLinearDelay;  
+• `catchUpOnSubscriptionRestore` `BOOL` – fetch missed events after reconnect (default YES).
+
+• `applicationExtensionSharedGroupIdentifier` `NSString` – App Extension group for request cache.
+
+• `requestMessageCountThreshold` `NSUInteger` – max messages allowed in one response.
+
+• `maximumMessagesCacheSize` `NSUInteger` – de-dup cache size (default 100).
+
+• `completeRequestsBeforeSuspension` `BOOL` – finish API calls before app suspension (default YES).
+
+• `suppressLeaveEvents` `BOOL` – suppress presence leave on unsubscribe.
+
+• `origin` `NSString` – custom PubNub domain.
+
+• `requestRetry` `PNRequestRetryConfiguration` – custom reconnect policy (see below).
+
+• `cryptoModule` `PNCryptoModule` – message/file encryption module (recommended AES-CBC).
+
+Deprecated (use `cryptoModule` instead):  
+• `cipherKey` `NSString`, `useRandomInitializationVector` `BOOL`.
+
+## 3. Retry policies (`requestRetry`)
+
+### Factory methods
+
 ```
-```objective-c
-configuration.requestRetry = [PNRequestRetryConfiguration configurationWithLinearDelay];  
+`+ (instancetype)configurationWithLinearDelay;  
+`
 ```
-
-##### Linear delay, exclude endpoints
-
-```objective-c
-+ (instancetype)configurationWithLinearDelayExcludingEndpoints:(PNEndpoint)endpoints, ...;  
 ```
-```objective-c
-configuration.requestRetry = [PNRequestRetryConfiguration configurationWithLinearDelayExcludingEndpoints:PNMessageSendEndpoint, 0];  
+`+ (instancetype)configurationWithLinearDelayExcludingEndpoints:(PNEndpoint)endpoints, ...;  
+`
 ```
-
-##### Linear delay with custom params
-
-```objective-c
-+ (instancetype)configurationWithLinearDelay:(NSTimeInterval)delay  
+```
+`+ (instancetype)configurationWithLinearDelay:(NSTimeInterval)delay  
                                 maximumRetry:(NSUInteger)maximumRetry  
                            excludedEndpoints:(PNEndpoint)endpoints, ...;  
+`
 ```
-```objective-c
-/// example  
-configuration.requestRetry = [PNRequestRetryConfiguration configurationWithLinearDelay:3.f  
-                                                                          maximumRetry:3  
-                                                                     excludedEndpoints:PNMessageSendEndpoint, PNMessageStorageEndpoint, 0];  
 ```
-
-##### Default exponential delay
-
-```objective-c
-+ (instancetype)configurationWithExponentialDelay;  
+`+ (instancetype)configurationWithExponentialDelay;  
+`
 ```
-```objective-c
-configuration.requestRetry = [PNRequestRetryConfiguration configurationWithExponentialDelay];  
 ```
-
-##### Exponential delay, exclude endpoints
-
-```objective-c
-+ (instancetype)configurationWithExponentialDelayExcludingEndpoints:(PNEndpoint)endpoints, ...;  
+`+ (instancetype)configurationWithExponentialDelayExcludingEndpoints:(PNEndpoint)endpoints, ...;  
+`
 ```
-```objective-c
-configuration.requestRetry = [PNRequestRetryConfiguration configurationWithExponentialDelayExcludingEndpoints:PNMessageSendEndpoint, 0];  
 ```
-
-##### Exponential delay with custom params
-
-```objective-c
-+ (instancetype)configurationWithExponentialDelay:(NSTimeInterval)minimumDelay  
+`+ (instancetype)configurationWithExponentialDelay:(NSTimeInterval)minimumDelay  
                                      maximumDelay:(NSTimeInterval)maximumDelay  
                                      maximumRetry:(NSUInteger)maximumRetry  
                                 excludedEndpoints:(PNEndpoint)endpoints, ...;  
+`
 ```
-```objective-c
-configuration.requestRetry = [PNRequestRetryConfiguration configurationWithExponentialDelay:3.f  
+
+### Usage examples
+
+```
+`configuration.requestRetry = [PNRequestRetryConfiguration configurationWithLinearDelay];  
+`
+```
+
+```
+`configuration.requestRetry = [PNRequestRetryConfiguration configurationWithLinearDelayExcludingEndpoints:PNMessageSendEndpoint, 0];  
+`
+```
+
+```
+`/// example  
+configuration.requestRetry = [PNRequestRetryConfiguration configurationWithLinearDelay:3.f  
+                                                                          maximumRetry:3  
+                                                                     excludedEndpoints:PNMessageSendEndpoint, PNMessageStorageEndpoint, 0];  
+`
+```
+
+```
+`configuration.requestRetry = [PNRequestRetryConfiguration configurationWithExponentialDelay];  
+`
+```
+
+```
+`configuration.requestRetry = [PNRequestRetryConfiguration configurationWithExponentialDelayExcludingEndpoints:PNMessageSendEndpoint, 0];  
+`
+```
+
+```
+`configuration.requestRetry = [PNRequestRetryConfiguration configurationWithExponentialDelay:3.f  
                                                                                maximumDelay:120.f  
                                                                                maximumRetry:3  
                                                                           excludedEndpoints:PNMessageSendEndpoint, PNMessageStorageEndpoint, 0];  
+`
 ```
 
----
+## 4. Encryption (`cryptoModule`)
 
-## 3. `cryptoModule`
-
-```objective-c
-// encrypts using 256-bit AES-CBC cipher (recommended)  
+```
+`// encrypts using 256-bit AES-CBC cipher (recommended)  
 // decrypts data encrypted with the legacy and the 256-bit AES-CBC ciphers  
 config.cryptoModule = [PNCryptoModule AESCBCCryptoModuleWithCipherKey:@"enigma"  
                                            randomInitializationVector:YES];  
@@ -123,16 +134,15 @@ config.cryptoModule = [PNCryptoModule AESCBCCryptoModuleWithCipherKey:@"enigma"
 // decrypts data encrypted with the legacy and the 256-bit AES-CBC ciphers  
 config.cryptoModule = [PNCryptoModule legacyCryptoModuleWithCipherKey:@"enigma"   
                                            randomInitializationVector:YES];  
+`
 ```
 
-• Older SDKs (< 5.1.3) can’t decrypt 256-bit AES-CBC data.
+SDK ≤ 5.1.2 can’t decrypt 256-bit content.
 
----
+## 5. Basic configuration example
 
-## 4. Basic configuration & client setup
-
-```objective-c
-// Basic configuration  
+```
+`// Basic configuration  
 PNConfiguration *config = [PNConfiguration configurationWithPublishKey:@"demo"  
                                                           subscribeKey:@"demo"  
                                                                 userID:@"myUniqueUserID"];  
@@ -147,32 +157,46 @@ PubNub *client = [PubNub clientWithConfiguration:config];
 PNSubscribeRequest *subscribeRequest = [PNSubscribeRequest requestWithChannels:@[@"test-channel"]  
                                                                  channelGroups:nil];  
 subscribeRequest.observePresence = YES;  
+`
 ```
 
----
+## 6. Heartbeat notification example
 
-## 5. Heartbeat notification setup
+### Configuration
 
-```objective-c
-PNConfiguration *config = [PNConfiguration configurationWithPublishKey:@"" subscribeKey:@""];  
+```
+`PNConfiguration *config = [PNConfiguration configurationWithPublishKey:@"" subscribeKey:@""];  
+/**  
+    This is where you need to adjust the PNConfiguration object for the types of heartbeat notifications you want.  
+    This is a bitmask of options located at https://github.com/pubnub/objective-c/blob/1f1c7a41a3bd8c32b644a6ad98fe179d45397c2b/PubNub/Misc/PNStructures.h#L24  
+    */  
 config.heartbeatNotificationOptions = PNHeartbeatNotifyAll;  
   
 self.client = [PubNub clientWithConfiguration:config];  
 [self.client addListener:self];  
+`
 ```
 
-Listener:
+### Listener
 
-```objective-c
-- (void)client:(PubNub *)client didReceiveStatus:(PNStatus *)status {  
+```
+`- (void)client:(PubNub *)client didReceiveStatus:(PNStatus *)status {  
   
     if (status.operation == PNHeartbeatOperation) {  
-        if (!status.isError) { /* Heartbeat OK */ }  
-        else { /* Handle error */ }  
+  
+        /**  
+            Heartbeat operations can in fact have errors, so it is important to check first for an error.  
+            For more information on how to configure heartbeat notifications through the status  
+            PNObjectEventListener callback, consult http://www.pubnub.com/docs/sdks/objective-c/api-reference/configuration#configuration_basic_usage  
+            */  
+  
+        if (!status.isError) { /* Heartbeat operation was successful. */ }  
+        else { /* There was an error with the heartbeat operation, handle here. */ }  
     }  
 }  
+`
 ```
 
 ---
 
-Configured `PNConfiguration` instances are returned ready for use with `PubNub clientWithConfiguration:`.
+Configured `PNConfiguration` instances are returned ready to use when creating a `PubNub` client.

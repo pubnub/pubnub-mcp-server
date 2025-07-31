@@ -1,16 +1,15 @@
 # Channel Groups API – JavaScript SDK (condensed)
 
-Channel groups bundle many channels under one name.  
-• You can **subscribe** to a group but **cannot publish** to it (publish to individual channels instead).  
-• Async patterns: Callbacks, Promises, and **Async/Await** (recommended). Use `try…catch` to handle errors.
-
-All Channel-Group operations **require the Stream Controller add-on** to be enabled for your PubNub keys.
+Channel Groups bundle multiple channels under a single name.  
+• Subscribe only; you can’t publish to a group.  
+• Up to 200 channels can be added per API call.  
+• All Channel-Group operations require the **Stream Controller** add-on (enable in the Admin Portal).  
+• Async/Await with try…catch is the recommended pattern; callbacks and Promises are also supported.
 
 ---
 
-## Add Channels to a Group
-Maximum 200 channels per call.
-``` 
+## Add channels to a group
+```
 `pubnub.channelGroups.addChannels({  
     channels: Arraystring>,  
     channelGroup: string  
@@ -18,19 +17,15 @@ Maximum 200 channels per call.
 `
 ```
 Parameters  
-• `channels` Array\<string> – channels to add  
-• `channelGroup` string – target group
+• channels (Array\<string>): channels to add.  
+• channelGroup (string): target group.
 
-Example
+Sample code  
 ```
 `  
 `
 ```
-```
-`  
-`
-```
-Response
+Response  
 ```
 `{  
     error: false,  
@@ -42,22 +37,22 @@ Response
 
 ---
 
-## List Channels in a Group
-``` 
+## List channels in a group
+```
 `pubnub.channelGroups.listChannels({  
     channelGroup: string  
 })  
 `
 ```
 Parameter  
-• `channelGroup` string – group to inspect
+• channelGroup (string): group to inspect.
 
-Example
+Sample code  
 ```
 `  
 `
 ```
-Response
+Response  
 ```
 `// Example of Status  
 {  
@@ -75,8 +70,8 @@ Response
 
 ---
 
-## Remove Channels from a Group
-``` 
+## Remove channels from a group
+```
 `pubnub.channelGroups.removeChannels({  
     channels: Arraystring>,  
     channelGroup: string  
@@ -84,15 +79,15 @@ Response
 `
 ```
 Parameters  
-• `channels` Array\<string> – channels to remove  
-• `channelGroup` string – source group
+• channels (Array\<string>): channels to remove.  
+• channelGroup (string): group to remove them from.
 
-Example
+Sample code  
 ```
 `  
 `
 ```
-Response
+Response  
 ```
 `{  
     error: false,  
@@ -104,22 +99,22 @@ Response
 
 ---
 
-## Delete an Entire Channel Group
-``` 
+## Delete a channel group
+```
 `pubnub.channelGroups.deleteGroup({  
     channelGroup: string  
 })  
 `
 ```
 Parameter  
-• `channelGroup` string – group to delete
+• channelGroup (string): group to delete.
 
-Example
+Sample code  
 ```
 `  
 `
 ```
-Response
+Response  
 ```
 `{**    error: false,  
     operation: "PNRemoveGroupOperation",  
@@ -128,4 +123,4 @@ Response
 `
 ```
 
-_Last updated: Jun 30 2025_
+_Last updated: Jul 15 2025_

@@ -1,17 +1,18 @@
-# Mobile Push Notifications API – JavaScript SDK (mobile-push)
+# Mobile Push Notifications API (JavaScript SDK)
 
-Mobile Push Notifications let you publish messages through PubNub that fan out to APNs (APNS2) and FCM without any extra servers.  
-Add the *Mobile Push Notifications* add-on to your keys in the Admin Portal before using the APIs below.
+Enables PubNub publishing through Apple APNs (APNS2) and Google FCM without extra server-side code.  
+Use Callbacks, Promises, or **Async/Await** (recommended—wrap calls in `try…catch`).
 
 ---
 
-## Add Device to Channel
+## Requirements
+• Enable the **Mobile Push Notifications** add-on for your key in the Admin Portal.  
 
-Enable push notifications for a device on one or more channels.
+---
 
-### Method
+## Add device to channel
 
-```
+````
 `pubnub.push.addChannels({  
     channels: Arraystring>,  
     device: string,  
@@ -20,42 +21,39 @@ Enable push notifications for a device on one or more channels.
     topic: string  
 })  
 `
-```
+````
 
-Parameters  
-• channels (Array<string>) – Channels to enable.  
-• device (string) – Device push token.  
-• pushGateway (string) – `"apns2"` or `"gcm"`.  
-• environment (string, default `"development"`) – `"development"` or `"production"` (APNS2 only).  
-• topic (string) – APNS2 topic (bundle ID); required when `pushGateway` is `"apns2"`.
+Parameter | Type | Default | Notes
+--------- | ---- | ------- | -----
+channels* | Array\<string> | — | Channels to enable.
+device* | string | — | Device push token.
+pushGateway* | string | — | `apns2` or `gcm`.
+environment | string | `development` | `development` or `production` (APNS2 only).
+topic | string | — | Required for APNS2.
 
-### Basic Usage
+Sample code:
 
-```
+````
 `  
 `
-```
+````
 
-### Response
+Response:
 
-```
+````
 `{  
     error: false,  
     operation: 'PNPushNotificationEnabledChannelsOperation',  
     statusCode: 200  
 }  
 `
-```
+````
 
 ---
 
-## List Channels for Device
+## List channels for device
 
-Returns all channels on which the specified device receives push notifications.
-
-### Method
-
-```
+````
 `pubnub.push.listChannels({  
     device: string,  
     pushGateway: string,  
@@ -63,49 +61,46 @@ Returns all channels on which the specified device receives push notifications.
     topic: string  
 })  
 `
-```
+````
 
-Parameters  
-• device (string) – Device push token.  
-• pushGateway (string) – `"apns2"` or `"gcm"`.  
-• environment (string, default `"development"`) – `"development"` or `"production"` (APNS2 only).  
-• topic (string) – APNS2 topic; required when `pushGateway` is `"apns2"`.  
-• start (string) – Pagination start (channel name).  
-• count (number, default `500`, max `1000`) – Number of channels to return.
+Parameter | Type | Default | Notes
+--------- | ---- | ------- | -----
+device* | string | — | Device push token.
+pushGateway* | string | — | `apns2` or `gcm`.
+environment | string | `development` | APNS2 only.
+topic | string | — | APNS2 only.
+start | string | — | Pagination start channel.
+count | number | 500 | ≤ 1000.
 
-### Basic Usage
+Sample code:
 
-```
+````
 `  
 `
-```
+````
 
-### Response
+Status / Response:
 
-```
-`// status  
+````
+`// Example status  
 {  
     error: false,  
     operation: 'PNPushNotificationEnabledChannelsOperation',  
     statusCode: 200  
 }  
   
-// payload  
+// Example response  
 {  
     channels: [ 'a', 'b' ]  
 }  
 `
-```
+````
 
 ---
 
-## Remove Device from Channel
+## Remove device from channel
 
-Disable push notifications for a device on specific channels.
-
-### Method
-
-```
+````
 `pubnub.push.removeChannels({  
     channels: Arraystring>,  
     device: string,  
@@ -114,37 +109,33 @@ Disable push notifications for a device on specific channels.
     topic: string  
 })  
 `
-```
+````
 
-Parameters identical to *Add Device to Channel*.
+Parameters identical to *Add device to channel*.
 
-### Basic Usage
+Sample:
 
-```
+````
 `  
 `
-```
+````
 
-### Response
+Response:
 
-```
+````
 `{  
     error: false,  
     operation: 'PNPushNotificationEnabledChannelsOperation',  
     statusCode: 200  
 }  
 `
-```
+````
 
 ---
 
-## Remove Device from All Channels
+## Remove all mobile push notifications for a device
 
-Disable push notifications for a device on every channel.
-
-### Method
-
-```
+````
 `pubnub.push.deleteDevice({  
     device: string,  
     pushGateway: string,  
@@ -152,152 +143,130 @@ Disable push notifications for a device on every channel.
     topic: string  
 })  
 `
-```
+````
 
-Parameters  
-• device, pushGateway, environment, topic – same as above.
+Parameters as shown.
 
-### Basic Usage
+Sample:
 
-```
+````
 `  
 `
-```
+````
 
-### Response
+Response:
 
-```
+````
 `{  
     error: false,  
     operation: 'PNPushNotificationEnabledChannelsOperation',  
     statusCode: 200  
 }  
 `
-```
+````
 
 ---
 
-## Push Notification Format Configuration
+## Push notification format configuration
 
 ### APNS2Configuration
 
-```
+````
 `type APNS2Configuration = {  
     collapseId?: string,  
     expirationDate?: Date,  
     targets: ArrayAPNS2Target>  
 }  
 `
-```
+````
 
-• collapseId – `apns-collapse-id` header.  
-• expirationDate – `apns-expiration` header.  
-• targets – Array of APNS2Target objects.
+Field | Type | Notes
+----- | ---- | -----
+collapseId | string | `apns-collapse-id` header.
+expirationDate | Date | `apns-expiration` header.
+targets* | Array\<APNS2Target> | Delivery targets.
 
 ### APNS2Target
 
-```
+````
 `type APNS2Target = {  
     topic: string,  
     environment?: 'development' | 'production',  
     excludedDevices?: Arraystring>  
 }  
 `
-```
+````
 
-• topic (string, required) – Bundle ID.  
-• environment (`'development' | 'production'`, default `'development'`).  
-• excludedDevices (Array<string>) – Tokens to omit.
+topic*, environment (`development`/`production`), excludedDevices.
 
-### APNSNotificationPayload
+### APNSNotificationPayload properties
 
-APNs-specific builder.
+• configurations: Array\<APNS2Configuration>  
+• notification: Hash  
+• payload: Hash  
+• silent: Boolean
 
-Properties:  
-• configurations (Array<APNS2Configuration>)  
-• notification (Hash)  
-• payload (Hash)  
-• silent (Boolean)
+### FCMNotificationPayload properties
 
-### FCMNotificationPayload
+• notification: Hash  
+• data: Hash (keys must be strings and avoid reserved words)  
+• silent: Boolean (moves `notification` under `data`)  
+• icon, tag, payload
 
-FCM-specific builder.
+### NotificationsPayload builder
 
-Properties:  
-• notification (Hash)  
-• data (Hash)  
-• silent (Boolean)  
-• icon (String)  
-• tag (String)  
-• payload (Hash)
-
-### NotificationsPayload Builder
-
-Create multi-platform payloads.
-
-```
+````
 `PubNub.notificationPayload(  
     title: string,  
     body: string  
 )  
 `
-```
+````
 
-Properties  
-• subtitle (string)  
-• badge (number)  
-• sound (string)  
-• debugging (boolean)  
-• apns (APNSNotificationPayload)  
-• fcm (FCMNotificationPayload)
-
-Build:
-
-```
+````
 `buildPayload(  
     platforms: Arraystring>  
 )  
 `
-```
+````
 
-`platforms`: `"apns"`, `"apns2"`, `"fcm"`.
+Builder properties: subtitle, badge, sound, debugging, apns, fcm.
 
-#### Basic Example
+#### Sample
 
-```
+````
+`  
+`
+````
+
+````
 `let builder = PubNub.notificationPayload('Chat invitation',  
                                             'You have been invited to \'quiz\' chat');  
 `
-```
+````
 
----
+### Other examples
 
-### Additional Examples
+Generate payloads:
 
-#### Simple FCM + APNS payload
-
-```
+````
 `  
 `
-```
+````
 
-#### Simple FCM + APNS2 payload (default configuration)
-
-```
+````
 `  
 `
-```
+````
 
-#### Simple FCM + APNS2 payload (custom configuration)
-
-```
+````
 `  
 `
-```
+````
 
-##### Output
+Output:
 
-```
+````
 `{  
     "pn_apns": {  
         "aps": {  
@@ -314,5 +283,13 @@ Build:
                     {  
                         "environment": "development",  
 `
-```
-show all 29 lines
+````
+
+Example shows APNS redelivery for 10 s and grouping via `collapse_id`.
+
+### Returns
+Configured `NotificationsPayload` ready for `pubnub.publish`.
+
+---
+
+_Last updated: Jul 15 2025_

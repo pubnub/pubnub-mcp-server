@@ -1,23 +1,30 @@
-# Message Persistence API – Java SDK
+# Message Persistence API (Java SDK)
 
-## Breaking changes in v9.0.0
-v9.0.0 merges Java and Kotlin SDKs, changes client instantiation, async callbacks, and status events. See the Java/Kotlin migration guide for details.
+> PubNub Java SDK v9.0.0 introduces a unified Java/Kotlin code-base, new client instantiation, and new async/status APIs. Review the migration guide before upgrading.
+
+Message Persistence stores every published message (AES-256 encrypted in transit/at rest) for a retention period you configure (1 day → Unlimited). It supports:
+
+* Messages  
+* Message reactions  
+* Files (File Sharing API)
 
 ---
 
-## Fetch History
+## Fetch history
 
-##### Requires Message Persistence enabled for the key.
+Requires: Message Persistence enabled on the key.
 
-Retrieves up to 100 messages for one channel or 25 messages for multiple channels (≤ 500).  
-If both `start` and `end` are supplied, results are inclusive of `end`.  
-If `includeMessageActions(true)` is used, the call is limited to one channel and 25 messages.  
-A truncated response returns a `more` property—repeat the call with the new values to obtain remaining data.
+Timetoken rules  
+• `start` only → older than `start`  
+• `end` only → from `end` and newer  
+• both → between `start` and `end` (inclusive of `end`)  
+Limits: 100 msgs (single channel) or 25 msgs (multi-channel / with actions). Iterate by updating `start` to page. If `includeMessageActions=true`, the response can be truncated; a `more` object tells you how to continue.
 
-### Method(s)
+### Method
+
 ```
 `this.pubnub.fetchMessages()  
-    .channels(List<String>)  
+    .channels(ListString>)  
     .maximumPerChannel(Integer)  
     .start(Long)  
     .end(Long)  
@@ -29,38 +36,28 @@ A truncated response returns a `more` property—repeat the call with the new va
 `
 ```
 
-| Parameter | Type | Default | Notes |
-|-----------|------|---------|-------|
-| **channels** | List\<String> | n/a | Required. Max 500. |
-| maximumPerChannel | Integer | 100 \| 25 | 100 for single channel; 25 otherwise or when `includeMessageActions=true`. |
-| start | Long | n/a | Exclusive lower bound. |
-| end | Long | n/a | Inclusive upper bound. |
-| includeMessageActions | Boolean | false | Retrieves message actions. |
-| includeMeta | Boolean | false | Includes message metadata. |
-| includeMessageType | Boolean | true | Includes message type. |
-| includeCustomMessageType | Boolean | false | Includes custom message type. |
-| includeUUID | Boolean | true | Includes publisher UUID. |
-| async | Consumer\<Result> | n/a | Returns `PNFetchMessagesResult`. |
+Parameters  
+• **channels (List<String>) required** – up to 500 channels  
+• maximumPerChannel (Integer, default 100/25)  
+• start (Long) – exclusive  
+• end (Long) – inclusive  
+• includeMessageActions (Boolean, default false)  
+• includeMeta (Boolean, default false)  
+• includeMessageType (Boolean, default true)  
+• includeCustomMessageType (Boolean, default false)  
+• includeUUID (Boolean, default true)  
+• async (Consumer<PNFetchMessagesResult>)
 
-### Basic Usage
+Returns `PNFetchMessagesResult` list  
+• getMessage() • getMeta() • getTimetoken() • getActionTimetoken() • getActions() • getMessageType() • getCustomMessageType() • getUuid()
+
+#### Sample code
 ```
 `  
 `
 ```
 
-### Returns (`PNFetchMessagesResult`)
-| Method | Type | Description |
-|--------|------|-------------|
-| getMessage() | JsonElement | Message content. |
-| getMeta() | JsonElement | Metadata (if requested). |
-| getTimetoken() | Long | Publish timetoken. |
-| getActionTimetoken() | Long | Message-action creation time. |
-| getActions() | HashMap | Message actions (if requested). |
-| getMessageType() | Integer | 0-message, 1-signal, 2-object, 3-action, 4-files. |
-| getCustomMessageType() | String | Custom message type. |
-| getUuid() | String | Publisher UUID. |
-
-#### Paging History Responses
+#### Paging example
 ```
 `  
 `
@@ -68,11 +65,14 @@ A truncated response returns a `more` property—repeat the call with the new va
 
 ---
 
-## Delete Messages from History
+## Delete messages from history
 
-Requires Message Persistence and “Enable Delete-From-History” setting. Requires secret key.
+Pre-requisites  
+1. Message Persistence enabled.  
+2. “Enable Delete-From-History” ticked in Admin Portal.  
+3. Client initialized with secret key.
 
-### Method(s)
+### Method
 ```
 `this.pubnub.deleteMessages()  
     .channels(Array)  
@@ -81,20 +81,19 @@ Requires Message Persistence and “Enable Delete-From-History” setting. Requi
 `
 ```
 
-| Parameter | Type | Default | Notes |
-|-----------|------|---------|-------|
-| **channels** | Array | n/a | Required. |
-| start | Long | n/a | Inclusive lower bound. |
-| end | Long | n/a | Exclusive upper bound. |
-| async | Consumer\<Result> | n/a | Returns `PNDeleteMessagesResult`. |
+Parameters  
+• **channels (Array<String>) required**  
+• start (Long, inclusive)  
+• end (Long, exclusive)  
+• async (Consumer<PNDeleteMessagesResult>)
 
-### Basic Usage
+#### Sample
 ```
 `  
 `
 ```
 
-#### Delete specific message from history
+#### Delete a specific message
 ```
 `  
 `
@@ -102,11 +101,11 @@ Requires Message Persistence and “Enable Delete-From-History” setting. Requi
 
 ---
 
-## Message Counts
+## Message counts
 
-##### Requires Message Persistence enabled for the key (last 30 days for unlimited retention).
+Counts messages with `timetoken ≥ channelsTimetoken`. Unlimited‐retention keys count only last 30 days.
 
-### Method(s)
+### Method
 ```
 `this.pubnub.messageCounts()  
     .channels(Array)  
@@ -114,24 +113,21 @@ Requires Message Persistence and “Enable Delete-From-History” setting. Requi
 `
 ```
 
-| Parameter | Type | Default | Notes |
-|-----------|------|---------|-------|
-| **channels** | Array | n/a | Required. |
-| **channelsTimetoken** | Array | n/a | One timetoken for all channels or one per channel. |
-| async | Consumer\<Result> | n/a | Returns `PNMessageCountResult`. |
+Parameters  
+• **channels (Array<String>) required**  
+• **channelsTimetoken (Array<Long>) required** – one value for all channels or one per channel  
+• async (Consumer<PNMessageCountResult>)
 
-### Basic Usage
+Returns `PNMessageCountResult`  
+• getChannels() → Map<String,Long> (0 if none, 10000 if ≥10 k)
+
+#### Sample
 ```
 `  
 `
 ```
 
-### Returns (`PNMessageCountResult`)
-| Method | Type | Description |
-|--------|------|-------------|
-| getChannels() | Map\<String, Long> | Message count per channel (0–10000). |
-
-#### Retrieve count of messages using different timetokens for each channel
+#### Different timetoken per channel
 ```
 `  
 `
@@ -139,11 +135,9 @@ Requires Message Persistence and “Enable Delete-From-History” setting. Requi
 
 ---
 
-## History (deprecated)
+## History (deprecated—use Fetch History)
 
-Use Fetch History instead. Still available:
-
-### Method(s)
+### Method
 ```
 `this.pubnub.history()  
     .channel(String)  
@@ -156,43 +150,60 @@ Use Fetch History instead. Still available:
 `
 ```
 
-| Parameter | Type | Default | Notes |
-|-----------|------|---------|-------|
-| **channel** | String | n/a | Required. |
-| reverse | Boolean | false | If true, traverse timeline from oldest. |
-| includeTimetoken | Boolean | false | Include message timetokens. |
-| includeMeta | Boolean | false | Include metadata. |
-| start | Long | n/a | Exclusive lower bound. |
-| end | Long | n/a | Inclusive upper bound. |
-| count | Integer | 100 | Max 100. |
-| async | Consumer\<Result> | n/a | Returns `PNHistoryResult`. |
+Parameters  
+• **channel (String) required**  
+• reverse (Boolean, default false) – `true` starts from oldest  
+• includeTimetoken (Boolean, default false)  
+• includeMeta (Boolean, default false)  
+• start (Long, exclusive)  
+• end (Long, inclusive)  
+• count (Integer, default 100, max 100)  
+• async (Consumer<PNHistoryResult>)
 
-### Basic Usage – last 100 messages
+reverse note: results are always ascending; `reverse` controls which end of >100-msg interval is fetched first.
+
+Returns `PNHistoryResult`  
+• getMessages() → List<PNHistoryItemResult>  
+• getStartTimetoken() • getEndTimetoken()
+
+`PNHistoryItemResult`  
+• getTimetoken() • getEntry()
+
+#### Samples
 ```
 `  
 `
 ```
 
-### Returns (`PNHistoryResult`)
-| Method | Type | Description |
-|--------|------|-------------|
-| getMessages() | List\<PNHistoryItemResult> | Historical messages. |
-| getStartTimetoken() | Long | Start timetoken. |
-| getEndTimetoken() | Long | End timetoken. |
-
-#### PNHistoryItemResult
-| Method | Type | Description |
-|--------|------|-------------|
-| getTimetoken() | Long | Message timetoken. |
-| getEntry() | JsonElement | Message body. |
-
-### Additional Examples
-Paging, reverse traversal, and timetoken filters:
+#### Three oldest messages
 ```
 `  
 `
+```
+
+#### Page newer than timetoken
+```
+`  
+`
+```
+
+#### Page until timetoken
+```
+`  
+`
+```
+
+#### History paging helper
+```
+`  
+`
+```
+
+#### Include timetoken
+```
+`**`
 ```
 
 ---
 
-_Last updated on Jun 10 2025_
+_Last updated: Jul 15 2025_

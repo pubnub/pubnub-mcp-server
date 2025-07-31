@@ -1,300 +1,315 @@
-# File Sharing API for Kotlin SDK (v9+)
+# PubNub Kotlin SDK – File APIs (≥ 9.0.0)
 
-⚠️ v9 merges Kotlin & Java codebases and changes client instantiation, async callbacks, and status events. See the Java/Kotlin migration guide for full details.
+➜ v9.0.0 merges the Java/Kotlin codebases, adds a new client-builder, and changes callback/status APIs.  
+See the Java/Kotlin migration guide for full details.
 
-## Request execution
+## Request execution  
 
-All SDK methods return an `Endpoint` that **must** be executed.
+Most SDK calls return an `Endpoint`. Invoke **either** `.sync()` or `.async()`—otherwise nothing happens.
 
-```kotlin
-val channel = pubnub.channel("channelName")
-
-channel.publish("This SDK rules!").async { result ->
-    result.onFailure { exception ->
-        // Handle error
-    }.onSuccess { value ->
-        // Handle successful method result
-    }
-}
+```
+`val channel = pubnub.channel("channelName")  
+  
+channel.publish("This SDK rules!").async { result ->  
+    result.onFailure { exception ->  
+        // Handle error  
+    }.onSuccess { value ->  
+        // Handle successful method result  
+    }  
+}  
+`
 ```
 
 ---
 
-## Send file
+## sendFile
 
-Uploads a file (≤ 5 MB) and publishes a file-message to the channel.
+Uploads a ≤ 5 MB file and automatically publishes a file message.
 
 ### Method
 
-```kotlin
-pubnub.sendFile(
-    channel: String,
-    fileName: String,
-    inputStream: InputStream,
-    message: Any? = null,
-    meta: Any? = null,
-    ttl: Int? = null,
-    shouldStore: Boolean? = null,
-    customMessageType: String
-)
+```
+`pubnub.sendFile(  
+    channel: String,  
+    fileName: String,  
+    inputStream: InputStream,  
+    message: Any? = null,  
+    meta: Any? = null,  
+    ttl: Int? = null,  
+    shouldStore: Boolean? = null  
+    customMessageType: String  
+)  
+`
 ```
 
 Parameter | Type | Default | Description
-----------|------|---------|------------
+---|---|---|---
 channel* | String | — | Target channel
 fileName* | String | — | File name
 inputStream* | InputStream | — | File content
-message | Any? | null | Payload published with the file
-meta | Any? | null | Metadata for filtering
-ttl | Int? | null | Message TTL (history)
+message | Any? | null | Optional payload published with the file message
+meta | Any? | null | Filtering metadata
+ttl | Int? | null | Message TTL
 shouldStore | Boolean? | true | Store in history
-customMessageType | String | — | 3-50 chars label (e.g., `text`, `action`, `poll`)
+customMessageType | String | — | 3–50 char business label
 
-`cipherKey` parameter is **deprecated**—use the Crypto module instead.
+*Deprecated:* `cipherKey` – use the Crypto Module; passing this parameter re-enables legacy 128-bit encryption.
 
-#### Example
+##### Sample
 
 ```
-  
+`  
+`
 ```
 
-#### Response
+##### Response
 
-```json
-{
-  "timetoken": 15957709330808500,
-  "status": 200,
-  "file": {
-    "id": "d9515cb7-48a7-41a4-9284-f4bf331bc770",
-    "name": "cat_picture.jpg"
-  }
-}
+```
+`{  
+  "timetoken": 15957709330808500,  
+  "status": 200,  
+  "file": {  
+      "id": "d9515cb7-48a7-41a4-9284-f4bf331bc770",  
+      "name": "cat_picture.jpg"  
+  }  
+}  
+`
 ```
 
-#### Returns
-
-`PNFileUploadResult`
-
+##### Returns (`PNFileUploadResult`)
 Property | Type | Description
----------|------|------------
+---|---|---
 timetoken | Long | Publish timetoken
-status | Int | HTTP status
+status | Int | HTTP code
 file | PNBaseFile | Uploaded file info (`id`, `name`)
 
 ---
 
-## List channel files
+## listFiles
+
+Lists files previously uploaded to a channel.
 
 ### Method
 
-```kotlin
-pubnub.listFiles(
-    channel: String,
-    limit: Int = 100,
-    next: String? = null
-)
+```
+`pubnub.listFiles()  
+    channel: String,  
+    limit: Int,  
+    next: String?  
+)  
+`
 ```
 
 Parameter | Type | Default | Description
-----------|------|---------|------------
-channel* | String | — | Channel name
-limit | Int | 100 (1-100) | Page size
-next | String? | null | Forward-pagination cursor
+---|---|---|---
+channel* | String | — | Channel to query
+limit | Int | 100 | 1–100 results
+next | String? | null | Pagination cursor
 
-#### Example
+##### Sample
 
 ```
-  
+`  
+`
 ```
 
-#### Response
+##### Response
 
-```json
-{
-  "data": [
-    {
-      "name": "cat_picture.jpg",
-      "id": "fileId",
-      "size": 25778,
-      "created": "2020-07-26T13:42:06Z"
-    }
-  ],
-  "status": 200,
-  "totalCount": 1,
-  "next": null,
-  "prev": null
-}
+```
+`{  
+  "data":[  
+      {  
+      "name":"cat_picture.jpg",  
+      "id":"fileId",  
+      "size":25778,  
+      "created":"202007 - 26T13:42:06Z"  
+      }],  
+   "status": 200,  
+   "totalCount": 1,  
+   "next": null,  
+   "prev": null  
+}  
+`
 ```
 
-#### Returns
-
-`PNListFilesResult` (`status`, `next`, `count`, `data`)
-
-`PNUploadedFile` fields: `id`, `name`, `size`, `created`.
+##### Returns (`PNListFilesResult`)
+timetoken • status • next/prev • count • data (`List<PNUploadedFile>`: `id`, `name`, `size`, `created`)
 
 ---
 
-## Get file URL
+## getFileUrl
+
+Generates a download URL.
 
 ### Method
 
-```kotlin
-pubnub.getFileUrl(
-    channel: String,
-    fileName: String,
-    fileId: String
-)
+```
+`pubnub.getFileUrl(  
+    channel: String,  
+    fileName: String,  
+    fileId: String  
+)  
+`
 ```
 
 Parameter | Type | Description
-----------|------|------------
+---|---|---
 channel* | String | Channel name
 fileName* | String | Stored file name
-fileId* | String | File UUID
+fileId* | String | File identifier
 
-#### Example
+##### Sample
 
 ```
-  
+`  
+`
 ```
 
-#### Response
+##### Response
 
-```json
-{
-  "url": "http://ps.pndsn.com/v1/files/demo/channels/my_channel/files/fileID/cat_picture.jpg?pnsdk=PubNub-kotlin-Unified/4.32.0&timestamp=1595771548&uuid=someUuid"
-}
+```
+`{  
+    "url" : http://ps.pndsn.com/v1/files/demo/channels/my_channel/files/fileID/cat_picture.jpg?pnsdk=PubNub-kotlin-Unified/4.32.0&timestamp=1595771548&uuid=someUuid  
+}  
+`
 ```
 
-#### Returns
-
-`PNFileUrlResult` (`url`)
+##### Returns (`PNFileUrlResult`)
+url — downloadable link.
 
 ---
 
-## Download file
+## downloadFile
+
+Downloads a file to an `InputStream`.
 
 ### Method
 
-```kotlin
-pubnub.downloadFile(
-    channel: String,
-    fileName: String,
-    fileId: String
-)
+```
+`pubnub.downloadFile(  
+    channel: String,  
+    fileName: String,  
+    fileId: String  
+)  
+`
 ```
 
 Parameter | Type | Description
-----------|------|------------
+---|---|---
 channel* | String | Channel name
-fileName* | String | Stored file name
-fileId* | String | File UUID
+fileName* | String | File name
+fileId* | String | Identifier
 
-`cipherKey` parameter is **deprecated**—use the Crypto module instead.
+*Deprecated:* `cipherKey` – use Crypto Module.
 
-#### Example
+##### Sample
 
 ```
-  
+`  
+`
 ```
 
-#### Response
+##### Response
 
-```json
-{
-  "fileName": "cat_picture.jpg",
-  "byteStream": "file data"
-}
+```
+`{  
+    "fileName": "cat_picture.jpg",  
+    "byteStream": file data>  
+}  
+`
 ```
 
-#### Returns
-
-`PNDownloadFileResult` (`fileName`, `byteStream`)
+##### Returns (`PNDownloadFileResult`)
+fileName • byteStream (`InputStream`)
 
 ---
 
-## Delete file
+## deleteFile
+
+Removes a file from a channel.
 
 ### Method
 
-```kotlin
-pubnub.deleteFile(
-    channel: String,
-    fileName: String,
-    fileId: String
-)
+```
+`pubnub.deleteFile(  
+    channel: String,  
+    fileName: String,  
+    fileId: String  
+)  
+`
 ```
 
 Parameter | Type | Description
-----------|------|------------
-channel* | String | Channel name
-fileName* | String | File to delete
-fileId* | String | File UUID
+---|---|---
+channel* | String | Channel to delete from
+fileName* | String | File name
+fileId* | String | Identifier
 
-#### Example
+##### Sample
 
 ```
-  
+`  
+`
 ```
 
-#### Response
+##### Response
 
-```json
-{
-  "status": 200
-}
+```
+`{  
+    "status": 200  
+}  
+`
 ```
 
-#### Returns
-
-`PNDeleteFileResult` (`status`)
+##### Returns (`PNDeleteFileResult`)
+status — HTTP code.
 
 ---
 
-## Publish file message
+## publishFileMessage
 
-Re-publishes the file message if the original `sendFile` publish step fails.
+Manually publishes a message referencing an already-uploaded file. Internally used by `sendFile`.
 
 ### Method
 
-```kotlin
-pubnub.publishFileMessage(
-    channel: String,
-    fileName: String,
-    fileId: String,
-    message: Any?,
-    meta: Any?,
-    shouldStore: Boolean,
-    customMessageType: String
-)
+```
+`pubnub.publishFileMessage(  
+    channel: String,  
+    fileName: String,  
+    fileId: String,  
+    message: Any?,  
+    meta: Any?,  
+    shouldStore: Boolean,  
+    customMessageType: String  
+)  
+`
 ```
 
 Parameter | Type | Default | Description
-----------|------|---------|------------
-channel* | String | — | Channel
+---|---|---|---
+channel* | String | — | Target channel
 fileName* | String | — | File name
-fileId* | String | — | File UUID
+fileId* | String | — | Identifier
 message | Any? | null | Payload
-meta | Any? | null | Metadata
-shouldStore | Boolean | true | Store in history
-customMessageType | String | — | Business label
+meta | Any? | null | Metadata (filtering)
+shouldStore | Boolean | true | Skip history when `false`
+customMessageType | String | — | 3–50 char label
 
-#### Example
+##### Sample
 
 ```
-  
+`  
+`
 ```
 
-#### Response
+##### Response
 
-```json
-[1, "Sent", "17483548017978763"]
+```
+`[1, "Sent", "17483548017978763"]  
+`
 ```
 
-#### Returns
+##### Returns (`PNFileUploadResult`)
+timetoken • status • file (`id`, `name`)
 
-`PNFileUploadResult` (`timetoken`, `status`, `file`)
-
----
-
-_Last updated: Jun 2 2025_
+_Last updated: Jul 15 2025_

@@ -1,8 +1,18 @@
-# PubNub Swift SDK – Configuration (Condensed)
+# Configuration API – Swift SDK (condensed)
 
-## PubNubConfiguration initializer
+A `PubNubConfiguration` object controls every aspect of a `PubNub` client.  
+Required:  
 
-```
+* `subscribeKey` – PubNub Subscribe Key  
+* `userId` – unique UTF-8 ID (≤ 92 chars) for the user/device  
+
+`publishKey` is optional (set `nil` for read-only clients).
+
+---
+
+## Initializer
+
+```swift
 PubNubConfiguration(
   publishKey: String?,
   subscribeKey: String,
@@ -22,111 +32,119 @@ PubNubConfiguration(
   filterExpression: String? = nil,
   enableEventEngine: Bool = true,
   maintainPresenceState: Bool = true,
-  cipherKey: Crypto? = nil,
-  uuid: String? = nil
+  cipherKey: Crypto? = nil,        // deprecated – use cryptoModule
+  uuid: String? = nil              // deprecated – use userId
 )
 ```
-*(show all 20 lines)*
 
-### Parameter summary (defaults shown above)
+---
 
-* **publishKey** `String?` – Key for publishing.
-* **subscribeKey** `String` – Key for subscribing (required).
-* **userId** `String` – Unique identifier (required; UTF-8 ≤ 92 chars).
-* **cryptoModule** `CryptoModule?` – Pluggable encryption/decryption module.  
-  `cipherKey` (deprecated) can still be supplied but prefer `cryptoModule`.
-* **authKey / authToken** `String?` – Access Manager credentials.
-* **useSecureConnections** `Bool` – HTTPS when `true`.
-* **origin** `String` – REST domain.
-* **useInstanceId / useRequestId** `Bool` – Include identifiers in requests.
-* **automaticRetry** `AutomaticRetry?` – Custom reconnection rules (see below).
-* **durationUntilTimeout / heartbeatInterval** – Presence timeout/heartbeat.  
-  `durationUntilTimeout` minimum 20 s.  
-  `heartbeatInterval` 0 = no explicit heartbeat.
-* **supressLeaveEvents** `Bool` – Skip leave calls when `true`.
-* **requestMessageCountThreshold** `UInt` – Payload size guard (default 100).
-* **filterExpression** `String?` – PSV2 subscribe filter.
-* **enableEventEngine / maintainPresenceState** `Bool` – Opt-in event engine and automatic state re-send.
-* **cipherKey** `Crypto?` – Deprecated; pass via `cryptoModule`.
-* **uuid** `String?` – Deprecated; use `userId`.
+## Parameter summary
+
+* `publishKey` (String?) – key used for publishing.  
+* `subscribeKey` (String) – key used for subscribing.  
+* `userId` (String) – REQUIRED unique identifier.  
+* `cryptoModule` (CryptoModule?) – encryption/decryption provider (see below).  
+* `authKey` / `authToken` (String?) – Access-Manager credentials.  
+* `useSecureConnections` (Bool, default `true`) – HTTPS when `true`.  
+* `origin` (String, default `"ps.pndsn.com"`) – custom domain if needed.  
+* `useInstanceId` / `useRequestId` (Bool) – include IDs in requests.  
+* `automaticRetry` (AutomaticRetry?) – reconnection settings.  
+* `durationUntilTimeout` (UInt, default `300`) – presence timeout (min 20).  
+* `heartbeatInterval` (UInt) – heartbeat frequency (`0` = disabled, min 3).  
+* `supressLeaveEvents` (Bool) – skip leave requests when `true`.  
+* `requestMessageCountThreshold` (UInt) – emit event after N messages.  
+* `filterExpression` (String?) – PSV2 subscribe filter.  
+* `enableEventEngine` / `maintainPresenceState` (Bool) – event-engine opts.  
+* `cipherKey` (Crypto?) – DEPRECATED, use `cryptoModule`.  
+* `uuid` (String) – DEPRECATED, use `userId`.
 
 ---
 
 ## cryptoModule
 
-Encryption options (messages and files):
+Provides message/file encryption.
 
-* Legacy 128-bit cipher (default if only `cipherKey` is set).
-* Recommended 256-bit AES-CBC (set via `cryptoModule`).
+* Legacy (128-bit) encryption is used automatically when only `cipherKey` is set.  
+* To use the recommended 256-bit AES-CBC encryption explicitly pass a `cryptoModule`.  
+* Clients prior to SDK 6.1.0 cannot decrypt AES-CBC data.
 
-Older SDKs (< 6.1.0) cannot decrypt 256-bit data.
-
-```
-  
-```
+Configuration examples (place-holders preserved):
 
 ```
-  
+`  
+`
+```
+
+```
+`  
+`
 ```
 
 ---
 
 ## automaticRetry
 
-```
-struct AutomaticRetry {
-  var retryLimit: UInt               // Max attempts
-  var policy: ReconnectionPolicy     // .linear(delay) or .exponential(min,max)
-  var retryableHTTPStatusCodes: Set<Int>
-  var retryableURLErrorCode: Set<URLError.Code>
-  var excluded: [AutomaticRetry.Endpoint]
-}
-```
+Automatic reconnection settings.
 
-Default: `.exponential` for subscribe.
-
----
-
-## RequestConfiguration (per-request overrides)
-
-* **customSession** `SessionReplaceable?`
-* **customConfiguration** `RouterConfiguration?`
-* **responseQueue** `DispatchQueue`
-
-`SessionReplaceable` exposes `sessionID`, `session`, `sessionQueue`, `defaultRequestOperator`, `sessionStream`.
-
-`RouterConfiguration` mirrors main configuration fields (publishKey, subscribeKey, userId, etc.).
-
----
-
-## Basic initialization example
+Parameter | Type | Notes
+---|---|---
+`retryLimit` | UInt | Max retry attempts
+`policy` | ReconnectionPolicy | `.linear(delay)` or `.exponential(min,max)` (default for subscribe)
+`retryableHTTPStatusCodes` | Set<Int> | HTTP codes that trigger retry
+`retryableURLErrorCode` | Set<URLError.Code> | URL errors that trigger retry
+`excluded` | [AutomaticRetry.Endpoint] | Endpoints that never retry
 
 ```
-  
+`  
+`
 ```
 
 ---
 
-## Read-only client example
+## Per-request override – `PubNub.RequestConfiguration`
+
+Field | Type | Purpose
+---|---|---
+`customSession` | SessionReplaceable? | Supply your own `URLSession`
+`customConfiguration` | RouterConfiguration? | Endpoint-specific config
+`responseQueue` | DispatchQueue | Queue for callbacks
+
+`SessionReplaceable`, `RouterConfiguration`, and `DispatchQueue` follow the same signatures described in Apple/PubNub docs; only supply them when default behaviour is insufficient.
+
+---
+
+## Sample code
+
+Full runnable example:
 
 ```
-  
+`  
+`
+```
+
+### Read-only client
+
+```
+`  
+`
 ```
 
 ---
 
-## Mutating configuration after creation
+## Mutating configuration
 
-All `PubNubConfiguration` properties are mutable until attached to a `PubNub` instance.
-
-```
-  
-```
-
-### Updating filter expression without new instance
+Once a `PubNubConfiguration` is assigned to a `PubNub` instance it becomes immutable; change values by creating a new client.
 
 ```
-**
+`  
+`
 ```
 
-_Last updated: Jun 12 2025_
+### Updating the filter expression without a new client
+
+```
+`**`
+```
+
+_Last updated: Jul 16 2025_

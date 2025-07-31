@@ -1,13 +1,16 @@
-# Access Manager v3 – Objective-C SDK
+# Access Manager v3 – Objective-C SDK (Client-side)
 
-Objective-C SDK supports only **client-side** Access Manager features:
-• Parse tokens for inspection/debugging.  
-• Set (apply) tokens received from your server.  
-Grant operations must be performed server-side.
+• Objective-C SDK is *client-device only*:  
+  – Cannot issue grants.  
+  – Can **parse** tokens received from your server and **set** them for subsequent PubNub requests.
+
+Refer to “Manage Permissions with Access Manager v3” for server-side grant details.
 
 ---
 
-## Parse Token
+## Parse token
+
+Decode a token to inspect its embedded permissions (useful for debugging or displaying TTL, UUID, etc.).
 
 ### Method
 
@@ -16,52 +19,52 @@ Grant operations must be performed server-side.
 ```
 
 Parameter  
-• `token` (String, required) – The AMv3 token to decode.
+• `token` (NSString, required) – Current PAM v3 auth token.
 
-### Example
+### Sample
 
 ```objective-c
 #import <Foundation/Foundation.h>
 #import <PubNub/PubNub.h>
 
 // 1. Init client
-PNConfiguration *config = [PNConfiguration configurationWithPublishKey:@"demo"
-                                                         subscribeKey:@"demo"
-                                                               userID:@"testUser"];
-PubNub *client = [PubNub clientWithConfiguration:config];
+PNConfiguration *configuration = [PNConfiguration configurationWithPublishKey:@"demo"
+                                                                 subscribeKey:@"demo"
+                                                                       userID:@"testUser"];
+PubNub *client = [PubNub clientWithConfiguration:configuration];
 
-// 2. Token to parse (sample)
-NSString *tok = @"p0F2AkF0Gmf_WKNDdHRsAUNyZXOlRGNoYW6hZnB1YmxpYxjvQ2dycKBDc3BjoEN1c3KgRHV1aWShcXBhbV9jY3BfY2hhdF91c2VyGGhDcGF0pURjaGFuoENncnCgQ3NwY6BDdXNyoER1dWlkoERtZXRhoENzaWdYIGT644KqTNFo-dk773m0OtXOaiRr-ngXe0wJ3c0A-v89";
+// 2. Token to parse (example)
+NSString *tokenString = @"p0F2AkF0Gmf_WKNDdHRsAUNyZXOlRGNoYW6hZnB1YmxpYxjvQ2dycKBDc3BjoEN1c3KgRHV1aWShcXBhbV9jY3BfY2hhdF91c2VyGGhDcGF0pURjaGFuoENncnCgQ3NwY6BDdXNyoER1dWlkoERtZXRhoENzaWdYIGT644KqTNFo-dk773m0OtXOaiRr-ngXe0wJ3c0A-v89";
+
+NSLog(@"Parsing token: %@", tokenString);
 
 // 3. Parse
-PNPAMToken *info = [client parseAuthToken:tok];
+PNPAMToken *parsed = [client parseAuthToken:tokenString];
 ```
 
-### Return Type
+### Returns
 
 ```objective-c
 @interface PNPAMToken : NSObject
 
-@property (nonatomic, readonly) NSUInteger version;        // Token version
-@property (nonatomic, readonly) NSUInteger timestamp;      // Unix epoch (sec)
-@property (nonatomic, readonly) NSUInteger ttl;            // Minutes till expiry
-@property (nonatomic, nullable, readonly, strong)
-          NSString *authorizedUUID;                    // UUID bound to token
+@property (nonatomic, readonly, assign) NSUInteger   version;          // Token version
+@property (nonatomic, readonly, assign) NSUInteger   timestamp;        // Unix epoch (s)
+@property (nonatomic, readonly, assign) NSUInteger   ttl;              // Validity (min)
+@property (nonatomic, nullable, readonly, strong) NSString *authorizedUUID; // Token-bound UUID
 
-// Permissions mapped per resource type.
-// Keys: @"channels", @"groups", @"uuids", @"patterns", etc.
-// Values: NSDictionary<NSString *, NSNumber *> (bit-masked perms)
-@property (nonatomic, readonly, strong)
-          NSDictionary<NSString *, NSDictionary *> *resources;
-
+// …resource & pattern permission dictionaries…
 @end
 ```
 
-Error while parsing ⇒ token is invalid; request a new one from the server.
+### Error response
+
+Malformed or expired tokens throw an error; request a new token from your server.
 
 ---
 
-## Set Token
+## Set token
+
+Update the client’s active PAM v3 token.
 
 ### Method
 
@@ -70,16 +73,18 @@ Error while parsing ⇒ token is invalid; request a new one from the server.
 ```
 
 Parameter  
-• `token` (String, required) – The AMv3 token to apply to future PubNub API calls.
+• `token` (NSString, required) – New auth token.
 
-### Example
+### Sample
 
 ```objective-c
 [self.client setAuthToken:@"p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI"];
 ```
 
-Return: void (no response).
+### Return
+
+Void – no value returned.
 
 ---
 
-Last updated May 29 2025
+Last updated: Jul 15 2025

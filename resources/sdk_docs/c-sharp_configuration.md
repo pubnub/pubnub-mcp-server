@@ -1,8 +1,12 @@
-# Configuration API – PubNub C# SDK (condensed)
+# Configuration API – PubNub C# SDK  
 
-##### Request execution  
-Use `try / catch`. SDK throws an exception for invalid parameters; network or server errors are returned in `status`.
+This condensed version keeps every code block, method signature, parameter, and other critical technical details from the full documentation.
 
+---
+
+## Request execution
+
+We recommend wrapping SDK calls in `try / catch`.  
 ```csharp
 try  
 {  
@@ -12,74 +16,110 @@ try
         .ExecuteAsync();  
   
     PNStatus status = publishResponse.Status;  
-    Console.WriteLine("Server status code : " + status.StatusCode);  
+    Console.WriteLine("Server status code : " + status.StatusCode.ToString());  
 }  
 catch (Exception ex)  
 {  
     Console.WriteLine($"Request can't be executed due to error: {ex.Message}");  
-}  
+}
 ```
 
 ---
 
-## `PNConfiguration`
+## PNConfiguration
 
-Configuration object controlling PubNub client behavior.
+Holds all runtime options that affect PubNub client behavior.
 
-### Create configuration  
-
+### Creation  
 ```
 `  
 `
 ```
 
-### Properties  
+### Properties
 
-(omit deprecated unless noted)
-
-* **SubscribeKey** `string` (required) – key from Admin Portal.  
-* **PublishKey** `string` – required if publishing.  
-* **SecretKey** `string` – for Access-Manager operations.  
-* **UserId** `UserId` (required) – unique per user/device (UTF-8, ≤92 chars).  
-* **LogLevel** `PubnubLogLevel` – `Trace | Debug | Info | Warn | Error | None (default)`.  
-* **AuthKey** `string` – sent with all restricted requests.  
-* **Secure** `bool` – enable TLS.  
-* **SubscribeTimeout** `int sec` – max subscribe loop time.  
-* **NonSubscribeRequestTimeout** `int sec` – timeout for non-subscribe calls.  
-* **FilterExpression** `string` – server-side message filtering.  
-* **HeartbeatNotificationOption** `PNHeartbeatNotificationOption` – `FAILURES (default) | ALL | NONE`.  
-* **Origin** `string` – custom origin.  
-* **ReconnectionPolicy** `PNReconnectionPolicy` – `NONE | LINEAR | EXPONENTIAL (default)`.  
-* **ConnectionMaxRetries** `int` – max reconnect attempts (0 = none).  
-* **PresenceTimeout** `int sec` – client considered alive for this period.  
-* **SetPresenceTimeoutWithCustomInterval** `int sec` – heartbeat interval (`≈PresenceTimeout/2-1`).  
-* **Proxy** `Proxy` – HTTP proxy settings.  
-* **RequestMessageCountThreshold** `int` – exceed → `PNRequestMessageCountExceededCategory`.  
-* **SuppressLeaveEvents** `bool` – true = don't send leave.  
-* **DedupOnSubscribe** `bool` – remove duplicate messages across regions.  
-* **MaximumMessagesCacheSize** `int` (default 100) – cache for deduplication.  
-* **FileMessagePublishRetryLimit** `int` (default 5).  
-* **CryptoModule** `AesCbcCryptor(cipherKey)` or `LegacyCryptor(cipherKey)` – controls encryption.  
-* **EnableEventEngine** `bool` (default true).  
-* **MaintainPresenceState** `bool` – requires `EnableEventEngine=true`.  
-* **RetryConfiguration** `RetryConfiguration.Linear(delay, max)` or `RetryConfiguration.Exponential(minDelay, maxDelay, max)` – used when Event Engine enabled.  
-* **LogVerbosity** `PNLogVerbosity` – DEPRECATED, use `LogLevel`.  
-* **PubnubLog** `IPubnubLog` – DEPRECATED, use `SetLogger`.  
-* **CipherKey**, **UseRandomInitializationVector**, **Uuid** – DEPRECATED; replace with `CryptoModule` and `UserId`.
+* **SubscribeKey** *(string, required)* – Admin Portal value.  
+* **PublishKey** *(string)* – required for publishing.  
+* **SecretKey** *(string)* – required for PAM.  
+* **UserId** *(UserId, required)* – unique UTF-8 id (≤92 chars).  
+* **LogLevel** *(PubnubLogLevel)* – Trace | Debug | Info | Warn | Error | None (default).  
+* **AuthKey** *(string)* – PAM auth token.  
+* **Secure** *(bool)* – enable TLS.  
+* **SubscribeTimeout** *(int sec)* – subscribe loop timeout.  
+* **NonSubscribeRequestTimeout** *(int sec)* – all other requests timeout.  
+* **FilterExpression** *(string)* – server-side stream filter.  
+* **HeartbeatNotificationOption** *(PNHeartbeatNotificationOption)* – ALL | FAILURES | NONE.  
+* **Origin** *(string)* – custom domain.  
+* **ReconnectionPolicy** *(PNReconnectionPolicy)* – NONE | LINEAR | EXPONENTIAL (default).  
+* **ConnectionMaxRetries** *(int)* – maximum reconnect attempts.  
+* **PresenceTimeout** *(int sec)* – server presence TTL.  
+* **SetPresenceTimeoutWithCustomInterval** *(int sec)* – heartbeat interval.  
+* **Proxy** *(Proxy)* – HTTP proxy settings.  
+* **RequestMessageCountThreshold** *(int)* – raises `PNRequestMessageCountExceededCategory`.  
+* **SuppressLeaveEvents** *(bool)* – omit leave events.  
+* **DedupOnSubscribe** *(bool)* – de-duplicate subscribe payloads.  
+* **MaximumMessagesCacheSize** *(int)* – size for de-duplication cache (default 100).  
+* **FileMessagePublishRetryLimit** *(int)* – publish-file retry attempts (default 5).  
+* **CryptoModule** – see CryptoModule section.  
+* **EnableEventEngine** *(bool, default true)* – use new subscribe/presence engine.  
+* **MaintainPresenceState** *(bool)* – resend custom presence state (Event Engine only).  
+* **RetryConfiguration** – `RetryConfiguration.Linear(...)` or `RetryConfiguration.Exponential(...)`.  
+* **Deprecated**: `LogVerbosity`, `PubnubLog`, `CipherKey`, `UseRandomInitializationVector`, `Uuid`.
 
 ---
 
-### `CryptoModule`
+### CryptoModule
 
-Two algorithms available:
+Two built-in options:  
+* `LegacyCryptor(CipherKey)` – 128-bit legacy.  
+* `AesCbcCryptor(CipherKey)` – 256-bit AES-CBC (recommended).
 
-1. **LegacyCryptor** – 128-bit (default if `CipherKey`/`UseRandomInitializationVector` set and no explicit module).  
-2. **AesCbcCryptor** – recommended 256-bit AES-CBC (requires SDK ≥ 6.18.0).
+If **CryptoModule** isn’t explicitly set but `CipherKey`/`UseRandomInitializationVector` are, legacy encryption is used.
 
-SDK can decrypt data from either module; older SDKs (< 6.18.0) cannot decrypt AES-CBC.
+Configuration methods:  
+```
+`  
+`
+```
 
-Configure:
+Older SDK (< 6.18.0) cannot decrypt AES-CBC traffic.
 
+---
+
+## Initialization
+
+### Include  
+```
+`  
+`
+```
+
+### Method  
+```
+`  
+`
+```
+*Parameter*: **pnConfiguration** – see PNConfiguration above.  
+Returns: `PubNub` client instance (used for `Publish()`, `Subscribe()`, etc.).
+
+### Examples  
+(Place-holder blocks preserved)  
+```
+`  
+`
+```
+```
+`  
+`
+```
+```
+`  
+`
+```
+```
+`  
+`
+```
 ```
 `  
 `
@@ -87,63 +127,68 @@ Configure:
 
 ---
 
-## Runtime setters/getters
+## UserId
 
-### `UserId`
-
-Set at startup; can also be changed:
-
+Setter/getter:  
 ```
 `  
 `
-```
-
-Get current ID:
-
+```  
 ```
 `pubnub.GetCurrentUserId();  
 `
 ```
 
-### `AuthKey`
+Examples:  
+```
+`  
+`
+```
+```
+`  
+`
+```
 
+---
+
+## Authentication key
+
+Property:  
 ```
 `pnConfiguration.AuthKey  
 `
-```
+```  
 
-Set:
-
-```
-`  
-`
-```
-
-Get:
-
+Examples:  
 ```
 `  
 `
 ```
+```
+`  
+`
+```
+Returns current AuthKey.
 
-### `FilterExpression`
+---
 
+## Filter expression
+
+Property:  
+```
+`FilterExpression  
+`
+```  
 ```
 `pnConfiguration.FilterExpression;  
 `
 ```
 
-Set:
-
+Examples:  
 ```
 `  
 `
 ```
-
-Get:
-
 ```
 `**`
 ```
-
-_Last updated Jun 30 2025_

@@ -1,12 +1,15 @@
-# File Sharing API – Go SDK (condensed)
+# File Sharing API – Go SDK (Condensed)
 
-Up to 5 MB per file. All code blocks below are unchanged from the original docs.
+Upload, manage, and share files (≤ 5 MB) on PubNub channels. All method signatures, parameters, and examples are preserved below.
 
 ---
 
-## SendFile
+## Send file
 
-```
+Upload a file and automatically publish its metadata message on the channel.
+
+### Method(s)
+```go
 `pn.SendFile().  
     Channel(string).  
     Message(string).  
@@ -21,24 +24,19 @@ Up to 5 MB per file. All code blocks below are unchanged from the original docs.
 ```
 
 Parameters  
-• Channel (string, required) – target channel  
-• Message (string) – text payload  
-• Name (string) – filename (as stored)  
-• File (*os.File, required) – open handle (≤ 5 MB)  
-• TTL (int) – history retention  
-• ShouldStore (bool, default true) – store in history  
-• Meta (interface{}) – message filter payload  
-• CustomMessageType (string) – 3-50 chars label  
+* **Channel** (string, required) – target channel.  
+* **Message** (string) – accompanying text.  
+* **Name** (string) – file name.  
+* **File** (*os.File, required) – pointer to file.  
+* **TTL** (int) – storage time.  
+* **ShouldStore** (bool, default `true`) – store in history.  
+* **Meta** (interface{}) – filtering metadata.  
+* **CustomMessageType** (string) – 3–50 chars label.
 
-Deprecated: `CipherKey` → use crypto module.
+Deprecated: `CipherKey` (use Crypto Module).
 
-Returns `PNSendFileResponse`  
-• Data (PNFileData{ID string})  
-• Timestamp (int64)
-
-Example
-
-```
+#### Sample code
+```go
 `package main  
   
 import (  
@@ -56,12 +54,22 @@ func main() {
 	config.PublishKey = "demo"  
 `
 ```
+_show all 49 lines_
+
+#### Returns
+`PNSendFileResponse`  
+* Data – PNFileData  
+* Timestamp – int64
+
+##### PNFileData
+* ID – string
 
 ---
 
 ## List channel files
 
-```
+### Method(s)
+```go
 `pn.ListFiles().  
     Channel(string).  
     Limit(int).  
@@ -71,16 +79,12 @@ func main() {
 ```
 
 Parameters  
-• Channel (string, required)  
-• Limit (int, default 100)  
-• Next (string) – pagination cursor  
+* **Channel** (string, required)  
+* **Limit** (int, default 100)  
+* **Next** (string) – pagination cursor
 
-Returns `PNListFilesResponse`  
-• Data ([]PNFileInfo{Id,Name,Size,Created})  
-• Count (int)  
-• Next (string)
-
-```
+#### Sample code
+```go
 `resListFile, statusListFile, errListFile := pn.ListFiles()  
     .Channel("my_channel")  
     .Execute()  
@@ -93,11 +97,24 @@ if resListFile != nil {
 `
 ```
 
+#### Returns
+`PNListFilesResponse`  
+* Data – []PNFileInfo  
+* Count – int  
+* Next – string
+
+##### PNFileInfo
+* Name – string  
+* Id – string  
+* Size – int  
+* Created – string
+
 ---
 
-## GetFileURL
+## Get file URL
 
-```
+### Method(s)
+```go
 `pn.GetFileURL().  
     Channel(string).  
     ID(string).  
@@ -106,11 +123,13 @@ if resListFile != nil {
 `
 ```
 
-Parameters: Channel, ID, Name.
+Parameters  
+* **Channel** (string, required)  
+* **ID** (string, required)  
+* **Name** (string, required)
 
-Returns `PNGetFileURLResponse{Url string}`
-
-```
+#### Sample code
+```go
 `resGetFileUrl, statusGetFileUrl, errGetFileUrl := pn.GetFileURL()  
     .Channel("my_channel")  
     .ID("d9515cb7-48a7-41a4-9284-f4bf331bc770")  
@@ -121,11 +140,16 @@ fmt.Println(resGetFileUrl.URL)
 `
 ```
 
+#### Returns
+`PNGetFileURLResponse`  
+* Url – string
+
 ---
 
-## DownloadFile
+## Download file
 
-```
+### Method(s)
+```go
 `pn.DownloadFile().  
     Channel(string).  
     ID(string).  
@@ -134,12 +158,15 @@ fmt.Println(resGetFileUrl.URL)
 `
 ```
 
-Parameters: Channel, ID, Name.  
+Parameters  
+* **Channel** (string, required)  
+* **ID** (string, required)  
+* **Name** (string, required)
+
 Deprecated: `CipherKey`.
 
-Returns `PNDownloadFileResponse{File io.Reader}`
-
-```
+#### Sample code
+```go
 `resDLFile, statusDLFile, errDLFile := pn.DownloadFile()  
     .Channel("my_channel")  
     .ID("d9515cb7-48a7-41a4-9284-f4bf331bc770")  
@@ -157,11 +184,16 @@ if resDLFile != nil {
 `
 ```
 
+#### Returns
+`PNDownloadFileResponse`  
+* File – io.Reader
+
 ---
 
-## DeleteFile
+## Delete file
 
-```
+### Method(s)
+```go
 `pn.DeleteFile().  
     Channel(string).  
     ID(string).  
@@ -170,10 +202,13 @@ if resDLFile != nil {
 `
 ```
 
-Parameters: Channel, ID, Name.  
-Returns `nil`.
+Parameters  
+* **Channel** (string, required)  
+* **ID** (string, required)  
+* **Name** (string, required)
 
-```
+#### Sample code
+```go
 `_, statusDelFile, errDelFile := pn.DeleteFile()  
     .Channel("my_channel")  
     .ID("d9515cb7-48a7-41a4-9284-f4bf331bc770")  
@@ -183,11 +218,17 @@ fmt.Println(statusDelFile, errDelFile)
 `
 ```
 
+#### Returns
+`PNDeleteFileResponse` (nil)
+
 ---
 
-## PublishFileMessage
+## Publish file message
 
-```
+Send a file message if `SendFile` upload succeeded but publish failed.
+
+### Method(s)
+```go
 `pn.PublishFileMessage().  
     TTL(int).  
     Meta(interface{}).  
@@ -200,16 +241,15 @@ fmt.Println(statusDelFile, errDelFile)
 ```
 
 Parameters  
-• TTL (int)  
-• Meta (interface{})  
-• ShouldStore (bool, default true)  
-• Channel (string, required)  
-• Message (PNPublishFileMessage, required)  
-• CustomMessageType (string)
+* **TTL** (int)  
+* **Meta** (interface{})  
+* **ShouldStore** (bool, default `true`)  
+* **Channel** (string, required)  
+* **Message** (PNPublishFileMessage, required)  
+* **CustomMessageType** (string)
 
-Returns `PublishFileMessageResponse{Timetoken int64}`
-
-```
+#### Sample code
+```go
 `m := PNPublishMessage{  
     Text: "Look at this photo!",  
 }  
@@ -227,7 +267,12 @@ resPubFile, pubFileResponseStatus, errPubFileResponse := pn.PublishFileMessage()
     .Channel("my_channel")  
 `
 ```
+_show all 20 lines_
+
+#### Returns
+`PublishFileMessageResponse`  
+* Timetoken – int64
 
 ---
 
-_Last updated Mar 31 2025_
+Last updated **Jul 15 2025**

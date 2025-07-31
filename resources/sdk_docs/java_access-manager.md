@@ -1,171 +1,161 @@
-# Access Manager v3 – Java SDK (≥ 9.0.0)
+# Access Manager v3 – Java SDK  
 
-PubNub Java SDK 9.x merges Java/Kotlin codebases, introduces a new client constructor, and changes async callbacks/status events. See the Java/Kotlin migration guide for upgrade notes.
+## Breaking changes in v 9.0.0
+Java SDK 9.x merges Java/Kotlin codebases, introduces a new PubNub client constructor, and changes async callbacks and status events. See the migration guide for details.
 
 ---
 
-## Grant Token (channels, channel-groups, uuids)
+## Grant token (channels / groups / UUIDs)
 
-Requires the *Access Manager* add-on.
+Requires the **Access Manager** add-on.
+
+Creates a time-limited token (`ttl` 1–43 200 min) with embedded ACL for:
+• channels • channelGroups • uuids  
+Optional restriction to one client via `authorizedUUID`.
+
+### Permissions
+channels  → read, write, get, manage, update, join, delete  
+channelGroups  → read, manage  
+uuids  → get, update, delete  
 
 ### Method
-```java
-grantToken()  
+```
+`grantToken()  
     .ttl(Integer)  
     .meta(Object)  
     .authorizedUUID(String)  
-    .channels(ListChannelGrant>)  
-    .channelGroups(ListChannelGroupGrant>)  
-    .uuids(ListUUIDGrant>)  
+    .channels(List<ChannelGrant>)  
+    .channelGroups(List<ChannelGroupGrant>)  
+    .uuids(List<UUIDGrant>)  
+`
+```
+Required: `ttl` and at least one set of resource permissions.
+
+### Returns
+```
+`{"token":"p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI"}  
+`
 ```
 
-### Parameters
-* **ttl** (*Number*, 1–43 200 min) – required.  
-* **meta** (*Object*) – scalar values only.  
-* **authorizedUUID** (*String*) – token usable only by this `uuid`.  
-* **channels / channelGroups / uuids** (*List* or RegEx pattern) – at least one required.
-
-### Permissions
-* channels: `read`, `write`, `get`, `manage`, `update`, `join`, `delete`
-* channelGroups: `read`, `manage`
-* uuids: `get`, `update`, `delete`
-
-### Basic usage
+### Sample / other examples
+(unchanged example blocks)
 ```
-  
+`  
+`
 ```
-
-### Return example
-```json
-{"token":"p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI"}
+```
+`  
+`
+```
+```
+`  
+`
 ```
 
-### Additional examples
-#### Mixed permissions
-```
-  
-```
-#### Read with RegEx
-```
-  
-```
-#### Mixed list + RegEx
-```
-  
-```
-
-Error responses: `400` on invalid request (bad RegEx, timestamp, permissions, etc.) – details in `PubNubException`.
+Error 400 on invalid args (bad RegEx, timestamp, etc.) via `PubNubException`.
 
 ---
 
-## Grant Token – Spaces & Users
+## Grant token – Spaces & Users
 
-Requires the *Access Manager* add-on.
+Same semantics as above but for Objects API resources: `spaces` and `users`, restricted by `authorizedUserId`.
+
+Permissions  
+space  → read, write, get, manage, update, join, delete  
+user  → get, update, delete  
 
 ### Method
-```java
-grantToken()  
+```
+`grantToken()  
     .ttl(Integer)  
     .meta(Object)  
     .authorizedUserId(UserId)  
-    .spacesPermissions(ListSpacePermissions>)  
-    .usersPermissions(ListUserPermissions>)  
+    .spacesPermissions(List<SpacePermissions>)  
+    .usersPermissions(List<UserPermissions>)  
+`
 ```
 
-### Parameters
-* **ttl** (*Number*, 1–43 200 min) – required.  
-* **meta** (*Object*) – scalar values only.  
-* **authorizedUserId** (*UserId*) – token usable only by this user.  
-* **spacesPermissions / usersPermissions** – list or RegEx; at least one required.
-
-### Permissions
-* space: `read`, `write`, `get`, `manage`, `update`, `join`, `delete`
-* user: `get`, `update`, `delete`
-
-### Basic usage
+### Returns / Examples
+Identical structure:
 ```
-  
+`{"token":"p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI"}  
+`
 ```
-
-### Return example
-```json
-{"token":"p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI"}
+Example blocks:
 ```
-
-### Additional examples
-#### Mixed permissions
+`  
+`
 ```
-  
 ```
-#### Read with RegEx
+`  
+`
 ```
-  
 ```
-#### Mixed list + RegEx
+`  
+`
 ```
-  
-```
-
-Error responses identical to channel grants.
 
 ---
 
-## Revoke Token
+## Revoke token
 
-Requires the *Access Manager* add-on and *Revoke v3 Token* enabled in the Admin Portal.
+Requires add-on and “Revoke v3 Token” enabled in Admin Portal.
 
 ### Method
-```java
-revokeToken()  
+```
+`revokeToken()  
     .token(String token)  
+`
 ```
+Returns `PNRevokeTokenResult`.  
+Errors: 400, 403, 503.
 
-* **token** (*String*) – previously granted token (ttl ≤ 30 days).
-
-### Basic usage
+### Sample
 ```
-  
+`  
+`
 ```
-
-Returns `PNRevokeTokenResult` on success. Possible errors: `400`, `403`, `503`.
 
 ---
 
-## Parse Token
+## Parse token
 
 ### Method
-```java
-parseToken(String token)
 ```
-* **token** (*String*) – token to inspect.
-
-### Basic usage
-```
-  
+`parseToken(String token)  
+`
 ```
 
-### Return
+### Sample
 ```
-  
+`  
+`
 ```
-Errors indicate a damaged/invalid token.
+
+### Returns
+```
+`  
+`
+```
 
 ---
 
-## Set Token (client side)
+## Set token
 
 ### Method
-```java
-setToken(String token)
 ```
-* **token** – new auth token.
+`setToken(String token)  
+`
+```
 
-### Basic usage
+### Sample
 ```
-  
+`  
+`
 ```
-Returns `void`.
+
+No return value.
 
 ---
 
-_Last updated : Jun 2 2025_
+_Last updated: Jul 15 2025_

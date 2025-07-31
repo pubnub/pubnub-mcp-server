@@ -1,454 +1,478 @@
-# App Context API – PHP SDK (Objects)
+# PubNub PHP SDK – App Context (Objects v2)
 
-Server-side storage for User & Channel metadata and their memberships.  
-Below: signatures, parameters, usage, and result objects for every operation.
-
----
-
-## User
-
-### Get All User Metadata
-
-```
-`getAllUUIDMetadata()  
-    ->includeFields(Array[String => Boolean])  
-    ->filter(String)  
-    ->sort(String | Array[String])  
-    ->limit(Integer)  
-    ->page(Array[String => String])  
-    ->sync()  
-`
-```
-
-Parameters  
-• includeFields `totalCount|customFields : bool`  
-• filter `String` – [filter grammar](/docs/general/metadata/filtering)  
-• sort `id|name|updated` (`asc|desc`)  
-• limit `1-100` (default 100)  
-• page `['next'|'prev' => String]`
-
-Basic usage
-
-```
-`// Include Composer autoloader (adjust path if needed)  
-require_once 'vendor/autoload.php';  
-  
-use PubNub\PNConfiguration;  
-use PubNub\PubNub;  
-use PubNub\Exceptions\PubNubServerException;  
-  
-$pnConfig = new PNConfiguration();  
-$pnConfig->setSubscribeKey("demo");  
-$pnConfig->setPublishKey("demo");  
-$pnConfig->setUserId("php-app-context-demo");  
-  
-`
-```
-(show all 86 lines)
-
-Result `PNGetAllUUIDMetadataResult`  
-• getData() `PNGetUUIDMetadataResult[]`  
-• getTotalCount() `int`  
-• getPrev()/getNext() `String`
-
-`PNGetUUIDMetadataResult` fields: id, name, externalId, profileUrl, email, custom.
+This condensed guide lists every App Context/Objects v2 operation, its method‐chain signature, parameters (type & purpose), response objects, and ALL original code blocks.
 
 ---
 
-### Get User Metadata
+## Users (UUID Metadata)
 
-```
-`getUUIDMetadata()  
-    ->uuid(String)  
-    ->sync()  
-`
-```
+### Get all UUID metadata  
+Returns a paginated list of UUID metadata objects.
 
-Parameter *uuid* `String`
-
-```
-`$response = $pubnub->getUUIDMetadata()  
-    ->uuid("uuid")  
-    ->sync();  
-`
+```php
+getAllUUIDMetadata()
+    ->includeFields(Array[String => Boolean])
+    ->filter(String)
+    ->sort(String | Array[String])
+    ->limit(Integer)
+    ->page(Array[String => String])
+    ->sync()
 ```
 
-Result `PNGetUUIDMetadataResult` – same field list as above.
+* includeFields – `{ totalCount?:bool, customFields?:bool }`
+* filter – filtering expression  
+* sort – `"id" | "name" | "updated"` (+ `asc|desc`)
+* limit – default/maximum `100`
+* page – `{ next?:string, prev?:string }`
+
+Sample:
+
+```php
+// Include Composer autoloader (adjust path if needed)
+require_once 'vendor/autoload.php';
+
+use PubNub\PNConfiguration;
+use PubNub\PubNub;
+use PubNub\Exceptions\PubNubServerException;
+
+// Create configuration with demo keys
+$pnConfig = new PNConfiguration();
+$pnConfig->setSubscribeKey("demo");
+$pnConfig->setPublishKey("demo");
+$pnConfig->setUserId("php-app-context-demo");
+```
+
+Response `PNGetAllUUIDMetadataResult`  
+`getData(): PNGetUUIDMetadataResult[]`, `getTotalCount():int`, `getPrev():string`, `getNext():string`  
+Each `PNGetUUIDMetadataResult` exposes `getId()`, `getName()`, `getExternalId()`, `getProfileUrl()`, `getEmail()`, `getCustom()`.
 
 ---
 
-### Set User Metadata
+### Get single UUID metadata
 
-```
-`setUUIDMetadata()  
-    ->uuid(String)  
-    ->meta(Array | StdClass)  
-    ->ifMatchesEtag(String)  
-    ->sync()  
-`
+```php
+getUUIDMetadata()
+    ->uuid(String)
+    ->sync()
 ```
 
-• uuid *required*  
-• meta – array|object with: name, externalId, profileUrl, email, custom.  
-• ifMatchesEtag – optional concurrency check (HTTP 412 on mismatch).
-
+```php
+$response = $pubnub->getUUIDMetadata()
+    ->uuid("uuid")
+    ->sync();
 ```
-`// using array metadata  
-$pubnub->setUUIDMetadata()  
-    ->uuid("uuid")  
-    ->meta([  
-        "name" => "display_name",  
-        "externalId" => "external_id",  
-        "profileUrl" => "profile_url",  
-        "email" => "email_address",  
-        "custom" => [ "a" => "aa", "b" => "bb" ]  
-    ])  
-    ->sync();  
-  
-`
-```
-(show all 33 lines)
 
-Result `PNSetUUIDMetadataResult` – same field list.
+Returns `PNGetUUIDMetadataResult` (same fields as above).
 
 ---
 
-### Remove User Metadata
+### Set UUID metadata
 
+```php
+setUUIDMetadata()
+    ->uuid(String)
+    ->meta(Array | StdClass)
+    ->ifMatchesEtag(String)
+    ->sync()
 ```
-`removeUUIDMetadata()  
-    ->uuid(String)  
-    ->sync()  
-`
+
+* meta fields: `name`, `externalId`, `profileUrl`, `email`, `custom`.
+
+```php
+// using array metadata
+$pubnub->setUUIDMetadata()
+    ->uuid("uuid")
+    ->meta([
+        "name"       => "display_name",
+        "externalId" => "external_id",
+        "profileUrl" => "profile_url",
+        "email"      => "email_address",
+        "custom"     => [ "a"=>"aa", "b"=>"bb" ]
+    ])
+    ->sync();
+```
+
+Returns `PNSetUUIDMetadataResult` (same getters).
+
+---
+
+### Remove UUID metadata
+
+```php
+removeUUIDMetadata()
+    ->uuid(String)
+    ->sync()
+```
+
+```php
+$response = $pubnub->removeUUIDMetadata()
+    ->uuid("uuid")
+    ->sync();
 ```
 
 Returns `true` on success.
 
 ---
 
-## Channel
+## Channels (Channel Metadata)
 
-### Get All Channel Metadata
+### Get all channel metadata
 
-```
-`getAllChannelMetadata()  
-    ->includeFields(Array[String => Boolean])  
-    ->filter(String)  
-    ->sort(String | Array[String])  
-    ->limit(Integer)  
-    ->page(Array[String => String])  
-    ->sync()  
-`
-```
-
-Same parameter semantics as “Get All User Metadata”.
-
-```
-`$response = $pubnub->getAllChannelMetadata()  
-    ->includeFields([ "totalCount" => true, "customFields" => true ])  
-    ->sync();  
-`
+```php
+getAllChannelMetadata()
+    ->includeFields(Array[String => Boolean])
+    ->filter(String)
+    ->sort(String | Array[String])
+    ->limit(Integer)
+    ->page(Array[String => String])
+    ->sync()
 ```
 
-Result `PNGetAllChannelMetadataResult`  
-• getData() `PNGetChannelMetadataResult[]`, totalCount, prev/next.
+```php
+$response = $pubnub->getAllChannelMetadata()
+    ->includeFields([ "totalCount" => true, "customFields" => true ])
+    ->sync();
+```
 
-`PNGetChannelMetadataResult` fields: id, name, description, custom.
+Returns `PNGetAllChannelMetadataResult`  
+(each `PNGetChannelMetadataResult` → `getId()`, `getName()`, `getDescription()`, `getCustom()`).
 
 ---
 
-### Get / Set / Remove Channel Metadata
+### Get single channel metadata
 
-Get:
-
-```
-`getChannelMetadata()  
-    ->channel(String)  
-    ->sync()  
-`
+```php
+getChannelMetadata()
+    ->channel(String)
+    ->sync()
 ```
 
-Set:
-
-```
-`setChannelMetadata()  
-    ->channel(String)  
-    ->meta(Array | StdClass)  
-    ->ifMatchesEtag(String)  
-    ->sync()  
-`
+```php
+$response = $pubnub->getChannelMetadata()
+    ->channel("channel")
+    ->sync();
 ```
 
-Remove:
-
-```
-`removeChannelMetadata()  
-    ->channel(String)  
-    ->sync()  
-`
-```
-
-Set meta fields: name, description, custom.  
-Results mirror user-metadata counterparts; remove returns `true`.
-
-Example (set):
-
-```
-`// using array metadata  
-$pubnub->setChannelMetadata()  
-    ->channel("channel")  
-    ->meta([  
-        "name" => "display_name",  
-        "description" => "description_of_channel",  
-        "custom" => [ "a" => "aa", "b" => "bb" ]  
-    ])  
-    ->sync();  
-  
-// using stdClass metadata  
-use stdClass;  
-`
-```
-(show all 29 lines)
+Response: `PNGetChannelMetadataResult`.
 
 ---
 
-## Channel Memberships (User-side)
+### Set channel metadata
 
-### Get Memberships
-
-```
-`getMemberships()  
-    ->uuid(String)  
-    ->include(PNMembershipIncludes)  
-    ->filter(String)  
-    ->sort(String | Array[String])  
-    ->limit(Integer)  
-    ->page(Array[String => String])  
-    ->sync();  
-`
+```php
+setChannelMetadata()
+    ->channel(String)
+    ->meta(Array | StdClass)
+    ->ifMatchesEtag(String)
+    ->sync()
 ```
 
-Include flags: custom, status, type, total_count, channel, channelCustom, channelType, channelStatus.
+Allowed meta: `name`, `description`, `custom`.
 
-```
-`$includes = new PNMembershipIncludes();  
-$includes->channel()->custom()->status()->type();  
-  
-$response = $pubnub->getMemberships()  
-    ->uuid("uuid")  
-    ->includes($includes)  
-    ->sync();  
-`
+```php
+// using array metadata
+$pubnub->setChannelMetadata()
+    ->channel("channel")
+    ->meta([
+        "name"        => "display_name",
+        "description" => "description_of_channel",
+        "custom"      => [ "a"=>"aa", "b"=>"bb" ]
+    ])
+    ->sync();
+
+// using stdClass metadata
+use stdClass;
 ```
 
-Result `PNMembershipsResult`: data[], totalCount, prev/next.  
-Item → channel metadata, custom, updated, eTag.
+Returns `PNSetChannelMetadataResult`.
+
+Other example (iterative update):
+
+```php
+set_time_limit(0);
+require('vendor/autoload.php');
+
+use PubNub\PNConfiguration;
+use PubNub\PubNub;
+
+$pnconf = new PNConfiguration();
+$pnconf->setPublishKey("demo");
+$pnconf->setSubscribeKey("demo");
+$pnconf->setUuid("example");
+
+$pubnub = new PubNub($pnconf);
+```
 
 ---
 
-### Set / Remove Memberships
+### Remove channel metadata
 
-Set:
-
-```
-`setMemberships()  
-    ->uuid(String)  
-    ->memberships(Array[PNChannelMembership])  
-    ->custom(Array | StdClass)  
-    ->include(PNMembershipIncludes)  
-    ->filter(String)  
-    ->sort(String | Array[String])  
-    ->limit(Integer)  
-    ->page(Array[String => String])  
-    ->sync();  
-`
+```php
+removeChannelMetadata()
+    ->channel(String)
+    ->sync()
 ```
 
-Remove:
-
-```
-`removeMemberships()  
-    ->uuid(String)  
-    ->memberships(Array[PNChannelMembership])  
-    ->include(PNMembershipIncludes)  
-    ->filter(String)  
-    ->sort(String | Array[String])  
-    ->limit(Integer)  
-    ->page(Array[String => String])  
-    ->sync();  
-`
+```php
+$response = $pubnub->removeChannelMetadata()
+    ->channel("channel")
+    ->sync();
 ```
 
-Example (set):
-
-```
-`$includes = new PNMembershipIncludes();  
-$includes->channel()->channelId()->channelCustom()->channelType()->channelStatus()->custom()->status()->type();  
-  
-$addMembership = $this->pubnub->setMemberships()  
-    ->userId($this->user)  
-    ->memberships([  
-        new PNChannelMembership($this->channel1, ['BestDish' => 'Pizza'], 'Admin', 'Active'),  
-        new PNChannelMembership($this->channel2, ['BestDish' => 'Lasagna'], 'Guest', 'Away'),  
-    ])  
-    ->include($includes)  
-    ->sync();  
-`
-```
-
-Both operations return `PNMembershipsResult` (same structure as above).
+Returns `true` on success.
 
 ---
 
-### Manage Memberships (bulk)
+## Channel Memberships (channels a user belongs to)
 
-```
-`manageMemberships()  
-    ->channel(String)  
-    ->setChannels(Array[String])  
-    ->removeChannels(Array[String])  
-    ->setMemberships(Array[PNChannelMembership])  
-    ->removeMemberships(Array[PNChannelMembership])  
-    ->custom(Array | StdClass)  
-    ->include(PNMemberIncludes)  
-    ->filter(String)  
-    ->sort(String | Array[String])  
-    ->limit(Integer)  
-    ->page(Array[String => String])  
-    ->sync();  
-`
+### Get memberships
+
+```php
+getMemberships()
+    ->uuid(String)
+    ->include(PNMembershipIncludes)
+    ->filter(String)
+    ->sort(String|Array[String])
+    ->limit(Integer)
+    ->page(Array[String => String])
+    ->sync();
 ```
 
+```php
+$includes = new PNMembershipIncludes();
+$includes->channel()->custom()->status()->type();
+
+$response = $pubnub->getMemberships()
+    ->uuid("uuid")
+    ->includes($includes)
+    ->sync();
 ```
-`$response = $pubnub->manageMemberships()  
-    ->channel("channel")  
-    ->setChannels(["channel1", "channel2"])  
-    ->removeChannels(["channel3"])  
-    ->sync();  
-`
+
+Returns `PNMembershipsResult` (memberships list + paging).
+
+---
+
+### Set memberships
+
+```php
+setMemberships()
+    ->uuid(String)
+    ->memberships(Array[PNChannelMembership])
+    ->custom(Array | StdClass)
+    ->include(PNMembershipIncludes)
+    ->filter(String)
+    ->sort(String|Array[String])
+    ->limit(Integer)
+    ->page(Array[String => String])
+    ->sync();
+```
+
+```php
+$includes = new PNMembershipIncludes();
+$includes->channel()->channelId()->channelCustom()->channelType()
+        ->channelStatus()->custom()->status()->type();
+
+$addMembership = $this->pubnub->setMemberships()
+    ->userId($this->user)
+    ->memberships([
+        new PNChannelMembership($this->channel1,['BestDish'=>'Pizza'],'Admin','Active'),
+        new PNChannelMembership($this->channel2,['BestDish'=>'Lasagna'],'Guest','Away'),
+    ])
+    ->include($includes)
+    ->sync();
 ```
 
 Returns `PNMembershipsResult`.
 
 ---
 
-## Channel Members (Channel-side)
+### Remove memberships
 
-### Get Members
-
-```
-`getMembers()  
-    ->channel(String)  
-    ->include(PNMemberIncludes)  
-    ->filter(String)  
-    ->sort(String | Array[String])  
-    ->limit(Integer)  
-    ->page(Array[String => String])  
-    ->sync();  
-`
+```php
+removeMemberships()
+    ->uuid(String)
+    ->memberships(Array[PNChannelMembership])
+    ->include(PNMembershipIncludes)
+    ->filter(String)
+    ->sort(String|Array[String])
+    ->limit(Integer)
+    ->page(Array[String => String])
+    ->sync();
 ```
 
-Include flags: custom, status, type, total_count, user, userCustom, userType, userStatus.
+```php
+$includes = new PNMembershipIncludes();
+$includes->channel()->channelId()->channelCustom()->channelType()
+        ->channelStatus()->custom()->status()->type();
 
-```
-`$includes = new PNMemberIncludes();  
-$includes->user()->custom()->status();  
-  
-$response = $pubnub->getMembers()  
-    ->channel("channel")  
-    ->includes($includes)  
-    ->sync();  
-`
+$removeMembership = $this->pubnub->removeMemberships()
+    ->userId($this->user)
+    ->memberships([
+        new PNChannelMembership($this->channel1,['BestDish'=>'Pizza'],'Admin','Active'),
+        new PNChannelMembership($this->channel2,['BestDish'=>'Lasagna'],'Guest','Away'),
+    ])
+    ->include($includes)
+    ->sync();
 ```
 
-Result `PNMembersResult`: data[], totalCount, prev/next.
+Returns `PNMembershipsResult`.
 
 ---
 
-### Set / Remove Members
+### Manage memberships (add/remove in one call)
 
-Set:
-
-```
-`setMembers()  
-    ->channel(String)  
-    ->uuids(Array[String | Array])  
-    ->custom(Array | StdClass)  
-    ->include(PNMemberIncludes)  
-    ->filter(String)  
-    ->sort(String | Array[String])  
-    ->limit(Integer)  
-    ->page(Array[String => String])  
-    ->sync();  
-`
-```
-
-Remove:
-
-```
-`removeMembers()  
-    ->channel(String)  
-    ->members(PNChannelMember[])  
-    ->include(PNMemberIncludes)  
-    ->filter(String)  
-    ->sort(String | Array[String])  
-    ->limit(Integer)  
-    ->page(Array[String => String])  
-    ->sync();  
-`
+```php
+manageMemberships()
+    ->channel(String)
+    ->setChannels(Array[String])
+    ->removeChannels(Array[String])
+    ->setMemberships(Array[PNChannelMembership])
+    ->removeMemberships(Array[PNChannelMembership])
+    ->custom(Array | StdClass)
+    ->include(PNMemberIncludes)
+    ->filter(String)
+    ->sort(String|Array[String])
+    ->limit(Integer)
+    ->page(Array[String => String])
+    ->sync();
 ```
 
-Example (set):
-
-```
-`$includes = new PNMemberIncludes();  
-$includes->user()->userId()->userCustom()->userType()->userStatus()->custom()->status()->type();  
-  
-$addMembers = $this->pubnub->setMembers()  
-    ->channel($this->channel)  
-    ->members([  
-        new PNChannelMember($this->userName1, ['BestDish' => 'Pizza'], 'Svensson', 'Active'),  
-        new PNChannelMember($this->userName2, ['BestDish' => 'Lasagna'], 'Baconstrips', 'Retired'),  
-    ])  
-    ->include($includes)  
-    ->sync();  
-`
+```php
+$response = $pubnub->manageMemberships()
+    ->channel("channel")
+    ->setChannels(["channel1","channel2"])
+    ->removeChannels(["channel3"])
+    ->sync();
 ```
 
-Both operations return `PNMembersResult`.
+Returns `PNMembershipsResult`.
 
 ---
 
-### Manage Members (bulk)
+## Channel Members (users in a channel)
 
-```
-`manageMembers()  
-    ->channel(String)  
-    ->setUuids(Array[String])  
-    ->removeUuids(Array[String])  
-    ->setMembers(Array[PNChannelMember])  
-    ->removeMembers(Array[PNChannelMember])  
-    ->custom(Array | StdClass)  
-    ->include(PNMemberIncludes)  
-    ->filter(String)  
-    ->sort(String | Array[String])  
-    ->limit(Integer)  
-    ->page(Array[String => String])  
-    ->sync();  
-`
+### Get members
+
+```php
+getMembers()
+    ->channel(String)
+    ->include(PNMemberIncludes)
+    ->filter(String)
+    ->sort(String|Array[String])
+    ->limit(Integer)
+    ->page(Array[String => String])
+    ->sync();
 ```
 
-```
-`$response = $pubnub->manageMembers()  
-    ->channel("channel")  
-    ->setUuids(["uuid1", "uuid2"])  
-    ->removeUuids(["uuid3"])  
-    ->sync();  
-`
+```php
+$includes = new PNMemberIncludes();
+$includes->user()->custom()->status();
+
+$response = $pubnub->getMembers()
+    ->channel("channel")
+    ->includes($includes)
+    ->sync();
 ```
 
 Returns `PNMembersResult`.
 
 ---
 
-_Last updated: Apr 2 2025_
+### Set members
+
+```php
+setMembers()
+    ->channel(String)
+    ->uuids(Array[String | Array])
+    ->custom(Array | StdClass)
+    ->include(PNMemberIncludes)
+    ->filter(String)
+    ->sort(String|Array[String])
+    ->limit(Integer)
+    ->page(Array[String => String])
+    ->sync();
+```
+
+```php
+$includes = new PNMemberIncludes();
+$includes->user()->userId()->userCustom()->userType()
+        ->userStatus()->custom()->status()->type();
+
+$addMembers = $this->pubnub->setMembers()
+    ->channel($this->channel)
+    ->members([
+        new PNChannelMember($this->userName1,['BestDish'=>'Pizza'],'Svensson','Active'),
+        new PNChannelMember($this->userName2,['BestDish'=>'Lasagna'],'Baconstrips','Retired'),
+    ])
+    ->include($includes)
+    ->sync();
+```
+
+Returns `PNMembersResult`.
+
+---
+
+### Remove members
+
+```php
+removeMembers()
+    ->channel(String)
+    ->members(PNChannelMember[])
+    ->include(PNMemberIncludes)
+    ->filter(String)
+    ->sort(String|Array[String])
+    ->limit(Integer)
+    ->page(Array[String => String])
+    ->sync();
+```
+
+```php
+$includes = new PNMemberIncludes();
+$includes->user()->userId()->userCustom()->userType()
+        ->userStatus()->custom()->status()->type();
+
+$removeMembers = $this->pubnub->removeMembers()
+    ->channel($this->channel)
+    ->members([
+        new PNChannelMember($this->userName1,['BestDish'=>'Pizza'],'Svensson','Active'),
+        new PNChannelMember($this->userName2,['BestDish'=>'Lasagna'],'Baconstrips','Retired'),
+    ])
+    ->include($includes)
+    ->sync();
+```
+
+Returns `PNMembersResult`.
+
+---
+
+### Manage members (add/remove in one call)
+
+```php
+manageMembers()
+    ->channel(String)
+    ->setUuids(Array[String])
+    ->removeUuids(Array[String])
+    ->setMembers(Array[PNChannelMember])
+    ->removeMembers(Array[PNChannelMember])
+    ->custom(Array | StdClass)
+    ->include(PNMemberIncludes)
+    ->filter(String)
+    ->sort(String|Array[String])
+    ->limit(Integer)
+    ->page(Array[String => String])
+    ->sync();
+```
+
+```php
+$response = $pubnub->manageMembers()
+    ->channel("channel")
+    ->setUuids(["uuid1","uuid2"])
+    ->removeUuids(["uuid3"])
+    ->sync();
+```
+
+Returns `PNMembersResult`.
+
+---
+
+_Last updated: Jul 15 2025_

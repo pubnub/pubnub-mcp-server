@@ -1,45 +1,45 @@
-# Mobile Push Notifications – PubNub Dart SDK (Concise Reference)
+# Mobile Push Notifications API – Dart SDK (condensed)
 
-> All operations below require the **Mobile Push Notifications** add-on to be enabled for the keyset.
+Mobile Push Notifications let PubNub publish directly to FCM (Android) and APNs (iOS).  
+Requires the *Mobile Push Notifications* add-on enabled for your key in the Admin Portal.
 
 ---
 
-## Add Device to Channel
+## Add device to channels
 
-### Method
 ```dart
 pubnub.addPushChannels(
   String deviceId,
   PushGateway gateway,
   Set<String> channels, {
-  String? topic,
-  Environment? environment,
+  String? topic,           // APNs2 only
+  Environment? environment,// APNs2 only
   Keyset? keyset,
-  String? using,
+  String? using
 })
 ```
 
 Parameters  
-• `deviceId` (String) – Target device ID  
-• `gateway` (PushGateway) – `apns2`, `gcm`, or `mpns`  
-• `channels` (Set<String>) – Channels to enable  
-• `topic` (String) – iOS bundle ID (APNs2 only)  
-• `environment` (Environment) – `development` / `production` (APNs2 only)  
-• `keyset` (Keyset) – Override default keyset  
-• `using` (String) – Named keyset from `keysetStore`
+• `deviceId` String – Device token / FCM registration ID  
+• `gateway` PushGateway – `apns2`, `gcm`, `mpns`  
+• `channels` Set<String> – Channels to enable  
+• `topic` String – APNs bundle ID (APNs2 only)  
+• `environment` Environment – `production` | `development` (APNs2 only)  
+• `keyset`, `using` – Optional keyset overrides  
 
-Returns – void (throws on error)
+Returns: void (throws on error)
 
-#### Example
+Sample
+
 ```dart
 import 'package:pubnub/pubnub.dart';
 
 void main() async {
-  var pubnub = PubNub(
+  final pubnub = PubNub(
     defaultKeyset: Keyset(
       subscribeKey: 'demo',
-      publishKey: 'demo',
-      userId: UserId('myUniqueUserId'),
+      publishKey:  'demo',
+      userId:      UserId('myUniqueUserId'),
     ),
   );
 
@@ -53,37 +53,32 @@ void main() async {
 
 ---
 
-## List Channels for Device
+## List channels for device
 
-### Method
 ```dart
 pubnub.listPushChannels(
   String deviceId,
   PushGateway gateway, {
-  String? topic,
-  Environment? environment,
+  String? topic,           // APNs2 only
+  Environment? environment,// APNs2 only
   Keyset? keyset,
   String? using,
-  String? start,
-  int? count,
+  String? start,           // pagination
+  int?    count            // max 1000, default 500
 })
 ```
 
-Parameters  
-• `deviceId`, `gateway`, `topic`, `environment`, `keyset`, `using` – same meaning as above  
-• `start` (String) – Pagination cursor (last channel from previous page)  
-• `count` (int) – Page size (1-1000, default 500)
+Returns: `ListPushChannelsResult`  
+• `channels` List<String>
 
-Returns – `ListPushChannelsResult`  
-• `channels` (List<String>) – Channels with push enabled
+Sample
 
-#### Example
 ```dart
-// non-APNs2
-var result = await pubnub.listPushChannels('A332C23D', PushGateway.gcm);
+// FCM
+var res = await pubnub.listPushChannels('A332C23D', PushGateway.gcm);
 
 // APNs2
-var result = await pubnub.listPushChannels(
+var res = await pubnub.listPushChannels(
   'device-token',
   PushGateway.apns2,
   topic: 'MyAppTopic',
@@ -93,28 +88,26 @@ var result = await pubnub.listPushChannels(
 
 ---
 
-## Remove Device From Channel
+## Remove device from channels
 
-### Method
 ```dart
 pubnub.removePushChannels(
   String deviceId,
   PushGateway gateway,
   Set<String> channels, {
-  String? topic,
-  Environment? environment,
+  String? topic,           // APNs2 only
+  Environment? environment,// APNs2 only
   Keyset? keyset,
-  String? using,
+  String? using
 })
 ```
 
-Parameters – same as *Add Device to Channel*
+Returns: void (throws on error)
 
-Returns – void (throws on error)
+Sample
 
-#### Example
 ```dart
-// non-APNs2
+// FCM
 await pubnub.removePushChannels(
   'A332C23D',
   PushGateway.gcm,
@@ -133,26 +126,25 @@ await pubnub.removePushChannels(
 
 ---
 
-## Remove All Mobile Push Notifications (Device Deregistration)
+## Remove all mobile push registrations for device
 
-### Method
 ```dart
 pubnub.removeDevice(
   String deviceId,
   PushGateway gateway, {
-  String? topic,
-  Environment? environment,
+  String? topic,           // APNs2 only
+  Environment? environment,// APNs2 only
   Keyset? keyset,
-  String? using,
+  String? using
 })
 ```
 
-Parameters – same as above  
-Returns – void (throws on error)
+Returns: void (throws on error)
 
-#### Example
+Sample
+
 ```dart
-// non-APNs2
+// FCM
 await pubnub.removeDevice('deviceId', PushGateway.gcm);
 
 // APNs2
@@ -166,17 +158,18 @@ await pubnub.removeDevice(
 
 ---
 
-## Short Syntax Helpers
+## Alternative short syntax
+
 ```dart
 var device = pubnub.device('A332C23D');
 
-// register device
+// Register
 await device.registerToChannels({'my_channel'}, PushGateway.gcm);
 
-// remove from channels
+// Deregister specific channels
 await device.deregisterFromChannels({'my_channel'}, PushGateway.gcm);
 
-// remove all registrations
+// Remove all registrations
 await device.remove(
   PushGateway.apns2,
   topic: 'MyAppTopic',
@@ -184,4 +177,4 @@ await device.remove(
 );
 ```
 
-_Last updated: Mar 31 2025_
+_Last updated: Jul 15 2025_

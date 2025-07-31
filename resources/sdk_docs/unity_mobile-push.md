@@ -1,177 +1,156 @@
 # Mobile Push Notifications API – Unity SDK (Condensed)
 
-Mobile Push Notifications bridge PubNub with FCM/GCM and APNs/APNS2.  
-All methods below require the **Mobile Push Notifications add-on** to be enabled in the PubNub Admin Portal.
+All operations require the **Mobile Push Notifications** add-on to be enabled for your PubNub key in the Admin Portal.
 
 ---
 
-## Add Device to Channel
+## Add device to one or more channels
 
 ### Method
+
 ```csharp
-pubnub.AddPushNotificationsOnChannels()  
+`pubnub.AddPushNotificationsOnChannels()  
     .PushType(PNPushType)  
     .Channels(Array)  
     .DeviceId(string)  
     .Environment(PushEnvironment)  
     .Topic(string)  
-    .QueryParam(Dictionary<string,object>)  
-    .Execute(System.Action<PNPushAddChannelResult, PNStatus>)  
+    .QueryParam(Dictionarystring,object>)  
+    .Execute(System.ActionPNPushAddChannelResult, PNStatus>)  
+`
 ```
 
 ### Parameters
-* **PushType** (PNPushType) – `PNPushType.GCM`, `PNPushType.FCM`, `PNPushType.APNS2`.
-* **Channels** (Array) – Channels to enable.
-* **DeviceId** (string) – Device token/ID.
-* **Environment** (PushEnvironment) – *APNS2 only.* `Development` or `Production`.
-* **Topic** (string) – *APNS2 only.* App bundle identifier.
-* **QueryParam** (Dictionary<string,object>) – Optional URL query parameters.
 
-### Basic Usage
-```csharp
-using PubnubApi;  
-using PubnubApi.Unity;  
-using UnityEngine;  
-  
-public class AddPushNotificationsExample : MonoBehaviour {  
-    [SerializeField] private PNManagerBehaviour pubnubManager;  
-    [SerializeField] private string[] channels = { "ch1", "ch2", "ch3" };  
-    [SerializeField] private string fcmDeviceId = "googleDevice";  
-    [SerializeField] private string apnsDeviceId = "appleDevice";  
-}
+* PushType (PNPushType) – `PNPushType.GCM`, `PNPushType.FCM`, `PNPushType.APNS2`.
+* Channels (Array\<string>) – Channels to enable for push.
+* DeviceId (string) – Device push token.
+* Environment (PushEnvironment) – **APNS2 only**. `Development` or `Production`.
+* Topic (string) – **APNS2 only**. Bundle identifier.
+* QueryParam (Dictionary\<string, object>) – Optional query‐string pairs.
+* Execute / ExecuteAsync – Callback or `Task<PNResult<PNPushAddChannelResult>>`.
+
+### Sample
+
 ```
-show all 52 lines
+`  
+`
+```
 
 ### Return
-Check `PNStatus.IsError()`; no payload is returned.
+
+No payload. Check `PNStatus.IsError()`.
 
 ---
 
-## List Channels for Device
+## List channels for a device
 
 ### Method
+
 ```csharp
-pubnub.AuditPushChannelProvisions()  
+`pubnub.AuditPushChannelProvisions()  
     .DeviceId(string)  
     .PushType(PNPushType)  
     .Environment(PushEnvironment)  
     .Topic(string)  
-    .QueryParam(Dictionary<string,object>)  
-    .Execute(System.Action<PNPushListProvisionsResult, PNStatus>)  
+    .QueryParam(Dictionarystring,object>)  
+    .Execute(System.ActionPNPushListProvisionsResult, PNStatus>)  
+`
 ```
 
 ### Parameters
-* **DeviceId** (string)
-* **PushType** (PNPushType)
-* **Environment** (PushEnvironment) – *APNS2 only.*
-* **Topic** (string) – *APNS2 only.*
-* **QueryParam** (Dictionary<string,object>)
 
-### Basic Usage
-```csharp
-// FCM/GCM  
-pubnub.AuditPushChannelProvisions()  
-    .DeviceId("googleDevice")  
-    .PushType(PnPushType.FCM)  
-    .Execute((result, status) => {});  
-  
-// APNS2  
-pubnub.AuditPushChannelProvisions()  
-    .DeviceId("appleDevice")  
-    .PushType(PNPushType.APNS2)  
-    .Topic("myapptopic")  
-    .Environment(PushEnvironment.Development)  
-    .Execute((result, status) => {});  
+* DeviceId (string)
+* PushType (PNPushType) – `GCM`, `FCM`, `APNS2`.
+* Environment (PushEnvironment) – **APNS2 only**.
+* Topic (string) – **APNS2 only**.
+* QueryParam (Dictionary\<string, object>)
+* Execute / ExecuteAsync – `PNPushListProvisionsResult`.
+
+### Sample
+
+```
+`  
+`
 ```
 
-### Return
-`PNPushListProvisionsResult.Channels` – `List<string>` of registered channels.
+### Return (`PNPushListProvisionsResult`)
+
+* Channels (List\<string>) – Channels enabled for push.
 
 ---
 
-## Remove Device from Channel
+## Remove device from specific channels
 
 ### Method
+
 ```csharp
-pubnub.RemovePushNotificationsFromChannels()  
+`pubnub.RemovePushNotificationsFromChannels()  
     .DeviceId(string)  
     .Channels(Array)  
     .PushType(PNPushType)  
     .Environment(PushEnvironment)  
     .Topic(string)  
-    .QueryParam(Dictionary<string,object>)  
+    .QueryParam(Dictionarystring,object>)  
+`
 ```
 
 ### Parameters
-* **DeviceId** (string)
-* **Channels** (Array)
-* **PushType** (PNPushType)
-* **Environment** (PushEnvironment) – *APNS2 only.*
-* **Topic** (string) – *APNS2 only.*
-* **QueryParam** (Dictionary<string,object>)
 
-### Basic Usage
-```csharp
-// FCM/GCM  
-pubnub.RemovePushNotificationsFromChannels()  
-    .DeviceId("googleDevice")  
-    .Channels(new string[] { "ch1", "ch2", "ch3" })  
-    .PushType(PnPushType.FCM)  
-    .Execute((result, status) => {});  
-  
-// APNS2  
-pubnub.RemovePushNotificationsFromChannels()  
-    .DeviceId("appleDevice")  
-    .Channels(new string[] {  
+* DeviceId (string)
+* Channels (Array\<string>) – Channels to disable.
+* PushType (PNPushType) – `GCM`, `FCM`, `APNS2`.
+* Environment (PushEnvironment) – **APNS2 only**.
+* Topic (string) – **APNS2 only**.
+* QueryParam (Dictionary\<string, object>)
+* Execute / ExecuteAsync – `PNPushRemoveChannelResult`.
+
+### Sample
+
 ```
-show all 23 lines
+`  
+`
+```
 
 ### Return
-No payload; inspect `PNStatus`.
+
+No payload. Check `PNStatus.IsError()`.
 
 ---
 
-## Remove All Mobile Push Notifications
+## Remove device from all channels
 
 ### Method
+
 ```csharp
-pubnub.RemoveAllPushNotificationsFromDeviceWithPushToken()  
+`pubnub.RemoveAllPushNotificationsFromDeviceWithPushToken()  
     .DeviceId(string)  
     .PushType(PNPushType)  
     .Environment(PushEnvironment)  
     .Topic(string)  
-    .QueryParam(Dictionary<string,object>)  
-    .Execute(System.Action<PNPushRemoveAllChannelsResult, PNStatus>)  
+    .QueryParam(Dictionarystring,object>)  
+    .Execute(System.ActionPNPushRemoveAllChannelsResult, PNStatus>)  
+`
 ```
 
 ### Parameters
-* **DeviceId** (string)
-* **PushType** (PNPushType)
-* **Environment** (PushEnvironment) – *APNS2 only.*
-* **Topic** (string) – *APNS2 only.*
-* **QueryParam** (Dictionary<string,object>)
 
-### Basic Usage
-```csharp
-// FCM/GCM  
-pubnub.RemoveAllPushNotificationsFromDeviceWithPushToken()  
-    .DeviceId("googleDevice")  
-    .PushType(PnPushType.FCM)  
-    .Execute(new PNPushRemoveAllChannelsResultExt((r, s) => {  
-        Debug.Log(pubnub.JsonPluggableLibrary.SerializeToJsonString(r));  
-    }));  
-  
-// APNS2  
-pubnub.RemoveAllPushNotificationsFromDeviceWithPushToken()  
-    .DeviceId("appleDevice")  
-    .PushType(PNPushType.APNS2)  
-    .Topic("myapptopic")  
-    .Environment(PushEnvironment.Development)  
-    .Execute(new PNPushRemoveAllChannelsResultExt((r, s) => {  
+* DeviceId (string)
+* PushType (PNPushType) – `GCM`, `FCM`, `APNS2`.
+* Environment (PushEnvironment) – **APNS2 only**.
+* Topic (string) – **APNS2 only**.
+* QueryParam (Dictionary\<string, object>)
+* Execute / ExecuteAsync – `PNPushRemoveAllChannelsResult`.
+
+### Sample
+
 ```
-show all 17 lines
+`  
+`
+```
 
-### Return
-`PNPushRemoveAllChannelsResult` (empty) and `PNStatus`.
+### Return (`PNPushRemoveAllChannelsResult`)
 
-_Last updated: May 6, 2025_
+Empty result object; verify success via `PNStatus`.
+
+_Last updated: Jul 15 2025_

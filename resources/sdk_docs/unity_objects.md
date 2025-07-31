@@ -1,404 +1,548 @@
-# PubNub Unity SDK – App Context (Objects)
+# App Context API – Unity SDK (Objects)
 
-This condensed reference keeps every code block, method signature, parameter description, example, and response. All repetitive prose has been removed.
+Use PubNub App Context to store and manage metadata for users, channels, memberships, and members.  
+The following condensed reference keeps every method signature, parameter list, code block, and response sample from the original documentation.
 
 ---
 
 ## User
 
-### Get Metadata for All Users
+### Get metadata for all users
 
-Method
-```csharp
-pubnub.GetAllUuidMetadata()
-    .IncludeCustom(bool)
-    .IncludeCount(bool)
-    .Page(PNPageObject)
-    .Sort(List<string>)
-    .Filter(string)
-    .Limit(int)
-    .Execute(Action<PNGetAllUuidMetadataResult, PNStatus>)
+Method(s)
 ```
-* IncludeCustom – bool  
-* IncludeCount – bool  
-* Page – PNPageObject  
-* Sort – List\<string> (`id`, `name`, `updated`; `asc|desc`)  
-* Filter – string (see filtering docs)  
-* Limit – int (default/max = 100)  
-* ExecuteAsync → Task\<PNResult\<PNGetAllUuidMetadataResult>>
-
-Example
-```csharp
-using PubnubApi;
-using PubnubApi.Unity;
-using UnityEngine;
-
-public class GetAllUuidMetadataExample : MonoBehaviour {
-    [SerializeField] PNManagerBehaviour pubnubManager;
-    async void Start() {
-        var pubnub = pubnubManager.pubnub;
-        var res = await pubnub.GetAllUuidMetadata()
-            .IncludeCustom(true)
-            .IncludeCount(true)
-            .ExecuteAsync();
-    }
-}
+pubnub.GetAllUuidMetadata()  
+    .IncludeCustom(bool)  
+    .IncludeCount(bool)  
+    .Page(PNPageObject)  
+    .Sort(List<string>)  
+    .Filter(string)  
+    .Limit(int)  
+    .Execute(System.Action<PNGetAllUuidMetadataResult, PNStatus>)  
 ```
+* required Parameter | Type | Description  
+* IncludeCustom | bool | Fetch `Custom` fields.  
+* IncludeCount | bool | Include total count in paginated response.  
+* Page | PNPageObject | Pagination cursor.  
+* Sort | List<string> | `id`, `name`, `updated` (`asc`/`desc`).  
+* Filter | string | [Filtering expression](/docs/general/metadata/filtering).  
+* Limit | int | Max 100.  
+* Execute | System.Action | Callback (`PNGetAllUuidMetadataResult`).  
+* ExecuteAsync | Task<PNResult<PNGetAllUuidMetadataResult>>
+
+Sample code
+```
+  
+```
+
 Response
-```json
-{
-  "Uuids":[
-    { "Uuid":"uuid-1","Name":"John Doe","Email":"jack@twitter.com","Updated":"2020-06-17T16:28:14.060718Z"},
-    { "Uuid":"uuid-2","Name":"Bob Cat","Email":"bobc@example.com"}
-  ]
-}
+```
+{  
+    "Uuids": [  
+        {  
+            "Uuid": "uuid-1",  
+            "Name": "John Doe",  
+            "Email": "jack@twitter.com",  
+            "ExternalId": null,  
+            "ProfileUrl": null,  
+            "Custom": null,  
+            "Updated": "2020-06-17T16:28:14.060718Z"  
+        },  
+        {  
+            "Uuid": "uuid-2",  
+            "Name": "Bob Cat",  
+            "Email": "bobc@example.com",  
+```  
+_show all 29 lines_
+
+---
+
+### Get user metadata
+
+Method(s)
+```
+pubnub.GetUuidMetadata()  
+    .Uuid(string)  
+    .IncludeCustom(bool)  
+    .Execute(System.Action<PNGetUuidMetadataResult, PNStatus>)  
+```
+* Parameter | Type | Description  
+* Uuid | string | User ID (default: current).  
+* IncludeCustom | bool | Fetch `Custom` fields.  
+* Execute | System.Action | (`PNGetUuidMetadataResult`).  
+* ExecuteAsync | Task<PNResult<PNGetUuidMetadataResult>>
+
+Sample code
+```
+  
+```
+
+Response
+```
+{  
+    "Uuid": "uuid-1",  
+    "Name": "John Doe",  
+    "Email": "jack@twitter.com",  
+    "ExternalId": null,  
+    "ProfileUrl": null,  
+    "Custom": null,  
+    "Updated": "2020-06-17T16:28:14.060718Z"  
+}  
 ```
 
 ---
 
-### Get User Metadata
-```csharp
-pubnub.GetUuidMetadata()
-    .Uuid(string)
-    .IncludeCustom(bool)
-    .Execute(Action<PNGetUuidMetadataResult, PNStatus>)
-```
-* Uuid – string (default = current)  
-* IncludeCustom – bool  
+### Set user metadata
 
-Example
-```csharp
-// Current UUID
-var r1 = await pubnub.GetUuidMetadata().ExecuteAsync();
-// Specific UUID
-var r2 = await pubnub.GetUuidMetadata()
-    .Uuid("my-uuid")
-    .ExecuteAsync();
+Method(s)
 ```
+pubnub.SetUuidMetadata()  
+    .Uuid(string)  
+    .Name(string)  
+    .Email(string)  
+    .ExternalId(string)  
+    .ProfileUrl(string)  
+    .Custom(Dictionary<string, object>)  
+    .IncludeCustom(bool)  
+    .IfMatchesEtag(string)  
+    .Execute(System.Action<PNSetUuidMetadataResult, PNStatus>)  
+```
+* Parameter | Type | Description  
+* Uuid | string | User ID (default: current).  
+* Name | string | Display name.  
+* Email | string | Email address.  
+* ExternalId | string | External system ID.  
+* ProfileUrl | string | Avatar URL.  
+* Custom | Dictionary<string, object> | Arbitrary JSON (overwrites existing).  
+* IfMatchesEtag | string | Optimistic concurrency (HTTP 412 on mismatch).  
+* IncludeCustom | bool | Return `Custom` fields.  
+* Execute | System.Action | (`PNSetUuidMetadataResult`).  
+* ExecuteAsync | Task<PNResult<PNSetUuidMetadataResult>>
+
+Sample code
+```
+  
+```
+
 Response
-```json
-{ "Uuid":"uuid-1","Name":"John Doe","Email":"jack@twitter.com","Updated":"2020-06-17T16:28:14.060718Z"}
+```
+{  
+    "Uuid": "uuid-1",  
+    "Name": "John Doe",  
+    "Email": "jack@twitter.com",  
+    "ExternalId": null,  
+    "ProfileUrl": null,  
+    "Custom": null,  
+    "Updated": "2020-06-17T16:28:14.060718Z"  
+}  
 ```
 
 ---
 
-### Set User Metadata  
-(Calling this overwrites existing custom data.)
+### Remove user metadata
 
-```csharp
-pubnub.SetUuidMetadata()
-    .Uuid(string)
-    .Name(string)
-    .Email(string)
-    .ExternalId(string)
-    .ProfileUrl(string)
-    .Custom(Dictionary<string,object>)
-    .IncludeCustom(bool)
-    .IfMatchesEtag(string)
-    .Execute(Action<PNSetUuidMetadataResult, PNStatus>)
+Method(s)
 ```
-* Uuid – string (default = current)  
-* Name, Email, ExternalId, ProfileUrl – string  
-* Custom – Dictionary<string,object>  
-* IfMatchesEtag – string  
-* IncludeCustom – bool  
+pubnub.RemoveUuidMetadata()  
+    .Uuid(string)  
+```
+* Parameter | Type | Description  
+* Uuid | string | User ID (default: current).  
+* Execute | System.Action (`PNRemoveUuidMetadataResult`)  
+* ExecuteAsync | Task<PNResult<PNRemoveUuidMetadataResult>>
 
-Example
-```csharp
-var resp = await pubnub.SetUuidMetadata()
-    .Uuid(config.Uuid)
-    .Name("John Doe")
-    .Email("john.doe@user.com")
-    .ExecuteAsync();
+Sample code
 ```
+  
+```
+
 Response
-```json
-{ "Uuid":"uuid-1","Name":"John Doe","Email":"jack@twitter.com","Updated":"2020-06-17T16:28:14.060718Z"}
 ```
-
----
-
-### Remove User Metadata
-```csharp
-pubnub.RemoveUuidMetadata()
-    .Uuid(string)
-    .Execute(Action<PNRemoveUuidMetadataResult, PNStatus>)
-```
-Example
-```csharp
-var rm = await pubnub.RemoveUuidMetadata().ExecuteAsync();
-```
-Response
-```json
-{}
+{}  
 ```
 
 ---
 
 ## Channel
 
-### Get Metadata for All Channels
-```csharp
-pubnub.GetAllChannelMetadata()
-    .IncludeCustom(bool)
-    .IncludeCount(bool)
-    .Page(PNPageObject)
-    .Sort(List<string>)
-    .Filter(string)
-    .Execute(Action<PNGetAllChannelMetadataResult, PNStatus>)
+### Get metadata for all channels
+
+Method(s)
 ```
-Example
-```csharp
-var ch = await pubnub.GetAllChannelMetadata()
-    .IncludeCount(true)
-    .IncludeCustom(true)
-    .ExecuteAsync();
+pubnub.GetAllChannelMetadata()  
+    .IncludeCustom(bool)  
+    .IncludeCount(bool)  
+    .Page(PNPageObject)  
+    .Sort(List<string>)  
+    .Filter(string)  
+    .Execute(System.Action<PNGetAllChannelMetadataResult, PNStatus>)  
 ```
+* IncludeCustom | bool | Fetch `Custom` fields.  
+* IncludeCount | bool | Include total count.  
+* Page | PNPageObject | Pagination cursor.  
+* Sort | List<string> | `id`, `name`, `updated`.  
+* Filter | string | Filter expression.  
+* Execute | System.Action (`PNGetAllChannelMetadataResult`)  
+* ExecuteAsync | Task<PNResult<PNGetAllChannelMetadataResult>>
+
+Sample code
+```
+  
+```
+
 Response
-```json
-{
-  "Channels":[
-    {"Channel":"my-channel","Name":"My channel","Description":"A channel that is mine","Updated":"2020-06-17T16:52:19.562469Z"}
-  ]
-}
+```
+{  
+    "Channels": [  
+        {  
+            "Channel": "my-channel",  
+            "Name": "My channel",  
+            "Description": "A channel that is mine",  
+            "Custom": null,  
+            "Updated": "2020-06-17T16:52:19.562469Z"  
+        },  
+        {  
+            "Channel": "main",  
+            "Name": "Main channel",  
+            "Description": "The main channel",  
+            "Custom": {  
+                "public": true,  
+```  
+_show all 26 lines_
+
+---
+
+### Get channel metadata
+
+Method(s)
+```
+pubnub.GetChannelMetadata()  
+    .Channel(string)  
+    .IncludeCustom(bool)  
+```
+* Channel | string | Channel name.  
+* IncludeCustom | bool | Fetch `Custom` fields.  
+* Execute | System.Action (`PNGetChannelMetadataResult`)  
+* ExecuteAsync | Task<PNResult<PNGetChannelMetadataResult>>
+
+Sample code
+```
+  
+```
+
+Response
+```
+{  
+    "Channel": "my-channel",  
+    "Name": "My channel",  
+    "Description": "A channel that is mine",  
+    "Custom": null,  
+    "Updated": "2020-06-17T16:52:19.562469Z"  
+}  
 ```
 
 ---
 
-### Get Channel Metadata
-```csharp
-pubnub.GetChannelMetadata()
-    .Channel(string)
-    .IncludeCustom(bool)
-    .Execute(Action<PNGetChannelMetadataResult, PNStatus>)
+### Set channel metadata
+
+Method(s)
 ```
-Example
-```csharp
-var ch = await pubnub.GetChannelMetadata()
-    .Channel("my-channel")
-    .IncludeCustom(true)
-    .ExecuteAsync();
+pubnub.SetChannelMetadata()  
+    .Channel(string)  
+    .Name(string)  
+    .Description(string)  
+    .Custom(Dictionary<string, object>)  
+    .IncludeCustom(bool)  
+    .IfMatchesEtag(string)  
+    .Execute(System.Action<PNSetChannelMetadataResult, PNStatus>)  
+```
+* Channel | string | Channel name.  
+* Name | string | Channel display name.  
+* Description | string | Channel description.  
+* Custom | Dictionary<string,object> | Arbitrary JSON (overwrites existing).  
+* IncludeCustom | bool | Return `Custom` fields.  
+* IfMatchesEtag | string | Optimistic concurrency.  
+* Execute | System.Action (`PNSetChannelMetadataResult`)  
+* ExecuteAsync | Task<PNResult<PNSetChannelMetadataResult>>
+
+Sample code
+```
+  
 ```
 
-### Set Channel Metadata  
-(Custom overwrite behaviour identical to user metadata.)
-```csharp
-pubnub.SetChannelMetadata()
-    .Channel(string)
-    .Name(string)
-    .Description(string)
-    .Custom(Dictionary<string,object>)
-    .IncludeCustom(bool)
-    .IfMatchesEtag(string)
-    .Execute(Action<PNSetChannelMetadataResult, PNStatus>)
-```
-Example
-```csharp
-var set = await pubnub.SetChannelMetadata()
-    .Channel("my-channel")
-    .Name("John Doe")
-    .Description("sample description")
-    .Custom(new Dictionary<string,object>{{"color","blue"}})
-    .IncludeCustom(true)
-    .ExecuteAsync();
-```
 Response
-```json
-{ "Channel":"my-channel","Name":"John Doe","Description":"sample description","Custom":{"color":"blue"} }
+```
+{  
+    "Channel": "my-channel",  
+    "Name": "John Doe",  
+    "Description": "sample description",  
+    "Custom": {  
+        "color": "blue"  
+    },  
+    "Updated": "2020-06-17T16:52:19.562469Z"  
+}  
 ```
 
-Iterative update example (truncated):
-```csharp
-using System.Collections.Generic;
-using PubnubApi;
-// ...
+Iteratively update example
 ```
-
-### Remove Channel Metadata
-```csharp
-pubnub.RemoveChannelMetadata()
-    .Channel(string)
-    .Execute(Action<PNRemoveChannelMetadataResult, PNStatus>)
-```
-Example
-```csharp
-var rm = await pubnub.RemoveChannelMetadata()
-    .Channel("mychannel")
-    .ExecuteAsync();
+  
 ```
 
 ---
 
-## Channel Memberships (User ↔ Channel)
+### Remove channel metadata
 
-### Get Channel Memberships
-```csharp
-pubnub.GetMemberships()
-    .Uuid(string)
-    .Include(PNMembershipField[])
-    .IncludeCount(bool)
-    .Page(PNPageObject)
-    .Execute(Action<PNGetMembershipsResult, PNStatus>)
+Method(s)
 ```
-Example
-```csharp
-var mem = await pubnub.GetMemberships()
-    .Uuid("my-uuid")
-    .Include(new[]{PNMembershipField.CUSTOM,PNMembershipField.CHANNEL,PNMembershipField.CHANNEL_CUSTOM})
-    .IncludeCount(true)
-    .ExecuteAsync();
+pubnub.RemoveChannelMetadata()  
+    .Channel(string)  
+```
+* Channel | string | Channel name.  
+* Execute | System.Action (`PNRemoveChannelMetadataResult`)  
+* ExecuteAsync | Task<PNResult<PNRemoveChannelMetadataResult>>
+
+Sample code
+```
+  
 ```
 
-### Set Channel Memberships
-```csharp
-pubnub.SetMemberships()
-    .Uuid(string)
-    .Channels(List<PNMembership>)
-    .Include(PNMembershipField[])
-    .IncludeCount(bool)
-    .Page(PNPageObject)
-    .Sort(List<string>)
-    .Filter(string)
-    .Limit(int)
-    .Execute(Action<PNMembershipsResult, PNStatus>)
+Response
+```
+{}  
+```
+
+---
+
+## Channel memberships
+
+### Get channel memberships
+```
+pubnub.GetMemberships()  
+    .Uuid(string)  
+    .Include(PNMembershipField[])  
+    .IncludeCount(bool)  
+    .Page(PNPageObject)  
+    .Execute(System.Action<PNGetMembershipsResult, PNStatus>)  
+```
+* Uuid | string | User ID (default: current).  
+* Include | PNMembershipField[] | Additional fields.  
+* IncludeCount | bool | Include total count.  
+* Page | PNPageObject | Pagination.  
+* Execute | System.Action (`PNGetMembershipsResult`)  
+* ExecuteAsync | Task<PNResult<PNGetMembershipsResult>>
+
+Sample code
+```
+  
+```
+
+Response
+```
+{  
+    "Memberships": [  
+        {  
+            "ChannelMetadata": {  
+                "Channel": "my-channel",  
+                "Name": "My channel",  
+                "Description": "A channel that is mine",  
+                "Custom": null,  
+                "Updated": "2020-06-17T16:55:44.632042Z"  
+            },  
+            "Custom": {  
+                "starred": false  
+            },  
+            "Updated": "2020-06-17T17:05:25.987964Z"  
+        },  
+```  
+_show all 38 lines_
+
+---
+
+### Set channel memberships
+```
+pubnub.SetMemberships()  
+    .Uuid(string)  
+    .Channels(List<PNMembership>)  
+    .Include(PNMembershipField[])  
+    .IncludeCount(bool)  
+    .Page(PNPageObject)  
+    .Sort(List<string>)  
+    .Filter(string)  
+    .Limit(int)  
+    .Execute(System.Action<PNMembershipsResult, PNStatus>)  
 ```
 PNMembership
-* Channel – string  
-* Custom – Dictionary<string,object>  
-* Status, Type – string  
+* Channel (string) – Channel name  
+* Custom (Dictionary<string, object>) – Custom data  
+* Status (string) – e.g., "active"  
+* Type (string) – Membership category  
 
-Example
-```csharp
-var list = new List<PNMembership>{
-  new PNMembership{Channel="my-channel",Custom=new Dictionary<string,object>{{"item","book"}}}
-};
-var set = await pubnub.SetMemberships()
-    .Uuid("my-uuid")
-    .Channels(list)
-    .IncludeCount(true)
-    .ExecuteAsync();
+Sample code
+```
+  
 ```
 
-### Remove Channel Memberships
-```csharp
-pubnub.RemoveMemberships()
-    .Uuid(string)
-    .Channels(List<string>)
-    .Include(PNMembershipField[])
-    .IncludeCount(bool)
-    .Page(PNPageObject)
-    .Sort(List<string>)
-    .Filter(string)
-    .Limit(int)
-    .Execute(Action<PNMembershipsResult, PNStatus>)
+Response
 ```
-Example
-```csharp
-var rm = await pubnub.RemoveMemberships()
-    .Uuid("uuid")
-    .Channels(new List<string>{"my-channel","your-channel"})
-    .IncludeCount(true)
-    .ExecuteAsync();
-```
-
-### Manage Channel Memberships (set + remove)
-```csharp
-pubnub.ManageMemberships()
-    .Uuid(string)
-    .Set(List<PNMembership>)
-    .Remove(List<string>)
-    .Include(PNMembershipField[])
-    .IncludeCount(bool)
-    .Page(PNPageObject)
-    .Sort(List<string>)
-    .Execute(Action<PNMembership, PNStatus>)
-```
-Example
-```csharp
-var setList = new List<PNMembership>{
-  new PNMembership{Channel="ch1",Custom=new Dictionary<string,object>{{"say","hello"}}},
-  new PNMembership{Channel="ch2",Custom=new Dictionary<string,object>{{"say","world"}}}
-};
-var rmList = new List<string>{"ch4"};
-var res = await pubnub.ManageMemberships()
-    .Uuid("my-uuid")
-    .Set(setList)
-    .Remove(rmList)
-    .IncludeCount(true)
-    .ExecuteAsync();
-```
+{  
+    "Memberships": [  
+        {  
+            "ChannelMetadata": {  
+                "Channel": "my-channel",  
+                "Name": "My channel",  
+                "Description": "A channel that is mine",  
+```  
+_show all 38 lines_
 
 ---
 
-## Channel Members (Channel ↔ User)
-
-### Get Channel Members
-```csharp
-pubnub.GetChannelMembers()
-    .Channel(string)
-    .Include(PNChannelMemberField[])
-    .IncludeCount(bool)
-    .Page(PNPageObject)
-    .Sort(List<string>)
-    .Filter(string)
-    .Limit(int)
-    .Execute(Action<PNChannelMembersResult, PNStatus>)
+### Remove channel memberships
 ```
-Example
-```csharp
-var mem = await pubnub.GetChannelMembers()
-    .Channel("my-channel")
-    .Include(new[]{PNChannelMemberField.CUSTOM,PNChannelMemberField.UUID,PNChannelMemberField.UUID_CUSTOM})
-    .IncludeCount(true)
-    .ExecuteAsync();
+pubnub.RemoveMemberships()  
+    .Uuid(string)  
+    .Channels(List<string>)  
+    .Include(PNMembershipField[])  
+    .IncludeCount(bool)  
+    .Page(PNPageObject)  
+    .Sort(List<string>)  
+    .Filter(string)  
+    .Limit(int)  
+    .Execute(System.Action<PNMembershipsResult, PNStatus>)  
+```
+Sample code
+```
+  
 ```
 
-### Set Channel Members
-```csharp
-pubnub.SetChannelMembers()
-    .Channel(string)
-    .Uuids(List<PNChannelMember>)
-    .Include(PNChannelMemberField[])
-    .Page(PNPageObject)
-    .Sort(List<string>)
-    .Filter(string)
-    .Limit(int)
-    .Execute(Action<PNChannelMembersResult, PNStatus>)
+Response
 ```
-Example
-```csharp
-var list = new List<PNChannelMember>{
-  new PNChannelMember{Uuid="my-uuid",Custom=new Dictionary<string,object>{{"planet","earth"}}}
-};
-var set = await pubnub.SetChannelMembers()
-    .Channel("my-channel")
-    .Uuids(list)
-    .IncludeCount(true)
-    .ExecuteAsync();
-```
-
-### Remove Channel Members
-```csharp
-pubnub.RemoveChannelMembers()
-    .Channel(string)
-    .Uuids(List<string>)
-    .Include(PNChannelMemberField[])
-    .IncludeCount(bool)
-    .Page(PNPageObject)
-    .Sort(List<string>)
-    .Filter(string)
-    .Limit(int)
-    .Execute(Action<PNChannelMembersResult, PNStatus>)
-```
-Example
-```csharp
-var rm = await pubnub.RemoveChannelMembers()
-    .Channel("my-channel")
-    .Uuids(new List<string>{"my-uuid","your-uuid"})
-    .IncludeCount(true)
-    .ExecuteAsync();
-```
+{  
+    "Memberships": [  
+        {  
+            "ChannelMetadata": {  
+                "Channel": "my-channel",  
+```  
+_show all 38 lines_
 
 ---
 
-_Last updated May 6 2025_
+### Manage channel memberships
+```
+pubnub.ManageMemberships()  
+    .Uuid(string)  
+    .Set(List<PNMembership>)  
+    .Remove(List<string>)  
+    .Include(PNMembershipField[])  
+    .IncludeCount(bool)  
+    .Page(PNPageObject)  
+    .Sort(List<string>)  
+    .Execute(System.Action<PNMembership, PNStatus>)  
+```
+Sample code
+```
+  
+```
+
+Response
+```
+{  
+    "Memberships": [  
+        {  
+            "ChannelMetadata": {  
+                "Channel": "my-channel",  
+```  
+_show all 38 lines_
+
+---
+
+## Channel members
+
+### Get channel members
+```
+pubnub.GetChannelMembers()  
+    .Channel(string)  
+    .Include(PNChannelMemberField[])  
+    .IncludeCount(bool)  
+    .Page(PNPageObject)  
+    .Sort(List<string>)  
+    .Filter(string)  
+    .Limit(int)  
+    .Execute(System.Action<PNChannelMembersResult, PNStatus>)  
+```
+Sample code
+```
+  
+```
+
+Response
+```
+{  
+    "ChannelMembers": [  
+        {  
+            "UuidMetadata": {  
+                "Uuid": "uuid-1",  
+```  
+_show all 39 lines_
+
+---
+
+### Set channel members
+```
+pubnub.SetChannelMembers()  
+    .Channel(string)  
+    .Uuids(List<PNChannelMember>)  
+    .Include(PNChannelMemberField[])  
+    .Page(PNPageObject)  
+    .Sort(List<string>)  
+    .Filter(string)  
+    .Limit(int)  
+    .Execute(System.Action<PNChannelMembersResult, PNStatus>)  
+```
+Sample code
+```
+  
+```
+
+Response
+```
+{  
+    "ChannelMembers": [  
+        {  
+            "UuidMetadata": {  
+                "Uuid": "uuid-1",  
+```  
+_show all 39 lines_
+
+---
+
+### Remove channel members
+```
+pubnub.RemoveChannelMembers()  
+    .Channel(string)  
+    .Uuids(List<string>)  
+    .Include(PNChannelMembersInclude[])  
+    .IncludeCount(bool)  
+    .Page(PNPageObject)  
+    .Sort(List<string>)  
+    .Filter(string)  
+    .Limit(int)  
+    .Execute(System.Action<PNChannelMembersResult, PNStatus>)  
+```
+Sample code
+```
+  
+```
+
+Response
+```
+{  
+    "ChannelMembers": [  
+        {  
+            "UuidMetadata": {  
+                "Uuid": "uuid-1",  
+                "Name": "John Doe",  
+                "Email": "jack@twitter.com",  
+```  
+_show all 39 lines_
+
+_Last updated Jul 15 2025_

@@ -1,139 +1,120 @@
-# Channel Groups – Unity SDK (Condensed)
+# Channel Groups API (Unity SDK)
 
-Channel Groups let you bundle thousands of channels under one name and subscribe to that name (publishing must still occur on individual channels).
-
-All Channel Group operations require the **Stream Controller** add-on (enable it in the Admin Portal).
+Channel Groups let you subscribe to many channels via a single group name.  
+Publishing must be done to individual channels (not to the channel-group itself).  
+All operations below require the **Stream Controller** add-on to be enabled for the key.
 
 ---
 
-## Add Channels to a Channel Group
+## Add channels to a channel group
 
-Maximum 200 channels per request.
-
-### Method
-```
-`pubnub.AddChannelsToChannelGroup()  
-    .ChannelGroup(string)  
-    .Channels(Array)  
-    .QueryParam(Dictionarystring,object>)  
-    .Execute(System.ActionPNChannelGroupsAddChannelResult, PNStatus>);  
-`
+```csharp
+pubnub.AddChannelsToChannelGroup()
+      .ChannelGroup(string)
+      .Channels(string[])
+      .QueryParam(Dictionary<string, object>)
+      .Execute(System.Action<PNChannelGroupsAddChannelResult, PNStatus>);
+// async version
+Task<PNResult<PNChannelGroupsAddChannelResult>> ExecuteAsync();
 ```
 
 Parameters  
-• ChannelGroup (string) – target group  
-• Channels (array) – channels to add  
-• QueryParam (Dictionary<string, object>) – optional URL query pairs  
+• ChannelGroup (string) – target channel group.  
+• Channels (string[]) – up to 200 channels per call.  
+• QueryParam (Dictionary<string,object>) – optional URL query parameters.  
 
-Async variants  
-• Execute(Action<PNChannelGroupsAddChannelResult, PNStatus>)  
-• ExecuteAsync() ⇒ Task<PNResult<PNChannelGroupsAddChannelResult>>
+Returns `PNResult<PNChannelGroupsAddChannelResult>`  
+• Result – empty `PNChannelGroupsAddChannelResult` object.  
+• Status – `PNStatus`.
 
-### Example
+```csharp
+
 ```
-`using PubnubApi;  
-using PubnubApi.Unity;  
-using UnityEngine;  
-  
-public class AddChannelsToGroupExample : MonoBehaviour {  
-    [SerializeField] private PNManagerBehaviour pubnubManager;  
-    [SerializeField] private string channelGroupId = "cg1";  
-    [SerializeField] private string[] channelsToAdd = { "ch1", "ch2", "ch3" };  
-  
-`
-```
-
-### Return
-PNResult<PNChannelGroupsAddChannelResult>  
-• Result – empty object  
-• Status – PNStatus
 
 ---
 
-## List Channels in a Channel Group
+## List channels in a channel group
 
-### Method
-```
-`pubnub.ListChannelsForChannelGroup()  
-    .ChannelGroup(string)  
-    .QueryParam(Dictionarystring,object>)  
-    .Execute(System.ActionPNChannelGroupsAllChannelsResult, PNStatus>);  
-`
-```
-
-### Example
-```
-`PNResultPNChannelGroupsAllChannelsResult> cgListChResponse = await pubnub.ListChannelsForChannelGroup()  
-    .ChannelGroup("cg1")  
-    .ExecuteAsync();  
-`
+```csharp
+pubnub.ListChannelsForChannelGroup()
+      .ChannelGroup(string)
+      .QueryParam(Dictionary<string, object>)
+      .Execute(System.Action<PNChannelGroupsAllChannelsResult, PNStatus>);
+// async version
+Task<PNResult<PNChannelGroupsAllChannelsResult>> ExecuteAsync();
 ```
 
-### Return
-PNResult<PNChannelGroupsAllChannelsResult>  
-• Result.Channels – List<string>  
-• Status – PNStatus
+Parameters  
+• ChannelGroup (string) – group to inspect.  
+• QueryParam (Dictionary<string,object>) – optional.
+
+Returns `PNResult<PNChannelGroupsAllChannelsResult>`  
+• Result.Channels – `List<string>` of channels.  
+• Status – `PNStatus`.
+
+```csharp
+
+```
 
 ---
 
-## Remove Channels from a Channel Group
+## Remove channels from a channel group
 
-### Method
-```
-`pubnub.RemoveChannelsFromChannelGroup()  
-    .ChannelGroup(string)  
-    .Channels(Array)  
-    .QueryParam(Dictionarystring,object>)  
-    .Execute((result, status) => {});  
-`
-```
-
-### Example
-```
-`PNResultPNChannelGroupsRemoveChannelResult> rmChFromCgResponse = await pubnub.RemoveChannelsFromChannelGroup()  
-    .ChannelGroup("family")  
-    .Channels(new string[] {  
-        "son"  
-    })  
-    .Execute((result, status) => {});  
-`
+```csharp
+pubnub.RemoveChannelsFromChannelGroup()
+      .ChannelGroup(string)
+      .Channels(string[])
+      .QueryParam(Dictionary<string, object>)
+      .Execute(System.Action<PNChannelGroupsRemoveChannelResult, PNStatus>);
+// async version
+Task<PNResult<PNChannelGroupsRemoveChannelResult>> ExecuteAsync();
 ```
 
-### Return
-PNResult<PNChannelGroupsRemoveChannelResult>  
-• Result – empty object  
-• Status – PNStatus
+Parameters  
+• ChannelGroup (string) – group to modify.  
+• Channels (string[]) – channels to remove.  
+• QueryParam (Dictionary<string,object>) – optional.
+
+Returns `PNResult<PNChannelGroupsRemoveChannelResult>` (empty `Result` object + `PNStatus`).
+
+```csharp
+
+```
 
 ---
 
-## Delete a Channel Group
+## Delete a channel group
 
-### Method
-```
-`pubnub.DeleteChannelGroup()  
-    .ChannelGroup(string)  
-    .QueryParam(Dictionarystring,object>)  
-    .Execute(System.ActionPNChannelGroupsDeleteGroupResult, PNStatus>);  
-`
-```
-
-### Example
-```
-`PNResultPNChannelGroupsDeleteGroupResult> delCgResponse = await pubnub.DeleteChannelGroup()  
-    .ChannelGroup("family")  
-    .ExecuteAsync();  
-`
+```csharp
+pubnub.DeleteChannelGroup()
+      .ChannelGroup(string)
+      .QueryParam(Dictionary<string, object>)
+      .Execute(System.Action<PNChannelGroupsDeleteGroupResult, PNStatus>);
+// async version
+Task<PNResult<PNChannelGroupsDeleteGroupResult>> ExecuteAsync();
 ```
 
-### Return
-PNResult<PNChannelGroupsDeleteGroupResult>  
-```
-`{**    "status" : 200,  
-    "message" : "OK",  
-    "service" : "channel-registry",  
-    "error" : False  
-}  
-`
+Parameters  
+• ChannelGroup (string) – group to delete.  
+• QueryParam (Dictionary<string,object>) – optional.
+
+Returns `PNResult<PNChannelGroupsDeleteGroupResult>`  
+• Status (int) – HTTP status code.  
+• Error  (bool).
+
+```csharp
+
 ```
 
-_Last updated: May 6, 2025_
+Example response:
+
+```json
+{
+  "status": 200,
+  "message": "OK",
+  "service": "channel-registry",
+  "error": false
+}
+```
+
+_Last updated: Jul 15 2025_

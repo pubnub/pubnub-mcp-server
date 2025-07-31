@@ -1,13 +1,12 @@
 # Utility Methods – PubNub C# SDK (Misc)
 
-Concise reference to helper APIs.  
-All code blocks, signatures, and parameters are unchanged; non-essential prose removed.
+The following summarizes the miscellaneous utility APIs. All code blocks, method signatures, parameters, and critical notes are preserved.
 
 ---
 
-## Request Execution
+## Request execution
 
-Use `try / catch`. API/validation errors throw; server or network errors are in `PNStatus`.
+Use `try / catch`. SDK throws exceptions for invalid input; network/server errors are returned in `status`.
 
 ```
 `try  
@@ -30,20 +29,16 @@ catch (Exception ex)
 
 ---
 
-## Destroy
+## destroy()
 
-Frees SDK threads for a clean exit.
-
-### Method
+Free resources and exit cleanly.
 
 ```
 `destroy()  
 `
 ```
 
-Return: void
-
-### Example
+Returns: none.
 
 ```
 `  
@@ -52,11 +47,9 @@ Return: void
 
 ---
 
-## Encrypt (Data)
+## Encrypt (string)
 
-Deprecated `cipherKey`; prefer `CryptoModule`.
-
-### Method
+Encrypt a string.
 
 ```
 `pubnub.Encrypt(inputString, cipherKey)  
@@ -64,10 +57,8 @@ Deprecated `cipherKey`; prefer `CryptoModule`.
 ```
 
 Parameters  
-• `inputString` (String) – data to encrypt  
-• `cipherKey` (String, deprecated) – overrides `CryptoModule`
-
-### Example
+• `inputString` (string) – data to encrypt.  
+• `cipherKey` (string, deprecated) – overrides `CryptoModule`; uses legacy 128-bit encryption.
 
 ```
 `  
@@ -76,11 +67,9 @@ Parameters
 
 ---
 
-## Encrypt File
+## Encrypt file
 
-Deprecated `cipherKey`; prefer `CryptoModule`.
-
-### Methods
+Encrypt file contents.
 
 ```
 `pubnub.EncryptFile(sourceFile, destinationFile)   
@@ -88,17 +77,16 @@ pubnub.EncryptFile(sourceFile, destinationFile, cipherKey)
 `
 ```
 
-Parameters  
-• `sourceFile` (String) – file to encrypt  
-• `destinationFile` (String) – output path  
-• `cipherKey` (String, deprecated)
-
 ```
 `byte[] outputBytes = pubnub.EncryptFile(sourceBytes) byte[] outputBytes = pubnub.EncryptFile(sourceBytes, cipherKey)  
 `
 ```
 
-### Example
+Parameters  
+• `sourceFile` (string) – file to encrypt.  
+• `destinationFile` (string) – output path.  
+• `sourceBytes` (byte[]) – file bytes.  
+• `cipherKey` (string, deprecated) – custom key; triggers legacy 128-bit encryption.
 
 ```
 `  
@@ -107,22 +95,16 @@ Parameters
 
 ---
 
-## Decrypt (Data)
+## Decrypt (string)
 
-Deprecated `cipherKey`; prefer `CryptoModule`.
-
-### Method
+Decrypt a string.
 
 ```
 `pubnub.Decrypt(inputString, cipherKey)  
 `
 ```
 
-Parameters  
-• `inputString` (String) – data to decrypt  
-• `cipherKey` (String, deprecated)
-
-### Example
+Parameters mirror `Encrypt`.
 
 ```
 `  
@@ -131,26 +113,19 @@ Parameters
 
 ---
 
-## Decrypt File
-
-### Methods
+## Decrypt file
 
 ```
 `pubnub.DecryptFile(sourceFile, destinationFile); pubnub.DecryptFile(sourceFile, destinationFile, cipherKey);  
 `
 ```
 
-Parameters  
-• `sourceFile` (String) – file to decrypt  
-• `destinationFile` (String) – output path  
-• `cipherKey` (String, optional / deprecated)
-
 ```
 `byte[] outputBytes = pubnub.DecryptFile(sourceBytes) byte[] outputBytes = pubnub.DecryptFile(sourceBytes, cipherKey)  
 `
 ```
 
-### Example
+Parameters mirror `Encrypt file`.
 
 ```
 `  
@@ -161,16 +136,12 @@ Parameters
 
 ## Disconnect
 
-Stops all active requests (including subscribe loops).
-
-### Method
+Force-stop all requests when subscribed channels are active.
 
 ```
 `DisconnectT>()  
 `
 ```
-
-### Example
 
 ```
 `  
@@ -179,25 +150,12 @@ Stops all active requests (including subscribe loops).
 
 ---
 
-## Get Subscribed Channel Groups
-
-Returns `List<string>`.
-
-### Method
+## Get subscribed channel groups
 
 ```
 `Liststring> GetSubscribedChannelGroups()  
 `
 ```
-
-### Example
-
-```
-`  
-`
-```
-
-#### Response
 
 ```
 `["channelGroup1", "channelGroup2"]  
@@ -206,25 +164,12 @@ Returns `List<string>`.
 
 ---
 
-## Get Subscribed Channels
-
-Returns `List<string>`.
-
-### Method
+## Get subscribed channels
 
 ```
 `Liststring> GetSubscribedChannels()  
 `
 ```
-
-### Example
-
-```
-`  
-`
-```
-
-#### Response
 
 ```
 `["channel1", "channel2"]  
@@ -235,22 +180,15 @@ Returns `List<string>`.
 
 ## Reconnect
 
-Force reconnection to PubNub.
-
-### Method
-
 ```
 `ReconnectT>(bool resetSubscribeToken)  
 `
 ```
 
-Parameter  
-• `resetSubscribeToken` (bool) – `true` sends 0 timetoken on reconnect.
-
-### Example
+• `resetSubscribeToken` (bool) – `true` sends zero timetoken.
 
 ```
 `**`
 ```
 
-_Last updated: Jun 30 2025_
+_Last updated: Jul 15 2025_

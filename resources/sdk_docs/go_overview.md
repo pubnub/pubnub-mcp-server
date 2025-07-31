@@ -1,54 +1,32 @@
-# Go API & SDK Docs v7.3.4 (Overview)
+# Go API & SDK (v7.3.4) – Condensed Overview  
 
-Quick-start for adding PubNub real-time messaging to a Go application (Go ≥ 1.11).
+## Prerequisites  
+• Go ≥ 1.11 • PubNub account (publish & subscribe keys)  
 
----
+## Installation  
 
-## Prerequisites
-• Go 1.11+ • PubNub account (publish & subscribe keys)  
-• Basic Go knowledge & IDE
-
----
-
-## Setup
-
-### 1. Get Keys
-Create/choose an app in the PubNub Admin Portal and copy its **Publish** and **Subscribe** keys (create separate keysets for dev/prod).
-
-### 2. Install the SDK
-
-```
-`go get github.com/pubnub/go/v7  
-`
+```bash
+go get github.com/pubnub/go/v7  
 ```
 
-Go modules:
-
-```
-`require github.com/pubnub/go/v7 v7.3.4  
-`
+```go
+require github.com/pubnub/go/v7 v7.3.4  
 ```
 
-```
-`go mod tidy  
-`
-```
-
-Source clone:
-
-```
-`git clone https://github.com/pubnub/go.git  
-`
+```bash
+go mod tidy  
 ```
 
----
-
-## Steps
-
-### 1. Initialize PubNub
-
+```bash
+git clone https://github.com/pubnub/go.git  
 ```
-`// Import required packages  
+
+## Minimal “Hello, World”  
+
+Create `pubnub_example.go`, replace the **demo** keys with your own.
+
+```go
+// Import required packages  
 package main  
   
 import (  
@@ -61,15 +39,14 @@ func main() {
 	// Set up PubNub configuration  
 	config := pubnub.NewConfigWithUserId("go-user")  
 	config.SubscribeKey = "demo" // Replace with your subscribe key  
-	config.PublishKey = "demo"   // Replace with your publish key  
-  
-`
+	config.PublishKey  = "demo"  // Replace with your publish key  
 ```
+*…rest of file continues…*  
 
-### 2. Set up Event Listeners
+### Event Listeners  
 
-```
-`// Create a listener  
+```go
+// Create a listener  
 listener := pubnub.NewListener()  
   
 // Create channels to signal events  
@@ -84,13 +61,13 @@ go func() {
 			// Handle status events  
 			switch status.Category {  
 			case pubnub.PNConnectedCategory:  
-`
 ```
+*…rest of listener logic…*  
 
-### 3. Subscribe to a Channel
+### Subscribe  
 
-```
-`// Define the channel you want to subscribe to  
+```go
+// Define the channel you want to subscribe to  
 channel := "my-channel"  
   
 // Subscribe to the channel  
@@ -99,15 +76,14 @@ pn.Subscribe().
 	Execute()  
   
 // Wait for the connection to establish  
-doneConnect  
+<-doneConnect  
 fmt.Println("Subscribed to channel:", channel)  
-`
 ```
 
-### 4. Publish a Message
+### Publish  
 
-```
-`// Create a message  
+```go
+// Create a message  
 message := map[string]interface{}{  
 	"text": "Hello, world!",  
 	"sender": "go-sdk",  
@@ -122,34 +98,30 @@ response, _, err := pn.Publish().
 	Execute()  
   
 if err != nil {  
-`
 ```
+*…error handling & publish callback…*  
 
-### 5. Run
+### Run  
 
-```
-`go run pubnub_example.go  
-`
+```bash
+go run pubnub_example.go  
 ```
 
 Expected output:
 
-```
-`PubNub instance initialized  
+```text
+PubNub instance initialized  
 Connected to PubNub!  
 Subscribed to channel: my-channel  
 Publishing message: map[sender:go-sdk text:Hello, world!]  
 Publish successful! Timetoken: 16967543908123456  
 Received message: map[sender:go-sdk text:Hello, world!]  
-`
 ```
 
----
+## Complete Example  
 
-## Complete Example
-
-```
-`package main  
+```go
+package main  
   
 import (  
 	"fmt"  
@@ -162,19 +134,17 @@ func main() {
 	// Step 1: Initialize PubNub with configuration  
 	config := pubnub.NewConfigWithUserId("go-user")  
 	config.SubscribeKey = "demo" // Replace with your subscribe key  
-	config.PublishKey = "demo"   // Replace with your publish key  
-  
-`
+	config.PublishKey  = "demo"  // Replace with your publish key  
 ```
+*…remaining ~90 lines: listener, subscribe, publish, run…*  
 
----
+## Key Points  
+1. Config fields: `PublishKey`, `SubscribeKey`, `UserId` (via `NewConfigWithUserId`).  
+2. Messages: any JSON-serializable payload ≤ 32 KiB.  
+3. Core API chain builders:  
+   • `pn.Subscribe().Channels([]string).Execute()`  
+   • `pn.Publish().Channel(channel).Message(msg).Execute()`  
+4. Asynchronous events delivered via `pubnub.NewListener()` channels (`Status`, `Message`, `Presence`).  
+5. Use Go routines/channels to keep the app non-blocking.  
 
-## Troubleshooting
-
-No connection? → Check internet, keys, firewall  
-Messages not received? → Confirm channel, publish success, wait for delivery  
-Build errors? → Update Go, `go mod tidy`, verify imports
-
----
-
-Next: explore Presence, Channel Groups, Signals, Access Manager, Storage, Push, sample chat app, and full API reference.
+For advanced features (Presence, Channel Groups, Push, Storage, Access Manager, etc.) consult the linked API reference.

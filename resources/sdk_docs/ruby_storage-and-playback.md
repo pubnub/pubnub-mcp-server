@@ -1,28 +1,18 @@
 # Message Persistence API – Ruby SDK (Storage & Playback)
 
-Requires the Message Persistence add-on to be enabled for your key (Admin Portal).  
-Retention options: 1 day, 7 days, 30 days, 3 months, 6 months, 1 year, Unlimited.  
-Messages are timestamped to 10 ns and may be AES-256 encrypted.
+Message Persistence lets you store and retrieve messages, reactions, and files for 1 day – Unlimited, with optional AES-256 encryption.  
+All features below require **Message Persistence to be enabled for your key** (Admin Portal).
 
 ---
 
 ## Batch History (`fetch_messages`)
 
-Fetch historical messages from one or many channels.  
-Limits: 100 messages on a single channel, or 25 per channel on up to 500 channels.  
-`include_message_actions` works with a single channel only.
-
-Timetoken usage  
-• `start` only → messages **older** than `start`  
-• `end` only → messages **newer/including** `end`  
-• `start` + `end` → messages between, inclusive of `end`  
-
-Page through results with successive calls adjusting `start`/`end`.
+Fetch messages (and optionally message actions) from one or many channels.
 
 ### Method
 
 ```
-`fetch_messages(  
+fetch_messages(  
     channel: channel,  
     channels: channels,  
     max: max,  
@@ -35,24 +25,37 @@ Page through results with successive calls adjusting `start`/`end`.
     include_custom_message_type: include_custom_message_type,  
     http_sync: http_sync,  
     callback: callback  
-)`  
+)  
 ```
 
-Parameter summary  
-• `channel` String – single channel (mutually exclusive with `channels`).  
-• `channels` Array – multiple channels.  
-• `max` Integer – per-channel limit, default 25.  
-• `start`, `end` Integer – timetokens.  
-• `include_meta`, `include_message_actions`, `include_uuid`, `include_message_type`, `include_custom_message_type` Booleans (defaults: `false`, except `include_uuid` & `include_message_type` = `true`).  
-• `http_sync` Boolean (default `false`).  
-• `callback` Lambda.
+### Parameters
 
-### Examples & Response
+* channel (String) – Single channel. Required when `include_message_actions: true`.
+* channels (Array<String>) – Multiple channels (max 500, 25 msgs/channel).  
+  Incompatible with `include_message_actions`.
+* max (Integer) – Messages per channel (default 25, max 100 for one channel).
+* start (Integer) – Exclusive start timetoken.
+* end (Integer) – Inclusive end timetoken.
+* include_meta (Boolean, default false)
+* include_message_actions (Boolean, default false)
+* include_uuid (Boolean, default true)
+* include_message_type (Boolean, default true)
+* include_custom_message_type (Boolean, default false)
+* http_sync (Boolean, default false) – Async unless `true`.
+* callback (Proc) – Executed per envelope (async).
 
-All example code and response formats are unchanged:
+Start/End usage:  
+• Only `start` ⇒ older than `start`.  
+• Only `end`   ⇒ `end` and newer.  
+• Both         ⇒ between `start` and `end` (inclusive on `end`).  
+Iterate with updated `start`/`end` to page more than the 100/25-message limits.
+
+### Examples
+
+Reference (multiple channels, last 25 messages):
 
 ```
-`require 'pubnub'  
+require 'pubnub'  
   
 def fetch_messages(pubnub)  
   pubnub.fetch_messages(  
@@ -67,12 +70,39 @@ def fetch_messages(pubnub)
         puts "Channel: #{channel}"  
         messages.each do |message|  
           puts "Message: #{message['message']}, Timetoken: #{message['timetoken']}"  
-` 
+        end  
+      end  
+    end  
+  end  
+end  
 ```
-*show all 36 lines*
+
+With metadata:
 
 ```
-`    @result = {  
+pubnub.fetch_messages(  
+    channels: ['channel1', 'channel2'],  
+    include_meta: true  
+) do |envelope|  
+    puts envelope.result[:data][:channels]  
+end  
+```
+
+With message actions:
+
+```
+pubnub.fetch_messages(  
+    channel: 'channel1',  
+    include_message_actions: true  
+) do |envelope|  
+    puts envelope.result[:data][:channels]  
+end  
+```
+
+Sample response:
+
+```
+    @result = {  
         :data => {  
             :channels => {  
                 'channel1' => [  
@@ -86,45 +116,19 @@ def fetch_messages(pubnub)
             }  
         }  
     },  
-    @status = {  
-` 
-```
-*show all 18 lines*
-
-```
-`pubnub.fetch_messages(  
-    channels: ['channel1', 'channel2'],  
-    include_meta: true  
-) do |envelope|  
-    puts envelope.result[:data][:channels]  
-end  
-` 
-```
-
-```
-`pubnub.fetch_messages(  
-    channel: 'channel1',  
-    include_message_actions: true  
-) do |envelope|  
-    puts envelope.result[:data][:channels]  
-end  
-` 
+    @status = { … }  
 ```
 
 ---
 
 ## History (`history`)
 
-Retrieve up to 100 messages on a channel.
-
-• Default order: newest → oldest (`reverse: false`).  
-• `reverse: true` traverses oldest → newest (ignored if both `start` and `end` supplied).  
-• Use `start` / `end` timetokens to slice or page.
+Retrieve up to 100 messages for a channel.
 
 ### Method
 
 ```
-`history(  
+history(  
     channels: channels,  
     count: count,  
     start: start,  
@@ -134,187 +138,219 @@ Retrieve up to 100 messages on a channel.
     include_meta: include_meta,  
     http_sync: http_sync,  
     callback: callback  
-)`  
+)  
 ```
 
-Key parameters  
-• `channels` String/Symbol – target channel(s).  
-• `count` Integer – 1-100 (default 100).  
-• `start`, `end` Integer – timetokens.  
-• `reverse`, `include_token`, `include_meta` Booleans.  
-• `http_sync`, `callback` as above.
+### Parameters
 
-### Examples & Responses (unchanged)
+* channels (String/Symbol) – Target channel.
+* count (Integer, default/max 100)
+* start (Integer) – Exclusive start timetoken.
+* end (Integer) – Inclusive end timetoken.
+* reverse (Boolean, default false) – If both `start` & `end` supplied, ignored.
+* include_token (Boolean, default false) – Include per-message timetoken.
+* include_meta (Boolean, default false)
+* http_sync (Boolean, default false)
+* callback (Proc)
+
+Reverse & paging notes:  
+Messages are returned oldest→newest; `reverse` only changes which end of the interval is returned first when more than `count` messages exist.
+
+### Examples
+
+Latest 100 messages:
 
 ```
-`pubnub.history(  
+pubnub.history(  
     channel: 'history_channel',  
     count: 100  
 ) do |envelope|  
     puts envelope.result[:data][:messages]  
 end  
-` 
 ```
 
-```
-`#  
-    @result = {  
-        :data => {  
-            :messages => ["Pub1", "Pub2", ...],  
-            :end => 15010808292416521,  
-            :start => 15010808287349573  
-        }  
-    },  
-    @status = { :code => 200 }  
->` 
-```
-
-Additional scenarios (oldest-first, paging, include tokens, etc.):
+Oldest three:
 
 ```
-`pubnub.history(  
+pubnub.history(  
     channel: :history,  
     count: 3,  
     reverse: true,  
     http_sync: true  
-)` 
+)  
 ```
 
+After specific timetoken:
+
 ```
-`pubnub.history(  
+pubnub.history(  
     channel: :history,  
     start: 15010808287700000,  
     reverse: true,  
     http_sync: true  
-)` 
+)  
 ```
 
+Until specific timetoken:
+
 ```
-`pubnub.history(  
+pubnub.history(  
     channel: :history,  
     end: 15010808287700000,  
     http_sync: true  
-)` 
+)  
 ```
 
+Paged helper:
+
 ```
-`pubnub.paged_history(channel: :messages, limit: 10, page: 20) do |envelope|  
+pubnub.paged_history(channel: :messages, limit: 10, page: 20) do |envelope|  
     puts envelope.result[:data][:messages]  
 end  
-` 
 ```
 
+Include timetoken:
+
 ```
-`# ASYNC  
+# ASYNC  
 future_envelope = pubnub.history(channel: :demo, include_token: true)  
 future_envelope.value.result[:data][:messages].first['timetoken']  
   
 # SYNC  
 envelope = pubnub.history(channel: :demo, include_token: true, http_sync: true)  
 envelope.result[:data][:messages].first['timetoken']  
-# [ {"message"=>"Whatever", "timetoken"=>14865606002747651}, ... ]  
-` 
+# Example response in result[:data][:messages]  
+# [ {"message"=>"Whatever", "timetoken"=>14865606002747651}, … ]  
+```
+
+Sample response:
+
+```
+#  
+    @result = {  
+        :data => {  
+            :messages => ["Pub1", …, "Pub10"],  
+            :end => 15010808292416521,  
+            :start => 15010808287349573  
+        }  
+    },  
+    @status = { :code => 200 }  
+>  
 ```
 
 ---
 
-## Delete Messages from History (`delete_messages`)
+## Delete Messages (`delete_messages`)
 
-Requires:  
-1. Message Persistence enabled.  
-2. “Delete-From-History” option activated in the Admin Portal.  
-3. SDK initialized with **secret key**.
+Remove messages from channel history.
 
-Deletes messages on a channel between `start` and `end` timetokens (inclusive).
+• Requires **“Enable Delete-From-History”** in the Admin Portal and SDK initialization with the **secret key**.
 
 ### Method
 
 ```
-`delete_messages(  
+delete_messages(  
     channels: channels,  
     start: start,  
     end: end,  
     http_sync: http_sync,  
     callback: callback  
-)`  
+)  
 ```
 
-Parameters  
-• `channels` String/Symbol – channel(s) to purge.  
-• `start`, `end` Integer/String – timetoken range.  
-• `http_sync`, `callback` as before.
+### Parameters
 
-### Examples & Response
+* channels (String/Symbol) – Target channel(s).  
+* start (Integer/String) – From timetoken.  
+* end (Integer/String) – To timetoken.  
+* http_sync (Boolean, default false)  
+* callback (Proc)
+
+### Examples
+
+Delete range:
 
 ```
-`pubnub.delete_messages(channel: 'my-channel', start: 1508284800, end: 1508935781, callback: check_response_status)` 
+pubnub.delete_messages(channel: 'my-channel', start: 1508284800, end: 1508935781, callback: check_response_status)  
 ```
 
+Delete one message (publish timetoken = 15526611838554310):
+
 ```
-`#  
+pubnub.delete_messages(channel: 'my-channel',
+                       start: 15526611838554309,
+                       end:   15526611838554310,
+                       callback: check_response_status)  
+```
+
+Response:
+
+```
+#  
     @status = {  
         :code => 200,  
         :operation => :delete,  
         :category => :ack,  
-        :error => false  
+        :error => false,  
+        …  
     }  
->` 
-```
-
-Delete a specific message:
-
-```
-`pubnub.delete_messages(channel: 'my-channel', start: 15526611838554309, end: 15526611838554310, callback: check_response_status)` 
+>  
 ```
 
 ---
 
 ## Message Counts (`message_counts`)
 
-Returns the number of messages published **since** the supplied timetoken(s).  
-For unlimited retention keys, only messages from the last 30 days are considered.
+Return the number of messages published on channels since given timetoken(s).  
+For unlimited retention keys only messages from the last 30 days are counted.
 
 ### Method
 
 ```
-`pubnub.message_counts(  
+pubnub.message_counts(  
     channels: array_of_channels,  
     channel_timetokens: array_of_timetokens  
-)`  
+)  
 ```
 
-Parameters  
-• `channels` Array/String – target channels.  
-• `channel_timetokens` Array – one timetoken per channel, or a single timetoken for all.  
-• Optional `http_sync`.
+### Parameters
 
-### Examples & Responses
+* channels (Array<String>|String) – One or more channels.
+* channel_timetokens (Array<Integer>|Integer) –  
+  • Single timetoken ⇒ applied to all channels.  
+  • Array must match `channels` length.
+* http_sync (Boolean, default false)
+
+### Examples
+
+Same timetoken for all:
 
 ```
-`envelope = pubnub.message_counts(channel:['a', 'b', 'c', 'd'], channel_timetokens: 12123).value  
+envelope = pubnub.message_counts(channel:['a', 'b', 'c', 'd'],
+                                 channel_timetokens: 12123).value  
 p envelope.result[:data]  
-` 
-```
-
-```
-`#  
-    @result = {  
-        :data => { "channels"=>{"a"=>2, "c"=>0, "b"=>0, "d"=>0} }  
-    },  
-    @status = { :code => 200 }  
->` 
 ```
 
 Different timetokens per channel:
 
 ```
-`envelope = pubnub.message_counts(channel:['a', 'b', 'c', 'd'], channel_timetokens: [123135129, 123135124, 12312312, 123135125]).value  
+envelope = pubnub.message_counts(channel:['a', 'b', 'c', 'd'],
+    channel_timetokens: [123135129, 123135124, 12312312, 123135125]).value  
 p envelope.result[:data]  
-` 
 ```
 
-Counts are 0 for channels with no messages; 10 000 for channels with ≥10 000 messages.
+Sample response:
+
+```
+#  
+    @result=  
+      {  
+       :data=>{ "channels"=>{"a"=>2, "c"=>0, "b"=>0, "d"=>0} }  
+      }  
+    @status={ :code=>200 }  
+>  
+```
 
 ---
 
-_Last updated Jun 10 2025_
+_Last updated: Jul 15, 2025_

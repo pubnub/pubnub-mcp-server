@@ -1,13 +1,16 @@
-# Message Actions API – Swift SDK (Condensed)
+# Message Actions API – Swift SDK (condensed)
 
-Message Actions let you attach metadata (reactions, receipts, custom data) to published messages.  
-All methods require Message Persistence to be enabled for your key in the Admin Portal.
+All Message Actions methods require **Message Persistence** to be enabled on your PubNub keys.
+
+## Message Actions vs. Message Reactions
+“Message Reactions” is simply Message Actions used for emoji/social reactions—the API is identical.
 
 ---
 
-## Add Message Action
+## Add Message Reaction
 
-```swift
+### Method
+```
 `func addMessageAction(  
     channel: String,  
     type actionType: String,  
@@ -15,143 +18,104 @@ All methods require Message Persistence to be enabled for your key in the Admin 
     messageTimetoken: Timetoken,  
     custom requestConfig: PubNub.RequestConfiguration = PubNub.RequestConfiguration(),  
     completion: ((ResultPubNubMessageAction, Error>) -> Void)?  
-)  
-`
+)`
 ```
 
-Parameters  
-• `channel` (String) – Target channel  
-• `actionType` (String) – Action type  
-• `value` (String) – Action value  
-• `messageTimetoken` (Timetoken) – Parent message timetoken  
-• `requestConfig` (RequestConfiguration, optional) – Per-request overrides  
-• `completion` (Result<PubNubMessageAction, Error>, optional)
+### Parameters  
+* `channel` (String) – target channel  
+* `actionType` (String) – message-action type  
+* `value` (String) – message-action value  
+* `messageTimetoken` (Timetoken) – timetoken of the parent message  
+* `custom` (PubNub.RequestConfiguration) – per-request config (optional)  
+* `completion` (Result<PubNubMessageAction, Error>) – async result (optional)
 
+### Completion  
 Success: returns the added `PubNubMessageAction`.  
-Failure: returns `Error`.
+Failure: `Error`.
 
-```swift
+```
 `public protocol PubNubMessageAction {  
-  
-  /// The type of action  
   var actionType: String { get }  
-  
-  /// The value that corresponds to the type  
   var actionValue: String { get }  
-  
-  /// The `Timetoken` for this specific action  
   var actionTimetoken: Timetoken { get }  
-  
-  /// The `Timetoken` for the message this action relates to  
   var messageTimetoken: Timetoken { get }  
-  
-  /// The publisher of the message action  
-`
+  /// ...  
+}`
 ```
 
-Example
-
-```swift
+Sample:
+```
 `  
 `
 ```
 
 ---
 
-## Remove Message Action
+## Remove Message Reaction
 
-```swift
+### Method
+```
 `func removeMessageActions(  
     channel: String,  
     message timetoken: Timetoken,  
     action actionTimetoken: Timetoken,  
     custom requestConfig: PubNub.RequestConfiguration = PubNub.RequestConfiguration(),  
     completion: ((Result(channel: String, message: Timetoken, action: Timetoken), Error>) -> Void)?  
-)  
-`
+)`
 ```
 
-Parameters  
-• `channel` (String) – Target channel  
-• `timetoken` (Timetoken) – Parent message timetoken  
-• `actionTimetoken` (Timetoken) – Action timetoken to remove  
-• `requestConfig` (RequestConfiguration, optional)  
-• `completion` (Result<(channel, message, action), Error>, optional)
+### Parameters  
+* `channel` (String) – target channel  
+* `message` (Timetoken) – parent message timetoken  
+* `action` (Timetoken) – action timetoken to remove  
+* `custom` (RequestConfiguration) – per-request config (optional)  
+* `completion` (Result<(channel,message,action), Error>) – async result (optional)
 
-Success: tuple `(channel, message Timetoken, action Timetoken)`  
-Failure: `Error`
+Completion  
+• Success: tuple `(channel, message, action)` for the removed action.  
+• Failure: `Error`.
 
-Example
-
-```swift
+```
 `  
 `
 ```
 
 ---
 
-## Get Message Actions
+## Get Message Reactions
 
-Returns actions for a channel, sorted ascending by `actionTimetoken`.  
-Large responses may be truncated; use the returned `PubNubBoundedPage` to paginate.
+Returns actions ordered by action timetoken (asc). Responses may be truncated; use the returned `more` parameters to paginate.
 
-```swift
+### Method
+```
 `func fetchMessageActions(  
     channel: String,  
     page: PubNubBoundedPage? = PubNubBoundedPageBase(),  
     custom requestConfig: PubNub.RequestConfiguration = PubNub.RequestConfiguration(),  
     completion: ((Result(actions: [PubNubMessageAction], next: PubNubBoundedPage?), Error>) -> Void)?  
-)  
-`
+)`
 ```
 
-Parameters  
-• `channel` (String) – Target channel  
-• `page` (PubNubBoundedPage?, default `PubNubBoundedPageBase()`) – Pagination  
-• `requestConfig` (RequestConfiguration, optional)  
-• `completion` (Result<(actions, nextPage), Error>, optional)
+### Parameters  
+* `channel` (String) – target channel  
+* `page` (PubNubBoundedPage?) – time-bounded pagination (optional)  
+* `custom` (PubNub.RequestConfiguration) – per-request config (optional)  
+* `completion` (Result<(actions,next), Error>) – async result (optional)
 
-Success: `[PubNubMessageAction]` and optional next page.  
+### Completion  
+Success: `[PubNubMessageAction]` plus next `PubNubBoundedPage?`.  
 Failure: `Error`.
 
-```swift
-`public protocol PubNubMessageAction {  
-  
-  /// The type of action  
-  var actionType: String { get }  
-  
-  /// The value that corresponds to the type  
-  var actionValue: String { get }  
-  
-  /// The `Timetoken` for this specific action  
-  var actionTimetoken: Timetoken { get }  
-  
-  /// The `Timetoken` for the message this action relates to  
-  var messageTimetoken: Timetoken { get }  
-  
-  /// The publisher of the message action  
-`
 ```
-
-```swift
 `public protocol PubNubBoundedPage {  
-  
-  /// The start value for the next set of remote data  
   var start: Timetoken? { get }  
-  
-  /// The bounded end value that will be eventually fetched to  
   var end: Timetoken? { get }  
-  
-  /// The previous limiting value (if any)  
   var limit: Int? { get }  
-}  
-`
+}`
 ```
 
-Example
-
-```swift
+```
 `**`
 ```
 
-_Last updated Jun 12 2025_
+_Last updated: Jul 15 2025_

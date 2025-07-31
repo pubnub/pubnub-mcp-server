@@ -1,304 +1,146 @@
 # Access Manager v3 – Unity SDK (condensed)
 
-Access Manager issues time-limited tokens with embedded permissions.  
-PAM must be enabled for your keyset.
+Access Manager issues time-limited tokens with embedded permissions for PubNub resources (channels, channel groups, UUID metadata). Requires the **Access Manager** add-on.
 
 ---
 
-## GrantToken – Channels, ChannelGroups, UUIDs
+## GrantToken
 
-### Method
-```
-pubnub.GrantToken()  
-    .TTL(int)  
-    .Meta(Dictionary<string, object>)  
-    .AuthorizedUuid(string)  
-    .Resources(PNTokenResources)  
-    .Patterns(PNTokenPatterns)  
-    .QueryParam(Dictionary<string,object>)  
-    .Execute(System.Action<PNAccessManagerTokenResult, PNStatus>)
-```
-`ExecuteAsync()` returns `Task<PNResult<PNAccessManagerTokenResult>>`.
+Generate a token with resource or RegEx-based permissions.
 
-### Parameters (summary)
-* TTL (int, 1-43 200 min) – required.  
-* Meta (Dictionary<string,object>) – scalar values only.  
-* AuthorizedUuid (string) – lock token to one client.  
-* Resources / Patterns – supply at least one permission set.  
-* QueryParam – optional debug params.
+```csharp
+pubnub.GrantToken()
+    .TTL(int)                         // Required: 1–43 200 min
+    .Meta(Dictionary<string,object>)  // Scalar values only
+    .AuthorizedUuid(string)           // Restrict token to one UUID
+    .Resources(PNTokenResources)      // Explicit resources
+    .Patterns(PNTokenPatterns)        // RegEx resources
+    .QueryParam(Dictionary<string,object>)
+    .Execute(Action<PNAccessManagerTokenResult, PNStatus>)
+    .ExecuteAsync()                   // Task<PNResult<PNAccessManagerTokenResult>>
+```
 
-### Permission object types
-* PNTokenResources / PNTokenPatterns  
-  * Channels, ChannelGroups, Uuids → `Dictionary<string, PNTokenAuthValues>`
-* PNTokenAuthValues  
-  * bool flags: Read, Write, Manage, Delete, Get, Update, Join
+### Permissions per resource  
+Channels | ChannelGroups | UUIDs  
+`read, write, get, manage, update, join, delete` | `read, manage` | `get, update, delete`
 
-### Basic usage
-```
-`using System.Collections.Generic;  
-using PubnubApi;  
-using PubnubApi.Unity;  
-using UnityEngine;  
-  
-public class GrantTokenExample : MonoBehaviour {  
-    //Reference to a pubnub manager previously setup in Unity Editor  
-    //For more details see https://www.pubnub.com/docs/sdks/unity#configure-pubnub  
-    //NOTE: For Access Management to work the keyset must have PAM enabled  
-    [SerializeField] private PNManagerBehaviour pubnubManager;  
-  
-    //An editor-serialized string with the test channel ID  
-    [SerializeField] private string testChannelId = "test_channel_id";  
-  
-    private async void Start() {  
-`
-```
-show all 51 lines
+### Data types
 
-### Other examples
-#### Mixed resources
-```
-`PNResultPNAccessManagerTokenResult> grantTokenResponse = await pubnub.GrantToken()  
-    .TTL(15)  
-    .AuthorizedUuid("my-authorized-uuid")  
-    .Resources(new PNTokenResources()  
-    {  
-        Channels = new Dictionarystring, PNTokenAuthValues>() {  
-            { "channel-a", new PNTokenAuthValues() { Read = true } },  
-            { "channel-b", new PNTokenAuthValues() { Read = true, Write = true } },  
-            { "channel-c", new PNTokenAuthValues() { Read = true, Write = true } },  
-            { "channel-d", new PNTokenAuthValues() { Read = true, Write = true } }},  
-        ChannelGroups = new Dictionarystring, PNTokenAuthValues>() {   
-            { "channel-group-b", new PNTokenAuthValues() { Read = true } } },  
-        Uuids = new Dictionarystring, PNTokenAuthValues>() {   
-            { "uuid-c", new PNTokenAuthValues() { Get = true } },  
-            { "uuid-d", new PNTokenAuthValues() { Get = true, Update = true } }}  
-`
-```
-show all 27 lines
+*PNTokenResources / PNTokenPatterns*  
+• `Channels`, `ChannelGroups`, `Uuids` → `Dictionary<string, PNTokenAuthValues>`
 
-#### RegEx channels
-```
-`PNResultPNAccessManagerTokenResult> grantTokenResponse = await pubnub.GrantToken()  
-    .TTL(15)  
-    .AuthorizedUuid("my-authorized-uuid")  
-    .Patterns(new PNTokenPatterns()  
-    {  
-        Channels = new Dictionarystring, PNTokenAuthValues>() {  
-            { "channel-[A-Za-z0-9]", new PNTokenAuthValues() { Read = true } }}  
-    })  
-    .ExecuteAsync();  
-PNAccessManagerTokenResult grantTokenResult = grantTokenResponse.Result;  
-PNStatus grantTokenStatus = grantTokenResponse.Status;  
-if (!grantTokenStatus.Error && grantTokenResult != null)  
-{  
-    Debug.Log(pubnub.JsonPluggableLibrary.SerializeToJsonString(grantTokenResult));  
-}  
-`
-```
-show all 20 lines
-
-#### Resources + RegEx
-```
-`PNResultPNAccessManagerTokenResult> grantTokenResponse = await pubnub.GrantToken()  
-    .TTL(15)  
-    .AuthorizedUuid("my-authorized-uuid")  
-    .Resources(new PNTokenResources()  
-    {  
-        Channels = new Dictionarystring, PNTokenAuthValues>() {  
-            { "channel-a", new PNTokenAuthValues() { Read = true } },  
-            { "channel-b", new PNTokenAuthValues() { Read = true, Write = true } },  
-            { "channel-c", new PNTokenAuthValues() { Read = true, Write = true } },  
-            { "channel-d", new PNTokenAuthValues() { Read = true, Write = true } }},  
-        ChannelGroups = new Dictionarystring, PNTokenAuthValues>() {  
-            { "channel-group-b", new PNTokenAuthValues() { Read = true } } },  
-        Uuids = new Dictionarystring, PNTokenAuthValues>() {  
-            { "uuid-c", new PNTokenAuthValues() { Get = true } },  
-            { "uuid-d", new PNTokenAuthValues() { Get = true, Update = true } }}  
-`
-```
-show all 32 lines
+*PNTokenAuthValues*  
+`Read`, `Write`, `Manage`, `Delete`, `Get`, `Update`, `Join` (bool)
 
 ### Return
-`PNResult<PNAccessManagerTokenResult>` → `Result.Token` (string):
-```
-`{ "Token":"p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI"}  
-`
+
+`PNResult<PNAccessManagerTokenResult>` → `Result.Token` (string), `Status`.
+
+```json
+{ "Token":"p0thisAkFl043rhDdH..." }
 ```
 
----
+### Errors  
+`400 Bad Request`, `403 Forbidden`, `503 Service Unavailable`.
 
-## GrantToken – Spaces & Users
-
-### Method
+#### Sample code
 ```
-pubnub.GrantToken()  
-    .TTL(int)  
-    .Meta(Dictionary<string, object>)  
-    .AuthorizedUserId(string)  
-    .Resources(PNTokenResources)  
-    .Patterns(PNTokenPatterns)  
-    .QueryParam(Dictionary<string,object>)  
-    .Execute(System.Action<PNAccessManagerTokenResult, PNStatus>)
-```
-Parameter types are identical; `Spaces` & `Users` replace Channels/Groups/Uuids.
-
-### Basic usage
-```
-`PNResultPNAccessManagerTokenResult> grantTokenResponse = await pubnub.GrantToken()  
-    .TTL(15)  
-    .AuthorizedUserId("my-authorized-userId")  
-    .Resources(new PNTokenResources()   
-    {  
-        Spaces = new Dictionarystring, PNTokenAuthValues>() {  
-                            { "my-space", new PNTokenAuthValues() { Read = true } } } // False to disallow  
-    })   
-    .ExecuteAsync();  
-PNAccessManagerTokenResult grantTokenResult = grantTokenResponse.Result;  
-PNStatus grantTokenStatus = grantTokenResponse.Status;  
-// PNAccessManagerTokenResult is a parsed and abstracted response from the server  
-if (!grantTokenStatus.Error && grantTokenResult != null)  
-{  
-    Debug.Log(pubnub.JsonPluggableLibrary.SerializeToJsonString(grantTokenResult));  
-`
-```
-show all 20 lines
-
-### Additional examples
-```
-`PNResultPNAccessManagerTokenResult> grantTokenResponse = await pubnub.GrantToken()  
-    .TTL(15)  
-    .AuthorizedUserId("my-authorized-userId")  
-    .Resources(new PNTokenResources()  
-    {  
-        Spaces = new Dictionarystring, PNTokenAuthValues>() {  
-            { "space-a", new PNTokenAuthValues() { Read = true } },  
-            { "space-b", new PNTokenAuthValues() { Read = true, Write = true } },  
-            { "space-c", new PNTokenAuthValues() { Read = true, Write = true } },  
-            { "space-d", new PNTokenAuthValues() { Read = true, Write = true } }},  
-        Users = new Dictionarystring, PNTokenAuthValues>() {   
-            { "user-c", new PNTokenAuthValues() { Get = true } },  
-            { "user-d", new PNTokenAuthValues() { Get = true, Update = true } }}  
-    })  
-    .ExecuteAsync();  
-`
-```
-show all 25 lines
-
-RegEx only:
-```
-`PNResultPNAccessManagerTokenResult> grantTokenResponse = await pubnub.GrantToken()  
-    .TTL(15)  
-    .AuthorizedUserId("my-authorized-userId")  
-    .Patterns(new PNTokenPatterns()  
-    {  
-        Spaces = new Dictionarystring, PNTokenAuthValues>() {  
-            { "space-[A-Za-z0-9]", new PNTokenAuthValues() { Read = true } }}  
-    })  
-    .ExecuteAsync();  
-PNAccessManagerTokenResult grantTokenResult = grantTokenResponse.Result;  
-PNStatus grantTokenStatus = grantTokenResponse.Status;  
-if (!grantTokenStatus.Error && grantTokenResult != null)  
-{  
-    Debug.Log(pubnub.JsonPluggableLibrary.SerializeToJsonString(grantTokenResult));  
-}  
-`
-```
-
-Resources + RegEx:
-```
-`PNResultPNAccessManagerTokenResult> grantTokenResponse = await pubnub.GrantToken()  
-    .TTL(15)  
-    .AuthorizedUserId("my-authorized-userId")  
-    .Resources(new PNTokenResources()  
-    {  
-        Spaces = new Dictionarystring, PNTokenAuthValues>() {  
-            { "space-a", new PNTokenAuthValues() { Read = true } },  
-            { "space-b", new PNTokenAuthValues() { Read = true, Write = true } },  
-            { "space-c", new PNTokenAuthValues() { Read = true, Write = true } },  
-            { "space-d", new PNTokenAuthValues() { Read = true, Write = true } }},  
-        Users = new Dictionarystring, PNTokenAuthValues>() {  
-            { "user-c", new PNTokenAuthValues() { Get = true } },  
-            { "user-d", new PNTokenAuthValues() { Get = true, Update = true } }}  
-    })  
-    .Patterns(new PNTokenPatterns()  
-`
-```
-show all 30 lines
-
-### Return
-Same as channel variant:
-```
-`{ "Token":"p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI"}  
-`
+  
 ```
 
 ---
 
 ## RevokeToken
 
-### Method
-```
-pubnub.RevokeToken()  
-    .Token(string)  
-    .QueryParam(Dictionary<string, object>)  
-    .Execute(System.Action<PNAccessManagerRevokeTokenResult, PNStatus>)
-```
-`ExecuteAsync()` returns `Task<PNResult<PNAccessManagerRevokeTokenResult>>`.
+Disable an issued token (Revoke v3 Token must be enabled).
 
-### Example
+```csharp
+pubnub.RevokeToken()
+    .Token(string)                    // Required
+    .QueryParam(Dictionary<string,object>)
+    .Execute(Action<PNAccessManagerRevokeTokenResult, PNStatus>)
+    .ExecuteAsync()                   // Task<PNResult<PNAccessManagerRevokeTokenResult>>
 ```
-`PNResultPNAccessManagerRevokeTokenResult> revokeTokenResponse = await pubnub  
-    .RevokeToken()  
-    .Token("p0thisAkFl043rhDdHRsCkNDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI")  
-    .ExecuteAsync();  
-PNAccessManagerRevokeTokenResult revokeTokenResult = revokeTokenResponse.Result;  
-PNStatus revokeTokenStatus = revokeTokenResponse.Status;  
-if (!revokeTokenStatus.Error && revokeTokenResult != null)  
-{  
-    Debug.Log("Revoke token success");  
-}  
-else  
-{  
-    Debug.Log(pubnub.JsonPluggableLibrary.SerializeToJsonString(revokeTokenStatus));  
-}  
-`
+
+Returns empty `PNAccessManagerRevokeTokenResult` + `PNStatus`.
+
+#### Sample code
+```
+  
 ```
 
 ---
 
 ## ParseToken
 
-### Method
-```
-ParseToken(String token)
+Decode a token to inspect its contents.
+
+```csharp
+ParseToken(string token)
 ```
 
-### Example
-```
-`pubnub.ParseToken("p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI")  
-`
-```
+`TokenContents`  
+• `Resources`, `Patterns` (see PNTokenResources structure)  
+• `Meta`, `Signature`, `Version`, `Timestamp`, `TTL`, `AuthorizedUUID`.
 
-Returns a `TokenContents` object (Resources, Patterns, Meta, Signature, Version, Timestamp, TTL, AuthorizedUUID).
+`TokenAuthValues` booleans as above.
+
+#### Sample code
+```
+  
+```
 
 ---
 
 ## SetAuthToken
 
-### Method
-```
-SetAuthToken(String token)
+Apply/refresh a token on the client.
+
+```csharp
+SetAuthToken(string token)
 ```
 
-### Example
-```
-`pubnub.SetAuthToken("p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI")  
-`
-```
+(No return value)
 
-*No return value.*
+#### Sample code
+```
+  
+```
 
 ---
 
-### Error handling (all calls)
-`400 Bad Request`, `403 Forbidden`, `503 Service Unavailable` with descriptive message.
+## Deprecated: Spaces & Users
+
+Deprecated variants use `Spaces`/`Users` instead of Channels/UUIDs. Method signature mirrors current `GrantToken()` but with:
+
+```csharp
+pubnub.GrantToken()
+    .TTL(int)
+    .Meta(Dictionary<string,object>)
+    .AuthorizedUserId(string)
+    .Resources(PNTokenResources)   // Spaces, Users
+    .Patterns(PNTokenPatterns)     // Spaces, Users
+    .Execute(Action<PNAccessManagerTokenResult, PNStatus>)
+```
+
+`PNTokenResources / Patterns`  
+• `Spaces`, `Users` → `Dictionary<string, PNTokenAuthValues>`
+
+Permissions (Spaces | Users):  
+`read, write, get, manage, update, join, delete` | `get, update, delete`
+
+#### Sample / other examples
+```
+  
+```
+
+---
+
+### General notes
+
+1. `TTL` mandatory (minutes, max 30 days).  
+2. Specify at least one resource or pattern.  
+3. `AuthorizedUuid` (or deprecated `AuthorizedUserId`) is recommended for single-client tokens.  
+4. RegEx patterns grant permissions to matching resources.
+
+_Last updated: Jul 15 2025_

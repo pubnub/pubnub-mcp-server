@@ -1,14 +1,13 @@
-# Presence API – Kotlin SDK v9+
+# Presence API – Kotlin SDK (v9+)
 
-Requires PubNub “Presence” add-on to be enabled for your keys.
+## About v9.0.0
+SDK v9 unifies the Java/Kotlin code-base, changes client instantiation, async callbacks, and status events. See the Java/Kotlin migration guide for details.
 
-## v9.0.0 NOTE  
-SDK was unified with the Java implementation. Instantiation, async callbacks, and status events changed. See the Java/Kotlin migration guide for details.
+## General notes
+* Presence add-on must be enabled in the Admin Portal for all Presence operations.
+* Every Endpoint must be executed with `.sync()` or `.async()`, otherwise it will not run.
 
-## Request execution  
-Every endpoint returns an `Endpoint` object. Always finish the call with `.sync()` or `.async { … }` or nothing happens.
-
-```
+```kotlin
 `val channel = pubnub.channel("channelName")  
   
 channel.publish("This SDK rules!").async { result ->  
@@ -23,112 +22,107 @@ channel.publish("This SDK rules!").async { result ->
 
 ---
 
-## Here Now
+## hereNow()
+Returns current occupants of channels / channel-groups.
 
-Returns current occupants and occupancy for channels and/or channel groups. Response is cached for 3 s.
+Cache TTL: 3 s.
 
-### Method
-
-```
+```kotlin
 `pubnub.hereNow(  
-    channels: ListString>,  
-    channelGroups: ListString>,  
-    includeState: Boolean,      // default false  
-    includeUUIDs: Boolean       // default true  
+    channels: List<String>,  
+    channelGroups: List<String>,  
+    includeState: Boolean,  
+    includeUUIDs: Boolean  
 ).async { result -> }  
 `
 ```
 
-Parameter summary  
-• `channels` `List<String>` – channels to query  
-• `channelGroups` `List<String>` – channel groups to query  
-• `includeState` `Boolean` – add user state to the response  
-• `includeUUIDs` `Boolean` – add occupant UUIDs to the response  
+Parameters  
+• channels – target channels (List<String>)  
+• channelGroups – target groups (List<String>)  
+• includeState (Boolean, default false) – return presence state.  
+• includeUUIDs (Boolean, default true) – return UUID list.
 
-### Return type
-
-`PNHereNowResult`  
-• `totalChannels : Int`  
-• `totalOccupancy : Int`  
-• `channels : Map<String, PNHereNowChannelData>`
+Returns `PNHereNowResult?`  
+• totalChannels : Int  
+• totalOccupancy : Int  
+• channels : Map<String, PNHereNowChannelData>
 
 `PNHereNowChannelData`  
-• `channelName : String`  
-• `occupancy : Int`  
-• `occupants : List<PNHereNowOccupantData>`
+• channelName : String  
+• occupancy : Int  
+• occupants : List<PNHereNowOccupantData>
 
 `PNHereNowOccupantData`  
-• `uuid : String`  
-• `state : JsonElement?`
+• uuid : String  
+• state : JsonElement?
 
 ### Examples
+Reference snippet (empty placeholder kept):
 
-#### Basic
-```
+```kotlin
 `  
 `
 ```
 
-#### Returning State
-```
-`  
-`
-```
+Return state:
 
-Example response
-```
-`.async { result: ResultPNHereNowResult> ->  
-    result.onSuccess { res: PNHereNowResult ->  
+```kotlin
+`.async { result: Result<PNHereNowResult> ->  
+    result.onSuccess { res ->  
         res.channels.values.forEach { channelData ->  
             channelData.channelName // ch1  
-            channelData.occupancy // 3  
+            channelData.occupancy   // 3  
             channelData.occupants.forEach { o ->  
-                o.uuid // some_uuid  
-                o.state // {"data":{"isTyping":true}}  
+                o.uuid              // some_uuid  
+                o.state             // {"data":{"isTyping":true}}  
             }  
         }  
     }.onFailure { e ->  
-        // handle error  
         e.message  
         e.statusCode  
         e.pubnubError  
 `
 ```
 
-#### Occupancy-only
-```
+Occupancy only (set includeUUIDs =false):
+
+```kotlin
 `  
 `
 ```
 
-Example response
-```
-`.async { result: ResultPNHereNowResult> ->  
-    result.onSuccess { res: PNHereNowResult ->  
-        res.channels.values.forEach { channelData ->  
-            channelData.channelName // ch1  
-            channelData.occupancy // 3  
+```kotlin
+`.async { result: Result<PNHereNowResult> ->  
+    result.onSuccess { res ->  
+        res.channels.values.forEach { c ->  
+            c.channelName // ch1  
+            c.occupancy   // 3  
         }  
     }.onFailure { e ->  
-        // handle error  
+        e.message  
+        e.statusCode  
+        e.pubnubError  
     }  
 }  
 `
 ```
 
-#### Channel Groups
-```
+Channel-group:
+
+```kotlin
 `  
 `
 ```
 
-Example response
-```
-`.async { result: ResultPNHereNowResult> ->  
-    result.onSuccess { res: PNHereNowResult ->  
+```kotlin
+`.async { result: Result<PNHereNowResult> ->  
+    result.onSuccess { res ->  
         res.totalOccupancy  
     }.onFailure { e ->  
-        // handle error  
+        e.message  
+        e.statusCode  
+        e.pubnubError  
     }  
 }  
 `
@@ -136,13 +130,10 @@ Example response
 
 ---
 
-## Where Now
+## whereNow()
+Lists channels to which a UUID is currently subscribed.
 
-Returns the list of channels a UUID is currently occupying (no timeout event if reconnect occurs inside the heartbeat window).
-
-### Method
-
-```
+```kotlin
 `pubnub.whereNow(  
     uuid: String  
 ).async { result -> }  
@@ -150,81 +141,86 @@ Returns the list of channels a UUID is currently occupying (no timeout event if 
 ```
 
 Parameter  
-• `uuid` `String` – target UUID.
+• uuid – target UUID (String)
 
-### Return type
+Returns `PNWhereNowResult?`  
+• channels : List<String>
 
-`PNWhereNowResult`  
-• `channels : List<String>`
+Examples:
 
-### Examples
-
-```
+```kotlin
 `  
 `
 ```
 
-```
+```kotlin
 `  
 `
 ```
 
 ---
 
-## User State
+## Presence State
 
-Set or get custom JSON state (not persisted) for a UUID on specific channels/groups.
+Presence state is a transient JsonObject attached to a UUID on specific channels / groups.
 
-State must be a valid `JsonObject` or serializable POJO.
+### setPresenceState()
 
-### Set State
-
-```
+```kotlin
 `pubnub.setPresenceState(  
-    channels: ListString>,  
-    channelGroups: ListString>,  
-    state: Any,                // JsonObject / POJO  
-    uuid: String               // target UUID  
-).async { result -> }  
-`
-```
-
-### Get State
-
-```
-`pubnub.getPresenceState(  
-    channels: ListString>,  
-    channelGroups: ListString>,  
+    channels: List<String>,  
+    channelGroups: List<String>,  
+    state: Any,  
     uuid: String  
 ).async { result -> }  
 `
 ```
 
 Parameters  
-• `channels` `List<String>` – target channels  
-• `channelGroups` `List<String>` – target channel groups  
-• `state` `Any` – state to set (setState only)  
-• `uuid` `String` – target UUID  
+• channels – channels to set.  
+• channelGroups – groups to set.  
+• state – JsonObject/POJO.  
+• uuid – target UUID.
 
-### Return types
+Returns `PNSetStateResult?`  
+• state : JsonElement
 
-`PNSetStateResult` from both calls  
-• `state : JsonElement` (set)  
-• `stateByUUID : Map<String, JsonElement>` (get)
+### getPresenceState()
 
-### Examples
+```kotlin
+`pubnub.getPresenceState(  
+    channels: List<String>,  
+    channelGroups: List<String>,  
+    uuid: String  
+).async { result -> }  
+`
 ```
+
+Parameters identical to `setPresenceState`.
+
+Returns `PNSetStateResult?`  
+• stateByUUID : Map<String, JsonElement>
+
+### Samples
+
+```kotlin
 `  
 `
 ```
 
-```
+Set state for channels in a group:
+
+```kotlin
 `  
 `
 ```
 
-```
+Get state for UUID:
+
+```kotlin
 `**`
 ```
 
-*(Last updated: Jun 16 2025)*
+---
+
+_Last updated: Jul 15 2025_

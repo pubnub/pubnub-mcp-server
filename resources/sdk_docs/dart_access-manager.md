@@ -1,14 +1,8 @@
-# Access Manager v3 – Dart SDK (condensed)
+# PubNub Dart SDK – Access Manager v3 (Condensed)
 
-Access Manager lets your server issue, revoke, inspect, and set time-limited permission tokens.
+## Grant token (channels, channelGroups, UUIDs)
 
-Prerequisites  
-• Access Manager add-on enabled in the Admin Portal  
-• Secret key on the server side  
-
----
-
-## Grant Token (channels / groups / UUIDs)
+Requires Access Manager add-on.
 
 ### Method
 ```
@@ -16,11 +10,11 @@ Prerequisites
 `
 ```
 
-### Build `TokenRequest`
+Create a `TokenRequest`:
 ```
 `pubnub.requestToken({  
   @required int? ttl,  
-  Map<String, dynamic>? meta,  
+  MapString, dynamic>? meta,  
   String? authorizedUUID,  
   String? using,  
   Keyset? keyset  
@@ -28,12 +22,7 @@ Prerequisites
 `
 ```
 
-* ttl – 1-43 200 min (required)  
-* meta – scalar values only  
-* authorizedUUID – lock token to one client  
-* using / keyset – pick keyset
-
-### Add permissions
+Use `.add()` to attach permissions:
 ```
 `add(ResourceType type,  
       {String? name,  
@@ -48,16 +37,25 @@ Prerequisites
       bool? join})  
 `
 ```
-Types: `uuid`, `channel`, `channelGroup`. Provide `name` _or_ `pattern`. All flags default to `false`.
 
-Channel perms: read, write, get, manage, update, join, delete  
-ChannelGroup: read, manage  uuid: get, update, delete  
+Key points  
+• `ttl` 1-43 200 min (required)  
+• At least one permission on `uuid`, `channel`, or `channelGroup` (by `name` or RegEx `pattern`).  
+• Recommended: set `authorizedUUID` to bind the token to a single client.
 
-### Reference snippet
+Permissions per resource  
+```
+channel:       read write get manage update join delete  
+channelGroup:  read        manage                   
+uuid:                         get        update      delete
+```
+
+#### Reference snippet
 ```
 `import 'package:pubnub/pubnub.dart';  
   
 void main() async {  
+  // Create PubNub instance with default keyset.  
   var pubnub = PubNub(  
     defaultKeyset: Keyset(  
       subscribeKey: 'demo',   
@@ -67,12 +65,13 @@ void main() async {
     ),  
   );  
   
+  // Prepare the request object for granting a token  
   var request = pubnub.requestToken(  
 `
 ```
-show all 30 lines
+*show all 30 lines*
 
-### Successful response
+### Returns
 ```
 `{  
     "status": 200,  
@@ -85,10 +84,9 @@ show all 30 lines
 `
 ```
 
-### Additional examples  
-All original examples retained:
+#### Examples  
 
-* Different levels in one call  
+Different levels in one call
 ```
 `var request = pubnub.requestToken(  
     ttl: 15, authorizedUUID: 'my-authorized-uuid')  
@@ -105,7 +103,7 @@ print('grant token = $token');
 `
 ```
 
-* RegEx read channels  
+Read via RegEx
 ```
 `var request = pubnub.requestToken(  
     ttl: 15, authorizedUUID: 'my-authorized-uuid')  
@@ -116,7 +114,7 @@ print('grant token = $token');
 `
 ```
 
-* Mixed explicit + RegEx  
+Combined list + RegEx
 ```
 `var request = pubnub.requestToken(  
     ttl: 15, authorizedUUID: 'my-authorized-uuid')  
@@ -134,15 +132,18 @@ print('grant token = $token');
 `
 ```
 
-Error: `400` with `PubNubException`.
-
 ---
 
-## Grant Token (Spaces & Users)
+## Grant token (spaces & users)
 
-Exactly the same flow but resources are `space` / `user` and parameter is `authorizedUserId`.
+Same flow, but resources are `space`, `user`.
 
-### Build request
+### Method
+```
+`pubnub.grantToken(TokenRequest tokenRequest)  
+`
+```
+Create request:
 ```
 `pubnub.requestToken({  
   @required int? ttl,  
@@ -153,19 +154,29 @@ Exactly the same flow but resources are `space` / `user` and parameter is `autho
 });  
 `
 ```
-Add permissions (`ResourceType.space` or `ResourceType.user`) with the same `add()` signature.
+Attach permissions (same `.add()` signature).
 
-### Basic example
+Permissions per resource  
 ```
-`var request = pubnub.requestToken(ttl: 15, authorizedUserId: 'my-authorized-userId');  
+space: read write get manage update join delete  
+user:                        get        update      delete
+```
+
+Sample
+```
+`// Prepare the request object  
+var request = pubnub.requestToken(ttl: 15, authorizedUserId: 'my-authorized-userId');  
 request.add(ResourceType.space, name: 'my-space', read: true);  
   
+// Send the token request  
 var token = await pubnub.grantToken(request);  
 print('grant token = $token');  
 `
 ```
 
-### More examples (all preserved)
+Examples (list, RegEx, combined) are preserved below.
+
+Different levels
 ```
 `var request = pubnub.requestToken(  
     ttl: 15, authorizedUserId: 'my-authorized-userId')  
@@ -181,6 +192,7 @@ print('grant token = $token');
 `
 ```
 
+RegEx
 ```
 `var request = pubnub.requestToken(  
     ttl: 15, authorizedUserId: 'my-authorized-userId')  
@@ -191,6 +203,7 @@ print('grant token = $token');
 `
 ```
 
+Combined
 ```
 `var request = pubnub.requestToken(  
     ttl: 15, authorizedUserId: 'my-authorized-userId')  
@@ -207,68 +220,98 @@ print('grant token = $token');
 `
 ```
 
-Errors: `400`.
+### Returns
+```
+`{  
+    "status": 200,  
+    "data": {  
+        "message": "Success",  
+        "token": "p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI"  
+    },  
+    "service" : "Access Manager"  
+}  
+`
+```
 
 ---
 
-## Revoke Token
+## Revoke token
 
-Enable *Revoke v3 Token* in the Admin Portal.
+Enable “Revoke v3 Token” in Admin Portal.
 
 ### Method
 ```
 `var result = await pubnub.revokeToken("token");  
 `
 ```
+Parameter: `token` (String) – existing token to disable.
 
-### Usage
+### Sample
 ```
 `await pubnub.revokeToken("token");  
 `
 ```
-Returns empty `PamRevokeTokenResult`. Errors: 400, 403, 503.
+Successful call returns `PamRevokeTokenResult` (empty).
 
 ---
 
-## Parse Token
+## Parse token
+
+### Method
 ```
 `parseToken(String token)  
 `
 ```
 
-### Example
+### Sample
 ```
 `pubnub.parseToken("p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI")  
 `
 ```
 
-### Decoded format (truncated)
+### Returns (truncated)
 ```
 `{  
    "version":2,  
    "timetoken":1629394579,  
    "ttl":15,  
-   "authorizedUUID":"user1",  
-   "resources":{…}  
+   "authorizedUUID": "user1",  
+   "resources":{  
+      "uuids":{  
+         "user1":{  
+            "read":false,  
+            "write":false,  
+            "manage":false,  
+            "delete":false,  
+            "get":true,  
+            "update":true,  
+            "join":false  
 `
 ```
-show all 78 lines
+*show all 78 lines*
 
 ---
 
-## Set Token
+## Set token
+
+### Method
 ```
 `setToken(String token, {String? using, Keyset? keyset})  
 `
 ```
 
-### Usage
+### Sample
 ```
 `pubnub.setToken("p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI")  
 `
 ```
-No return value.
+(No return value.)
 
 ---
 
-_Last updated Apr 29 2025_
+### Common error responses
+• `400 Bad Request`  
+• `403 Forbidden`  
+• `503 Service Unavailable` (revoke)  
+
+Last updated **Jul 15 2025**

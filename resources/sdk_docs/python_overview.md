@@ -1,18 +1,29 @@
-# PubNub Python SDK 10.4.1 – Overview (Condensed)
+# Python API & SDK Docs 10.4.1  
+
+## Overview
+PubNub’s Python SDK (Python 3.9+) adds real-time publish/subscribe messaging to any Python app. This quick-start covers minimal setup, message send/receive, and a runnable “Hello, World” example.
 
 ## Prerequisites
-• Python 3.9+  
-• PubNub publish & subscribe keys.
+• Python 3.9 or later  
+• PubNub account with publish & subscribe keys  
 
-## Install
+## Setup  
+
+### Get your keys
+1. Log in to the PubNub Admin Portal.  
+2. Create/select an app and copy its Publish & Subscribe keys.  
+
+### Install the SDK (latest recommended)
 
 ```
 `pip install 'pubnub>=10.4.1'  
 `
 ```
-(Or clone https://github.com/pubnub/python/)
+Source code: https://github.com/pubnub/python/
 
-## Initialize PubNub
+## Quick-start steps  
+
+### 1. Initialize PubNub
 
 ```
 `# Import required modules  
@@ -30,13 +41,8 @@ pnconfig.enable_subscribe = True
 pubnub = PubNub(pnconfig)  
 `
 ```
-Key `PNConfiguration` fields  
-• `subscribe_key`, `publish_key`, `user_id` (str)  
-• `ssl` (bool) – enable TLS  
-• `enable_subscribe` (bool) – receive messages  
-• `daemon` (bool) – long-running apps
 
-## Event Listener (connection status)
+### 2. Add a status listener
 
 ```
 `from pubnub.pubnub import SubscribeListener  
@@ -44,66 +50,51 @@ Key `PNConfiguration` fields
 # Create a custom listener for status events  
 class StatusListener(SubscribeListener):  
     def status(self, pubnub, status):  
-        # This method is called when the status of the connection changes  
         print(f'Status: {status.category.name}')  
-      
-    # We're not implementing the message handler here as we'll use a subscription-specific handler  
   
-# Add the listener to your PubNub instance  
+# Attach the listener  
 status_listener = StatusListener()  
 pubnub.add_listener(status_listener)  
 `
 ```
 
-## Subscribe to a Channel
+### 3. Subscribe to a channel
 
 ```
-`# Define the channel you want to subscribe to  
-my_channel = 'my-channel'  
+`my_channel = 'my-channel'  
   
-# Create a subscription for the channel  
 subscription = pubnub.channel(my_channel).subscription()  
-  
-# Set up a message handler  
 subscription.on_message = lambda message: print(f'Message received: {message.message}')  
-  
-# Subscribe to the channel  
 subscription.subscribe()  
   
 print(f'Subscribed to channel: {my_channel}')  
 `
 ```
 
-## Publish a Message  (JSON < 32 KiB)
+### 4. Publish a message
 
 ```
 `import time  
 from pubnub.exceptions import PubNubException  
   
-# Wait for a moment to ensure the subscription is active  
-time.sleep(1)  
+time.sleep(1)  # ensure subscription is active  
   
-# Create a message  
-message = {  
-    'msg': 'Hello from PubNub Python SDK!'  
-}  
+message = {'msg': 'Hello from PubNub Python SDK!'}  
   
-# Publish the message to the channel  
 try:  
     envelope = pubnub.publish().channel(my_channel).message(message).sync()  
     print(f'Published message with timetoken: {envelope.result.timetoken}')  
 `
 ```
-• `.sync()` blocks until response; use `.future()` or `.async()` for non-blocking.
+`sync()` is blocking; use `future()` or `async()` for non-blocking calls.
 
-## Run
-
-Save as `pubnub_demo.py` then execute:
+### 5. Run
 
 ```
 `python pubnub_demo.py  
 `
 ```
+
 Expected output:
 
 ```
@@ -115,7 +106,7 @@ Published message with timetoken: 16967543908123456
 `
 ```
 
-## Complete Example
+## Complete example
 
 ```
 `import time  
@@ -130,15 +121,23 @@ pnconfig.publish_key = 'demo'    # Replace with your publish key
 pnconfig.user_id = 'python-user'  
 pnconfig.ssl = True              # Enable SSL for secure connection  
 pnconfig.enable_subscribe = True  
-pnconfig.daemon = True  # If using in a long-running app  
+pnconfig.daemon = True           # If using in a long-running app  
   
 pubnub = PubNub(pnconfig)  
 `
 ```
+show all 58 lines
 
-## Troubleshooting (quick reference)
-• No connection: check keys, network, firewall.  
-• No message: confirm channel & subscription, wait for delivery, inspect errors.  
-• Import error: verify `pubnub` install and Python version.
+## Troubleshooting
+• No connection – check internet, keys, firewall.  
+• Message not received – confirm channel, check publish result, wait for delivery.  
+• Import errors – ensure `pubnub` installed, correct Python version, proper imports.  
+More: /docs/sdks/python/troubleshoot  
 
-Explore advanced APIs (Presence, Channel Groups, Storage, Access Manager) in the full SDK docs.
+## Next steps
+• Presence, Channel Groups, Message Persistence, Access Manager  
+• Examples: https://github.com/pubnub/python/tree/master/examples  
+• API reference: /docs/sdks/python/api-reference/configuration  
+• Support/Discord: https://support.pubnub.com/ | https://discord.gg/pubnub  
+
+_Last updated: May 7 2025_

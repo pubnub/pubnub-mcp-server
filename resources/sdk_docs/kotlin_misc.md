@@ -1,8 +1,10 @@
-# Utility Methods – Kotlin SDK (Misc)
+# Utility Methods – PubNub Kotlin SDK
 
-> PubNub Kotlin SDK 9.x shares code with the Java SDK. Instantiation, async APIs, and status events changed in 9.0.0. See the Java/Kotlin migration guide for details.
+> SDK v 9 unifies Java/Kotlin codebases, changes client instantiation, async callbacks, and status events. See the Java/Kotlin migration guide before upgrading from \< 9.0.0.
 
-Most SDK calls return an `Endpoint`; execute them with `.sync()` or `.async()` or they will **not** run.
+## Request execution
+
+Most SDK calls return an `Endpoint`. Invoke **either** `.sync()` or `.async()`—otherwise nothing is executed.
 
 ```
 `val channel = pubnub.channel("channelName")  
@@ -19,7 +21,9 @@ channel.publish("This SDK rules!").async { result ->
 
 ---
 
-## Create Push Payload
+## Create push payload
+
+Build a payload for `publish()`.
 
 ```
 `val pushPayloadHelper = PushPayloadHelper()  
@@ -33,19 +37,20 @@ pushPayloadHelper.apnsPayload = apnsPayload
 ```
 
 Parameters  
-• **apnsPayload** `APNSPayload` – content placed under `pn_apns`.  
-• **fcmPayload** `FCMPayload` – content placed under `pn_gcm`.  
-• **commonPayload** `Map<String, Any>` – data delivered to PubNub subscribers along with the platform-specific payloads.
 
-Return  
-• **build()** → `Map<String, Any>` – pass directly to `pubnub.publish()`.
+* `apnsPayload` `APNSPayload` – data placed under `pn_apns`.  
+* `fcmPayload` `FCMPayload` – data placed under `pn_gcm`.  
+* `commonPayload` `Map<String, Any>` – data delivered to native PubNub subscribers.  
+* `build()` → `Map<String, Any>` – final payload (pass directly to `publish()`).
 
-Example
+Sample:
 
 ```
 `  
 `
 ```
+
+Return: `Map<String, Any>`.
 
 ---
 
@@ -59,13 +64,12 @@ Example
 `
 ```
 
-Parameters  
-• **inputString** `String` – data to encrypt.  
-• **cipherKey** `String` (deprecated) – overrides `cryptoModule` and forces legacy 128-bit encryption.
+* `inputString` `String` – data to encrypt.  
+* `cipherKey` `String` **(deprecated)** – overrides `cryptoModule`, uses legacy 128-bit key.
 
-Return → encrypted `String`.
+Returns encrypted `String`.
 
-Example
+Sample:
 
 ```
 `  
@@ -74,18 +78,19 @@ Example
 
 ---
 
-## Encrypt File Input Stream
+## Encrypt file input stream
 
 ```
 `pubnub.encryptInputStream(inputStream: InputStream, cipherKey: String)  
 `
 ```
 
-Parameters  
-• **inputStream** `InputStream` – content to encrypt.  
-• **cipherKey** `String` (deprecated) – same behavior as above.
+* `inputStream` `InputStream` – content to encrypt.  
+* `cipherKey` `String` **(deprecated)** – see Encrypt section.
 
-Return → encrypted `InputStream`.
+Returns encrypted `InputStream`.
+
+Sample:
 
 ```
 `  
@@ -104,11 +109,12 @@ Return → encrypted `InputStream`.
 `
 ```
 
-Parameters  
-• **inputString** `String` – data to decrypt.  
-• **cipherKey** `String` (deprecated).
+* `inputString` `String` – data to decrypt.  
+* `cipherKey` `String` **(deprecated)**.
 
-Return → decrypted `String`.
+Returns decrypted `String`.
+
+Sample:
 
 ```
 `  
@@ -117,18 +123,19 @@ Return → decrypted `String`.
 
 ---
 
-## Decrypt File Input Stream
+## Decrypt file input stream
 
 ```
 `pubnub.decryptInputStream(inputStream: InputStream, cipherKey: String)  
 `
 ```
 
-Parameters  
-• **inputStream** `InputStream` – encrypted content.  
-• **cipherKey** `String` (deprecated).
+* `inputStream` `InputStream` – encrypted content.  
+* `cipherKey` `String` **(deprecated)**.
 
-Return → decrypted `InputStream`.
+Returns decrypted `InputStream`.
+
+Sample:
 
 ```
 `  
@@ -139,12 +146,14 @@ Return → decrypted `InputStream`.
 
 ## Destroy
 
+Stops SDK threads.
+
 ```
 `destroy()  
 `
 ```
 
-Releases SDK resources.
+Sample:
 
 ```
 `  
@@ -153,7 +162,7 @@ Releases SDK resources.
 
 ---
 
-## Get Subscribed Channel Groups
+## Get subscribed channel groups
 
 ```
 `fun getSubscribedChannelGroups(): ListString>  
@@ -162,12 +171,14 @@ Releases SDK resources.
 
 Returns `List<String>` of channel groups.
 
+Sample:
+
 ```
 `  
 `
 ```
 
-Response
+Example response:
 
 ```
 `["channel1", "channel2"]  
@@ -176,7 +187,7 @@ Response
 
 ---
 
-## Get Subscribed Channels
+## Get subscribed channels
 
 ```
 `fun getSubscribedChannels(): ListString>  
@@ -185,12 +196,14 @@ Response
 
 Returns `List<String>` of channels.
 
+Sample:
+
 ```
 `  
 `
 ```
 
-Response
+Example response:
 
 ```
 `["channel1", "channel2"]  
@@ -211,7 +224,14 @@ Response
 `
 ```
 
-Forcefully stop or restart all network activity.
+Stop or resume all PubNub network activity.
+
+Samples:
+
+```
+`  
+`
+```
 
 ```
 `  
@@ -220,43 +240,71 @@ Forcefully stop or restart all network activity.
 
 ---
 
-## Timetoken ↔ Date / Unix Helpers
+## Timetoken / date / Unix conversions (`TimetokenUtil`)
 
-### Timetoken → `Instant`
+### Timetoken ➔ `Instant`
 
 ```
 `TimetokenUtil.timetokenToInstant(timetoken: Long): Instant  
 `
 ```
 
-### `Instant` → Timetoken
+* `timetoken` `Long` → returns `Instant`.
 
-```
-`TimetokenUtil.instantToTimetoken(instant: Instant): Long  
-`
-```
-
-### Unix Time → Timetoken
-
-```
-`TimetokenUtil.unixToTimetoken(unixTime: Long): Long   
-`
-```
-
-### Timetoken → Unix Time
-
-```
-`TimetokenUtil.timetokenToUnix(timetoken: Long): Long   
-`
-```
-
-Examples
+Sample:
 
 ```
 `  
 `
 ```
 
+### `Instant` ➔ Timetoken
+
+```
+`TimetokenUtil.instantToTimetoken(instant: Instant): Long  
+`
+```
+
+* `instant` `Instant` → returns `Long`.
+
+Sample:
+
+```
+`  
+`
+```
+
+### Unix ➔ Timetoken
+
+```
+`TimetokenUtil.unixToTimetoken(unixTime: Long): Long   
+`
+```
+
+* `unixTime` `Long` → returns `Long`.
+
+Sample:
+
+```
+`  
+`
+```
+
+### Timetoken ➔ Unix
+
+```
+`TimetokenUtil.timetokenToUnix(timetoken: Long): Long   
+`
+```
+
+* `timetoken` `Long` → returns `Long`.
+
+Sample:
+
+```
+`**`
+```
+
 ---
 
-*Last updated: Jun 30 2025*
+_Last updated Jul 15 2025_

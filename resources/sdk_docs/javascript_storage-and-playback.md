@@ -1,20 +1,23 @@
-# Message Persistence API (JavaScript SDK)
+# Message Persistence API – JavaScript SDK (Storage & Playback)
 
-Retains each message (AES-256 optional) for 1 day, 7 days, 30 days, 3 mo, 6 mo, 1 yr, or Unlimited, configurable per key.  
-Requires the *Message Persistence* add-on (enable in Admin Portal).
+Message Persistence stores every published message (optional AES-256 encryption) and lets you:
+• Fetch stored messages, reactions, and files  
+• Delete stored messages  
+• Count stored messages  
 
-Supported async styles: Callbacks, Promises, Async/Await (examples use `async/await` with `try…catch`).
+Retention is account-configurable: 1 day, 7 days, 30 days, 3 mo, 6 mo, 1 yr, or Unlimited.
+
+Async patterns: callbacks, promises, or (recommended) async/await with `try…catch`.
 
 ---
 
-## Fetch History
+## Fetch History  (requires Message Persistence)
 
-• Returns up to 100 messages for 1 channel, or 25 per channel for ≤ 500 channels (25 max if `includeMessageActions:true`).  
-• `start` is exclusive; `end` is inclusive.  
-• If response is truncated, a `more` object is returned—repeat the call with provided parameters.
+• Returns up to 100 msgs on one channel or 25 msgs on ≤500 channels (25 if `includeMessageActions` is true).  
+• `start` only → older than `start`; `end` only → `end` and newer; both → between them (`end` inclusive).  
+• When `includeMessageActions` is true, response may be truncated and include a `more` link.
 
 ### Method
-
 ```
 `pubnub.fetchMessages({  
     channels: Arraystring>,  
@@ -31,24 +34,26 @@ Supported async styles: Callbacks, Promises, Async/Await (examples use `async/aw
 ```
 
 Parameter essentials  
-• `channels` (array<string>, required, max 500)  
-• `count` (number, default 100/25)  
-• `includeMessageType` (boolean, default true)  
-• `includeCustomMessageType` (boolean)  
-• `includeUUID` (boolean, default true)  
-• `includeMeta` (boolean)  
-• `includeMessageActions` (boolean) – single-channel only, returns ≤ 25 messages, truncates if actions > 25 000 (see `more` link)  
-• `start`, `end` (string timetoken)
+• `channels` *Array<string>* max 500 – required  
+• `count` number – default 100 (single channel) / 25 (multi-channel or with actions)  
+• `includeMessageType` boolean – default true  
+• `includeCustomMessageType` boolean  
+• `includeUUID` boolean – default true  
+• `includeMeta` boolean  
+• `includeMessageActions` boolean – single-channel only; max 25 k actions/msg  
+• `start`, `end` string timetokens
 
-### Basic usage
-
+### Sample code
+```
+`  
+`
+```
 ```
 `  
 `
 ```
 
 ### Response
-
 ```
 `//Example of status  
 {  
@@ -69,15 +74,13 @@ Parameter essentials
 ```
 (show all 23 lines)
 
-### Fetch with metadata & actions
-
+#### Fetch messages with metadata and actions
 ```
 `  
 `
 ```
 
-Response (uses `actions` object):
-
+#### Sample response (actions object)
 ```
 `// Example of status  
 {  
@@ -100,13 +103,11 @@ Response (uses `actions` object):
 
 ---
 
-## Delete Messages from History
+## Delete Messages from History  (requires Message Persistence & “Enable Delete-From-History”, secret key)
 
-Requires: Message Persistence enabled, *Enable Delete-From-History* checked, and SDK initialized with **secret key**.  
 `start` is exclusive, `end` inclusive.
 
 ### Method
-
 ```
 `pubnub.deleteMessages({  
     channel: string,  
@@ -117,18 +118,16 @@ Requires: Message Persistence enabled, *Enable Delete-From-History* checked, and
 ```
 
 Parameters  
-• `channel` (string)  
-• `start`, `end` (string timetoken)
+• `channel` string – required  
+• `start`, `end` string timetokens
 
-### Basic usage
-
+### Sample code
 ```
 `  
 `
 ```
 
 ### Response
-
 ```
 `{  
     error: false,  
@@ -138,23 +137,19 @@ Parameters
 `
 ```
 
-### Delete a specific message
-
+#### Delete a specific message
 ```
 `  
 `
 ```
-(Use publish-timetoken as `end`, timetoken − 1 as `start`.)
 
 ---
 
-## Message Counts
+## Message Counts  (requires Message Persistence)
 
-Returns number of messages on channels since supplied timetoken(s).  
-For Unlimited retention keys, only messages from last 30 days are counted.
+Returns number of messages published **≥** each supplied timetoken (last 30 days if unlimited retention).
 
 ### Method
-
 ```
 `pubnub.messageCounts({  
     channels: Arraystring>,  
@@ -164,18 +159,16 @@ For Unlimited retention keys, only messages from last 30 days are counted.
 ```
 
 Parameters  
-• `channels` (array<string>)  
-• `channelTimetokens` (array<string>) – one per channel or single value for all.
+• `channels` Array<string> – required  
+• `channelTimetokens` Array<string> – one timetoken for all channels or one per channel
 
-### Basic usage
-
+### Sample code
 ```
 `  
 `
 ```
 
 ### Returns
-
 ```
 `{  
     channels: {  
@@ -185,8 +178,7 @@ Parameters
 `
 ```
 
-Status:
-
+### Status response
 ```
 `{  
     error: false,  
@@ -196,8 +188,7 @@ Status:
 `
 ```
 
-Example with different timetokens per channel:
-
+#### Example (different timetokens per channel)
 ```
 `  
 `
@@ -205,13 +196,9 @@ Example with different timetokens per channel:
 
 ---
 
-## History (deprecated)
-
-Use *Fetch History* instead.  
-Still available; max 100 messages per call.
+## History (deprecated – use Fetch History)
 
 ### Method
-
 ```
 `pubnub.history({  
     channel: string,  
@@ -226,12 +213,11 @@ Still available; max 100 messages per call.
 ```
 
 Key points  
-• `reverse:true` reads oldest→newest (ignored if both `start` and `end` provided).  
-• `stringifiedTimeToken:true` prevents JS integer rounding.  
-• `start` exclusive, `end` inclusive.
+• Max 100 msgs; `reverse` ignored if both `start` and `end` provided.  
+• `start` exclusive, `end` inclusive.  
+• `stringifiedTimeToken: true` recommended for large integers.
 
-### Basic usage
-
+### Sample code
 ```
 `try {  
     const result = await pubnub.history({  
@@ -246,7 +232,6 @@ Key points
 ```
 
 ### Response
-
 ```
 `// Example of Status  
 {  
@@ -267,15 +252,21 @@ Key points
 ```
 (show all 21 lines)
 
-### Additional history examples
+#### Additional examples  
+• Retrieve oldest 3 messages (`reverse: true`)  
+• Page forwards from a timetoken (`reverse: true`, `start`)  
+• Page backwards until a timetoken (`end`)  
+• Full paging loop (`while`)  
+• Fetch with metadata  
+• Promise-based usage
 
-Retrieve three oldest messages (`reverse:true`):
+(All original code blocks retained below.)
 
 ```
 `try {  
     const result = await pubnub.history({  
         channel: "my_channel",  
-        reverse: true,  
+        reverse: true, // Setting to true will traverse the time line in reverse starting with the oldest message first.  
         count: 3,  
         stringifiedTimeToken: true,  
     });  
@@ -284,8 +275,6 @@ Retrieve three oldest messages (`reverse:true`):
 }  
 `
 ```
-
-Paging forward from a timetoken:
 
 ```
 `try {  
@@ -301,8 +290,6 @@ Paging forward from a timetoken:
 `
 ```
 
-Paging backward until a timetoken:
-
 ```
 `try {  
     const result = await pubnub.history({  
@@ -315,8 +302,6 @@ Paging backward until a timetoken:
 }  
 `
 ```
-
-Full paging loop example:
 
 ```
 `async function getAllMessages(initialTimetoken = 0) {  
@@ -338,8 +323,6 @@ Full paging loop example:
 ```
 (show all 28 lines)
 
-Fetch with metadata:
-
 ```
 `try {  
     const result = await pubnub.history({  
@@ -352,8 +335,6 @@ Fetch with metadata:
 }  
 `
 ```
-
-Promise style:
 
 ```
 `pubnub.history({**    channel: 'history_channel',  
@@ -370,4 +351,4 @@ Promise style:
 `
 ```
 
-_Last updated Jun 30 2025_
+_Last updated Jul 15 2025_

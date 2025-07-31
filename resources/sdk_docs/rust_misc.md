@@ -1,46 +1,48 @@
-# Utility Methods API (Rust SDK)
+# Utility Methods API – Rust SDK (Misc)
 
-These helper methods are available only on a `PubNub` client instance.
+## disconnect()
 
-## Disconnect
+Temporarily stop receiving real-time updates. A cursor for the last received message is stored.
 
-Disconnects from PubNub and pauses real-time updates. Saves a cursor for later catch-up.
+**Client scope:** `PubNub` object
 
-### Method
+#### Method
 ```rust
-`pubnub.disconnect()  
-`
+pubnub.disconnect()
 ```
 
-### Example
+#### Example
 ```rust
-`pubnub.disconnect();  
-`
+pubnub.disconnect();
 ```
 
 Returns: `None`
 
 ---
 
-## Reconnect
+## reconnect(cursor: Option<SubscriptionCursor>)
 
-Resumes real-time updates, using an optional cursor for catch-up.
+Resume real-time updates and attempt message catch-up since the last `disconnect`.
 
-### Method
+* `cursor`  
+  • Type: `Option<SubscriptionCursor>`  
+  • Structure: `SubscriptionCursor { timetoken: String, region: u32 }`  
+  • Pass `None` to skip catch-up. Retrieval is best-effort.
+
+**Client scope:** `PubNub` object
+
+#### Method
 ```rust
-`pubnub.reconnect(cursor: OptionSubscriptionCursor>)  
-`
+pubnub.reconnect(cursor: Option<SubscriptionCursor>)
 ```
 
-Parameter  
-• `cursor: Option<SubscriptionCursor>` – `{ timetoken: String, region: u32 }` of last received message (best-effort). Pass `None` to ignore.
-
-### Example
+#### Example
 ```rust
-`pubnub.reconnect(None);  
-`
+pubnub.reconnect(None);
 ```
 
 Returns: `None`
 
-_Last updated: Mar 6, 2025_
+---
+
+_Last updated: Jul 15, 2025_

@@ -1,564 +1,358 @@
-# App Context API – Java SDK (v9+)  
-The Objects (App Context) API stores and manages metadata for users (UUIDs), channels, and their relationships.  
-Below is a condensed reference that keeps every original code block, method signature, parameter, and response model.
+# App Context (Objects v2) – PubNub Java SDK v9+
+
+• v9.0.0 merges Java & Kotlin SDKs, introduces a new PubNub client builder, and changes async callbacks / status events.  
+• If you upgrade from Java SDK < 9.0.0 or from Objects v1, read the migration guides.
 
 ---
 
-## User
+## User (UUID metadata)
 
-### Get Metadata for All Users  
-
-```java
-pubnub.getAllUUIDMetadata()  
-    .limit(Integer)  
-    .page(PNPage)  
-    .filter(String)  
-    .sort(List<PNSortKey>)  
-    .includeTotalCount(Boolean)  
-    .includeCustom(Boolean)  
+### Get metadata for all users
 ```
+pubnub.getAllUUIDMetadata()
+    .limit(Integer)
+    .page(PNPage)
+    .filter(String)
+    .sort(List<PNSortKey>)
+    .includeTotalCount(Boolean)
+    .includeCustom(Boolean)
+```
+Parameters  
+• limit (Integer, default 100) – max objects per page  
+• page (PNPage) – paging cursor  
+• filter (String) – expression (see filtering docs)  
+• sort (List<PNSortKey>) – use PNSortKey.asc/desc on ID, NAME, UPDATED, STATUS, TYPE  
+• includeTotalCount (Boolean, default false)  
+• includeCustom (Boolean, default false)
 
-Parameters: limit (100 default), page, filter, sort, includeTotalCount (false), includeCustom (false).  
-
-```java
+Response
+```
+public class PNGetAllUUIDMetadataResult extends EntityArrayEnvelope<PNUUIDMetadata> {
+    Integer totalCount;
+    String next; String prev; int status;
+    List<PNUUIDMetadata> data;
+    PNPage nextPage(); PNPage previousPage();
+}
+public class PNUUIDMetadata extends PNObject {
+    String id; Object custom; String updated; String eTag;
+    String name; String email; String externalId; String profileUrl;
+}
+```
+```
   
 ```
 
-```java
-public class PNGetAllUUIDMetadataResult extends EntityArrayEnvelope<PNUUIDMetadata> {  
-    Integer totalCount;  
-    String next;  
-    String prev;  
-    int status;  
-    List<PNUUIDMetadata> data;  
-    PNPage nextPage() { return PNPage.next(next); }  
-    PNPage previousPage() { return PNPage.previous(prev); }  
-}  
-  
-public class PNUUIDMetadata extends PNObject {  
+### Get user metadata
 ```
-show all 24 lines
+pubnub.getUUIDMetadata()
+    .uuid(String)
+    .includeCustom(Boolean)
 ```
+Parameters  
+• uuid (String, default configuration.userId)  
+• includeCustom (Boolean, default false)
 
----
-
-### Get User Metadata  
-
-```java
-pubnub.getUUIDMetadata()  
-    .uuid(String)  
-    .includeCustom(Boolean)  
+Response (same PNUUIDMetadata)
 ```
-
-Parameters: uuid (default configuration userId), includeCustom (false).  
-
-```java
+public class PNGetUUIDMetadataResult extends EntityEnvelope<PNUUIDMetadata> {
+    int status; PNUUIDMetadata data;
+}
+```
+```
   
 ```
 
-```java
-public class PNGetUUIDMetadataResult extends EntityEnvelope<PNUUIDMetadata> {  
-    int status;  
-    PNUUIDMetadata data;  
-}  
-  
-public class PNUUIDMetadata extends PNObject {  
-    String id;  
-    Object custom;  
-    String updated;  
-    String eTag;  
-    String name;  
-    String email;  
-    String externalId;  
-    String profileUrl;  
-}  
+### Set user metadata
 ```
-
----
-
-### Set User Metadata  
-
-```java
-pubnub.setUUIDMetadata()  
-    .uuid(String)  
-    .name(String)  
-    .externalId(String)  
-    .profileUrl(String)  
-    .email(String)  
-    .custom(Map<String, Object>)  
-    .includeCustom(true)  
-    .ifMatchesEtag(String)  
+pubnub.setUUIDMetadata()
+    .uuid(String)
+    .name(String)
+    .externalId(String)
+    .profileUrl(String)
+    .email(String)
+    .custom(Map<String,Object>)
+    .includeCustom(Boolean)
+    .ifMatchesEtag(String)
 ```
+Parameters – same names as builder chain; custom completely overwrites existing value.
 
-All supplied fields overwrite previous values (no partial-merge for `custom`).  
-
-```java
+Response
+```
+public class PNSetUUIDMetadataResult extends EntityEnvelope<PNUUIDMetadata> {
+    int status; PNUUIDMetadata data;
+}
+```
+```
   
 ```
 
-```java
-public class PNSetUUIDMetadataResult extends EntityEnvelope<PNUUIDMetadata> {  
-    protected int status;  
-    protected PNUUIDMetadata data;  
-}  
-  
-public class PNUUIDMetadata extends PNObject {  
-    String id;  
-    Object custom;  
-    String updated;  
-    String eTag;  
-    String name;  
-    String email;  
-    String externalId;  
-    String profileUrl;  
-}  
+### Remove user metadata
 ```
-
----
-
-### Remove User Metadata  
-
-```java
-pubnub.removeUUIDMetadata()  
-    .uuid(String)  
+pubnub.removeUUIDMetadata()
+    .uuid(String)
 ```
-
-```java
-  
+Response
 ```
-
-```java
-public class PNRemoveUUIDMetadataResult extends EntityEnvelope<JsonElement> {  
-    int status;  
-    JsonElement data;  
-}  
+public class PNRemoveUUIDMetadataResult extends EntityEnvelope<JsonElement> {
+    int status; JsonElement data;
+}
 ```
-
----
-
-## Channel
-
-### Get Metadata for All Channels  
-
-```java
-pubnub.getAllChannelsMetadata()  
-        .limit(Integer)  
-        .page(PNPage)  
-        .filter(String)  
-        .sort(List<PNSortKey>)  
-        .includeTotalCount(Boolean)  
-        .includeCustom(Boolean)  
 ```
-
-Parameters mirror the UUID variant.  
-
-```java
-  
-```
-
-```java
-public class PNGetAllChannelsMetadataResult extends EntityArrayEnvelope<PNChannelMetadata> {  
-    int status;  
-    List<PNChannelMetadata> data;  
-    Integer totalCount;  
-    String next;  
-    String prev;  
-}  
-  
-public class PNChannelMetadata extends PNObject {  
-    String id;  
-    Object custom;  
-    String updated;  
-    String eTag;  
-    String name;  
-    String description;  
-```
-show all 16 lines
-```
-
----
-
-### Get Channel Metadata  
-
-```java
-pubnub.getChannelMetadata()  
-    .channel(String)  
-    .includeCustom(Boolean)  
-```
-
-```java
-  
-```
-
-```java
-public class PNGetChannelMetadataResult extends EntityEnvelope<PNChannelMetadata> {  
-    protected int status;  
-    protected PNChannelMetadata data;  
-}  
-  
-public class PNChannelMetadata extends PNObject {  
-    String id;  
-    Object custom;  
-    String updated;  
-    String eTag;  
-    String name;  
-    String description;  
-}  
-```
-
----
-
-### Set Channel Metadata  
-
-```java
-pubnub.setChannelMetadata()  
-    .channel(String)  
-    .name(String)  
-    .description(String)  
-    .custom(Map<String, Object>)  
-    .includeCustom(Boolean)  
-    .ifMatchesEtag(String)  
-```
-
-`custom` fully overwrites previous value.  
-
-```java
-  
-```
-
-```java
-public class PNSetChannelMetadataResult extends EntityEnvelope<PNChannelMetadata> {  
-    protected int status;  
-    protected PNChannelMetadata data;  
-}  
-  
-public class PNChannelMetadata extends PNObject {  
-    String id;  
-    Object custom;  
-    String updated;  
-    String eTag;  
-    String name;  
-    String description;  
-}  
-```
-
-```java
   
 ```
 
 ---
 
-### Remove Channel Metadata  
+## Channel metadata
 
-```java
-pubnub.removeChannelMetadata()  
-    .channel(String)  
+### Get metadata for all channels
 ```
+pubnub.getAllChannelsMetadata()
+    .limit(Integer)
+    .page(PNPage)
+    .filter(String)
+    .sort(List<PNSortKey>)
+    .includeTotalCount(Boolean)
+    .includeCustom(Boolean)
+```
+Parameters identical to UUID version.
 
-```java
+Response
+```
+public class PNGetAllChannelsMetadataResult extends EntityArrayEnvelope<PNChannelMetadata> {
+    int status; List<PNChannelMetadata> data;
+    Integer totalCount; String next; String prev;
+}
+public class PNChannelMetadata extends PNObject {
+    String id; Object custom; String updated; String eTag;
+    String name; String description;
+}
+```
+```
   
 ```
 
-```java
-public class PNRemoveChannelMetadataResult extends EntityEnvelope<JsonElement> {  
-    int status;  
-    protected JsonElement data;  
-}  
+### Get channel metadata
+```
+pubnub.getChannelMetadata()
+    .channel(String)
+    .includeCustom(Boolean)
+```
+Response
+```
+public class PNGetChannelMetadataResult extends EntityEnvelope<PNChannelMetadata> {
+    int status; PNChannelMetadata data;
+}
+```
+```
+  
+```
+
+### Set channel metadata
+```
+pubnub.setChannelMetadata()
+    .channel(String)
+    .name(String)
+    .description(String)
+    .custom(Map<String,Object>)
+    .includeCustom(Boolean)
+    .ifMatchesEtag(String)
+```
+(custom replaces existing value)
+
+Response
+```
+public class PNSetChannelMetadataResult extends EntityEnvelope<PNChannelMetadata> {
+    int status; PNChannelMetadata data;
+}
+```
+```
+  
+```
+Iterative update example
+```
+  
+```
+
+### Remove channel metadata
+```
+pubnub.removeChannelMetadata()
+    .channel(String)
+```
+Response
+```
+public class PNRemoveChannelMetadataResult extends EntityEnvelope<JsonElement> {
+    int status; JsonElement data;
+}
+```
+```
+  
 ```
 
 ---
 
-## Channel Memberships (User ↔ Channel)
+## Channel memberships (user ↔ channel links)
 
-### Get Memberships  
-
-```java
-pubnub.getMemberships()  
-    .userId(String)  
-    .limit(Integer)  
-    .page(PNPage)  
-    .filter(String)  
-    .sort(List<PNSortKey>)  
-    .include(MembershipInclude)  
-    .async(result -> { /* check result */ });  
+### Get channel memberships
 ```
-
-```java
+pubnub.getMemberships()
+    .userId(String)
+    .limit(Integer)
+    .page(PNPage)
+    .filter(String)
+    .sort(List<PNSortKey>)
+    .include(MembershipInclude)
+    .async(result -> { ... });
+```
+Response
+```
+public class PNGetMembershipsResult extends EntityArrayEnvelope<PNMembership> {
+    Integer totalCount; String next; String prev; int status;
+    List<PNMembership> data;
+}
+public class PNMembership {
+    PNChannelMetadata channel; Object custom; String updated; String eTag;
+}
+```
+```
+  
+```
+Pagination sample
+```
   
 ```
 
-```java
-public class PNGetMembershipsResult extends EntityArrayEnvelope<PNMembership> {  
-    protected Integer totalCount;  
-    protected String next;  
-    protected String prev;  
-    protected int status;  
-    protected List<PNMembership> data;  
-}  
+### Set channel memberships
+```
+pubnub.setMemberships(Collection<PNChannelMembership>)
+    .userId(String)
+    .limit(Integer).page(PNPage).filter(String)
+    .sort(List<PNSortKey>).include(MembershipInclude)
+    .async(result -> { ... });
+```
+PNChannelMembership builder fields: channel, custom, status, type.
+
+Response
+```
+public class PNSetMembershipResult extends EntityArrayEnvelope<PNMembership> {
+    Integer totalCount; String next; String prev; int status;
+    List<PNMembership> data;
+}
+```
+```
   
-public class PNMembership {  
-    PNChannelMetadata channel;  
-    Object custom;  
-    String updated;  
-    String eTag;  
-}  
 ```
 
-```java
+### Remove channel memberships
+```
+pubnub.removeMemberships(Collection<PNChannelMembership>)
+    .userId(String) ...
+```
+Response
+```
+public class PNRemoveMembershipResults extends EntityArrayEnvelope<PNMembership> {
+    Integer totalCount; String next; String prev; int status;
+    List<PNMembership> data;
+}
+```
+```
+  
+```
+
+### Manage channel memberships (set + remove in one call)
+```
+pubnub.manageMemberships(Collection<PNChannelMembership>, Collection<String>)
+    .userId(String) ...
+```
+Response
+```
+public class PNManageMembershipResult extends EntityArrayEnvelope<PNMembership> {
+    Integer totalCount; String next; String prev; int status;
+    List<PNMembership> data;
+}
+```
+```
   
 ```
 
 ---
 
-### Set Memberships  
+## Channel members (channel ↔ user links)
 
-```java
-pubnub.setMemberships(Collection<PNChannelMembership>)  
-    .userId(String)  
-    .limit(Integer)  
-    .page(PNPage)  
-    .filter(String)  
-    .sort(List<PNSortKey>)  
-    .include(MembershipInclude)  
-    .async(result -> { /* check result */ });  
+### Get channel members
 ```
-
-`PNChannelMembership` builder: channel, custom, status, type.  
-
-```java
+pubnub.getChannelMembers(String)
+    .limit(Integer).page(PNPage).filter(String)
+    .sort(List<PNSortKey>).include(MemberInclude)
+    .async(result -> { ... });
+```
+Response
+```
+public class PNRemoveMembershipResults extends EntityArrayEnvelope<PNMembers> {
+    Integer totalCount; String next; String prev; int status;
+    List<PNMembers> data;
+}
+public class PNMembers {
+    PNUUIDMetadata uuid; Object custom; String updated; String eTag;
+}
+```
+```
   
 ```
 
-```java
-public class PNSetMembershipResult extends EntityArrayEnvelope<PNMembership> {  
-    Integer totalCount;  
-    String next;  
-    String prev;  
-    int status;  
-    List<PNMembership> data;  
-}  
-  
-public class PNMembership {  
-    PNChannelMetadata channel;  
-    Object custom;  
-    String updated;  
-    String eTag;  
-}  
+### Set channel members
 ```
-
----
-
-### Remove Memberships  
-
-```java
-pubnub.removeMemberships(Collection<PNChannelMembership>)  
-    .userId(String)  
-    .limit(Integer)  
-    .page(PNPage)  
-    .filter(String)  
-    .sort(List<PNSortKey>)  
-    .include(MembershipInclude)  
-    .async(result -> { /* check result */ });  
+pubnub.setChannelMembers(String, Collection<PNUser>)
+    .limit(Integer).page(PNPage).filter(String)
+    .sort(List<PNSortKey>).include(MemberInclude) ...
 ```
+PNUser builder fields: userId, custom, status, type.
 
-```java
+Response
+```
+public class PNSetChannelMembersResult extends EntityArrayEnvelope<PNMembers> {
+    Integer totalCount; String next; String prev; int status;
+    List<PNMembers> data;
+}
+```
+```
   
 ```
 
-```java
-public class PNRemoveMembershipResults extends EntityArrayEnvelope<PNMembership> {  
-    Integer totalCount;  
-    String next;  
-    String prev;  
-    int status;  
-    List<PNMembership> data;  
-}  
-  
-public class PNMembership {  
-    PNChannelMetadata channel;  
-    Object custom;  
-    String updated;  
-    String eTag;  
-}  
+### Remove channel members
 ```
-
----
-
-### Manage Memberships (set & remove in one call)
-
-```java
-pubnub.manageMemberships(Collection<PNChannelMembership>, Collection<String>)  
-    .userId(String)  
-    .limit(Integer)  
-    .page(PNPage)  
-    .filter(String)  
-    .sort(List<PNSortKey>)  
-    .include(MembershipInclude)  
-    .async(result -> { /* check result */ });  
+pubnub.removeChannelMembers(String, List<String>)
+    .limit(Integer).page(PNPage).filter(String)
+    .sort(List<PNSortKey>).include(MemberInclude)
 ```
-
-```java
+Response
+```
+public class PNRemoveChannelMembersResult extends EntityArrayEnvelope<PNMembers> {
+    Integer totalCount; String next; String prev; int status;
+    List<PNMembers> data;
+}
+```
+```
   
 ```
 
-```java
-public class PNManageMembershipResult extends EntityArrayEnvelope<PNMembership> {  
-    Integer totalCount;  
-    String next;  
-    String prev;  
-    int status;  
-    List<PNMembership> data;  
-}  
-  
-public class PNMembership {  
-    PNChannelMetadata channel;  
-    Object custom;  
-    String updated;  
-    String eTag;  
-}  
+### Manage channel members
 ```
-
----
-
-## Channel Members (Channel ↔ User)
-
-### Get Channel Members  
-
-```java
-pubnub.getChannelMembers(String)  
-    .limit(Integer)  
-    .page(PNPage)  
-    .filter(String)  
-    .sort(List<PNSortKey>)  
-    .include(MemberInclude)  
-    .async(result -> { /* check result */ });  
+pubnub.manageChannelMembers(String,
+        Collection<PNUser> set,
+        Collection<String> remove)
+    .limit(Integer).page(PNPage).filter(String)
+    .sort(List<PNSortKey>).include(MemberInclude)
 ```
-
-```java
+Response
+```
+public class PNManageChannelMembersResult extends EntityArrayEnvelope<PNMembers> {
+    Integer totalCount; String next; String prev; int status;
+    List<PNMembers> data;
+}
+```
+```
   
 ```
 
-```java
-public class PNRemoveMembershipResults extends EntityArrayEnvelope<PNMembers> {  
-    Integer totalCount;  
-    String next;  
-    String prev;  
-    int status;  
-    List<PNMembers> data;  
-}  
-  
-public class PNMembers {  
-    PNUUIDMetadata uuid;  
-    Object custom;  
-    String updated;  
-    String eTag;  
-}  
-```
-
----
-
-### Set Channel Members  
-
-```java
-pubnub.setChannelMembers(String, Collection<PNUser>)  
-    .limit(Integer)  
-    .page(PNPage)  
-    .filter(String)  
-    .sort(List<PNSortKey>)  
-    .include(MemberInclude)  
-    .async(result -> { /* check result */ });  
-```
-
-`PNUser` builder: userId, custom, status, type.  
-
-```java
-  
-```
-
-```java
-public class PNSetChannelMembersResult extends EntityArrayEnvelope<PNMembers> {  
-    Integer totalCount;  
-    String next;  
-    String prev;  
-    int status;  
-    List<PNMembers> data;  
-}  
-  
-public class PNMembers {  
-    PNUUIDMetadata uuid;  
-    Object custom;  
-    String updated;  
-    String eTag;  
-}  
-```
-
----
-
-### Remove Channel Members  
-
-```java
-pubnub.removeChannelMembers(String, List<String>)  
-    .limit(Integer)  
-    .page(PNPage)  
-    .filter(String)  
-    .sort(List<PNSortKey>)  
-    .includeTotalCount(Boolean)  
-    .includeCustom(Boolean)  
-    .includeUUID(PNUUIDDetailsLevel)  
-```
-
-```java
-  
-```
-
-```java
-public class PNRemoveChannelMembersResult extends EntityArrayEnvelope<PNMembers> {  
-    Integer totalCount;  
-    String next;  
-    String prev;  
-    int status;  
-    List<PNMembers> data;  
-}  
-  
-public class PNMembers {  
-    PNUUIDMetadata uuid;  
-    Object custom;  
-    String updated;  
-    String eTag;  
-}  
-```
-
----
-
-### Manage Channel Members  
-
-```java
-pubnub.manageChannelMembers(String, Collection<PNUser>, Collection<String>)  
-    .limit(Integer)  
-    .page(PNPage)  
-    .filter(String)  
-    .sort(List<PNSortKey>)  
-    .include(MemberInclude)  
-```
-
-```java
-  
-```
-
-```java
-public class PNManageChannelMembersResult extends EntityArrayEnvelope<PNMembers> {**    Integer totalCount;  
-    String next;  
-    String prev;  
-    int status;  
-    List<PNMembers> data;  
-}  
-  
-public class PNMembers {  
-    PNUUIDMetadata uuid;  
-    Object custom;  
-    String updated;  
-    String eTag;  
-}  
-```
-
-_Last updated May 28 2025_
+_Last updated Jul 15 2025_

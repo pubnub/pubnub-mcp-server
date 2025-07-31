@@ -1,16 +1,16 @@
-# Access Manager v3 – Go SDK (Condensed)
+# Access Manager v3 – Go SDK
 
-Access Manager issues time-limited, permission-encoded tokens for PubNub resources. Tokens may target specific resources or RegEx patterns and can be restricted to a single UUID/UserID (recommended).  
-Add-on must be enabled in the Admin Portal.
+Requires:  
+• Access Manager add-on enabled in the Admin Portal  
+• `SecretKey` (for `GrantToken`, `RevokeToken`)  
 
 ---
 
-## Grant Token – Channels / Channel Groups / UUIDs
+## Grant Token (channels, groups, UUIDs)
 
-### Method
-
-```
-pn.GrantToken().
+Method
+```go
+`pn.GrantToken().
   UUIDs(map[string]UUIDPermissions).
   Channels(map[string]ChannelPermissions).
   ChannelGroups(map[string]GroupPermissions).
@@ -21,102 +21,109 @@ pn.GrantToken().
   AuthorizedUUID(string).
   Meta(map[string]interface{}).
   QueryParam(queryParam).
-  Execute()
+  Execute()`
 ```
 
-Parameter (type) – notes  
-• UUIDs `map[string]UUIDPermissions` Direct resource list  
-• Channels `map[string]ChannelPermissions`  
-• ChannelGroups `map[string]GroupPermissions`  
-• UUIDsPattern / ChannelsPattern / ChannelGroupsPattern `map[string]…Permissions` RegEx patterns  
-• TTL `int` *required* (1-43 200 min)  
-• AuthorizedUUID `string` Limit token to one UUID  
-• Meta `map[string]interface{}` Scalar values only
+Parameters  
+• `UUIDs`, `Channels`, `ChannelGroups` – maps of resources to permissions  
+• `UUIDsPattern`, `ChannelsPattern`, `ChannelGroupsPattern` – RegEx → permissions  
+• `TTL` (required) minutes, 1–43 200  
+• `AuthorizedUUID` (single client)  
+• `Meta` (scalar values only)
 
-At least one resource OR pattern is mandatory.
+At least one resource or pattern must be provided.
 
-### Basic usage
-
+Permissions reference  
 ```
-package main  
-  
-import (  
-	"fmt"  
-	"log"  
-  
-	pubnub "github.com/pubnub/go/v7"  
-)  
-  
-func main() {  
-	// Configuration for PubNub with demo keys  
-	config := pubnub.NewConfigWithUserId("myUniqueUserId")  
-	config.SubscribeKey = "demo"  
-	config.PublishKey = "demo"  
-	config.SecretKey = "mySecretKey" // Required for grantToken  
+Channels: read | write | get | manage | update | join | delete  
+ChannelGroups: read | manage  
+UUIDs: get | update | delete
 ```
-*(show all 48 lines)*
 
-### Return
-
-```
-PNGrantTokenResponse{
+Return
+```go
+`PNGrantTokenResponse{
   Data: PNGrantTokenData{
-      Message: "Success",
-      Token: "p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAF...WGJI",
+    Message: "Success",
+    Token: "p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAF..."
   }
-}
+}`
 ```
 
-### Examples
+Reference code
+```go
+`package main
 
-Grant mixed permissions:
+import (
+	"fmt"
+	"log"
 
-```
-res, status, err := pn.GrantToken().
+	pubnub "github.com/pubnub/go/v7"
+)
+
+func main() {
+	config := pubnub.NewConfigWithUserId("myUniqueUserId")
+	config.SubscribeKey = "demo"
+	config.PublishKey  = "demo"
+	config.SecretKey   = "mySecretKey" // Required for grantToken`
+```  
+(show all 48 lines)
+
+Examples  
+
+Grant multiple resource levels in one call
+```go
+`res, status, err := pn.GrantToken().
         TTL(15).
         AuthorizedUUID("my-authorized-uuid").
         Channels(map[string]pubnub.ChannelPermissions{
-                "channel-a": { Read: true },
-                "channel-b": { Read: true, Write: true },
-                "channel-c": { Read: true, Write: true },
+                "channel-a": {Read: true},
+                "channel-b": {Read: true, Write: true},
+                "channel-c": {Read: true, Write: true},
+                // …
+        }).
+        ChannelGroups(map[string]pubnub.GroupPermissions{
+                "channel-group-b": {Read: true},
+        }).
+        UUIDs(map[string]pubnub.UUIDPermissions{
+                "uuid-c": {Get: true},
+                "uuid-d": {Get: true, Update: true},
+        }).
+        Execute()`
 ```
-*(show all 35 lines)*
 
-Grant read via RegEx:
-
-```
-res, status, err := pn.GrantToken().
+Grant read to channels via RegEx
+```go
+`res, status, err := pn.GrantToken().
         TTL(15).
         AuthorizedUUID("my-authorized-uuid").
         ChannelsPattern(map[string]pubnub.ChannelPermissions{
-                "^channel-[A-Za-z0-9]*$": { Read: true },
+                "^channel-[A-Za-z0-9]*$": {Read: true},
         }).
-        Execute()
+        Execute()`
 ```
 
-Mixed explicit + RegEx:
-
-```
-res, status, err := pn.GrantToken().
+Mixed explicit + RegEx
+```go
+`res, status, err := pn.GrantToken().
         TTL(15).
         AuthorizedUUID("my-authorized-uuid").
-        Channels(map[string]pubnub.ChannelPermissions{
-                "channel-a": { Read: true },
-                "channel-b": { Read: true, Write: true },
-                "channel-c": { Read: true, Write: true },
+        // explicit resources …
+        ChannelsPattern(map[string]pubnub.ChannelPermissions{
+                "^channel-[A-Za-z0-9]*$": {Read: true},
+        }).
+        Execute()`
 ```
-*(show all 40 lines)*
 
-Error: invalid arguments → `400`; invalid token/permissions → `403`.
+Error: HTTP 400 on invalid args (bad RegEx, timestamp, permissions, etc.).
 
 ---
 
-## Grant Token – Spaces & Users
+## Grant Token (spaces & users)
 
-### Method
-
-```
-pn.GrantToken().
+Method
+```go
+`pn.GrantToken().
   UsersPermissions(map[UserId]UserPermissions).
   SpacesPermissions(map[SpaceId]SpacePermissions).
   UserPatternsPermissions(map[string]UserPermissions).
@@ -125,123 +132,75 @@ pn.GrantToken().
   AuthorizedUserId(UserId).
   Meta(map[string]interface{}).
   QueryParam(queryParam).
-  Execute()
+  Execute()`
 ```
 
-Mandatory fields mirror the previous section (Users/Spaces instead of UUIDs/Channels).
-
-### Basic usage
-
+Permissions
 ```
-res, status, err := pn.GrantToken().
+Spaces: read | write | get | manage | update | join | delete  
+Users : get  | update | delete
+```
+
+Sample
+```go
+`res, status, err := pn.GrantToken().
         TTL(15).
         AuthorizedUserId("my-authorized-userId").
         SpacesPermissions(map[SpaceId]pubnub.SpacePermissions{
-                "my_spaces": { Read: true },
+                "my_spaces": {Read: true},
         }).
-        Execute()
+        Execute()`
 ```
 
-### Return (identical format)
+Other examples mirror channel-based samples; code blocks unchanged.
 
-```
-PNGrantTokenResponse{
-  Data: PNGrantTokenData{
-      Message: "Success",
-      Token: "p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAF...WGJI",
-  }
-}
-```
-
-### Examples
-
-Different levels:
-
-```
-res, status, err := pn.GrantToken().
-        TTL(15).
-        AuthorizedUserId("my-authorized-userId").
-        SpacesPermissions(map[SpaceId]pubnub.SpacePermissions{
-                "space-a": { Read: true },
-                "space-b": { Read: true, Write: true },
-                "space-c": { Read: true, Write: true },
-```
-*(show all 30 lines)*
-
-RegEx read:
-
-```
-res, status, err := pn.GrantToken().
-        TTL(15).
-        AuthorizedUserId("my-authorized-userId").
-        SpacePatternsPermissions(map[string]pubnub.SpacePermissions{
-                "^space-[A-Za-z0-9]*$": { Read: true },
-        }).
-        Execute()
-```
-
-Combined:
-
-```
-res, status, err := pn.GrantToken().
-        TTL(15).
-        AuthorizedUserId("my-authorized-userId").
-        SpacesPermissions(map[string]pubnub.SpacePermissions{
-                "space-a": { Read: true },
-                "space-b": { Read: true, Write: true },
-                "space-c": { Read: true, Write: true },
-```
-*(show all 35 lines)*
+Return / errors identical to channel variant.
 
 ---
 
 ## Revoke Token
 
-Enable “Revoke v3 Token” in the Admin Portal first.
+Enable “Revoke v3 Token” in Admin Portal first.
 
-### Method
-
+Method
+```go
+`pn.RevokeToken().
+        Token(string)`
 ```
-pn.RevokeToken().
-        Token(string)
-```
 
-### Usage
-
-```
-res, status, err := pn.RevokeToken().
+Sample
+```go
+`res, status, err := pn.RevokeToken().
         Token("p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAF...").
-        Execute()
+        Execute()`
 ```
 
-Returns empty `PNRevokeTokenResponse`.  
-Errors: `400`, `403`, `503`.
+Returns: empty `PNRevokeTokenResponse`  
+Errors: 400, 403, 503.
 
 ---
 
 ## Parse Token
 
-```
-import (
-        pubnub "github.com/pubnub/go/v5")
-```
-
-### Method
-
-```
-pubnub.ParseToken(token string)
+Import
+```go
+`import (
+        pubnub "github.com/pubnub/go/v5")`
 ```
 
-### Usage
-
+Method
+```go
+`pubnub.ParseToken(token string)`
 ```
-pubnub.ParseToken("p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAF...")
+
+Sample
+```go
+`pubnub.ParseToken("p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAF...")`
 ```
 
-### Return
-
-```
-PNToken{
+Return (truncated)
+```go
+`PNToken{
   Version: 2,
   Timestamp: 1619718521,
   TTL: 15,
@@ -255,28 +214,25 @@ PNToken{
       Manage: true,
       Update: true,
       Join: true,
-    },
-```
-*(show all 46 lines)*
+    },`
+```  
+(show remaining lines)  
+Error: token malformed ⇒ request new one.
 
 ---
 
 ## Set Token
 
-### Method
-
-```
-pn.SetToken(token string)
-```
-
-### Usage
-
-```
-pn.SetToken("p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAF...")
+Method
+```go
+`pn.SetToken(token string)`
 ```
 
-(No return value)
+Sample
+```go
+`pn.SetToken("p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAF...")`
+```
 
----
+No return value.
 
-Last updated **Apr 29 2025**
+_Last updated Jul 15 2025_

@@ -1,190 +1,113 @@
-# Unity API & SDK Docs v9.0.1 (Condensed)
+# Unity API & SDK Docs v9.1.0 – Overview (condensed)
 
-This overview keeps only the essentials—all code blocks, method signatures, parameters, and key setup details are unchanged.
-
----
-
-## Overview
-• PubNub Unity SDK targets iOS, Android, Windows, macOS, Linux, WebGL, and VR/AR.  
-• API use is identical across platforms; only initialization can differ.
-
-### WebGL
-SDK is WebGL-compatible. Configuration details: `/configuration#webgl-configuration`.
-
----
+## Supported targets
+• Mobile (iOS, Android)  
+• Desktop (Windows, macOS, Linux)  
+• WebGL (see WebGL configuration)  
+• VR/AR  
 
 ## Prerequisites
-• Unity 2018.4.26f1+  
+• Unity 2018.4.26f1 or newer  
 • C# / Unity basics  
-• PubNub account & keyset
-
----
+• PubNub account (publish & subscribe keys)  
 
 ## Setup
 
-### Get your PubNub keys
-1. Log in / sign up on PubNub Admin Portal.  
-2. Create (or select) an app.  
-3. Note the Publish & Subscribe keys.  
-(Use separate keysets for dev / prod.)
+### 1. Get PubNub keys
+Admin Portal → create app → copy Publish/Subscribe keys.  
+Use separate keysets for dev / prod.
 
-### Install the SDK
+### 2. Install SDK (latest version)
 
-#### Package Manager (recommended)
-Window → Package Manager → “+” → **Add package from git URL**
+Package Manager (recommended):  
+Window → Package Manager → “+” → Add package from git URL → paste:
 
 ```
-https://github.com/pubnub/unity.git?path=/PubNubUnity/Assets/PubNub
+`https://github.com/pubnub/unity.git?path=/PubNubUnity/Assets/PubNub  
+`
 ```
 
-Then: PubNub menu → **Set up templates** → restart Unity.
+Restart Unity, then PubNub → Set up templates.
 
-#### Source code
+Source code alternative (same URL):
 
 ```
-https://github.com/pubnub/unity.git?path=/PubNubUnity/Assets/PubNub
+`https://github.com/pubnub/unity.git?path=/PubNubUnity/Assets/PubNub  
+`
 ```
 
----
+## Configure PubNub
 
-## Steps
+Editor workflow:  
+1. Project tree → Create → PubNub → PubNub Config Asset (`PNConfigAsset`)  
+2. Enter Publish/Subscribe keys, optionally set other fields.  
+3. Ensure every client has a unique UserId (auto-generated for tests; specify in production).  
+4. Create PubNub Manager Script → add to GameObject → drag `PNConfigAsset` into “PubNub Configuration”.
 
-### Configure PubNub (Editor)
-1. Project tree → Create → PubNub → **PubNub Config Asset** (`PNConfigAsset`).  
-2. Enter Publish / Subscribe keys (others optional).  
-3. Ensure every client has a unique **UserId** (auto-generated in editor, but set meaningful IDs in production).  
-4. Project tree → Create → PubNub → **PubNub Manager Script** (`PnManager`).  
-5. Add `PnManager` to a GameObject and drag `PNConfigAsset` into its **PubNub Configuration** field.
+Programmatic alternative:
 
-#### Configure programmatically
-
-```csharp
-// Create a configuration object
-PNConfiguration pnConfiguration = new PNConfiguration(new UserId("myUniqueUserId"));
-pnConfiguration.PublishKey   = "demo";   // ← replace
-pnConfiguration.SubscribeKey = "demo";   // ← replace
-pnConfiguration.Secure       = true;     // SSL on
-
-// Initialize PubNub
-Pubnub pubnub = new Pubnub(pnConfiguration);
+```
+`  
+`
 ```
 
----
+## Event Listeners
 
-### Set up event listeners
+Add both listener types to handle SDK callbacks:
 
-```csharp
-// Add listeners
-listener.onStatus  += OnPnStatus;
-listener.onMessage += OnPnMessage;
-
-// Status handler
-void OnPnStatus(Pubnub pn, PNStatus status) {
-    Debug.Log(status.Category == PNStatusCategory.PNConnectedCategory ? "Connected" : "Not connected");
-}
-
-// Message handler
-void OnPnMessage(Pubnub pn, PNMessageResult<object> result) {
-    Debug.Log($"Message received: {result.Message}");
-}
+```
+`  
+`
 ```
 
----
+• Status Listener – connection / operation events  
+• Message Listener – real-time messages  
 
-### Create a subscription
+## Subscribe
 
-```csharp
-// Modern API
-Channel channel         = pubnub.Channel("TestChannel");
-Subscription subscription = channel.Subscription();
-subscription.Subscribe<object>();
+Three-step subscription flow:
 
-// Legacy API
-pubnub.Subscribe<string>().Channels(new[] { "TestChannel" }).Execute();
+1. Create listener  
+2. Add channels  
+3. Call Subscribe
+
+```
+`  
+`
 ```
 
----
+## Publish
 
-### Publish messages
+Send ≤ 32 KiB JSON-serializable payloads to a channel:
 
-```csharp
-// Simple publish
-await pubnub.Publish()
-            .Channel("TestChannel")
-            .Message("Hello World from Unity!")
-            .ExecuteAsync();
-
-// Publish Unity object (handles circular refs)
-await pubnub.Publish()
-            .Channel("TestChannel")
-            .Message(transform.position.GetJsonSafe())
-            .ExecuteAsync();
-
-// Callback style
-pubnub.Publish()
-      .Channel("TestChannel")
-      .Message("Hello World from Unity!")
-      .Execute((result, status) => {
-          if (!status.Error) {
-              Debug.Log("Message sent successfully!");
-          } else {
-              Debug.LogError("Failed to send message: " + status.ErrorData.Information);
-          }
-      });
+```
+`  
+`
 ```
 
----
+## Run
 
-### Run the app
-1. Enter Play mode (or build).  
-2. Ensure keys, UserId, and network connectivity are correct.  
-3. Publish a message; confirm it appears in the console of all subscribed clients.  
-4. Stop Play mode / exit build.
-
----
+1. Enter Play mode or build to target platform  
+2. Observe Status callback (connected)  
+3. Publish a message → received in Message callback  
+4. Verify console output / in-game UI  
 
 ## Complete example
 
-```csharp
-using System.Collections.Generic;
-using UnityEngine;
-using Newtonsoft.Json;
-using PubnubApi;
-using PubnubApi.Unity;
-
-public class PNManager : PNManagerBehaviour {
-    // UserId identifies this client.
-    public string userId;
-
-    private async void Awake() {
-        if (string.IsNullOrEmpty(userId)) {
-            // It is recommended to change the UserId to a meaningful value to be able to identify this client.
-            userId = System.Guid.NewGuid().ToString();
-        }
 ```
-<!-- (rest of 51-line example unchanged in full documentation) -->
+`  
+`
+```
 
----
+## Troubleshooting (quick)
 
-## Troubleshooting
-
-No connection:  
-• Verify internet, keys, firewall, SSL.  
-
-Message not received:  
-• Check channel names, send status, wait for delivery.  
-
-Script errors:  
-• Confirm PubNub package imported and Unity version supported.  
-
-WebGL issues:  
-• Enable WebGL in `PNConfigAsset`; follow WebGL guide.
-
----
+• No connection → check Internet, keys, firewall, SSL.  
+• Message not received → verify channel, publish success, allow time.  
+• Script errors → confirm SDK import & Unity version.  
+• WebGL issues → enable WebGL mode in `PNConfigAsset`, follow WebGL configuration docs.  
 
 ## Next steps
-• Presence, Storage, Access Manager, leaderboards, chat, multiplayer position sync.  
-• Samples: PubNub Prix demo, GitHub repo.  
-• Full API reference & support portal available online.
 
-_Last updated Apr 29 2025_
+Presence, Storage, Access Manager, real-time chat, leaderboards, GitHub samples, support portal, AI assistant.
+
+_Last updated Jul 15 2025_

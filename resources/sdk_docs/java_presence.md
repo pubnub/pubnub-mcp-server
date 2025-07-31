@@ -1,75 +1,77 @@
-# Presence API – Java SDK (v9+)
+# Presence API – PubNub Java SDK (v9+)
 
-Presence add-on must be enabled on your PubNub keys.
-
-For migration details from < 9.0.0 see the Java/Kotlin migration guide.
+> Requires the Presence add-on to be enabled in the Admin Portal.  
+> SDK 9.x introduces a unified Java/Kotlin codebase and updated async APIs (see migration guide).
 
 ---
 
 ## Here Now
 
-Use to list current occupants of channels/channel-groups.
+Returns current occupancy, UUIDs, and/or state for channels or channel groups.  
+Server response is cached for 3 s.
 
 ### Method
 
-```
-`this.pubnub.hereNow()  
+```java
+this.pubnub.hereNow()  
     .channels(Array)  
     .channelGroups(Arrays)  
     .includeState(true)  
     .includeUUIDs(true)  
-`
 ```
 
-Parameters  
-• channels (Array) – target channels  
-• channelGroups (Arrays) – target groups  
-• includeState (Boolean, default false) – return user state  
-• includeUUIDs (Boolean, default true) – return UUIDs  
-• async (Consumer<Result<PNHereNowResult>>)
+Parameter | Type | Default | Notes
+---|---|---|---
+channels | Array | – | Channels to inspect
+channelGroups | Arrays | – | Channel groups to inspect
+includeState | Boolean | false | Return user state
+includeUUIDs | Boolean | true | Return UUID list
+async | Consumer<Result> | – | `Result<PNHereNowResult>`
 
-### Returns – PNHereNowResult
+### Sample code
 
-| Method | Type | Notes |
-| --- | --- | --- |
-| getTotalChannels() | int | #channels |
-| getTotalOccupancy() | int | #occupants |
-| getChannels() | Map\<String, PNHereNowChannelData> | per-channel data |
-
-PNHereNowChannelData  
-• getChannelName() : String  
-• getOccupancy() : int  
-• getOccupants() : List\<PNHereNowOccupantData>
-
-PNHereNowOccupantData  
-• getUuid() : String  
-• getState() : Object
-
-### Examples
-
-#### Basic (UUID list)
-
+#### Get a list of UUIDs subscribed to a channel
 ```
 `  
 `
 ```
 
-#### Return state
+### Return value – `PNHereNowResult`
 
+Method | Type | Description
+---|---|---
+getTotalChannels() | int | Number of channels
+getTotalOccupancy() | int | Total occupants
+getChannels() | Map\<String, PNHereNowChannelData\> | Per-channel data
+
+#### PNHereNowChannelData
+Method | Type | Description
+---|---|---
+getChannelName() | String | Channel name
+getOccupancy() | int | Occupancy
+getOccupants() | List\<PNHereNowOccupantData\> | Occupants list
+
+#### PNHereNowOccupantData
+Method | Type | Description
+---|---|---
+getUuid() | String | UUID
+getState() | Object | User state
+
+### Other examples
+
+#### Returning state
 ```
 `  
 `
 ```
 
-#### Occupancy only
-
+#### Return occupancy only
 ```
 `  
 `
 ```
 
-#### Channel-group query
-
+#### Here now for channel groups
 ```
 `  
 `
@@ -79,26 +81,35 @@ PNHereNowOccupantData
 
 ## Where Now
 
-Lists channels a UUID is currently subscribed to.
+Lists channels to which a given UUID is currently subscribed.
 
 ### Method
 
-```
-`pubnub.whereNow()  
+```java
+pubnub.whereNow()  
     .uuid(String)  
+```
+
+Parameter | Type | Notes
+---|---|---
+uuid | String | Target UUID
+async | Command | Execute asynchronously
+
+### Sample code
+
+#### Get channels for a UUID
+```
+`  
 `
 ```
 
-Parameter  
-• uuid (String) – target UUID  
-• async – execute asynchronously
+### Return value – `PNWhereNowResult`
 
-### Returns – PNWhereNowResult
+Method | Type | Description
+---|---|---
+getChannels() | List\<String\> | Channels where the UUID is present
 
-• getChannels() : List\<String>
-
-### Examples
-
+#### Other example
 ```
 `  
 `
@@ -108,69 +119,78 @@ Parameter
 
 ## User State
 
-Set/Get ephemeral JSON state associated with a UUID on channels/groups.
+Set or retrieve arbitrary JSON-serializable state per UUID on channels/channel groups.  
+State is transient and lost on disconnect.
 
-### Set State
+### Data format
 
-```
-`this.pubnub.setPresenceState()  
+Supply a pre-initialized `JsonObject` or serializable POJO to `state`.
+
+### Methods
+
+#### Set state
+```java
+this.pubnub.setPresenceState()  
     .channels(Array)  
     .channelGroups(Array)  
     .state(HashMap)  
     .uuid(String)  
-`
 ```
 
-Parameters  
-• channels (Array) – channels to set state  
-• channelGroups (Array) – groups to set state  
-• state (HashMap) – key/value JSON state  
-• uuid (String) – target UUID  
-• async (Consumer<Result<PNSetStateResult>>)
+Parameter | Type | Notes
+---|---|---
+channels | Array | Target channels
+channelGroups | Array | Target channel groups
+state | HashMap | State to set
+uuid | String | Apply to specific UUID
+async | Consumer<Result> | `Result<PNSetStateResult>`
 
-### Get State
-
-```
-`this.pubnub.getPresenceState()  
+#### Get state
+```java
+this.pubnub.getPresenceState()  
     .channels(Arrays)  
     .channelGroups(Arrays)  
     .uuid(String)  
-`
 ```
 
-Parameters identical to Set State.
+Parameter | Type | Notes
+---|---|---
+channels | Arrays | Channels to query
+channelGroups | Arrays | Channel groups to query
+uuid | String | Target UUID
+async | Consumer<Result> | `Result<PNGetStateResult>`
 
-### Returns
+### Sample code
 
-PNSetStateResult  
-• getState() : Map\<String, Object>
-
-PNGetStateResult  
-• getStateByUUID() : Map\<String, Object>
-
-### Examples
-
-#### Set
-
+#### Set state
 ```
 `  
 `
 ```
 
-#### Get
-
+#### Get state
 ```
 `  
 `
 ```
 
-#### Set for channel-group
+### Return values
 
+1. `PNSetStateResult`
+   • `getState()` → Map\<String, Object\> – state per UUID  
+2. `PNGetStateResult`
+   • `getStateByUUID()` → Map\<String, Object\> – state per UUID
+
+### Other example
+
+#### Set state for channels in a channel group
 ```
 `  
 `
 ```
 
----
+```
+`**`
+```
 
-Cache: Here Now responses are cached for 3 s.
+_Last updated: Jul 15 2025_

@@ -1,215 +1,194 @@
-# Configuration API for Unity SDK (condensed)
+# PubNub Unity SDK – Configuration (Condensed)
 
-## Build platform configuration
+## Build-platform configuration
+### Mobile (Android / iOS)  
+Unity code-stripping can remove PubNub assemblies; if the build receives no messages, follow the Troubleshooting guide.
 
-### Mobile (Android/iOS)
-Unity’s code stripping may remove PubNub assemblies; see Troubleshooting.
-
-### WebGL
-1. Create **PubNub Config Asset** → enable **Enable Web GL Build Mode**  
-   (sets `UnityWebGLHttpClientService` automatically).  
-2. Manual init (no `PnManagerBehaviour`):
+### WebGL  
+1. Create or open a `PNConfigAsset`, enable **WebGL Build Mode** (sets `UnityWebGLHttpClientService`).  
+2. If you don’t use `PnManagerBehaviour`, initialize with either of the following:
 
 ```
-`var pubnub = new Pubnub(pnConfig, httpTransportService: new UnityWebGLHttpClientService(),  
-				ipnsdkSource: new UnityPNSDKSource());  
+`  
 `
 ```
 
-3. Use `UnityWebGLHttpClientService` only in WebGL builds; set **Managed Stripping Level** → `Minimal`.
-4. If `Secure=false`, in **Player → WebGL Settings** set **Allow downloads over HTTP → Always allowed**.
-5. Install WebGL Threading Patcher (Package Manager, Git URL).
+```
+`  
+`
+```
+
+3. Editor: **Player Settings → Managed Stripping Level → Minimal**.  
+4. If `Secure = false`, set **Player Settings → WebGL Settings → Allow downloads over HTTP → Always allowed**.  
+5. Install the WebGL Threading Patcher (`git+https://github.com/VolodymyrBS/WebGLThreadingPatcher.git`).
 
 ---
 
-## Configuration
+## PNConfiguration
 
-`PNConfiguration` stores all client settings.
-
-### Create in code
+Create:
 
 ```
 `PNConfiguration pnConfiguration = new PNConfiguration(new UserId("myUniqueUserId"));  
 `
 ```
 
-### Important fields
-* SubscribeKey (string) – required for subscribe  
-* PublishKey (string) – required for publish  
-* SecretKey (string) – server-side access ops  
-* UserId (UserId) – REQUIRED, UTF-8 ≤92 chars  
-* LogLevel (PubnubLogLevel)  
-* AuthKey (string)  
-* Secure (bool) – SSL  
-* SubscribeTimeout / NonSubscribeRequestTimeout (int sec)  
-* FilterExpression (string)  
-* HeartbeatNotificationOption (PNHeartbeatNotificationOption: FAILURES | ALL | NONE)  
-* Origin (string)  
-* ReconnectionPolicy (PNReconnectionPolicy: NONE | LINEAR | EXPONENTIAL), ConnectionMaxRetries (int)  
-* PresenceTimeout / PresenceInterval (int sec)  
-* Proxy (Proxy)  
-* EnableTelemetry (bool, default true)  
-* RequestMessageCountThreshold (number)  
-* SuppressLeaveEvents (bool)  
-* DedupOnSubscribe (bool) – uses MaximumMessagesCacheSize (int, default 100)  
-* FileMessagePublishRetryLimit (int, default 5)  
-* EnableEventEngine (bool, default true)  
-* CryptoModule (see below)  
-* Deprecated: PubnubLog, LogVerbosity, CipherKey, UseRandomInitializationVector, Uuid  
-  – keep for backward compatibility.
-
-### Disabling random IV  
-Only for compatibility with SDK < 5.0.0.
-
----
+Key fields (types & notes)  
+• `SubscribeKey` (string, required)  
+• `PublishKey` (string; needed for publish)  
+• `SecretKey` (string; **server-side only**)  
+• `UserId` (UserId, required) – unique UTF-8 ≤ 92 chars  
+• `LogLevel` (PubnubLogLevel)  
+• `AuthKey` (string)  
+• `Secure` (bool, SSL)  
+• `SubscribeTimeout`, `NonSubscribeRequestTimeout` (int, seconds)  
+• `FilterExpression` (string)  
+• `HeartbeatNotificationOption` (PNHeartbeatNotificationOption: NONE | FAILURES | ALL)  
+• `Origin` (string)  
+• `ReconnectionPolicy` (PNReconnectionPolicy: NONE | LINEAR | EXPONENTIAL) + `ConnectionMaxRetries`  
+• `PresenceTimeout`, `PresenceInterval` (int, seconds)  
+• `Proxy` (Proxy)  
+• `EnableTelemetry` (bool, default true)  
+• `RequestMessageCountThreshold` (number)  
+• `SuppressLeaveEvents`, `DedupOnSubscribe` (bool) + `MaximumMessagesCacheSize`  
+• `FileMessagePublishRetryLimit` (int, default 5)  
+• `EnableEventEngine` (bool, default true)  
+• `CryptoModule` (`AesCbcCryptor(CipherKey)` or `LegacyCryptor(CipherKey)`)  
+• Deprecated: `PubnubLog`, `LogVerbosity`, `CipherKey`, `UseRandomInitializationVector`, `Uuid`
 
 ### CryptoModule
+• Legacy (128-bit) encryption remains the default if `CipherKey`/`UseRandomInitializationVector` are set and no `CryptoModule` is specified.  
+• For 256-bit AES-CBC, explicitly set:
 
 ```
-`// 256-bit AES-CBC (recommended)  
-pnConfiguration.CryptoModule = new CryptoModule(new AesCbcCryptor("enigma"),  
-    new ListICryptor> { new LegacyCryptor("enigma") });  
-  
-// 128-bit legacy encryption  
-pnConfiguration.CryptoModule = new CryptoModule(new LegacyCryptor("enigma"),  
-    new ListICryptor> { new AesCbCCryptor("enigma") });  
+`  
 `
 ```
 
-SDK < 7.0.1 can’t decrypt AES-CBC.
+Older SDKs (< 7.0.1) cannot decrypt AES-CBC.
 
 ---
 
 ## Initialization
 
-Add namespaces
+Include code:
 
 ```
-`using PubnubApi;  
-using PubnubApi.Unity;  
+`  
 `
 ```
 
-Create client
+Create a client:
 
 ```
 `new PubNub(pnConfiguration);  
 `
 ```
 
-### Examples
-
-Secure client
+or
 
 ```
-`PNConfiguration pnConfiguration = new PNConfiguration(new UserId("myUniqueUserId"));  
-pnConfiguration.PublishKey = "my_pubkey";  
-pnConfiguration.SubscribeKey = "my_subkey";  
-pnConfiguration.Secure = true;  
-Pubnub pubnub = new Pubnub(pnConfiguration);  
+`PubnubUnityUtils.NewUnityPubnub(configuration, webGLBuildMode, unityLogging);  
 `
 ```
 
-Non-secure client
+or
 
 ```
-`PNConfiguration pnConfiguration = new PNConfiguration(new UserId("myUniqueUserId"));  
-pnConfiguration.PublishKey = "my_pubkey";  
-pnConfiguration.SubscribeKey = "my_subkey";  
-pnConfiguration.Secure = false;  
-Pubnub pubnub = new Pubnub(pnConfiguration);  
+`PubnubUnityUtils.NewUnityPubnub(configurationAsset, userId);  
 `
 ```
 
-Read-only client
+All return a `Pubnub` instance.
+
+Sample:
 
 ```
-`PNConfiguration pnConfiguration = new PNConfiguration(new UserId("myUniqueUserId"));  
-pnConfiguration.SubscribeKey = "my_subkey";  
-Pubnub pubnub = new Pubnub(pnConfiguration);  
+`  
 `
 ```
 
-With `SecretKey` (server-side)
+Other patterns  
+• Non-secure client
 
 ```
-`PNConfiguration pnConfiguration = new PNConfiguration(new UserId("myUniqueUserId"));  
-pnConfiguration.PublishKey = "my_pubkey";  
-pnConfiguration.SubscribeKey = "my_subkey";  
-pnConfiguration.SecretKey = "my_secretkey";  
-pnConfiguration.Secure = true;  
-Pubnub pubnub = new Pubnub(pnConfiguration);  
+`  
+`
+```  
+
+• Read-only client
+
+```
+`  
+`
+```  
+
+• SSL enabled
+
+```
+`  
 `
 ```
 
----
+• With `SecretKey`
 
-## Event Listeners
-PubNub client, `Subscription`, and `SubscriptionsSet` provide real-time updates (see Publish & Subscribe doc).
+```
+`  
+`
+```
 
 ---
 
 ## UserId
 
-Set
+Change at runtime:
 
 ```
 `pubnub.ChangeUserId(UserId newUserid)  
 `
 ```
 
-Get
+Example:
 
 ```
-`var currentUserId = pubnub.GetCurrentUserId();  
+`  
+`
+```
+
+Retrieve:
+
+```
+`  
 `
 ```
 
 ---
 
-## Filter Expression
+## Filter Expression  (Stream Controller add-on)
 
-Property
+Property:
 
 ```
 `FilterExpression  
 `
 ```
 
-Set
-
 ```
-`PNConfiguration pnConfiguration = new PNConfiguration new PNConfiguration(new UserId("myUniqueUserId"));  
-pnConfiguration.FilterExpression = "such=wow";  
+`pnConfiguration.FilterExpression;  
 `
 ```
 
-Get
+Set:
 
 ```
-`var sampleFilterExp = pnConfiguration.FilterExpression;**`
-```
-
----
-
-## Reference snippet
-
-```
-`using PubnubApi;  
-using UnityEngine;  
-  
-public class PubnubConfigurationExample : MonoBehaviour {  
-    // Serialized fields to allow configuration within Unity Editor  
-    //Note that you can always use the PnConfigAsset Scriptable Object for setting these values in editor  
-    [SerializeField] private string userId = "myUniqueUserId";  
-    [SerializeField] private string subscribeKey = "demo"; // Replace with your actual SubscribeKey  
-    [SerializeField] private string publishKey = "demo"; // Replace with your actual PublishKey if publishing is needed  
-    [SerializeField] private string secretKey = "yourSecretKey"; // Used if Access Manager operations are needed  
-    [SerializeField] private string authKey = "authKey"; // Used if Access Manager is enabled  
-    [SerializeField] private string filterExpression = "such=wow";  
-    [SerializeField] private bool useSSL = true;  
-    [SerializeField] private bool logToUnityConsole = true;  
-  
+`  
 `
 ```
-show all 44 lines
+
+Get:
+
+```
+`**`
+```
+
+_Last updated  Jul 16 2025_

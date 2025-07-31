@@ -1,223 +1,242 @@
-# Configuration API – Python SDK (Condensed)
+# PubNub Python SDK – Configuration (Condensed)
 
 ## PNConfiguration
 
-Use `PNConfiguration` to set all client options.
+Instantiate once and pass to `PubNub`.
 
-```python
-pnconfig = PNConfiguration()
+```
+`pnconfig = PNConfiguration()  
+`
 ```
 
-### Parameters
+Parameter (type, default) – description  
+• subscribe_key (str, —) – REQUIRED.  
+• publish_key (str, None) – Needed to publish.  
+• secret_key (str, None) – For Access-Manager admin calls.  
+• user_id (str, —) – REQUIRED unique ID (≤ 92 UTF-8 chars).  
+• auth_key (str, None) – Access-Manager auth key.  
+• ssl (bool, True) – Transport security.  
+• connect_timeout (int, 5 s) – TCP connect.  
+• subscribe_request_timeout (int, 310 s) – Subscribe loop.  
+• non_subscribe_request_timeout (int, 10 s) – All other ops.  
+• filter_expression (str, None) – Stream Controller filter.  
+• heartbeat_notification_options (`PNHeartbeatNotificationOptions`, FAILURES)  
+  - ALL | FAILURES | NONE.  
+• reconnect_policy (`PNReconnectionPolicy`, EXPONENTIAL)  
+  - NONE | LINEAR (`maximum_reconnection_retries`, `reconnection_interval`) | EXPONENTIAL  
+• maximum_reconnection_retries (int, 10) – LINEAR only.  
+• reconnection_interval (float, 2.0 s) – LINEAR only.  
+• suppress_leave_events (bool, False) – Skip leave on unsubscribe.  
+• enable_subscribe (bool, True) – Disable full subscribe loop if false.  
+• daemon (bool, False) – Non-blocking threads.  
+• disable_token_manager (bool, False) – Disable TMS.  
+• cipher_mode (`AES.MODE_CBC`|`AES.MODE_GCM`, CBC) – Legacy crypto.  
+• fallback_cipher_mode (same, None) – Secondary decrypt mode.  
+• cipher_key (str, None) – Enables encryption.  
+• use_random_initialization_vector (bool, True) – Random IV (leave True for new apps).  
+• crypto_module (`PubNubCryptoModule`, None) – Pluggable crypto (see below).  
+• uuid (str, DEPRECATED) – Use `user_id` instead.
 
-| Name | Type | Default | Notes |
-|------|------|---------|-------|
-| subscribe_key | String | — | Required. From Admin Portal. |
-| publish_key | String | None | Needed for publishing. |
-| secret_key | String | None | Needed for Access-Manager grant/revoke. |
-| user_id | String | — | Required. UTF-8, ≤ 92 chars. |
-| auth_key | String | None | Sent with Access-Manager requests. |
-| ssl | Boolean | True | Enable TLS. |
-| connect_timeout | Int | 5 | Seconds to open TCP connection. |
-| subscribe_request_timeout | Int | 310 | Seconds to keep long-poll subscribe. |
-| non_subscribe_request_timeout | Int | 10 | Timeout for all other requests. |
-| filter_expression | String | None | Stream-Controller filter. |
-| heartbeat_notification_options | PNHeartbeatNotificationOptions | PNHeartbeatNotificationOptions.FAILURES | Other values: `ALL`, `NONE`. |
-| reconnect_policy | PNReconnectionPolicy | PNReconnectionPolicy.EXPONENTIAL | Values: `NONE`, `LINEAR`, `EXPONENTIAL`. |
-| maximum_reconnection_retries | int | 10 | Used only with `LINEAR`. |
-| reconnection_interval | float | 2.0 | Seconds between retries (LINEAR). |
-| suppress_leave_events | Boolean | False | Skip `leave` on unsubscribe. |
-| enable_subscribe | Boolean | True | Disable to avoid subscribe loop. |
-| daemon | Boolean | False | Spawned threads won’t block SIGTERM when `True`. |
-| disable_token_manager | Boolean | False | Disable TMS authorization. |
-| cipher_mode | AES.MODE_CBC / AES.MODE_GCM | AES.MODE_CBC | Legacy crypto only. |
-| fallback_cipher_mode | AES.MODE_* | None | Secondary decrypt mode (legacy crypto). |
-| cipher_key | String | None | Encrypts traffic when set. |
-| use_random_initialization_vector | Boolean | True | Set `False` only for pre-5.1.0 compatibility. |
-| crypto_module | PubNubCryptoModule | None | Override encryption engine (see below). |
-| uuid | String | — | Deprecated – use `user_id`. |
+### Disabling random IV  
+Only for backward-compatibility (< 5.1.0). Keep enabled for new apps.
 
-### Disable random IV (legacy only)
-Turn off `use_random_initialization_vector` **only** for backwards compatibility with SDK < 5.1.0.
+## Working with cipher_mode / crypto_module
 
----
-
-## Working with cipher mode / crypto_module
-
-```python
-# Encrypt with 256-bit AES-CBC (recommended); auto-decrypt legacy data
-config = PNConfiguration()
-...
-config.cipher_key = "my_cipher_key"
-config.cipher_mode = AES.MODE_GCM            # optional (legacy)
-config.fallback_cipher_mode = AES.MODE_CBC   # optional (legacy)
-config.crypto_module = AesCbcCryptoModule(config)
-pubnub = PubNub(config)
-
-# Encrypt with 128-bit key entropy (legacy GCM)
-config = PNConfiguration()
-...
 ```
-(show all 33 lines)
-
-Older SDK (< 7.2.0) can’t decrypt 256-bit AES-CBC data.
-
----
-
-## Reference configuration example
-
-```python
-import os
-from pubnub.pnconfiguration import PNConfiguration
-from pubnub.enums import PNHeartbeatNotificationOptions
-from pubnub.pubnub import PubNub
-from pubnub.crypto import AesCbcCryptoModule
-
-pn_configuration = PNConfiguration()
-
-pn_configuration.subscribe_key = os.getenv('SUBSCRIBE_KEY', 'demo')
-pn_configuration.publish_key   = os.getenv('PUBLISH_KEY', 'demo')
-pn_configuration.secret_key    = os.getenv('SECRET_KEY', 'my_secret_key')
-pn_configuration.cipher_key    = os.getenv('CIPHER_KEY', 'my_cipher_key')
+`#  encrypts using 256-bit AES-CBC cipher (recommended)  
+#  decrypts data encrypted with the legacy (AES and GCM) and the 256-bit AES-CBC ciphers  
+config = PNConfiguration()  
+...  
+# all necessary config options  
+config.cipher_key = "my_cipher_key"  
+config.cipher_mode = AES.MODE_GCM # optional, used for the legacy module only  
+config.fallback_cipher_mode = AES.MODE_CBC # optional, used for the legacy module only  
+config.crypto_module = AesCbcCryptoModule(config)  
+pubnub = PubNub(config)  
+  
+#  encrypts with 128-bit cipher key entropy (legacy) with GCM  
+#  decrypts data encrypted with the legacy (AES and GCM) and the 256-bit AES-CBC ciphers  
+config = PNConfiguration()  
+...  
+`
 ```
-(show all 31 lines)
 
----
+• SDK < 7.2.0 cannot decrypt 256-bit AES-CBC data—upgrade clients or stay on legacy crypto.
 
 ## Initialization
 
-```python
-pubnub = PubNub(pn_configuration, custom_request_handler)
+Create a client:
+
+```
+`pubnub = PubNub(pn_configuration, custom_request_handler)  
+`
 ```
 
-| Parameter | Type | Default | Description |
-|-----------|------|---------|-------------|
-| pn_configuration | PNConfiguration | — | Required configuration. |
-| custom_request_handler | subclass of `BaseRequestHandler` | `HttpxRequestHandler` | Optional HTTP client. |
+Parameter (type, default)  
+• pn_configuration – `PNConfiguration` (required).  
+• custom_request_handler (subclass of `BaseRequestHandler`, `HttpxRequestHandler`)  
+  - Alternatives: `HttpxRequestHandler`, `RequestsRequestHandler`.
 
-Available handlers:
-* `HttpxRequestHandler` (httpx, default)  
-* `RequestsRequestHandler` (requests)
+The returned `PubNub` instance exposes all APIs (`publish`, `subscribe`, `history`, …).
 
----
+### Code samples
 
-### Basic initialization
+Reference configuration:
 
-```python
-from pubnub.pnconfiguration import PNConfiguration
-from pubnub.pubnub import PubNub
-
-pnconfig = PNConfiguration()
-pnconfig.subscribe_key = "my_subkey"
-pnconfig.publish_key   = "my_pubkey"
-pnconfig.ssl           = True
-pnconfig.user_id       = "my_custom_user_id"
-
-pubnub = PubNub(pnconfig)
+```
+`import os  
+from pubnub.pnconfiguration import PNConfiguration  
+from pubnub.enums import PNHeartbeatNotificationOptions  
+from pubnub.pubnub import PubNub  
+from pubnub.crypto import AesCbcCryptoModule  
+  
+  
+# Configuration for PubNub instance  
+pn_configuration = PNConfiguration()  
+  
+# Set configuration values  
+pn_configuration.subscribe_key = os.getenv('SUBSCRIBE_KEY', 'demo')  # required  
+pn_configuration.publish_key = os.getenv('PUBLISH_KEY', 'demo')  # only required if publishing  
+pn_configuration.secret_key = os.getenv('SECRET_KEY', 'my_secret_key')  # optional  
+pn_configuration.cipher_key = os.getenv('CIPHER_KEY', 'my_cipher_key')  # for encryption/decryption  
+`
 ```
 
-### Custom request handler
+Initialize basic client:
 
-```python
-from pubnub.pnconfiguration import PNConfiguration
-from pubnub.pubnub import PubNub
-from pubnub.request_handlers.requests_handler import RequestsRequestHandler
-
-pnconfig = PNConfiguration()
-pnconfig.subscribe_key = "my_subkey"
-pnconfig.publish_key   = "my_pubkey"
-pnconfig.user_id       = "my_custom_user_id"
-
-pubnub = PubNub(pnconfig, custom_request_handler=RequestsRequestHandler)
+```
+`from pubnub.pnconfiguration import PNConfiguration  
+from pubnub.pubnub import PubNub  
+  
+pnconfig = PNConfiguration()  
+pnconfig.subscribe_key = "my_subkey"  
+pnconfig.publish_key = "my_pubkey"  
+pnconfig.ssl = True  
+pnconfig.user_id = "my_custom_user_id"  
+pubnub = PubNub(pnconfig)  
+`
 ```
 
-### Non-secure (no TLS)
+Custom request handler:
 
-```python
-from pubnub.pnconfiguration import PNConfiguration
-from pubnub.pubnub import PubNub
-
-pnconfig = PNConfiguration()
-pnconfig.subscribe_key = "my_subkey"
-pnconfig.publish_key   = "my_pubkey"
-pnconfig.ssl           = False
-pnconfig.user_id       = "my_custom_user_id"
-
-pubnub = PubNub(pnconfig)
+```
+`from pubnub.pnconfiguration import PNConfiguration  
+from pubnub.pubnub import PubNub  
+from pubnub.request_handlers.requests_handler import RequestsRequestHandler  
+  
+pnconfig = PNConfiguration()  
+pnconfig.subscribe_key = "my_subkey"  
+pnconfig.publish_key = "my_pubkey"  
+pnconfig.user_id = "my_custom_user_id"  
+  
+pubnub = PubNub(pnconfig, custom_request_handler=RequestsRequestHandler)  
+`
 ```
 
-### Read-only client (omit publish_key)
+Non-secure client:
 
-```python
-from pubnub.pnconfiguration import PNConfiguration
-from pubnub.pubnub import PubNub
-
-pnconfig = PNConfiguration()
-pnconfig.subscribe_key = "my_subkey"
-
-pubnub = PubNub(pnconfig)
+```
+`from pubnub.pnconfiguration import PNConfiguration  
+from pubnub.pubnub import PubNub  
+  
+pnconfig = PNConfiguration()  
+pnconfig.subscribe_key = "my_subkey"  
+pnconfig.publish_key = "my_pubkey"  
+pnconfig.ssl = False  
+pnconfig.user_id = "my_custom_user_id"  
+pubnub = PubNub(pnconfig)  
+`
 ```
 
-### Custom `user_id`
+Read-only client (no `publish_key`):
 
-```python
-from pubnub.pnconfiguration import PNConfiguration
-from pubnub.pubnub import PubNub
-
-pnconfig = PNConfiguration()
-pnconfig.subscribe_key = 'mySubscribeKey'
-pnconfig.publish_key   = 'myPublishKey'
-pnconfig.user_id       = "my_custom_user_id"
-
-pubnub = PubNub(pnconfig)
+```
+`from pubnub.pnconfiguration import PNConfiguration  
+from pubnub.pubnub import PubNub  
+  
+pnconfig = PNConfiguration()  
+pnconfig.subscribe_key = "my_subkey"  
+  
+pubnub = PubNub(pnconfig)  
+`
 ```
 
-### SSL enabled (duplicate for clarity)
+Custom user ID:
 
-```python
-from pubnub.pnconfiguration import PNConfiguration
-from pubnub.pubnub import PubNub
-
-pnconfig = PNConfiguration()
-pnconfig.subscribe_key = "my_subkey"
-pnconfig.publish_key   = "my_pubkey"
-pnconfig.ssl           = True
-pnconfig.user_id       = "my_custom_user_id"
-
-pubnub = PubNub(pnconfig)
+```
+`from pubnub.pnconfiguration import PNConfiguration  
+from pubnub.pubnub import PubNub  
+  
+pnconfig = PNConfiguration()  
+  
+pnconfig.subscribe_key = 'mySubscribeKey'  
+pnconfig.publish_key = 'myPublishKey'  
+pnconfig.user_id = "my_custom_user_id"  
+  
+pubnub = PubNub(pnconfig)  
+`
 ```
 
-### Access-Manager (server-side)
+SSL-enabled client:
 
-```python
-from pubnub.pnconfiguration import PNConfiguration
-from pubnub.pubnub import PubNub
-
-pnconfig = PNConfiguration()
-pnconfig.subscribe_key = "my_subkey"
-pnconfig.publish_key   = "my_pubkey"
-pnconfig.secret_key    = "my_secretkey"   # keep secret!
-pnconfig.user_id       = "my_custom_user_id"
-pnconfig.ssl           = True
-
-pubnub = PubNub(pnconfig)
+```
+`from pubnub.pnconfiguration import PNConfiguration  
+from pubnub.pubnub import PubNub  
+  
+pnconfig = PNConfiguration()  
+pnconfig.subscribe_key = "my_subkey"  
+pnconfig.publish_key = "my_pubkey"  
+pnconfig.ssl = True  
+pnconfig.user_id = "my_custom_user_id"  
+pubnub = PubNub(pnconfig)  
+`
 ```
 
----
+Access-Manager (server side):
 
-## Filter Expression (Stream Controller)
-
-Set / get on `PNConfiguration.filter_expression`.
-
-```python
-from pubnub.pnconfiguration import PNConfiguration
-
-pnconfig = PNConfiguration()
-pnconfig.filter_expression = "such=wow"
+```
+`from pubnub.pnconfiguration import PNConfiguration  
+from pubnub.pubnub import PubNub  
+  
+pnconfig = PNConfiguration()  
+pnconfig.subscribe_key = "my_subkey"  
+pnconfig.publish_key = "my_pubkey"  
+pnconfig.secret_key = "my_secretkey"  
+pnconfig.user_id = "my_custom_user_id"  
+pnconfig.ssl = True  
+  
+pubnub = PubNub(pnconfig)  
+`
 ```
 
-```python
-filter = pnconfig.filter_expression**
+## Filter Expression
+
+Set/get Stream Controller filter:
+
+```
+`Set Filter Expression  
+`
 ```
 
-_Last updated Apr 29 2025_
+```
+`Get Filter Expression  
+`
+```
+
+Example:
+
+```
+`from pubnub.pnconfiguration import PNConfiguration  
+  
+pnconfig = PNConfiguration()  
+pnconfig.filter_expression = "such=wow"  
+`
+```
+
+Retrieve:
+
+```
+`filter = pnconfig.filter_expression**`
+```
+
+(Last updated Jul 15 2025)

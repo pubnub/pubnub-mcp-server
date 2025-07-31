@@ -1,28 +1,36 @@
-# PubNub JavaScript SDK – App Context (Objects v2) Quick Reference  
+# PubNub JavaScript SDK – App Context (Objects v2)
 
-Async style: Callbacks, Promises, or (recommended) `async/await` with `try…catch`.
+The list below contains every Objects-related API, its method signature, parameters (with types & defaults), and example responses. All original code blocks are preserved.
 
 ---
 
-## User (UUID) Metadata  
+## Users (UUID Metadata)
 
-### Get ALL UUID metadata  
-
+### Get metadata for all users
 ```js
 pubnub.objects.getAllUUIDMetadata({
-  include: {                         // optional
-    totalCount?: boolean,            // default false
-    customFields?: boolean           // default false
-  },
-  filter?: string,                   // see filtering docs
-  sort?: {id|name|updated : 'asc'|'desc'|null},
-  limit?: number,                    // 1-100, default 100
-  page?: {next?: string, prev?: string}
+  include: any,
+  filter: string,
+  sort: any,
+  limit: number,
+  page: any
 })
 ```
+Parameters  
+* include: `{ totalCount?: boolean=false, customFields?: boolean=false }`  
+* filter: `string` – [filter syntax](/docs/general/metadata/filtering)  
+* sort: `{ id|name|updated : 'asc'|'desc'|null }`  
+* limit: `number=100` (max 100)  
+* page: `{ next?: string, prev?: string }`
 
-Response (truncated):
-
+Reference code  
+```
+  
+```
+```
+  
+```
+Response  
 ```json
 {
   "status": 200,
@@ -30,228 +38,455 @@ Response (truncated):
     {
       "id": "uuid-1",
       "name": "John Doe",
+      "externalId": null,
+      "profileUrl": null,
       "email": "johndoe@pubnub.com",
+      "custom": null,
       "updated": "2019-02-20T23:11:20.893755",
-      "eTag": "MDcy..."
-    }
-  ]
+      "eTag": "MDcyQ0REOTUtNEVBOC00QkY2LTgwOUUtNDkwQzI4MjgzMTcwCg=="
+    },
+    {
+      "id": "uuid-2",
+```
+show all 27 lines
+```
+
+---
+
+### Get user metadata
+```js
+pubnub.objects.getUUIDMetadata({
+  uuid: string,
+  include: any
+})
+```
+* uuid: `string` – defaults to current UUID  
+* include: `{ customFields?: boolean=true }`
+
+```
+  
+```
+```json
+{
+  "status": 200,
+  "data": {
+    "id": "uuid-1",
+    "name": "John Doe",
+    "externalId": null,
+    "profileUrl": null,
+    "email": "johndoe@pubnub.com",
+    "updated": "2019-02-20T23:11:20.893755",
+    "eTag": "MDcyQ0REOTUtNEVBOC00QkY2LTgwOUUtNDkwQzI4MjgzMTcwCg=="
+  }
 }
 ```
 
 ---
 
-### Get one UUID metadata  
-
-```js
-pubnub.objects.getUUIDMetadata({
-  uuid?: string,                     // default current uuid
-  include?: {customFields?: boolean} // default true
-})
-```
-
----
-
-### Set UUID metadata  
-(complete overwrite of `custom`; use GET-modify-SET for partial updates)
-
+### Set user metadata
 ```js
 pubnub.objects.setUUIDMetadata({
-  uuid?: string,                     // default current uuid
-  data: {
-    name?: string,
-    externalId?: string,
-    profileUrl?: string,
-    email?: string,
-    custom?: {[k:string]: scalar}    // scalars only
-  },
-  include?: {customFields?: boolean},// default true
-  ifMatchesEtag?: string             // optimistic lock
+  uuid: string,
+  data: any,
+  include: any,
+  ifMatchesEtag: string
 })
 ```
+* uuid: `string` – defaults to current UUID  
+* data (required): `{ name?: string, externalId?: string, profileUrl?: string, email?: string, custom?: any }` (custom values scalar only)  
+* include: `{ customFields?: boolean=true }`  
+* ifMatchesEtag: `string` – supply previous eTag to enforce conditional update (HTTP 412 if mismatched)
 
----
-
-### Remove UUID metadata  
-
-```js
-pubnub.objects.removeUUIDMetadata({ uuid?: string })
+```
+  
+```
+```json
+{
+  "status": 200,
+  "data": {
+    "id": "uuid-1",
+    "name": "John Doe",
+    "externalId": null,
+    "profileUrl": null,
+    "email": "johndoe@pubnub.com",
+    "updated": "2019-02-20T23:11:20.893755",
+    "eTag": "MDcyQ0REOTUtNEVBOC00QkY2LTgwOUUtNDkwQzI4MjgzMTcwCg=="
+  }
+}
 ```
 
 ---
 
-## Channel Metadata  
+### Remove user metadata
+```js
+pubnub.objects.removeUUIDMetadata({ uuid: string })
+```
+* uuid: `string` – defaults to current UUID  
 
-### Get ALL channel metadata  
+```
+  
+```
+```json
+{ "status": 0, "data": {} }
+```
 
+---
+
+## Channels (Channel Metadata)
+
+### Get metadata for all channels
 ```js
 pubnub.objects.getAllChannelMetadata({
-  include?: {totalCount?:boolean, customFields?:boolean},
-  filter?: string,
-  sort?: {id|name|updated : 'asc'|'desc'|null},
-  limit?: number,                    // 1-100
-  page?: {next?:string, prev?:string}
+  include: any,
+  filter: string,
+  sort: any,
+  limit: number,
+  page: any
 })
+```
+* include: `{ totalCount?: boolean=false, customFields?: boolean=false }`  
+* filter, sort, limit (100), page – same usage as UUID list
+
+```
+  
+```
+```json
+{
+  "status": 200,
+  "data": [
+    {
+      "id": "team.blue",
+      "name": "Blue Team",
+      "description": "The channel for Blue team and no other teams.",
+      "custom": null,
+      "updated": "2019-02-20T23:11:20.893755",
+      "eTag": "RTc1NUQwNUItREMyNy00Q0YxLUJCNDItMEZDMTZDMzVCN0VGCg=="
+    },
+    {
+      "id": "team.red",
+```
+show all 35 lines
 ```
 
 ---
 
-### Get one channel metadata  
-
+### Get channel metadata
 ```js
 pubnub.objects.getChannelMetadata({
   channel: string,
-  include?: {customFields?:boolean}  // default true
+  include: any
 })
+```
+* channel (required)  
+* include: `{ customFields?: boolean=true }`
+
+```
+  
+```
+```json
+{
+  "status": 200,
+  "data": {
+    "id": "team.blue",
+    "name": "Blue Team",
+    "description": "The channel for Blue team and no other teams.",
+    "updated": "2019-02-20T23:11:20.893755",
+    "eTag": "RTc1NUQwNUItREMyNy00Q0YxLUJCNDItMEZDMTZDMzVCN0VGCg=="
+  }
+}
 ```
 
 ---
 
-### Set channel metadata  
-(`custom` fully replaced on each call)
-
+### Set channel metadata
 ```js
 pubnub.objects.setChannelMetadata({
   channel: string,
-  data: {
-    name?: string,
-    description?: string,
-    custom?: {[k:string]: scalar}
-  },
-  include?: {customFields?: boolean},// default true
-  ifMatchesEtag?: string
+  data: any,
+  include: any,
+  ifMatchesEtag: string
 })
+```
+* channel (required)  
+* data (required): `{ name?: string, description?: string, custom?: any }`  
+* include: `{ customFields?: boolean=true }`  
+* ifMatchesEtag: conditional update
+
+```
+  
+```
+```json
+{
+  "status": 200,
+  "data": {
+    "id": "team.red",
+    "name": "Red Team",
+    "description": "The channel for Blue team and no other teams.",
+    "updated": "2019-02-20T23:11:20.893755",
+    "eTag": "RTc1NUQwNUItREMyNy00Q0YxLUJCNDItMEZDMTZDMzVCN0VGCg=="
+  }
+}
+```
+
+Other example – iterative update  
+```
+  
 ```
 
 ---
 
-### Remove channel metadata  
-
+### Remove channel metadata
 ```js
 pubnub.objects.removeChannelMetadata({ channel: string })
 ```
+* channel (required)
+
+```
+  
+```
+```json
+{ "status": 0, "data": {} }
+```
 
 ---
 
-## Channel Memberships (User ↔ Channel)  
+## Channel Memberships (Channels a UUID belongs to)
 
-### Get memberships for a UUID  
-
+### Get channel memberships
 ```js
 pubnub.objects.getMemberships({
-  uuid?: string,                     // default current uuid
-  include?: {
-    totalCount?: boolean,
-    customFields?: boolean,
-    channelFields?: boolean,
-    customChannelFields?: boolean,
-    statusField?: boolean,
-    channelStatusField?: boolean,
-    channelTypeField?: boolean
-  },
-  filter?: string,
-  sort?: {updated|status|type|'channel.*' : 'asc'|'desc'|null},
-  limit?: number,                    // 1-100
-  page?: {next?:string, prev?:string}
+  uuid: string,
+  include: any,
+  filter: string,
+  sort: any,
+  limit: number,
+  page: any
 })
+```
+* uuid: defaults to current UUID  
+* include: `{ totalCount?:boolean, customFields?:boolean, channelFields?:boolean,
+             customChannelFields?:boolean, statusField?:boolean,
+             channelStatusField?:boolean, channelTypeField?:boolean }`  
+* filter, sort (`updated|status|type|channel.*`), limit, page
+
+```
+  
+```
+```json
+{
+  "status": 200,
+  "data": [
+    {
+      "channel": {
+        "id": "my-channel",
+        "name": "My channel",
+        "description": "A channel that is mine",
+        "custom": null,
+        "updated": "2019-02-20T23:11:20.893755",
+        "eTag": "RTc1NUQwNUItREMyNy00Q0YxLUJCNDItMEZDMTZDMzVCN0VGCg=="
+      },
+      "custom": { "starred": false },
+```
+show all 38 lines
 ```
 
 ---
 
-### Set memberships for a UUID  
-
+### Set channel memberships
 ```js
 pubnub.objects.setMemberships({
-  uuid?: string,
-  channels: (
-    string | {                       // add/update
-      id: string,
-      custom?: object,
-      type?: string,
-      status?: string
-    })[],
-  include?, filter?, sort?, limit?, page?
+  uuid: string,
+  channels: Array<string|{id:string,custom?:any,type?:string,status?:string}>,
+  include: any,
+  filter: string,
+  sort: any,
+  limit: number,
+  page: any
 })
+```
+* channels (required) – see signature for object form  
+* include: `totalCount, customFields, statusField, typeField,
+            channelFields, customChannelFields,
+            channelStatusField, channelTypeField`
+
+```
+  
+```
+```json
+{
+  "status": 200,
+  "data": [
+    {
+      "channel": {
+        "id": "my-channel",
+        "name": "My channel",
+        "description": "A channel that is mine",
+        "custom": null,
+        "updated": "2019-02-20T23:11:20.893755",
+        "eTag": "RTc1NUQwNUItREMyNy00Q0YxLUJCNDItMEZDMTZDMzVCN0VGCg=="
+      },
+      "custom": { "starred": false },
+```
+show all 38 lines
 ```
 
 ---
 
-### Remove memberships for a UUID  
-
+### Remove channel memberships
 ```js
 pubnub.objects.removeMemberships({
-  uuid?: string,
-  channels: string[],                // remove
-  include?, filter?, sort?, limit?, page?
+  uuid: string,
+  channels: string[],
+  include: any,
+  filter: string,
+  sort: any,
+  limit: number,
+  page: any
 })
+```
+* channels (required)  
+* include: `totalCount, customFields, channelFields, customChannelFields`  
+
+```
+  
+```
+```json
+{
+  "status": 200,
+  "data": [
+    {
+      "channel": {
+        "id": "my-channel",
+        "name": "My channel",
+        "description": "A channel that is mine",
+        "custom": null,
+        "updated": "2019-02-20T23:11:20.893755",
+        "eTag": "RTc1NUQwNUItREMyNy00Q0YxLUJCNDItMEZDMTZDMzVCN0VGCg=="
+      },
+      "custom": { "starred": false },
+```
+show all 38 lines
 ```
 
 ---
 
-## Channel Members (Channel ↔ User)  
+## Channel Members (UUIDs in a Channel)
 
-### Get members of a channel  
-
+### Get channel members
 ```js
 pubnub.objects.getChannelMembers({
   channel: string,
-  include?: {
-    totalCount?: boolean,
-    customFields?: boolean,
-    UUIDFields?: boolean,
-    customUUIDFields?: boolean,
-    statusField?: boolean,
-    UUIDStatusField?: boolean,
-    UUIDTypeField?: boolean
-  },
-  filter?: string,
-  sort?: {updated|status|type|'uuid.*' : 'asc'|'desc'|null},
-  limit?: number,                    // 1-100
-  page?: {next?:string, prev?:string}
+  include: any,
+  filter: string,
+  sort: any,
+  limit: number,
+  page: any
 })
+```
+* include: `{ totalCount, customFields, UUIDFields, customUUIDFields,
+             statusField, UUIDStatusField, UUIDTypeField }`  
+* sort supports `updated|status|type|uuid.*`
+
+```
+  
+```
+```json
+{
+  "status": 200,
+  "data": [
+    {
+      "uuid": {
+        "id": "uuid-1",
+        "name": "John Doe",
+        "externalId": null,
+        "profileUrl": null,
+        "email": "jack@twitter.com",
+        "custom": null,
+        "updated": "2019-02-20T23:11:20.893755",
+        "eTag": "MDcyQ0REOTUtNEVBOC00QkY2LTgwOUUtNDkwQzI4MjgzMTcwCg=="
+      },
+      "custom": {
+```
+show all 41 lines
 ```
 
 ---
 
-### Set channel members  
-
+### Set channel members
 ```js
 pubnub.objects.setChannelMembers({
   channel: string,
-  uuids: (
-    string | {                       // add/update
-      id: string,
-      custom?: object,
-      type?: string,
-      status?: string
-    })[],
-  include?, filter?, sort?, limit?, page?
+  uuids: Array<string|{id:string,custom?:any}>,
+  include: any,
+  filter: string,
+  sort: any,
+  limit: number,
+  page: any
 })
+```
+* include: `{ totalCount, customFields, statusField, typeField,
+             UUIDFields, customUUIDFields, UUIDStatusField, UUIDTypeField }`
+
+```
+  
+```
+```json
+{
+  "status": 200,
+  "data": [
+    {
+      "uuid": {
+        "id": "uuid-1",
+        "name": "John Doe",
+        "externalId": null,
+        "profileUrl": null,
+        "email": "johndoe@pubnub.com",
+        "custom": null,
+        "updated": "2019-02-20T23:11:20.893755",
+        "eTag": "MDcyQ0REOTUtNEVBOC00QkY2LTgwOUUtNDkwQzI4MjgzMTcwCg=="
+      },
+      "custom": {
+```
+show all 41 lines
 ```
 
 ---
 
-### Remove channel members  
-
+### Remove channel members
 ```js
 pubnub.objects.removeChannelMembers({
   channel: string,
-  uuids: string[],                   // remove
-  include?, filter?, sort?, limit?, page?
+  uuids: string[],
+  include: any,
+  filter: string,
+  sort: any,
+  limit: number,
+  page: any
 })
 ```
+* include: `{ totalCount, customFields, UUIDFields, customUUIDFields }`
 
----
+```
+  
+```
+```json
+{
+  "status": 200,
+  "data": [
+    {
+      "uuid": {
+        "id": "uuid-1",
+        "name": "John Doe",
+        "externalId": null,
+        "profileUrl": null,
+        "email": "johndoe@pubnub.com",
+        "custom": null,
+        "updated": "2019-02-20T23:11:20.893755",
+        "eTag": "MDcyQ0REOTUtNEVBOC00QkY2LTgwOUUtNDkwQzI4MjgzMTcwCg=="
+      },
+      "custom": {
+```
+show all 41 lines
+```
 
-### Sample Responses  
-(All mutate-calls return the modified entity/entities inside `"data"` with the associated `eTag` and timestamps. Delete calls return `{ "status": 0, "data": {} }`.)
-
----
-
-### API Limits  
-Maximum field lengths match the REST equivalents; see individual REST docs for:  
-• Set User Metadata  
-• Set Channel Metadata  
-• Set Membership Metadata  
-• Set Channel‐Members Metadata
-
-_Last updated: Jun 30 2025_
+_Last updated Jul 15 2025_

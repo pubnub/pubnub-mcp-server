@@ -1,199 +1,143 @@
-# Channel Groups API – Dart SDK (condensed)
+# Channel Groups – PubNub Dart SDK (condensed)
 
-Channel groups bundle many channels under one name; you can **subscribe** to a group but must **publish to channels individually**.
+Channel Groups let you subscribe to many channels through a single group (publish is **not** supported).  
+All operations require the **Stream Controller** add-on to be enabled for your keys.
 
 ---
 
-## Add Channels
+## 1. Add channels to a group
 
-*Requires Stream Controller add-on*  
-Adds up to **200 channels per call** to a group.
-
-### Method
-
-```
-`pubnub.channelGroups.addChannels(  
-  String group,  
-  SetString> channels,  
-  {Keyset? keyset,  
-  String? using}  
-)   
-`
+```dart
+pubnub.channelGroups.addChannels(
+  String group,
+  Set<String> channels,           // ≤ 200 per call
+  {Keyset? keyset, String? using}
+)
 ```
 
 Parameters  
-• `group` – channel group name (String)  
-• `channels` – channels to add (Set<String>)  
-• `keyset` – override default Keyset  
-• `using` – named keyset from `keysetStore`
+• `group` – channel group name  
+• `channels` – channels to add  
+• `keyset` / `using` – optional keyset override
 
-### Example
+Example
 
+```dart
+import 'package:pubnub/pubnub.dart';
+
+void main() async {
+  var pubnub = PubNub(
+    defaultKeyset: Keyset(
+      subscribeKey: 'demo',
+      publishKey: 'demo',
+      userId: UserId('myUniqueUserId'),
+    ),
+  );
+
+  await pubnub.channelGroups.addChannels('cg1', {'ch1', 'ch2'});
+}
 ```
-`import 'package:pubnub/pubnub.dart';  
-  
-void main() async {  
-  var pubnub = PubNub(  
-    defaultKeyset: Keyset(  
-      subscribeKey: 'demo',  
-      publishKey: 'demo',  
-      userId: UserId('myUniqueUserId')  
-    ),  
-  );  
-  
-  var group = 'cg1';  
-  var channels = {'ch1', 'ch2'};  
-`
-```
-*(code truncated for brevity)*
 
-### Response
+Returns `ChannelGroupChangeChannelsResult`
 
-```
-`{  
-  "service": "channel-registry",  
-  "status": "200",  
-  "error": false,  
-  "message": "OK"  
-}  
-`
+```json
+{
+  "service": "channel-registry",
+  "status": "200",
+  "error": false,
+  "message": "OK"
+}
 ```
 
 ---
 
-## List Channels
+## 2. List channels in a group
 
-*Requires Stream Controller add-on*  
-Returns all channels in a group.
-
-### Method
-
-```
-`pubnub.channelGroups.listChannels(  
-  String group,  
-  {Keyset? keyset,  
-  String? using}  
-)   
-`
+```dart
+pubnub.channelGroups.listChannels(
+  String group,
+  {Keyset? keyset, String? using}
+)
 ```
 
-Parameters identical to Add Channels (except `channels`).
+Example
 
-### Example
-
-```
-`var result = await pubnub.channelGroups.listChannels('cg1');  
-`
+```dart
+var result = await pubnub.channelGroups.listChannels('cg1');
 ```
 
-### Return type  
-`ChannelGroupListChannelsResult`  
-• `channels` – Set<String>  
-• `name` – group name
+Returns `ChannelGroupListChannelsResult`
+
+* `channels` → `Set<String>`  
+* `name`     → group name
 
 ---
 
-## Remove Channels
+## 3. Remove channels from a group
 
-*Requires Stream Controller add-on*  
-Removes specific channels from a group.
-
-### Method
-
-```
-`pubnub.channelGroups.removeChannels(  
-  String group,  
-  SetString> channels,  
-  {Keyset? keyset,  
-  String? using}  
-)  
-`
+```dart
+pubnub.channelGroups.removeChannels(
+  String group,
+  Set<String> channels,
+  {Keyset? keyset, String? using}
+)
 ```
 
-### Example
+Example
 
-```
-`var result = await pubnub.channelGroups.removeChannels('cg1', {'ch1'});  
-`
+```dart
+await pubnub.channelGroups.removeChannels('cg1', {'ch1'});
 ```
 
-### Response
-
-```
-`{  
-  "service": "channel-registry",  
-  "status": "200",  
-  "error": false,  
-  "message": "OK"  
-}  
-`
-```
+Returns `ChannelGroupChangeChannelsResult` (same JSON as “Add channels”).
 
 ---
 
-## Delete Channel Group
+## 4. Delete a channel group (remove all channels)
 
-*Requires Stream Controller add-on*  
-Removes **all** channels from the group.
-
-### Method
-
-```
-`pubnub.channelGroups.delete(  
-  String group,  
-  {Keyset? keyset,  
-  String? using}  
-)   
-`
+```dart
+pubnub.channelGroups.delete(
+  String group,
+  {Keyset? keyset, String? using}
+)
 ```
 
-### Example
+Example
 
-```
-`var result = await pubnub.channelGroups.delete('cg1');  
-`
+```dart
+await pubnub.channelGroups.delete('cg1');
 ```
 
-### Response
+Returns `ChannelGroupDeleteResult`
 
-```
-`{  
-"service": "channel-registry",  
-"status": "200",  
-"error": false,  
-"message": "OK"  
-}  
-`
+```json
+{
+  "service": "channel-registry",
+  "status": "200",
+  "error": false,
+  "message": "OK"
+}
 ```
 
 ---
 
-## Get Subscribed Channel Groups
+## 5. Get currently subscribed channel groups
 
-Returns currently subscribed groups (`Set<String>`).
+`Subscription` property:
 
-### Property
-
-```
-`// property of `Subscription` class  
-subscription.channelGroups  
-`
+```dart
+subscription.channelGroups   // -> Set<String>
 ```
 
-### Example
+Example
 
-```
-`var subscription = pubnub.subscribe(channelGroups: {'cg1', 'cg2'});  
-var subscribedChannelGroups = subscription.channelGroups;  
-  
-print('subscribed channel groups are $subscribedChannelGroups');  
-`
+```dart
+var subscription = pubnub.subscribe(channelGroups: {'cg1', 'cg2'});
+print('subscribed channel groups: ${subscription.channelGroups}');
 ```
 
-### Response
+Output (example)
 
+```json
+["cg1","cg2"]
 ```
-`["channel1", "channel2"]**`
-```
-
-_Last updated: Mar 31, 2025_

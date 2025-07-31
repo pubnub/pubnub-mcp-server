@@ -1,20 +1,18 @@
-# Message Actions – Go SDK
+# Message Actions API – Go SDK (Condensed)
 
-Interact with metadata (reactions, receipts, custom data) attached to messages. All APIs below require **Message Persistence to be enabled for the key**.
+Message Actions let you attach, fetch, and remove metadata (reactions, receipts, etc.) on any published message.
 
-## Terminology  
-• Message Actions – low-level, generic metadata API  
-• Message Reactions – same API when used specifically for emoji/social reactions  
+**All methods below require Message Persistence to be enabled for your keys.**
 
 ---
 
-## Add Message Action
+## Add Message Reaction
 
-Adds metadata to an existing message.
+Adds an action to an existing message and returns the added action.
 
 ### Method
 
-```
+```go
 `pn.AddMessageAction().  
     Channel(string).  
     MessageTimetoken(string).  
@@ -23,46 +21,55 @@ Adds metadata to an existing message.
 `
 ```
 
-### Required parameters  
+Parameters  
 • Channel (string) – target channel  
 • MessageTimetoken (string) – timetoken of the parent message  
-• Action (pubnub.MessageAction) – struct with:  
-  – ActionType (≤15 chars)  
-  – ActionValue (≤40 chars)
+• Action (pubnub.MessageAction)  
+  • ActionType (max 15 chars)  
+  • ActionValue (max 40 chars)
 
-### Example
+### Sample
 
+```go
+package main
+
+import (
+	"fmt"
+	"log"
+
+	pubnub "github.com/pubnub/go/v7"
+)
+
+func main() {
+	// Configure the PubNub instance with demo keys
+	config := pubnub.NewConfigWithUserId("myUniqueUserId")
+	config.SubscribeKey = "demo"
+	config.PublishKey  = "demo"
+	...
+}
 ```
-`package main  
-  
-import (  
-	"fmt"  
-	"log"  
-  
-	pubnub "github.com/pubnub/go/v7"  
-)  
-  
-func main() {  
-	// Configure the PubNub instance with demo keys  
-	config := pubnub.NewConfigWithUserId("myUniqueUserId")  
-	config.SubscribeKey = "demo"  
-	config.PublishKey = "demo"  
-  
-`
-```
+(show all 45 lines)
 
-### Returns – PNAddMessageActionsResponse  
-• Data (PNMessageActionsResponse)
+### Returns
+
+`PNAddMessageActionsResponse`  
+• Data – PNMessageActionsResponse  
+
+`PNMessageActionsResponse`  
+• ActionType (string)  
+• ActionValue (string)  
+• ActionTimetoken (string)  
+• MessageTimetoken (string)
 
 ---
 
-## Remove Message Action
+## Remove Message Reaction
 
-Deletes a previously added action.
+Removes a previously added action and returns an empty response.
 
 ### Method
 
-```
+```go
 `pn.RemoveMessageAction().  
     Channel(string).  
     MessageTimetoken(string).  
@@ -71,14 +78,14 @@ Deletes a previously added action.
 `
 ```
 
-### Required parameters  
+Parameters  
 • Channel (string) – target channel  
 • MessageTimetoken (string) – parent message timetoken  
-• ActionTimetoken (string) – timetoken of the action
+• ActionTimetoken (string) – timetoken of the action to remove
 
-### Example
+### Sample
 
-```
+```go
 `res, status, err := pn.RemoveMessageAction()  
     .Channel("my-channel")  
     .MessageTimetoken("15698453963258802")  
@@ -87,18 +94,21 @@ Deletes a previously added action.
 `
 ```
 
-### Returns – PNRemoveMessageActionsResponse  
-• Data (interface{}) – empty
+### Returns
+
+`PNRemoveMessageActionsResponse`  
+• Data – empty interface
 
 ---
 
-## Get Message Actions
+## Get Message Reactions
 
-Lists actions on a channel, sorted by action timetoken (asc). Responses may be paginated via the `more` field.
+Lists message actions on a channel, sorted by action timetoken (ascending).  
+Responses can be truncated; use the More object to paginate.
 
 ### Method
 
-```
+```go
 `pn.GetMessageActions().  
     Channel(string).  
     Start(string).  
@@ -108,15 +118,15 @@ Lists actions on a channel, sorted by action timetoken (asc). Responses may be p
 `
 ```
 
-### Parameters  
-• Channel (string) – target channel (required)  
+Parameters  
+• Channel (string) – target channel  
 • Start (string) – return actions with timetoken < start  
 • End (string) – return actions with timetoken ≥ end  
 • Limit (int) – max actions to return
 
-### Example
+### Sample
 
-```
+```go
 `res, status, err := pn.GetMessageActions()  
     .Channel("my-channel")  
     .Start("15698453963258812")  
@@ -125,22 +135,16 @@ Lists actions on a channel, sorted by action timetoken (asc). Responses may be p
 `
 ```
 
-### Returns – PNGetMessageActionsResponse  
-• Data ([]PNMessageActionsResponse)  
-• More (PNGetMessageActionsMore)
+### Returns
 
----
+`PNGetMessageActionsResponse`  
+• Data – []PNMessageActionsResponse  
+• More – PNGetMessageActionsMore (pagination)
 
-## Data Structures
-
-### PNMessageActionsResponse  
-• ActionType (string) – feature identifier  
-• ActionValue (string) – metadata value  
-• ActionTimetoken (string) – when the action was added  
-• MessageTimetoken (string) – parent message timetoken  
-
-### PNGetMessageActionsMore  
+`PNGetMessageActionsMore`  
 • URL (string) – next page endpoint  
-• Start (string) – `start` for next call  
-• End (string) – `end` for next call  
-• Limit (int) – limit for next call
+• Start (string)  
+• End (string)  
+• Limit (int)
+
+_Last updated: Jul 15 2025_

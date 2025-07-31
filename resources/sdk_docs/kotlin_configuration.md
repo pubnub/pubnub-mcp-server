@@ -1,10 +1,10 @@
-# Configuration API – PubNub Kotlin SDK  
+# Configuration API – Kotlin SDK
 
-## Breaking changes in v9.0.0
-• Unified Java/Kotlin codebase.  
+## Breaking changes in 9.0.0
+• Unified Kotlin/Java codebase.  
 • New client-instantiation pattern.  
-• Changed asynchronous callbacks and status events.  
-See “Java/Kotlin SDK migration guide” for details.
+• Updated async callbacks and [status events](/docs/sdks/kotlin/status-events).  
+Apps built with < 9.0.0 must follow the [migration guide](/docs/general/resources/migration-guides/java-kotlin-sdk-migration-guide).
 
 ---
 
@@ -21,14 +21,13 @@ channel.publish("This SDK rules!").async { result ->
     }
 }
 ```
-Invoke `.sync()` or `.async()` on every Endpoint; otherwise the request isn’t executed.
+All endpoints must be finished with `.sync()` or `.async()`.
 
 ---
 
 ## PNConfiguration
 
-`PNConfiguration` holds all runtime options and is **immutable** once passed to the `PubNub` constructor.  
-Use value-override (see below) for per-request changes.
+`PNConfiguration` is immutable after passing it to the `PubNub` constructor (use *value overrides* for per-request changes).
 
 ### Constructor
 
@@ -39,56 +38,49 @@ Use value-override (see below) for per-request changes.
 
 ### Properties
 
-| Property | Type | Default | Notes |
-|----------|------|---------|-------|
-| subscribeKey* | String | – | Required. |
-| publishKey | String | – | Required for publishing. |
-| secretKey | String | – | Server-side access (never embed in Android). |
-| userId* | UserId | – | Required. `UserId(<String>)`, ≤ 92 UTF-8 chars. |
-| logVerbosity | PNLogVerbosity | NONE | BODY enables full HTTP logging. |
-| cacheBusting | Boolean | false | Shuffle sub-domains for bad proxies. |
-| secure | Boolean | true | TLS on/off. |
-| connectTimeout | Int | 5 | Seconds. |
-| subscribeTimeout | Int | 310 | Seconds. |
-| nonSubscribeRequestTimeout | Int | 10 | Seconds (read timeout). |
-| filterExpression | String | – | Server-side stream filter. |
-| heartbeatNotificationOptions | PNHeartbeatNotificationOptions | FAILURES | ALL / NONE also available. |
-| origin | String | – | Custom origin. |
-| presenceTimeout | Int | 300 | Seconds (min 20). Updates `heartbeatInterval`. |
-| heartbeatInterval | Int | 0 | Seconds; `(presenceTimeout/2)-1` recommended. |
-| proxy | Proxy | – | Java `Proxy`. |
-| proxySelector | ProxySelector | – | Java `ProxySelector`. |
-| proxyAuthenticator | Authenticator | – | Java `Authenticator`. |
-| googleAppEngineNetworking | Boolean | – | Enable GAE networking. |
-| suppressLeaveEvents | Boolean | false | Skip `leave` calls. |
-| retryConfiguration | RetryConfiguration | Exponential (subscribe) | None / Linear / Exponential. `excludedOperations: List<RetryableEndpointGroup>`. |
-| maintainPresenceState | Boolean | true | Send presence state on every subscribe. |
-| cryptoModule | CryptoModule | – | `createAesCbcCryptoModule(cipherKey)` or `createLegacyCryptoModule(cipherKey)`. |
-| includeInstanceIdentifier | Boolean | false | Send `instanceId`. |
-| includeRequestIdentifier | Boolean | true | Send `requestId`. |
-| maximumConnections | Int? | – | Max inbound concurrent connections. |
-| certificatePinner | CertificatePinner | – | Custom cert pinning. |
-| httpLoggingInterceptor | HttpLoggingInterceptor | – | Additional HTTP logging. |
-| sslSocketFactory | SSLSocketFactory | – | Custom SSL factory. |
-| x509ExtendedTrustManager | X509ExtendedTrustManager | – | Custom trust manager. |
-| connectionSpec | ConnectionSpec | – | TLS versions / ciphers. |
-| hostnameVerifier | HostnameVerifier | – | Custom hostname verification. |
-| fileMessagePublishRetryLimit | Int | 5 | Automatic file-publish retries. |
-| dedupOnSubscribe | Boolean | – | Enable message de-duplication. |
-| maximumMessagesCacheSize | Int | – | Max de-duplication cache size. |
-| pnsdkSuffixes | Map<String,String> | – | Custom SDK header suffixes. |
-| managePresenceListManually | Boolean | – | Manual presence list (ACL). |
-| authKey (deprecated) | String | – | Access-Manager v2 fallback. |
-
-\* Required.
+* **subscribeKey** :String – required.  
+* **publishKey** :String – required only for publish.  
+* **secretKey** :String – required for access operations (never embed in client apps).  
+* **userId** :UserId – required. UTF-8 string ≤ 92 chars.  
+* **logVerbosity** :PNLogVerbosity = NONE (`BODY` logs HTTP bodies).  
+* **cacheBusting** :Boolean = false – randomize subdomains behind broken proxy.  
+* **secure** :Boolean = true – enable TLS.  
+* **connectTimeout** :Int = 5 s.  
+* **subscribeTimeout** :Int = 310 s.  
+* **nonSubscribeRequestTimeout** :Int = 10 s.  
+* **filterExpression** :String – server-side message filter.  
+* **heartbeatNotificationOptions** :PNHeartbeatNotificationOptions = FAILURES (`ALL`, `NONE`).  
+* **origin** :String – custom domain.  
+* **presenceTimeout** :Int = 300 s (min 20); sets `heartbeatInterval` if changed.  
+* **heartbeatInterval** :Int = 0 s (disabled). Recommended ≈ `presenceTimeout/2 - 1`, min 3.  
+* **proxy / proxySelector / proxyAuthenticator** – standard Java networking proxies.  
+* **googleAppEngineNetworking** :Boolean.  
+* **suppressLeaveEvents** :Boolean = false.  
+* **retryConfiguration** :RetryConfiguration = Exponential (subscribe only).  
+    • `None` • `Linear(delaySec,maxRetries,excludedOperations)` • `Exponential(minDelaySec,maxDelaySec,maxRetries,excludedOperations)`  
+    • `excludedOperations` list of `RetryableEndpointGroup` (e.g., `SUBSCRIBE`).  
+* **maintainPresenceState** :Boolean = true (sends `setState` on every subscribe).  
+* **cryptoModule** – `CryptoModule.createAesCbcCryptoModule(cipherKey)` or `createLegacyCryptoModule(cipherKey)`.  
+* **includeInstanceIdentifier** :Boolean = false.  
+* **includeRequestIdentifier** :Boolean = true.  
+* **maximumConnections** :Int? – inbound connection cap.  
+* **certificatePinner / httpLoggingInterceptor / sslSocketFactory / x509ExtendedTrustManager / connectionSpec / hostnameVerifier** – advanced TLS/HTTP options.  
+* **fileMessagePublishRetryLimit** :Int = 5.  
+* **dedupOnSubscribe** :Boolean.  
+* **maximumMessagesCacheSize** :Int.  
+* **pnsdkSuffixes** :Map<String,String>.  
+* **managePresenceListManually** :Boolean.  
+* **authKey** :String – deprecated; see [Access Manager](/docs/sdks/kotlin/api-reference/access-manager).
 
 ---
 
-### `cryptoModule`
+### cryptoModule
 
-• `createLegacyCryptoModule(cipherKey)` – 128-bit legacy (default when only `cipherKey` + `useRandomInitializationVector` are set).  
-• `createAesCbcCryptoModule(cipherKey)` – Recommended 256-bit AES-CBC (SDK ≥ 7.6.0).  
-Older SDKs (< 7.6.0) cannot decrypt 256-bit AES-CBC data.
+Two bundled options:  
+1. Legacy 128-bit cipher (default if you set `cipherKey` but not `cryptoModule`).  
+2. Recommended 256-bit AES-CBC (`createAesCbcCryptoModule`).  
+
+Older SDKs (< 7.6.0) can’t decrypt AES-CBC.
 
 ```
 `  
@@ -97,67 +89,74 @@ Older SDKs (< 7.6.0) cannot decrypt 256-bit AES-CBC data.
 
 ---
 
-## Value override
-
-Override selected configuration values per-request with `overrideConfiguration`.
+### Sample PNConfiguration usage
 
 ```
 `  
 `
 ```
 
-Overridable keys: `subscribeKey`, `publishKey`, `secretKey`, `retryConfiguration`, `userId`, `includeInstanceIdentifier`, `includeRequestIdentifier`, `cryptoModule`, `connectTimeout`, `nonSubscribeReadTimeout`.
+---
+
+## Value override (per-request)
+
+```kotlin
+`  
+`
+```
+Overridable fields:  
+`subscribeKey`, `publishKey`, `secretKey`, `retryConfiguration`, `userId`, `includeInstanceIdentifier`, `includeRequestIdentifier`, `cryptoModule`, `connectTimeout`, `nonSubscribeReadTimeout`.
 
 ---
 
 ## Initialization
 
-```
-`  
-`
-```
-*Parameter*  
-• `builder` : `PNConfiguration` (see above).
+Add PubNub per [Getting Started](/docs/sdks/kotlin).
 
-Returns a `PubNub` instance for all API calls.
-
-### Examples
-(All examples keep mandatory `userId`.)
+### Constructor
 
 ```
 `  
 `
 ```
+Parameter: **builder** :PNConfiguration.
 
-• Non-secure client  
+### Example (required `userId`)
 
 ```
 `  
 `
 ```
 
-• Read-only client  
+### Non-secure client
 
 ```
 `  
 `
 ```
 
-• SSL enabled  
+### Read-only client
 
 ```
 `  
 `
 ```
 
-• Access-Manager (requires enabled add-on; never expose `secretKey` in client apps)
+### SSL-enabled
 
 ```
 `  
 `
 ```
 
-• Proxy configuration  
+### Access Manager (server-side only – keep `secretKey` private)
+
+```
+`  
+`
+```
+
+### Proxy
 
 ```
 `  
@@ -166,12 +165,20 @@ Returns a `PubNub` instance for all API calls.
 
 ---
 
-## UserId helpers
+## Event listeners
 
-Get current userId:
+Choose from:  
+• Global PubNub client.  
+• `Subscription` (single object).  
+• `SubscriptionsSet` (collection).  
+See [Publish & Subscribe – Event listeners](/docs/sdks/kotlin/api-reference/publish-and-subscribe#event-listeners).
+
+---
+
+## UserId runtime control
 
 ```kotlin
-// Getting the userId
+// Get
 val userId = pubnub.configuration.userId.value
 ```
 
@@ -180,7 +187,14 @@ val userId = pubnub.configuration.userId.value
 `
 ```
 
-Set userId:
+### Set
+
+```
+`  
+`
+```
+
+### Get
 
 ```
 `  
@@ -189,17 +203,18 @@ Set userId:
 
 ---
 
-## Filter Expression
+## Filter expression (requires *Stream Controller*)
 
 ```
 `  
 `
 ```
+Parameter: **filterExpression** :String – PSV2 filter sent with `subscribe`.
+
+### Example
 
 ```
 `**`
 ```
 
----
-
-_Last updated: Jun 2 2025_
+_Last updated Jul 16 2025_

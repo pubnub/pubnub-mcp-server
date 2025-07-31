@@ -1,109 +1,103 @@
 # Message Persistence API – Swift SDK (Storage & Playback)
 
-PubNub stores every published message (AES-256 optional) and timestamps it to 10 ns.  
-Retention options: 1 day · 7 days · 30 days · 3 months · 6 months · 1 year · Unlimited.
+Message Persistence stores every published message (AES-256 optional) for 1 day, 7 days, 30 days, 3 months, 6 months, 1 year, or unlimited retention (configured per key).
 
-Available history endpoints:
-• Fetch History (messages, reactions, file events)  
-• Delete Messages from History  
-• Message Counts  
-
-> All methods require Message Persistence to be enabled for the key in the Admin Portal.
+Enable “Message Persistence” in the Admin Portal before using any of the APIs below.
 
 ---
 
 ## Fetch History
 
-Maximum returned: 100 msgs (single channel) / 25 msgs (multi-channel ≤ 500).  
-Iterate using the `next` page object when more data is available.
+• Requires Message Persistence  
+• `includeActions` = true limits the call to a single channel.  
+• Limits: 100 msgs (single channel) or 25 msgs (multi-channel/up to 500).  
+• Pagination: use the returned `next` (PubNubBoundedPage) to continue.  
+• Timetoken rules:  
+  – `start` only → messages older than `start`  
+  – `end` only  → messages newer than or equal to `end`  
+  – both         → between (inclusive of `end`)
 
 ### Method
 
-```swift
-func fetchMessageHistory(
-    for channels: [String],
-    includeActions actions: Bool = false,
-    includeMeta: Bool = false,
-    includeUUID: Bool = true,
-    includeMessageType: Bool = true,
-    includeCustomMessageType: Bool = false,
-    page: PubNubBoundedPage? = PubNubBoundedPageBase(),
-    custom requestConfig: PubNub.RequestConfiguration = PubNub.RequestConfiguration(),
-    completion: ((Result<(messagesByChannel: [String: [PubNubMessage]],
-                           next: PubNubBoundedPage?), Error>) -> Void)?
-)
+```
+`func fetchMessageHistory(  
+    for channels: [String],  
+    includeActions actions: Bool = false,  
+    includeMeta: Bool = false,  
+    includeUUID: Bool = true,  
+    includeMessageType: Bool = true,  
+    includeCustomMessageType: Bool = false,  
+    page: PubNubBoundedPage? = PubNubBoundedPageBase(),  
+    custom requestConfig: PubNub.RequestConfiguration = PubNub.RequestConfiguration(),  
+    completion: ((Result(messagesByChannel: [String: [PubNubMessage]], next: PubNubBoundedPage?), Error>) -> Void)?  
+)  
+`
 ```
 
 Parameters  
-• `channels` [String] – up to 500 channels.  
-• `includeActions` Bool – include Message Actions; must be single channel when `true`.  
-• `includeMeta` Bool – include message `meta`.  
-• `includeUUID` Bool – include publisher UUID.  
-• `includeMessageType` Bool – include PubNub message type.  
-• `includeCustomMessageType` Bool – include custom message type.  
-• `page` PubNubBoundedPage – pagination (`limit` ≤ 100 single/25 multi).  
-• `custom` RequestConfiguration – per-request config.  
-• `completion` – async result.
+• `for` [String] - channels (max 500).  
+• `includeActions` Bool (default false) – include message actions.  
+• `includeMeta` Bool (false) – include message metadata.  
+• `includeUUID` Bool (true) – include sender ID.  
+• `includeMessageType` Bool (true) – include PubNub message type.  
+• `includeCustomMessageType` Bool (false) – include custom message type.  
+• `page` PubNubBoundedPage? – pagination (`limit` ≤ 100, or 25 for multi-channel / includeActions).  
+• `custom` PubNub.RequestConfiguration – per-call overrides.  
+• `completion` Result<(messagesByChannel:[String:[PubNubMessage]], next:PubNubBoundedPage?)>.
 
-Truncated responses return a `next` page object; call again with provided bounds.
-
-### Result Types
-
-```swift
-public protocol PubNubMessage {
-  var payload: JSONCodable { get set }
-  var actions: [PubNubMessageAction] { get set }
-  var publisher: String? { get set }
-  var channel: String { get }
-  // …
-}
-
-public protocol PubNubBoundedPage {
-  var start: Timetoken? { get }
-  var end: Timetoken?  { get }
-  var limit: Int?     { get }
-}
-```
-
-### Examples
-
-Retrieve the last message on a channel:
+#### Success Types
 
 ```
-`  
-`
+`public protocol PubNubMessage {  
+  var payload: JSONCodable { get set }  
+  var actions: [PubNubMessageAction] { get set }  
+  var publisher: String? { get set }  
+  var channel: String { get }  
+  var subscription: String? { get }  
+  var timetoken: Timetoken { get }  
+  var messageType: PubNubMessageType? { get set }  
+  var customMessageType: String? { get set }  
+  var metadata: JSONCodable? { get set }  
+}`  
 ```
 
-Retrieve messages ≥ specific timetoken:
-
 ```
-`  
-`
+`public protocol PubNubBoundedPage {  
+  var start: Timetoken? { get }  
+  var end: Timetoken?  { get }  
+  var limit: Int?      { get }  
+}`  
 ```
 
-Retrieve messages < a timetoken:
+#### Failure
+
+`Error`
+
+### Sample code
 
 ```
 `  
 `
 ```
 
-Last 10 messages on multiple channels:
+### Other examples
 
 ```
 `  
 `
 ```
-
-Messages with metadata:
-
 ```
 `  
 `
 ```
-
-Messages with Message Action data:
-
+```
+`  
+`
+```
+```
+`  
+`
+```
 ```
 `  
 `
@@ -113,35 +107,37 @@ Messages with Message Action data:
 
 ## Delete Messages from History
 
-Requires “Enable Delete-From-History” and initialization with the secret key.
+• Requires Message Persistence enabled and “Delete-From-History” setting ON (Admin Portal).  
+• Secret key required for initialization.
 
 ### Method
 
-```swift
-func deleteMessageHistory(
-    from channel: String,
-    start: Timetoken? = nil,
-    end: Timetoken? = nil,
-    custom requestConfig: PubNub.RequestConfiguration = PubNub.RequestConfiguration(),
-    completion: ((Result<Void, Error>) -> Void)?
-)
+```
+`func deleteMessageHistory(  
+    from channel: String,  
+    start: Timetoken? = nil,  
+    end: Timetoken? = nil,  
+    custom requestConfig: PubNub.RequestConfiguration = PubNub.RequestConfiguration(),  
+    completion: ((Result<Void, Error>) -> Void)?  
+)  
+`
 ```
 
 Parameters  
-• `channel` String – channel to delete from.  
-• `start` Timetoken? – inclusive begin of range.  
-• `end` Timetoken? – exclusive end of range.  
-• `custom` RequestConfiguration – per-request config.  
-• `completion` – async result.
+• `from` String – channel.  
+• `start` Timetoken? – inclusive start (default nil).  
+• `end` Timetoken? – exclusive end (default nil).  
+• `custom` PubNub.RequestConfiguration.  
+• `completion` Result<Void,Error>.
 
-### Examples
+### Sample code
 
 ```
 `  
 `
 ```
 
-Delete a specific message:
+### Other examples
 
 ```
 `  
@@ -152,51 +148,59 @@ Delete a specific message:
 
 ## Message Counts
 
-Returns number of messages published since a given timetoken (30-day window for unlimited retention keys).
+Returns the number of messages published since a specified timetoken.  
+For unlimited retention keys, only the last 30 days are evaluated.
 
 ### Methods
 
-```swift
-func messageCounts(
-    channels: [String: Timetoken],
-    custom requestConfig: PubNub.RequestConfiguration = PubNub.RequestConfiguration(),
-    completion: ((Result<[String: Int], Error>) -> Void)?
-)
+```
+`func messageCounts(  
+    channels: [String: Timetoken],  
+    custom requestConfig: PubNub.RequestConfiguration = PubNub.RequestConfiguration(),  
+    completion: ((Result<[String: Int], Error>) -> Void)?  
+)  
+`
 ```
 
-```swift
-func messageCounts(
-    channels: [String],
-    timetoken: Timetoken = 1,
-    custom requestConfig: PubNub.RequestConfiguration = PubNub.RequestConfiguration(),
-    completion: ((Result<[String: Int], Error>) -> Void)?
-)
+```
+`func messageCounts(  
+    channels: [String],  
+    timetoken: Timetoken = 1,  
+    custom requestConfig: PubNub.RequestConfiguration = PubNub.RequestConfiguration(),  
+    completion: ((Result<[String: Int], Error>) -> Void)?  
+)  
+`
 ```
 
-Parameters  
-• `channels` – map `[channel: timetoken]` or `[channel]`.  
-• `timetoken` – single timetoken for all channels (second overload).  
-• `custom` – per-request config.  
-• `completion` – async result.
+Parameters (both variants)  
+• `channels` – list or map of channels.  
+• `timetoken` / values in map – starting timetoken(s).  
+• `custom` – PubNub.RequestConfiguration.  
+• `completion` – Result<[String:Int],Error>.
 
-### Examples
+#### Success
+
+Dictionary `[channel: messageCount]`
+
+#### Failure
+
+`Error`
+
+### Sample code
 
 ```
 `  
 `
 ```
 
-Counts for multiple channels (same timetoken):
+### Other examples
 
 ```
 `  
 `
 ```
-
-Counts for multiple channels (different timetokens):
-
 ```
 `**`
 ```
 
-_Last updated Jun 12 2025_
+_Last updated Jul 15 2025_

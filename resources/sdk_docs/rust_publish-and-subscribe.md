@@ -1,14 +1,14 @@
 # Publish/Subscribe – Rust SDK (Condensed)
 
-Below is the essential reference for PubNub’s Rust Publish/Subscribe APIs.  
-All code blocks, method signatures, parameters, and critical limits are preserved.
-
 ---
 
 ## Publish
 
-Maximum payload: **32 KiB** (ideal < 1.8 KiB).  
-Data is JSON-serialized automatically—pass native data structures.
+Critical details:
+• `publish_key` required at initialization  
+• Max payload: 32 KiB (ideal ≤1 800 B). Errors returned if exceeded.  
+• Any JSON-serializable type; **do not pre-serialize** payload.  
+• One channel per call; publishing and subscriber pace must match (100-message in-memory queue).  
 
 ### Method
 
@@ -25,22 +25,22 @@ Data is JSON-serialized automatically—pass native data structures.
 `
 ```
 
-Parameters (defaults follow PubNub keyset configuration unless stated):
+### Parameters (essentials)
 
-* `publish_message` (required) – message implementing `Serialize`.
-* `channel` (required) – destination channel.
-* `store` – `true/false`; enables Message Persistence.
-* `meta` – `HashMap<String,String>` for filter expressions.
-* `replicate` – replicate across Points of Presence.
-* `ttl` – hours to live (see detailed rules below):
-  1. `store=true, ttl=0` → stored indefinitely.  
-  2. `store=true, ttl=X` → stored X hours (unless keyset retention = Unlimited).  
-  3. `store=false` → `ttl` ignored.  
-  4. `ttl` omitted → key default.
-* `use_post` – publish with HTTP POST.
-* `execute` – returns `Future`; `await` to complete.
+* `publish_message` (T: Serialize) – message payload.  
+* `channel` (Into<String>) – target channel.  
+* `store` (Option<bool>) – enable Message Persistence.  
+* `meta` (Option<HashMap<String,String>>) – data for Filters.  
+* `replicate` (bool) – replicate across PoPs.  
+* `ttl` (Option<u32>) – hours to live:  
+  1. `store=true, ttl=0` → no expiry  
+  2. `store=true, ttl=X` → X hours (ignored if unlimited retention)  
+  3. `store=false` → `ttl` ignored  
+  4. unset `ttl` → key-level default  
+* `use_post` (bool) – send via HTTP POST.  
+* `execute()` – returns `Future`; `.await` required.
 
-### Basic usage
+### Sample code
 
 ```
 `  
@@ -54,7 +54,7 @@ Parameters (defaults follow PubNub keyset configuration unless stated):
 `
 ```
 
-### Result
+### Returns
 
 ```
 `// success  
@@ -69,14 +69,14 @@ Error: PublishError("Status code: 400, body: OtherResponse { status: 400, error:
 
 ## Subscribe
 
-Requires a valid `subscribe_key`. Provides two scopes:
+Requirements: valid `subscribe_key`. Auto-reconnect available via `with_retry_policy()`.
 
-* `Subscription` – single entity (channel, group, metadata).  
-* `SubscriptionSet` – collection of entities created on a `pubnub` client.
+### Subscription objects
 
-Automatic reconnection can be configured with `with_retry_policy()`.
+1. `Subscription` – single entity (channel, group, metadata).  
+2. `SubscriptionSet` – multiple entities/global.
 
-### Create a subscription
+#### Create a subscription
 
 ```
 `// entity-based, local-scoped  
@@ -85,7 +85,7 @@ channel.subscription(options: OptionVecSubscriptionOptions>>)
 `
 ```
 
-### Create a subscription set
+#### Create a subscription set
 
 ```
 `// client-based, general-scoped  
@@ -97,50 +97,62 @@ pubnub.subscription(parameters: (SubscriptionParams {
 `
 ```
 
-`SubscriptionOptions` enum currently supports:
+`SubscriptionOptions` enum:  
+• `ReceivePresenceEvents` – deliver presence updates.
 
-* `ReceivePresenceEvents` – include presence updates.
-
----
-
-### Subscribe
+### Methods
 
 ```
 `subscription.subscribe()  
 `
 ```
 
+Sample code
+
 ```
 `  
 `
 ```
 
-#### Combining subscriptions
+##### Compose sets
 
 ```
-`// individual entities  
-...  
+`// individual subscriptions → set  
+let channel = client.channel("channelName");  
+let subscription1 = channel.subscription(options: OptionVecSubscriptionOptions>>);  
+let channel_group = client.channel_group("channelGroup");  
+let subscription2 = channel_group.subscription(options: OptionVecSubscriptionOptions>>);  
 let set = subscription1 + subscription2;  
-set += subscription3; // or set.add_subscriptions(subscription3)  
+set += subscription3  
+// Or  
+set.add_subscriptions(subscription3)  
 `
 ```
 
 ```
-`// combining sets  
-let set1 = pubnub.subscription(...);  
-let set2 = pubnub.subscription(...);  
-// create new set from both  
+`// merge two sets  
+let set1 = pubnub.subscription(parameters: (SubscriptionParams {  
+    channels: Some(&["channelName1", "channelName2"]),  
+    channel_groups: None,  
+    options: None  
+}))  
+let set2 = pubnub.subscription(parameters: (SubscriptionParams {  
+    channels: None,  
+    channel_groups: Some(&["channelGroup1", "channelGroup2"]),  
+    options: OptionVecSubscriptionOptions>>  
+}))  
+// create a new subscription set from 2 sets  
 `
 ```
 
----
-
-### Subscribe with timetoken
+#### Subscribe with timetoken
 
 ```
 `subscription.subscribe_with_timetoken(cursor: IntoSubscriptionCursor>)  
 `
 ```
+
+Sample:
 
 ```
 `let subscription = pubnub.subscription(SubscriptionParams {  
@@ -162,33 +174,36 @@ subscription.subscribe_with_timetoken(cursor);
 
 ## Entities
 
-Create local handles to channels, groups, and metadata objects:
+Creation helpers:
 
 ```
 `pubnub.channel(String)  
-  
 pubnub.channels(&[String])  
 `
 ```
 
 ```
 `pubnub.channel_group(String)  
-  
 pubnub.channel_groups(&[String])  
 `
 ```
 
 ```
 `pubnub.channel_metadata(String)  
-  
 pubnub.channels_metadata(&[String])  
 `
 ```
 
 ```
 `pubnub.user_metadata(String)  
-  
 pubnub.users_metadata(&[String])  
+`
+```
+
+Sample code blocks (placeholders):
+
+```
+`  
 `
 ```
 
@@ -196,19 +211,22 @@ pubnub.users_metadata(&[String])
 
 ## Event Listeners
 
-Attach streams to `Subscription`, `SubscriptionSet`, or `pubnub` (status only).
-
 ```
 `subscription  
+    /// Stream used to notify regular messages.  
     .messages_stream() -> DataStreamMessage>;  
+    /// Stream used to notify signals.  
     .signals_stream() -> DataStreamMessage>;  
+    /// Stream used to notify message action updates.  
     .message_actions_stream() -> DataStreamMessageAction>;  
+    /// Stream used to notify about file receive.  
     .files_stream() -> DataStreamFile>;  
+    /// Stream used to notify about App Context (Channel and User) updates.  
     .app_context_stream() -> DataStreamAppContext>;  
 `
 ```
 
-Add connection status listener (client-scope):
+Client connection status:
 
 ```
 `pubnub.status_stream()  
@@ -217,45 +235,61 @@ Add connection status listener (client-scope):
 
 ---
 
-## Utility Operations
-
-Clone subscription without listeners:
+## Clone (empty listeners)
 
 ```
 `subscription.clone_empty()  
 `
 ```
 
-Unsubscribe:
+---
+
+## Unsubscribe
 
 ```
 `subscription.unsubscribe()  
-  
 subscription_set.unsubscribe()  
 `
 ```
 
+Example:
+
 ```
-`let subscription = client.subscription(...);  
+`let subscription = client.subscription(SubscriptionParams {  
+    channels: Some(&["my_channel", "other_channel"]),  
+    channel_groups: None,  
+    options: None  
+});  
 subscription.subscribe(None);  
 subscription.unsubscribe();  
 `
 ```
 
-Unsubscribe from all streams (client-scope):
+---
+
+## Unsubscribe All (client scope)
 
 ```
 `pubnub.unsubscribe_all()  
 `
 ```
 
+Example:
+
 ```
-`let subscription = client.subscription(...);  
-...  
+`let subscription = client.subscription(SubscriptionParams {  
+    channels: Some(&["my_channel", "other_channel"]),  
+    channel_groups: None,  
+    options: None  
+});  
+subscription.subscribe();  
+  
+let channel_group = client.channel_group("my_channel_group");  
+let cg_subscription = channel_group.subscription(None);  
+cg_subscription.subscribe();  
+  
 pubnub.unsubscribe_all();  
 `
 ```
 
----
-
-Last updated: **Jun 16 2025**
+_Last updated Jul 15 2025_

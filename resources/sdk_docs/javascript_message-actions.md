@@ -1,111 +1,151 @@
-# Message Actions API – JavaScript SDK (condensed)
+# Message Actions API – JavaScript SDK
 
-Message Actions let you attach metadata (reactions, read-receipts, etc.) to previously published messages.  
-All methods require Message Persistence to be enabled for the key.
-
-Async patterns: callbacks, promises, and **async/await** (recommended—wrap calls in `try…catch`).
-
----
-
-## Add Message Action
-
-```
-addMessageAction({
-  channel: string,             // channel containing the target message
-  messageTimetoken: string,    // timetoken of the target message
-  action: {                    // action object
-    type:  string,             // action feature (e.g., "reaction")
-    value: string              // value (e.g., "smiley_face")
-  }
-})
-```
-
-### Returns
-```js
-// status
-{
-  "error": false,
-  "operation": "PNAddMessageActionOperation",
-  "statusCode": 200
-}
-
-// response
-{
-  "data": {
-    "type": "reaction",
-    "value": "smiley_face",
-    "uuid": "user-456",
-    "actionTimetoken": "15610547826970050",
-    "messageTimetoken": "15610547826969050"
-  }
-}
-```
+Message Actions let you attach metadata (reactions, read receipts, etc.) to any stored message.  
+All operations require **Message Persistence** to be enabled for your key.  
+Async patterns supported: callbacks, promises, **async/await** (recommended, wrap calls in `try…catch`).
 
 ---
 
-## Remove Message Action
+## Add Message Reaction
 
 ```
-removeMessageAction({
-  channel: string,          // channel containing the action
-  messageTimetoken: string, // message timetoken
-  actionTimetoken: string   // timetoken of the action to remove
-})
+`addMessageAction({  
+    channel: string,  
+    messageTimetoken: string,  
+    action: { type: string, value: string }  
+})  
+`
 ```
 
-### Returns
-```js
-// status
-{
-  "error": false,
-  "operation": "PNRemoveMessageActionOperation",
-  "statusCode": 200
-}
+Parameters  
+• `channel` (string, required) – target channel  
+• `messageTimetoken` (string, required) – timetoken of the message to annotate  
+• `action` (object, required)  
+ • `action.type` (string) – action type  
+ • `action.value` (string) – action value  
 
-// response
-{ "data": {} }
+Sample code  
+
+```
+`  
+`
+```
+
+Returns  
+
+```
+`// Example of status  
+{  
+  "error": false,  
+  "operation": "PNAddMessageActionOperation",  
+  "statusCode": 200  
+}  
+
+// Example of response  
+{  
+  "data": {  
+    "type": "reaction",  
+    "value": "smiley_face",  
+    "uuid": "user-456",  
+    "actionTimetoken": "15610547826970050",  
+    "messageTimetoken": "15610547826969050"  
+  }  
+}  
+`
 ```
 
 ---
 
-## Get Message Actions
-
-Truncated results include a `more` object; issue additional calls using its parameters.
+## Remove Message Reaction
 
 ```
-getMessageActions({
-  channel: string, // channel to query
-  start: string,   // (optional) return actions with tt < start
-  end: string,     // (optional) return actions with tt ≥ end
-  limit: number    // (optional) max actions (default 25, max 100)
-})
+`removeMessageAction({  
+    channel: string,  
+    messageTimetoken: string,  
+    actionTimetoken: string  
+})  
+`
 ```
 
-### Returns
-```js
-// status
-{
-  "error": false,
-  "operation": "PNGetMessageActionsOperation",
-  "statusCode": 200
-}
+Parameters  
+• `channel` (string, required) – channel containing the message  
+• `messageTimetoken` (string, required) – timetoken of annotated message  
+• `actionTimetoken` (string, required) – timetoken of the action to remove  
 
-// response (truncated)
-{
-  "data": [
-    {
-      "type": "reaction",
-      "value": "smiley_face",
-      "uuid": "user-456",
-      "actionTimetoken": "15610547826970050",
-      ...
-    }
-  ],
-  "more": {
-    "start": "15610547826970049",
-    "limit": 100
-  }
-}
+Sample code  
+
+```
+`  
+`
 ```
 
-_Last updated: Jun 30 2025_
+Returns  
+
+```
+`// Example of status  
+{  
+  "error": false,  
+  "operation": "PNRemoveMessageActionOperation",  
+  "statusCode": 200  
+}  
+
+// Example of response  
+{  
+  "data": {}  
+}  
+`
+```
+
+---
+
+## Get Message Reactions
+
+```
+`getMessageActions({  
+    channel: string,  
+    start: string,   // optional, actions < start  
+    end: string,     // optional, actions ≥ end  
+    limit: number    // optional  
+})  
+`
+```
+
+Parameters  
+• `channel` (string, required) – channel to query  
+• `start` (string) – upper timetoken bound (exclusive)  
+• `end` (string) – lower timetoken bound (inclusive)  
+• `limit` (number) – max actions returned  
+
+Sample code  
+
+```
+`  
+`
+```
+
+Returns  
+
+```
+`// Example of status  
+{  
+  "error": false,  
+  "operation": "PNGetMessageActionsOperation",  
+  "statusCode": 200  
+}  
+
+// Example of response  
+{  
+  "data": [  
+    {  
+      "type": "reaction",  
+      "value": "smiley_face",  
+      "uuid": "user-456",  
+      "actionTimetoken": "15610547826970050",  
+      "messageTimetoken": "15610547826969050"  
+    }  
+  ]  
+}  
+`
+```
+
+Use the `more` object in the response (if present) for paginated retrieval when data is truncated.

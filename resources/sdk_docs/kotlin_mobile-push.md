@@ -1,116 +1,126 @@
-# Mobile Push Notifications API (Kotlin SDK ≥ 9.0.0)
+# Mobile Push Notifications API – Kotlin SDK (≥ v9.0.0)
 
-## Breaking changes in v9.0.0
-The Kotlin and Java SDKs share a unified codebase. Client instantiation, async callbacks, and status events changed. See the Java/Kotlin SDK migration guide for details.
-
-## Request execution
-Endpoint objects must be executed with `.sync()` or `.async()`:
+PubNub Kotlin SDK 9.x merges Kotlin & Java codebases, introduces a new client builder, and changes async callbacks/status events (see Migration Guide).  
+Every Endpoint must be executed via `.sync()` or `.async()` – otherwise nothing happens.
 
 ```kotlin
-val channel = pubnub.channel("channelName")
-
-channel.publish("This SDK rules!").async { result ->
-    result.onFailure { exception ->
-        // Handle error
-    }.onSuccess { value ->
-        // Handle success
-    }
-}
+`val channel = pubnub.channel("channelName")  
+  
+channel.publish("This SDK rules!").async { result ->  
+    result.onFailure { exception ->  
+        // Handle error  
+    }.onSuccess { value ->  
+        // Handle successful method result  
+    }  
+}  
+`
 ```
 
-## Mobile Push Notifications
-
-• Requires the “Mobile Push Notifications” add-on enabled for your PubNub keys.  
-• Supports `PNPushType.FCM` and `PNPushType.APNS2`.
+The following operations require the “Mobile Push Notifications” add-on to be enabled in the Admin Portal.
 
 ---
 
-### Add Device to Channel
+## Add device to channel
 
 ```kotlin
-pubnub.addPushNotificationsOnChannels(
-    pushType: PNPushType.FCM,
-    channels: List<String>,
-    deviceId: String,
-    topic: String,
-    environment: PNPushEnvironment
-).async { result -> }
+`pubnub.addPushNotificationsOnChannels(  
+    pushType: PNPushType.FCM,              // or PNPushType.APNS2  
+    channels: List<String>,               // channels to enable  
+    deviceId: String,                     // FCM/APNs device token  
+    topic: String,                        // APNS2 only: app bundle ID  
+    environment: PNPushEnvironment        // APNS2 only: .PRODUCTION / .DEVELOPMENT  
+).async { result -> }  
+`
 ```
 
 Parameters  
-• `pushType` – `PNPushType.FCM` or `PNPushType.APNS2`  
-• `channels` – list of channels to enable notifications on  
-• `deviceId` – device token  
-• `topic` – bundle identifier (APNS2 only)  
-• `environment` – `PNPushEnvironment` (APNS2 only)
+• pushType – PNPushType.FCM | PNPushType.APNS2  
+• channels – List of channel names to enable  
+• deviceId – Device token  
+• topic – Required when `pushType == APNS2`  
+• environment – Required when `pushType == APNS2`
 
-Returns: no data; check `result.isFailure` or `result.onFailure { … }`.
+Returns  
+No payload. Check `result.isFailure` / `onFailure`.
+
+Sample  
 
 ```kotlin
-
+`  
+`
 ```
 
 ---
 
-### List Channels for Device
+## List channels for device
 
 ```kotlin
-pubnub.auditPushChannelProvisions(
-    pushType: PNPushType,
-    deviceId: String,
-    topic: String,
-    environment: PNPushEnvironment
-).async { result, status -> }
+`pubnub.auditPushChannelProvisions(  
+    pushType: PNPushType,  
+    deviceId: String,  
+    topic: String,              // APNS2 only  
+    environment: PNPushEnvironment // APNS2 only  
+).async { result, status }  
+`
 ```
 
-Parameters as above (`deviceId`, `topic`, `environment`).
+Returns `PNPushListProvisionsResult?`  
+• channels – `List<String>` with all channels that have push enabled for the token.
 
-Returns: `PNPushListProvisionsResult?`  
-• `channels : List<String>` – channels with push enabled.
-
-```kotlin
-
-```
-
----
-
-### Remove Device from Channel
+Sample  
 
 ```kotlin
-pubnub.removePushNotificationsFromChannels(
-    pushType: PNPushType,
-    channels: List<String>,
-    deviceId: String,
-    topic: String,
-    environment: PNPushEnvironment
-).async { result -> }
-```
-
-Same parameters as “Add Device”.  
-Returns: no data; inspect `result`.
-
-```kotlin
-
+`  
+`
 ```
 
 ---
 
-### Remove All Mobile Push Notifications
+## Remove device from channel
 
 ```kotlin
-pubnub.removeAllPushNotificationsFromDeviceWithPushToken(
-    pushType: PNPushType,
-    deviceId: String,
-    topic: String,
-    environment: PNPushEnvironment
-).async { result -> }
+`pubnub.removePushNotificationsFromChannels(  
+    pushType: PNPushType,  
+    channels: List<String>,  
+    deviceId: String,  
+    topic: String,  
+    environment: PNPushEnvironment  
+).async { result -> }  
+`
 ```
 
-Disables push on all channels for the token.  
-Returns: no data; inspect `result`.
+Same parameters as “Add device to channel”.  
+Returns void – inspect `result`.
+
+Sample  
 
 ```kotlin
-
+`  
+`
 ```
 
-_Last updated: May 28 2025_
+---
+
+## Remove all mobile push notifications (token)
+
+```kotlin
+`pubnub.removeAllPushNotificationsFromDeviceWithPushToken(  
+    pushType: PNPushType,  
+    deviceId: String,  
+    topic: String,  
+    environment: PNPushEnvironment  
+).async { result -> }  
+`
+```
+
+Disables push on **all** channels for the token.  
+Returns void – inspect `result`.
+
+Sample  
+
+```kotlin
+`  
+`
+```
+
+_Last updated: Jul 15 2025_

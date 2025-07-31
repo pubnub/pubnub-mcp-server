@@ -1,233 +1,174 @@
-# Utility Methods – PubNub Java SDK (v9+)
+# Utility Methods API for Java SDK
 
-#### Breaking changes since v9.0  
-Version 9 merges Java & Kotlin codebases, reworks client instantiation, callbacks, and status events. See the Java/Kotlin migration guide for details.
+##### Breaking changes in v9.0.0
 
----
+PubNub Java SDK version 9.0.0 introduces a new way of instantiating the PubNub client, and changes asynchronous API callbacks and emitted status events. These changes can impact applications built with previous versions (< `9.0.0`) of the Java SDK.
 
-## Create Push Payload
-Build a single payload map for `publish()`.
+## Create push payload
 
-### Method
-```
-`PushPayloadHelper helper = new PushPayloadHelper();  
-    helper.setApnsPayload(PushPayloadHelper.APNSPayload());  
-    helper.setFcmPayloadV2(PushPayloadHelper.FCMPayloadV2());  
-    helper.setCommonPayload(HashMapString, Object>());  
+This method creates the push payload for use in the appropriate endpoint calls.
+
+### Method(s)
+
+```java
+PushPayloadHelper helper = new PushPayloadHelper();  
+helper.setApnsPayload(PushPayloadHelper.APNSPayload());  
+helper.setFcmPayloadV2(PushPayloadHelper.FCMPayloadV2());  
+helper.setCommonPayload(HashMap<String, Object>());  
   
-MapString, Object> payload = helper.build();  
-`
+Map<String, Object> payload = helper.build();  
 ```
 
-Parameters  
-* `setApnsPayload(APNSPayload)` – adds `pn_apns`.  
-* `setFcmPayloadV2(FCMPayloadV2)` – adds `pn_gcm`.  
-* `setCommonPayload(Map<String,Object>)` – data for PubNub subscribers.  
-* `build()` → `Map<String,Object>`.
+### Response
 
-#### Example
-```
-`  
-`
-```
+The `PushPayloadHelper#build()` operation returns a `Map<String, Object>` which can be passed directly as the `message()` parameter to the `pubnub.publish()` method.
 
-`helper.build()` produces the map passed to `pubnub.publish()`.
+## Destroy
 
----
+Destroy frees up the threads and allows for clean exit.
 
-## destroy()
-Free SDK threads for a clean exit.
+### Method(s)
 
-```
-`destroy()  
-`
+```java
+destroy()  
 ```
 
-```
-`  
-`
+### Returns
+
+None
+
+## Encrypt
+
+This function allows to `encrypt` the data.
+
+### Method(s)
+
+```java
+pubnub.encrypt(data, customCipherKey)  
 ```
 
----
+## Encrypt file input stream
 
-## Encryption / Decryption  
-Prefer the configurable [crypto module]. Passing `cipherKey` falls back to legacy 128-bit crypto (deprecated).
+Encrypts input stream with a cipher key.
 
-### Encrypt
-```
-`pubnub.encrypt(data, customCipherKey)  
-`
-```
-* `data : String` – plain text.  
-* `customCipherKey : String (optional)` – overrides crypto module.
+### Method(s)
 
-```
-`  
-`
+```java
+pubnub.encryptInputStream(inputStream, cipherKey)  
 ```
 
-### Encrypt InputStream
-```
-`pubnub.encryptInputStream(inputStream, cipherKey)  
-`
-```
-* `inputStream : InputStream` – data to encrypt.  
-* `cipherKey : String (optional)`.
+### Returns
 
-```
-`  
-`
-```
-Returns encrypted `InputStream`.
+InputStream with encrypted data.
 
-### Decrypt
-```
-`pubnub.decrypt(data, customCipherKey)  
-`
-```
-* `data : String` – cipher text.  
-* `customCipherKey : String (optional)`.
+## Decrypt
 
-```
-`  
-`
+This function allows to `decrypt` the data.
+
+### Method(s)
+
+```java
+pubnub.decrypt(data, customCipherKey)  
 ```
 
-### Decrypt InputStream
-```
-`pubnub.decryptInputStream(inputStream, cipherKey)  
-`
-```
-* `inputStream : InputStream` – encrypted data stream.  
-* `cipherKey : String (optional)`.
+## Decrypt file input stream
 
-```
-`  
-`
-```
-Returns decrypted `InputStream`.
+Decrypts input stream with a cipher key.
 
----
+### Method(s)
 
-## Subscribed Resources
-
-### Channel Groups
-```
-`public final ListString> getSubscribedChannelGroups()  
-`
-```
-```
-`  
-`
-```
-Response
-```
-`["channelGroup1", "channelGroup2"]  
-`
+```java
+pubnub.decryptInputStream(inputStream, cipherKey)  
 ```
 
-### Channels
-```
-`public final ListString> getSubscribedChannels()  
-`
-```
-```
-`  
-`
-```
-Response
-```
-`["channel1", "channel2"]  
-`
+### Returns
+
+InputStream with decrypted data.
+
+## Get subscribed channel groups
+
+Returns all the subscribed channel groups in a `List of type String`.
+
+### Method(s)
+
+```java
+public final List<String> getSubscribedChannelGroups()  
 ```
 
----
+### Response
 
-## Connection Control
-Stop all traffic:
-```
-`disconnect()  
-`
-```
-```
-`  
-`
-```
-Resume traffic:
-```
-`reconnect()  
-`
-```
-```
-`  
-`
+`List<String>`
+
+## Get subscribed channels
+
+Returns all the subscribed channels in a `List of type String`.
+
+### Method(s)
+
+```java
+public final List<String> getSubscribedChannels()  
 ```
 
----
+### Response
 
-## Timetoken ↔ Time Conversion (`TimetokenUtil`)
+`List<String>`
 
-### Timetoken → `Instant`
-```
-`Instant TimetokenUtil.timetokenToInstant(long timetoken)  
-`
-```
-```
-`  
-`
-```
-```
-`PubNub timetoken: 17276954606232118  
-Current date: 2024-09-30  
-Current time: 11:24:20.623211800  
-`
+## Disconnect
+
+Call the `disconnect` method to force the SDK to stop all requests to PubNub server when there are active subscribe channels.
+
+### Method(s)
+
+```java
+disconnect()  
 ```
 
-### `Instant` → Timetoken
-```
-`long TimetokenUtil.instantToTimetoken(Instant instant)  
-`
-```
-```
-`  
-`
-```
-```
-`Current date: 2024-09-30  
-Current time: 12:12:44.123456789  
-PubNub timetoken: 17276983641234567  
-`
+## Reconnect
+
+Call the `reconnect` method to force the SDK to try and reach out PubNub.
+
+### Method(s)
+
+```java
+reconnect()  
 ```
 
-### Unix timestamp → Timetoken
-```
-`long TimetokenUtil.unixToTimetoken(long unixTime)  
-`
-```
-```
-`  
-`
-```
-```
-`PubNub timetoken: 17278669353160000  
-Current date: 2024-10-02  
-Current time: 11:02:15.316  
-`
+## Timetoken to date
+
+The `timetokenToInstant()` method of the `TimetokenUtil` class converts a PubNub timetoken to an `Instant` object representing the corresponding date and time.
+
+### Method signature
+
+```java
+Instant TimetokenUtil.timetokenToInstant(long timetoken)  
 ```
 
-### Timetoken → Unix timestamp
-```
-`long TimetokenUtil.timetokenToUnix(long timetoken)  
-`
-```
-```
-`  
-`
-```
-```
-`Current date: 2024-09-30**Current time: 11:24:20.623  
-PubNub timetoken: 17276954606232118  
-`
+## Date to timetoken
+
+The `instantToTimetoken()` method of the `TimetokenUtil` class converts the `Instant` object representing the corresponding date and time into a PubNub timetoken.
+
+### Method signature
+
+```java
+long TimetokenUtil.instantToTimetoken(Instant instant)  
 ```
 
-_Last updated: Jun 30, 2025_
+## Unix timestamp to timetoken
+
+The `unixToTimetoken()` method of the `TimetokenUtil` class converts a Unix timestamp to a PubNub timetoken.
+
+### Method signature
+
+```java
+long TimetokenUtil.unixToTimetoken(long unixTime)  
+```
+
+## Timetoken to Unix timestamp
+
+The `timetokenToUnix()` method of the `TimetokenUtil` class converts a PubNub timetoken to a Unix timestamp.
+
+### Method signature
+
+```java
+long TimetokenUtil.timetokenToUnix(long timetoken)  
+```

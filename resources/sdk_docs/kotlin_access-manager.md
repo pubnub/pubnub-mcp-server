@@ -1,198 +1,220 @@
-# Access Manager v3 – Kotlin SDK  
+# Access Manager v3 API – Kotlin SDK
 
-## Breaking changes (SDK 9.0.0)  
-• Unified Java/Kotlin codebase, new client instantiation, changed async callbacks and status events.  
-• See migration guide if upgrading from < 9.0.0.  
+## Breaking changes (≥ 9.0.0)
+• Unified Kotlin/Java codebase, new PubNub client initialization, updated async callbacks/status events.  
+• See the migration guide for details.
 
-## Request execution (all endpoints)  
-You must call `.sync()` or `.async()` on the returned `Endpoint` object:  
+## Request execution
+Every SDK method returns an `Endpoint`. Always finish with `.sync()` or `.async()`:
+
 ```
-`val channel = pubnub.channel("channelName")  
+`val channel = pubnub.channel("channelName")
   
-channel.publish("This SDK rules!").async { result ->  
-    result.onFailure { exception ->  
-        // Handle error  
-    }.onSuccess { value ->  
-        // Handle successful method result  
-    }  
-}  
+channel.publish("This SDK rules!").async { result ->
+    result.onFailure { exception ->
+        // Handle error
+    }.onSuccess { value ->
+        // Handle successful method result
+    }
+}`
+```
+
+---
+
+## Grant token  *(channels / channel-groups / UUIDs)*
+
+```
+`grantToken(
+  ttl: Integer,
+  meta: Any,
+  authorizedUUID: String,
+  channels: List<ChannelGrant>,
+  channelGroups: List<ChannelGroupGrant>,
+  uuids: List<UUIDGrant>
+)`
+```
+
+Parameter | Type | Notes
+----------|------|------
+ttl* | Number | 1-43 200 minutes (required)
+meta | Object | Scalar values only
+authorizedUUID | String | Token usable only by this UUID
+channels | List\<ChannelGrant> | Grants or RegEx patterns
+channelGroups | List\<ChannelGroupGrant> | Grants or RegEx patterns
+uuids | List\<UUIDGrant> | Grants or RegEx patterns
+
+Permissions per resource  
+• channel → `read`, `write`, `get`, `manage`, `update`, `join`, `delete`  
+• channelGroup → `read`, `manage`  
+• uuid → `get`, `update`, `delete`
+
+Notes  
+• At least one channel, channelGroup, or uuid grant/pattern is required.  
+• Max `ttl` = 30 days.  
+• RegEx patterns allowed via `patterns` object.  
+• Restrict tokens with `authorizedUUID` whenever possible.
+
+### Sample code
+```
+`
+`
+```
+
+### Returns
+```
+`{"token":"p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI"}`
+```
+
+### Other examples
+*Grant different levels of access in one call*
+```
+`
+`
+```
+
+*Grant read access to multiple channels using RegEx*
+```
+`
+`
+```
+
+*Mix explicit grants and RegEx patterns*
+```
+`
+`
+```
+
+Error responses: HTTP 400 with `PubNubException` (invalid RegEx, timestamp, permissions, etc.).
+
+---
+
+## Grant token – *spaces & users* (Objects API)
+
+```
+`grantToken(
+  ttl: Int,
+  meta: Any?,
+  authorizedUserId: UserId?,
+  spacesPermissions: List<SpacePermissions>,
+  usersPermissions: List<UserPermissions>
+)`
+```
+
+Parameter | Type | Notes
+----------|------|------
+ttl* | Int | 1-43 200 minutes
+meta | Object | Scalar values only
+authorizedUserId | UserId | Single user allowed to use token
+spacesPermissions | List\<SpacePermissions> | Grants or RegEx
+usersPermissions | List\<UserPermissions> | Grants or RegEx
+
+Permissions per resource  
+• space → `read`, `write`, `get`, `manage`, `update`, `join`, `delete`  
+• user → `get`, `update`, `delete`
+
+All other rules (ttl, RegEx, single authorized user) match the channel-based grant.
+
+### Sample code
+```
+`
+`
+```
+
+### Returns
+```
+`{"token":"p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI"}`
+```
+
+### Other examples
+*Different access levels*
+```
+`
+`
+```
+*Read access via RegEx*
+```
+`
+`
+```
+*Mixed explicit & RegEx grants*
+```
+`
 `
 ```
 
 ---
 
-## Grant Token  (channels / channel-groups / UUIDs)  
-Requires the *Access Manager* add-on.
+## Revoke token
 
-### Method  
 ```
-`grantToken(  
-  ttl: Integer,           // 1 – 43 200 minutes (required)  
-  meta: Any,              // optional scalar values only  
-  authorizedUUID: String, // restricts token to one uuid  
-  channels: List<ChannelGrant>,  
-  channelGroups: List<ChannelGroupGrant>,  
-  uuids: List<UUIDGrant>  
-)  
+`revokeToken(token: String)`
+```
+
+• Token revoke must be enabled in the Admin Portal.  
+• Works for tokens with `ttl` ≤ 30 days.
+
+### Sample code
+```
+`
 `
 ```
 
-### Parameters (at least one resource or pattern is mandatory)  
-• ttl – token lifetime in minutes.  
-• meta – optional scalar metadata.  
-• authorizedUUID – single uuid that can use this token.  
-• channels / channelGroups / uuids – lists or RegEx patterns with permission sets.  
-
-Supported permissions  
-• Channels: `read`, `write`, `get`, `manage`, `update`, `join`, `delete`  
-• Channel-groups: `read`, `manage`  
-• UUIDs: `get`, `update`, `delete`  
-
-TTL max: 30 days (43 200 min).  
-Patterns: provide RegEx in `patterns` object.  
-
-### Return  
-```
-`{"token":"p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI"}  
-`
-```
-
-### Examples  
-```
-`  
-`
-```  
-```
-`  
-`
-```  
-```
-`  
-`
-```
-
-### Error responses  
-HTTP 400 with `PubNubException` if arguments (permissions, RegEx, timestamp, etc.) are invalid.  
+Returns: `Unit` on success.  
+Errors: 400, 403, 503.
 
 ---
 
-## Grant Token – Spaces & Users  
-Same add-on requirement.
+## Parse token
 
-### Method  
 ```
-`grantToken(  
-  ttl: Int,  
-  meta: Any?,  
-  authorizedUserId: UserId?,  
-  spacesPermissions: List<SpacePermissions>,  
-  usersPermissions: List<UserPermissions>  
-)  
+`parseToken(String token)`
+```
+
+### Sample code
+```
+`
 `
 ```
 
-### Parameters  
-• ttl, meta, authorizedUserId analogous to above.  
-• spacesPermissions / usersPermissions – lists or RegEx patterns.  
-
-Permissions  
-• Spaces: `read`, `write`, `get`, `manage`, `update`, `join`, `delete`  
-• Users:  `get`, `update`, `delete`  
-
-### Return  
+### Returns
 ```
-`{"token":"p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI"}  
+`{
+   "version":2,
+   "timestamp":1629394579,
+   "ttl":15,
+   "authorized_uuid":"user1",
+   "resources":{
+      "uuids":{
+         "user1":{
+            "read":false,
+            "write":false,
+            "manage":false,
+            "delete":false,
+            "get":true,
+            "update":true,
+            "join":false
 `
 ```
+*(truncated)*
 
-### Examples  
-```
-`  
-`
-```  
-```
-`  
-`
-```  
-```
-`  
-`
-```
-
-### Error responses  
-HTTP 400 with `PubNubException` for the same error types.  
+Error: damaged token → request a new one.
 
 ---
 
-## Revoke Token  
-Requires *Access Manager* and “Revoke v3 Token” enabled in Admin Portal.  
+## Set token
 
-### Method  
 ```
-`revokeToken(token: String)  
+`setToken(String token)`
+```
+
+### Sample code
+```
+`
 `
 ```
 
-• token – an existing v3 token (ttl ≤ 30 days).  
-Returns `Unit` on success.  
-Errors: 400, 403, 503.  
-
-### Usage  
-```
-`  
-`
-```
+Updates the client’s current token; no return value.
 
 ---
 
-## Parse Token  
-### Method  
-```
-`parseToken(String token)  
-`
-```
-
-### Usage  
-```
-`  
-`
-```
-
-### Return (truncated sample)  
-```
-`{  
-   "version":2,  
-   "timestamp":1629394579,  
-   "ttl":15,  
-   "authorized_uuid":"user1",  
-   "resources":{  
-      "uuids":{  
-         "user1":{  
-            "read":false,  
-            "write":false,  
-            "manage":false,  
-            "delete":false,  
-            "get":true,  
-            "update":true,  
-            "join":false  
-`
-```
-
-Error indicates damaged token; request a new one.  
-
----
-
-## Set Token  
-### Method  
-```
-`setToken(String token)  
-`
-```
-
-### Usage  
-```
-`  
-`
-```
-
-Does not return a value.
+Last updated **Jul 15 2025**

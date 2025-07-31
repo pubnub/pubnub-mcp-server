@@ -1,19 +1,18 @@
-# Rust API & SDK Docs 0.6.0 – Overview (Condensed)
+# Rust API & SDK Docs 0.6.0 (Condensed Overview)
 
-This section keeps every code block, method signature, parameter list, and essential configuration detail while removing redundant prose.
+This section keeps every code block, method signature, parameter list, and all critical technical details while removing redundant narrative.
 
 ---
 
 ## Prerequisites
-• Rust + Cargo installed  
-• PubNub account and keyset
+• Rust + Cargo  
+• PubNub account & keyset (publish & subscribe keys)
 
 ---
 
-## Installation
+## Install the SDK  
 
-### Server-side (full feature set)
-
+#### Server-side  
 ```
 `[dependencies]  
 pubnub = "0.6.0"  
@@ -23,8 +22,7 @@ tokio = { version = "1", features = ["full"] }
 `
 ```
 
-### Embedded / no_std (minimal footprint)
-
+#### Embedded / no_std examples  
 ```
 `[dependencies]  
 # Disable default features and only enable what you need  
@@ -43,10 +41,9 @@ serde = { version = "1.0", default-features = false }
 
 ---
 
-## Initialize PubNub
+## Initialize PubNub  
 
-### Server-side
-
+#### Server-side (Reqwest transport)  
 ```
 `use pubnub::dx::*;  
 use pubnub::core::*;  
@@ -66,8 +63,7 @@ async fn main() -> Result(), Boxdyn std::error::Error>> {
 `
 ```
 
-### Embedded (conceptual custom transport)
-
+#### Embedded (custom transport—conceptual)  
 ```
 `// Note: This is a conceptual example.   
 // You'll need to adapt this to your specific embedded target.  
@@ -89,8 +85,7 @@ impl Transport for MinimalTransport {
 
 ---
 
-## Event Listeners
-
+## Event Listeners  
 ```
 `// Import required event handling traits  
 use pubnub::dx::subscribe::Update;  
@@ -110,8 +105,7 @@ tokio::spawn(subscription.stream().for_each(|event| async move {
 `
 ```
 
-Selective stream:
-
+Specific-event stream:  
 ```
 `// Only listen for message events on a specific channel  
 tokio::spawn(  
@@ -128,8 +122,7 @@ tokio::spawn(
 `
 ```
 
-Compact embedded variant:
-
+Embedded, compact handler:  
 ```
 `// Use a more compact approach for resource-constrained environments  
 tokio::spawn(subscription.messages_stream().for_each(|message| async move {  
@@ -144,8 +137,7 @@ tokio::spawn(subscription.messages_stream().for_each(|message| async move {
 
 ---
 
-## Subscribing
-
+## Create a Subscription  
 ```
 `use pubnub::subscribe::SubscriptionParams;  
   
@@ -165,8 +157,7 @@ subscription.subscribe();
 `
 ```
 
-Embedded minimal:
-
+Embedded minimal:  
 ```
 `// Create a minimal subscription with only required features  
 let channel = pubnub.channel("my_channel");  
@@ -180,10 +171,7 @@ subscription.subscribe();
 
 ---
 
-## Publishing
-
-Server-side:
-
+## Publish Messages  
 ```
 `// Wait a moment for the subscription to establish  
 tokio::time::sleep(tokio::time::Duration::from_secs(2)).await;  
@@ -203,8 +191,7 @@ match pubnub
 `
 ```
 
-Embedded:
-
+Embedded, low-memory:  
 ```
 `// Create a simple message with minimal allocations  
 let message = r#"{"text":"Hello from embedded device"}"#;  
@@ -226,10 +213,7 @@ match result {
 
 ---
 
-## Cleanup
-
-Server-side:
-
+## Clean-up Resources  
 ```
 `// Unsubscribe from the channel  
 subscription.unsubscribe();  
@@ -245,8 +229,7 @@ println!("Cleaned up PubNub resources");
 `
 ```
 
-Embedded:
-
+Embedded:  
 ```
 `// Unsubscribe from channels to stop receiving messages  
 subscription.unsubscribe();  
@@ -259,10 +242,9 @@ pubnub.destroy();
 
 ---
 
-## Running
+## Run the App  
 
-Standard target:
-
+Cargo manifest (async):  
 ```
 `[dependencies]  
 pubnub = "0.6.0"  
@@ -272,6 +254,7 @@ tokio = { version = "1", features = ["full"] }
 `
 ```
 
+Main entry point:  
 ```
 `#[tokio::main]  
 async fn main() -> Result(), Boxdyn std::error::Error>> {  
@@ -281,8 +264,7 @@ async fn main() -> Result(), Boxdyn std::error::Error>> {
 `
 ```
 
-Embedded target:
-
+Embedded target build snippet:  
 ```
 `[dependencies]  
 pubnub = { version = "0.6.0", default-features = false, features = ["serde", "publish"] }  
@@ -290,10 +272,7 @@ pubnub = { version = "0.6.0", default-features = false, features = ["serde", "pu
 `
 ```
 
----
-
-### Sample Run Output
-
+Sample runtime output:  
 ```
 `PubNub client initialized successfully!  
 Subscribed to channel: my_channel  
@@ -306,8 +285,7 @@ Global listener: Received message on channel 'my_channel': {"text":"Hello, world
 
 ---
 
-## Complete Example
-
+## Complete Example  
 ```
 `use pubnub::subscribe::Subscriber;  
 use futures::StreamExt;  
@@ -326,13 +304,20 @@ async fn main() -> Result(), Boxdyn std::error::Error>> {
     let publish_key = "demo";  // Replace with your publish key  
 `
 ```
-
-(See full file in SDK repository.)
+*(code continues – 117 total lines in original)*
 
 ---
 
-## Next Steps (quick links)
-• Presence • Access Manager • CryptoModule  
-• GitHub examples • SDK reference • Discord community • Support portal
+## Troubleshooting (high-level)
+• Check keys, connectivity, channel names  
+• Ensure correct Rust version and tokio runtime  
+• Confirm dependencies match snippets above  
+
+---
+
+## Next Steps
+• Presence, Access Manager, CryptoModule  
+• More samples in GitHub examples folder  
+• SDK reference docs & Discord community  
 
 _Last updated Jun 9 2025_

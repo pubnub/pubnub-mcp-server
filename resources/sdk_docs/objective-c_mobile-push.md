@@ -1,28 +1,28 @@
-# Mobile Push Notifications - Objective-C SDK
+# Mobile Push Notifications – Objective-C SDK (condensed)
 
-Bridges PubNub publish/subscribe with APNs (legacy & HTTP/2) and FCM.  
-Set `pushType`:
-* `PNAPNSPush` – legacy APNs binary  
-* `PNAPNS2Push` – APNs HTTP/2  
-* `PNFCMPush` – FCM / GCM  
+PubNub bridges your publish/subscribe channels with APNs (HTTP/2 or legacy) and FCM.  
+Select the appropriate `PNPushType` (`PNAPNS2Push`, `PNAPNSPush`, `PNFCMPush`) in every call.
 
 ---
 
-## Add Device to Channel
+## 1. Add device to channel
 
-### Methods
-```objective-c
+### Method signatures
+
+```
 - (void)addPushNotificationsOnChannels:(NSArray<NSString *> *)channels
                    withDevicePushToken:(NSData *)pushToken
                          andCompletion:(nullable PNPushNotificationsStateModificationCompletionBlock)block;
 ```
-```objective-c
+
+```
 - (void)addPushNotificationsOnChannels:(NSArray<NSString *> *)channels
                    withDevicePushToken:(id)pushToken
                               pushType:(PNPushType)pushType
                          andCompletion:(nullable PNPushNotificationsStateModificationCompletionBlock)block;
 ```
-```objective-c
+
+```
 - (void)addPushNotificationsOnChannels:(NSArray<NSString *> *)channels
                    withDevicePushToken:(id)pushToken
                               pushType:(PNPushType)pushType
@@ -30,38 +30,56 @@ Set `pushType`:
                                  topic:(NSString *)topic
                          andCompletion:(nullable PNPushNotificationsStateModificationCompletionBlock)block;
 ```
-* `channels` NSArray<NSString *> – target channels.  
-* `pushToken` NSData / NSString (per service).  
-* `pushType` PNAPNSPush | PNAPNS2Push | PNFCMPush.  
-* `environment` PNAPNSEnvironment (APNS2 only).  
-* `topic` NSString bundle id (APNS2 only).  
 
-#### Basic Usage
-```objective-c
+### Builder pattern
+
+```
+push()
+    .enable()
+    .token(id)                 // or .fcmToken(NSString *)
+    .channels(NSArray<NSString *> *)
+    .pushType(PNPushType)
+    .environment(PNAPNSEnvironment)
+    .topic(NSString *)
+    .performWithCompletion(nullable PNPushNotificationsStateModificationCompletionBlock);
+```
+
+### Sample code
+
+```
 #import <Foundation/Foundation.h>
 #import <PubNub/PubNub.h>
 
+// Basic configuration
 PNConfiguration *config = [PNConfiguration configurationWithPublishKey:@"demo"
                                                           subscribeKey:@"demo"
                                                                 userID:@"pushUser"];
+
+// Create a PubNub client instance
 PubNub *client = [PubNub clientWithConfiguration:config];
+
+// Simulated token
 NSData *devicePushToken = [@"sample-device-token-12345" dataUsingEncoding:NSUTF8StringEncoding];
 ```
-<!-- show all 76 lines -->
+(show all 76 lines)
 
-#### Other Examples
-```objective-c
+#### Other examples
+
+```
 [self.client addPushNotificationsOnChannels:@[@"wwdc",@"google.io"]
                         withDevicePushToken:self.devicePushToken
                                    pushType:PNFCMPush
                               andCompletion:^(PNAcknowledgmentStatus *status) {
     if (!status.isError) {
-        // enabled
-    } else { /* retry: [status retry]; */ }
+        // success
+    } else {
+        // status.retry
+    }
 }];
 ```
-<!-- show all 16 lines -->
-```objective-c
+(show all 16 lines)
+
+```
 [self.client addPushNotificationsOnChannels:@[@"wwdc",@"google.io"]
                         withDevicePushToken:self.devicePushToken
                                    pushType:PNAPNS2Push
@@ -69,53 +87,17 @@ NSData *devicePushToken = [@"sample-device-token-12345" dataUsingEncoding:NSUTF8
                                       topic:@"com.my-application.bundle"
                               andCompletion:^(PNAcknowledgmentStatus *status) {
     if (!status.isError) {
-        // enabled
-    } else { /* retry */ }
+        // success
+    } else {
+        // status.retry
+    }
 }];
 ```
-<!-- show all 18 lines -->
-
-### Builder Pattern
-```objective-c
-push()
-    .enable()
-    .token(id)
-    .channels(NSArray<NSString *> *)
-    .pushType(PNPushType)
-    .environment(PNAPNSEnvironment)
-    .topic(NSString *)
-    .performWithCompletion(nullable PNPushNotificationsStateModificationCompletionBlock);
-```
-```objective-c
-push()
-    .enable()
-    .fcmToken(NSString *)
-    .channels(NSArray<NSString *> *)
-    .performWithCompletion(PNPushNotificationsStateModificationCompletionBlock);
-```
-
-#### Builder Examples
-```objective-c
-self.client.push().enable()
-    .token(self.devicePushToken)
-    .channels(@[@"wwdc",@"google.io"])
-    .pushType(PNAPNS2Push)
-    .environment(PNAPNSProduction)
-    .topic(@"com.my-application.bundle")
-    .performWithCompletion(^(PNAcknowledgmentStatus *status) { /* ... */ });
-```
-<!-- APNS2 example truncated -->
-```objective-c
-self.client.push().enable()
-    .token(self.devicePushToken)
-    .channels(@[@"wwdc",@"google.io"])
-    .pushType(PNFCMPush)
-    .performWithCompletion(^(PNAcknowledgmentStatus *status) { /* ... */ });
-```
-<!-- FCM example truncated -->
+(show all 18 lines)
 
 ### Response
-```objective-c
+
+```
 @interface PNErrorData : PNServiceData
 @property (nonatomic, readonly, strong) NSString *information;
 @end
@@ -125,23 +107,26 @@ self.client.push().enable()
 @property (nonatomic, readonly, strong) PNErrorData *errorData;
 @end
 ```
-<!-- identical response block reused below -->
+(show all 16 lines)
 
 ---
 
-## List Channels For Device
+## 2. List channels for device
 
-### Methods
-```objective-c
+### Method signatures
+
+```
 - (void)pushNotificationEnabledChannelsForDeviceWithPushToken:(NSData *)pushToken
                                                 andCompletion:(PNPushNotificationsStateAuditCompletionBlock)block;
 ```
-```objective-c
+
+```
 - (void)pushNotificationEnabledChannelsForDeviceWithPushToken:(id)pushToken
                                                      pushType:(PNPushType)pushType
                                                 andCompletion:(PNPushNotificationsStateAuditCompletionBlock)block;
 ```
-```objective-c
+
+```
 - (void)pushNotificationEnabledChannelsForDeviceWithPushToken:(id)pushToken
                                                      pushType:(PNPushType)pushType
                                                   environment:(PNAPNSEnvironment)environment
@@ -149,66 +134,65 @@ self.client.push().enable()
                                                 andCompletion:(PNPushNotificationsStateAuditCompletionBlock)block;
 ```
 
-#### Basic Usage
-```objective-c
-[self.client pushNotificationEnabledChannelsForDeviceWithPushToken:self.devicePushToken
-                                                      andCompletion:^(PNAPNSEnabledChannelsResult *result,
-                                                                      PNErrorStatus *status) {
-    if (!status) {
-        // result.data.channels
-    } else { /* retry */ }
-}];
-```
-<!-- show all 19 lines -->
+### Builder pattern
 
-#### Other Examples
-```objective-c
-[self.client pushNotificationEnabledChannelsForDeviceWithPushToken:self.devicePushToken
-                         pushType:PNFCMPush
-                    andCompletion:^(PNFCMEnabledChannelsResult *result, PNErrorStatus *status) { /* ... */ }];
 ```
-```objective-c
-[self.client pushNotificationEnabledChannelsForDeviceWithPushToken:self.devicePushToken
-                         pushType:PNAPNS2Push
-                      environment:PNAPNSDevelopment
-                            topic:@"com.my-application.bundle"
-                    andCompletion:^(PNAPNSEnabledChannelsResult *result, PNErrorStatus *status) { /* ... */ }];
-```
-
-### Builder Pattern
-```objective-c
 push()
     .audit()
-    .token(id)
+    .token(id)                // or .fcmToken(NSString *)
     .pushType(PNPushType)
     .environment(PNAPNSEnvironment)
     .topic(NSString *)
     .performWithCompletion(PNPushNotificationsStateAuditCompletionBlock);
 ```
-```objective-c
-push()
-    .audit()
-    .fcmToken(NSString *)
-    .performWithCompletion(PNPushNotificationsStateModificationCompletionBlock);
+
+### Sample code
+
+```
+[self.client pushNotificationEnabledChannelsForDeviceWithPushToken:self.devicePushToken
+                                                      andCompletion:^(PNAPNSEnabledChannelsResult *result,
+                                                                      PNErrorStatus *status) {
+      if (!status) {
+        // result.data.channels
+      } else {
+        // status.retry
+      }
+}];
+```
+(show all 19 lines)
+
+#### Other examples
+
+```
+[self.client pushNotificationEnabledChannelsForDeviceWithPushToken:self.devicePushToken
+                         pushType:PNFCMPush
+                    andCompletion:^(PNFCMEnabledChannelsResult *result, PNErrorStatus *status) {
+    if (!status.isError) {
+        // result.data.channels
+    } else {
+        // status.retry
+    }
+}];
 ```
 
-#### Builder Examples
-```objective-c
-self.client.push().audit()
-    .token(self.devicePushToken)
-    .pushType(PNAPNS2Push)
-    .environment(PNAPNSProduction)
-    .topic(@"com.my-application.bundle")
-    .performWithCompletion(^(PNAPNSEnabledChannelsResult *result, PNErrorStatus *status) { /* ... */ });
 ```
-```objective-c
-self.client.push().audit()
-    .fcmToken(self.pushToken)
-    .performWithCompletion(^(PNAPNSEnabledChannelsResult *result, PNErrorStatus *status) { /* ... */ });
+[self.client pushNotificationEnabledChannelsForDeviceWithPushToken:self.devicePushToken
+                         pushType:PNAPNS2Push
+                      environment:PNAPNSDevelopment
+                            topic:@"com.my-application.bundle"
+                    andCompletion:^(PNAPNSEnabledChannelsResult *result, PNErrorStatus *status) {
+    if (!status.isError) {
+        // result.data.channels
+    } else {
+        // status.retry
+    }
+}];
 ```
+(show all 17 lines)
 
 ### Response
-```objective-c
+
+```
 @interface PNAPNSEnabledChannelsData : PNServiceData
 @property (nonatomic, readonly, strong) NSArray<NSString *> *channels;
 @end
@@ -217,30 +201,29 @@ self.client.push().audit()
 @property (nonatomic, readonly, strong) PNAPNSEnabledChannelsData *data;
 @end
 ```
-```objective-c
-@interface PNErrorStatus : PNStatus
-@property (nonatomic, readonly, assign, getter = isError) BOOL error;
-@property (nonatomic, readonly, strong) PNErrorData *errorData;
-@end
-```
+
+Error status identical to section 1.
 
 ---
 
-## Remove Device From Channel
+## 3. Remove device from channel
 
-### Methods
-```objective-c
+### Method signatures
+
+```
 - (void)removePushNotificationsFromChannels:(NSArray<NSString *> *)channels
                         withDevicePushToken:(NSData *)pushToken
                               andCompletion:(nullable PNPushNotificationsStateModificationCompletionBlock)block;
 ```
-```objective-c
+
+```
 - (void)removePushNotificationsFromChannels:(NSArray<NSString *> *)channels
                         withDevicePushToken:(id)pushToken
                                    pushType:(PNPushType)pushType
                               andCompletion:(nullable PNPushNotificationsStateModificationCompletionBlock)block;
 ```
-```objective-c
+
+```
 - (void)removePushNotificationsFromChannels:(NSArray<NSString *> *)channels
                         withDevicePushToken:(id)pushToken
                                    pushType:(PNPushType)pushType
@@ -249,89 +232,88 @@ self.client.push().audit()
                               andCompletion:(nullable PNPushNotificationsStateModificationCompletionBlock)block;
 ```
 
-#### Basic Usage
-```objective-c
-[self.client removePushNotificationsFromChannels:@[@"wwdc",@"google.io"]
-                             withDevicePushToken:self.devicePushToken
-                                   andCompletion:^(PNAcknowledgmentStatus *status) { /* ... */ }];
-```
-<!-- show all 20 lines -->
+### Builder pattern
 
-#### Other Examples
-```objective-c
-[self.client removePushNotificationsFromChannels:@[@"wwdc",@"google.io"]
-                             withDevicePushToken:self.devicePushToken
-                                        pushType:PNFCMPush
-                                   andCompletion:^(PNAcknowledgmentStatus *status) { /* ... */ }];
 ```
-```objective-c
-[self.client removePushNotificationsFromChannels:@[@"wwdc",@"google.io"]
-                             withDevicePushToken:self.devicePushToken
-                                        pushType:PNAPNS2Push
-                                     environment:PNAPNSProduction
-                                           topic:@"com.my-application.bundle"
-                                   andCompletion:^(PNAcknowledgmentStatus *status) { /* ... */ }];
-```
-
-### Builder Pattern
-```objective-c
 push()
     .disable()
     .channels(NSArray<NSString *> *)
-    .token(id)
+    .token(id)                // or .fcmToken(NSString *)
     .pushType(PNPushType)
     .environment(PNAPNSEnvironment)
     .topic(NSString *)
     .performWithCompletion(nullable PNPushNotificationsStateModificationCompletionBlock);
 ```
-```objective-c
-push()
-    .disable()
-    .fcmToken(NSString *)
-    .channels(NSArray<NSString *> *)
-    .performWithCompletion(PNPushNotificationsStateModificationCompletionBlock);
-```
 
-#### Builder Examples
-```objective-c
-self.client.push().disable()
-    .token(self.devicePushToken)
-    .channels(@[@"wwdc",@"google.io"])
-    .pushType(PNAPNS2Push)
-    .environment(PNAPNSProduction)
-    .topic(@"com.my-application.bundle")
-    .performWithCompletion(^(PNAcknowledgmentStatus *status) { /* ... */ });
+### Sample code
+
 ```
-```objective-c
-self.client.push().disable()
-    .channels(@[@"channel1", @"channel2"])
-    .fcmToken(self.pushToken)
-    .performWithCompletion(^(PNAcknowledgmentStatus *status) { /* ... */ });
+[self.client removePushNotificationsFromChannels:@[@"wwdc",@"google.io"]
+                             withDevicePushToken:self.devicePushToken
+                                   andCompletion:^(PNAcknowledgmentStatus *status) {
+    if (!status.isError) {
+        // success
+    } else {
+        // status.retry
+    }
+}];
 ```
+(show all 20 lines)
+
+#### Other examples
+
+```
+[self.client removePushNotificationsFromChannels:@[@"wwdc",@"google.io"]
+                             withDevicePushToken:self.devicePushToken
+                                        pushType:PNFCMPush
+                                   andCompletion:^(PNAcknowledgmentStatus *status) {
+    if (!status.isError) {
+        // success
+    } else {
+        // status.retry
+    }
+}];
+```
+(show all 16 lines)
+
+```
+[self.client removePushNotificationsFromChannels:@[@"wwdc",@"google.io"]
+                             withDevicePushToken:self.devicePushToken
+                                        pushType:PNAPNS2Push
+                                     environment:PNAPNSProduction
+                                           topic:@"com.my-application.bundle"
+                                   andCompletion:^(PNAcknowledgmentStatus *status) {
+    if (!status.isError) {
+        // success
+    } else {
+        // status.retry
+    }
+}];
+```
+(show all 18 lines)
 
 ### Response
-```objective-c
-@interface PNAcknowledgmentStatus : PNErrorStatus
-@property (nonatomic, readonly, assign, getter = isError) BOOL error;
-@property (nonatomic, readonly, strong) PNErrorData *errorData;
-@end
-```
+
+Same as section 1.
 
 ---
 
-## Remove All Mobile Push Notifications
+## 4. Remove all mobile push notifications
 
-### Methods
-```objective-c
+### Method signatures
+
+```
 - (void)removeAllPushNotificationsFromDeviceWithPushToken:(NSData *)pushToken
                                             andCompletion:(nullable PNPushNotificationsStateModificationCompletionBlock)block;
 ```
-```objective-c
+
+```
 - (void)removeAllPushNotificationsFromDeviceWithPushToken:(id)pushToken
                                                  pushType:(PNPushType)pushType
                                             andCompletion:(nullable PNPushNotificationsStateModificationCompletionBlock)block;
 ```
-```objective-c
+
+```
 - (void)removeAllPushNotificationsFromDeviceWithPushToken:(id)pushToken
                                                  pushType:(PNPushType)pushType
                                               environment:(PNAPNSEnvironment)environment
@@ -339,29 +321,9 @@ self.client.push().disable()
                                             andCompletion:(nullable PNPushNotificationsStateModificationCompletionBlock)block;
 ```
 
-#### Basic Usage
-```objective-c
-[self.client removeAllPushNotificationsFromDeviceWithPushToken:self.devicePushToken
-                                                 andCompletion:^(PNAcknowledgmentStatus *status) { /* ... */ }];
-```
-<!-- show all 22 lines -->
+### Builder pattern
 
-#### Other Examples
-```objective-c
-[self.client removeAllPushNotificationsFromDeviceWithPushToken:self.devicePushToken
-                                                      pushType:PNFCMPush
-                                                 andCompletion:^(PNAcknowledgmentStatus *status) { /* ... */ }];
 ```
-```objective-c
-[self.client removeAllPushNotificationsFromDeviceWithPushToken:self.devicePushToken
-                                                      pushType:PNAPNS2Push
-                                                   environment:PNAPNSProduction
-                                                         topic:@"com.my-application.bundle"
-                                                 andCompletion:^(PNAcknowledgmentStatus *status) { /* ... */ }];
-```
-
-### Builder Pattern
-```objective-c
 push()
     .disableAll()
     .token(id)
@@ -371,28 +333,54 @@ push()
     .performWithCompletion(nullable PNPushNotificationsStateModificationCompletionBlock);
 ```
 
-#### Builder Examples
-```objective-c
-self.client.push().disableAll()
-    .token(self.devicePushToken)
-    .pushType(PNAPNS2Push)
-    .environment(PNAPNSProduction)
-    .topic(@"com.my-application.bundle")
-    .performWithCompletion(^(PNAcknowledgmentStatus *status) { /* ... */ });
+### Sample code
+
 ```
-```objective-c
-self.client.push().disableAll()
-    .token(self.devicePushToken)
-    .pushType(PNFCMPush)
-    .performWithCompletion(^(PNAcknowledgmentStatus *status) { /* ... */ });
+[self.client removeAllPushNotificationsFromDeviceWithPushToken:self.devicePushToken
+                                                 andCompletion:^(PNAcknowledgmentStatus *status) {
+    if (!status.isError) {
+        // success
+    } else {
+        // status.retry
+    }
+}];
 ```
+(show all 22 lines)
+
+#### Other examples
+
+```
+[self.client removeAllPushNotificationsFromDeviceWithPushToken:self.devicePushToken
+                                                      pushType:PNFCMPush
+                                                 andCompletion:^(PNAcknowledgmentStatus *status) {
+    if (!status.isError) {
+        // success
+    } else {
+        // status.retry
+    }
+}];
+```
+(show all 18 lines)
+
+```
+[self.client removeAllPushNotificationsFromDeviceWithPushToken:self.devicePushToken
+                                                      pushType:PNAPNS2Push
+                                                   environment:PNAPNSProduction
+                                                         topic:@"com.my-application.bundle"
+                                                 andCompletion:^(PNAcknowledgmentStatus *status) {
+    if (!status.isError) {
+        // success
+    } else {
+        // status.retry
+    }
+}];
+```
+(show all 20 lines)
 
 ### Response
-```objective-c
-@interface PNAcknowledgmentStatus : PNErrorStatus
-@property (nonatomic, readonly, assign, getter = isError) BOOL error;
-@property (nonatomic, readonly, strong) PNErrorData *errorData;
-@end
-```
 
-_Last updated May 29 2025_
+Same as section 1.
+
+---
+
+All response/error objects (`PNAcknowledgmentStatus`, `PNErrorStatus`, `PNErrorData`, `PNAPNSEnabledChannelsResult`, etc.) are included above; their interfaces are unchanged across operations.

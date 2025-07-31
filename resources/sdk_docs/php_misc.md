@@ -1,60 +1,51 @@
-# Utility Methods API (PHP SDK)
+# Utility Methods API – PHP SDK (Misc)
 
 ## Time
 
-Returns a 17-digit Unix epoch–based timetoken.
+Returns the current PubNub timetoken (17-digit Unix epoch in 10-microsecond units).
 
-Algorithm constructing the timetoken
+Algorithm  
 ```
-`timetoken = (Unix epoch time in seconds) * 10000000  
-`
-```
-Example
-```
-`08/19/2013 @ 9:20pm in UTC = 1376961606  
-timetoken = 1376961606 * 10000000  
-timetoken = 13769616060000000  
-`
+timetoken = (Unix epoch time in seconds) * 10000000
 ```
 
-### Method(s)
-
-Retrieve current timetoken:
+Example  
 ```
-`$pubnub->time()->sync();  
-`
+08/19/2013 @ 9:20 PM UTC
+Unix epoch  = 1376961606
+timetoken   = 1376961606 * 10000000
+           = 13769616060000000
 ```
-(No arguments)
 
-### Basic Usage
+### Method
 
-#### Get PubNub Timetoken
-
-Reference code
+```php
+$pubnub->time()->sync();
 ```
-`  
-  
-// Include Composer autoloader (adjust path if needed)  
-require_once 'vendor/autoload.php';  
-  
-use PubNub\PNConfiguration;  
-use PubNub\PubNub;  
-use PubNub\Exceptions\PubNubServerException;  
-  
-// Create configuration with demo keys  
-$pnConfig = new PNConfiguration();  
-$pnConfig->setSubscribeKey("demo");  
-$pnConfig->setPublishKey("demo");  
-$pnConfig->setUserId("php-time-example-user");  
-  
-`
+• No arguments  
+• Returns `int` timetoken
+
+### Sample
+
+```php
+// Include Composer autoloader (adjust path if needed)
+require_once 'vendor/autoload.php';
+
+use PubNub\PNConfiguration;
+use PubNub\PubNub;
+use PubNub\Exceptions\PubNubServerException;
+
+// Create configuration with demo keys
+$pnConfig = new PNConfiguration();
+$pnConfig->setSubscribeKey("demo");
+$pnConfig->setPublishKey("demo");
+$pnConfig->setUserId("php-time-example-user");
 ```
-(show all 54 lines)
 
 ### Response
 
-Method          | Description
---------------- | ---------------------------------------------------------------
-`getTimetoken()`| Integer. `date` representation of current timetoken.
+| Method          | Return type | Description                 |
+|-----------------|-------------|-----------------------------|
+| `getTimetoken()`| `int`       | Current PubNub timetoken |
 
-Last updated on **Apr 2, 2025**
+_Last updated: Jul 15 2025_

@@ -1,31 +1,31 @@
-# Channel Groups – Unreal SDK (Condensed)
+# Channel Groups – Unreal SDK
+Channel Groups let you subscribe to many channels with a single name. You cannot publish to a group (publish to the individual channels instead).
 
-• Channel groups let you bundle up to thousands of channels and subscribe to them with a single name.  
-• You _cannot_ publish to a channel-group; publish to individual channels.  
-• All operations below require the **Stream Controller** add-on to be enabled for your keys.
+All operations below require the **Stream Controller** add-on to be enabled for your key.
 
 ---
 
-## Add Channels
-
+## Add channels to a group
 Maximum 200 channels per call.
 
 ```cpp
-PubnubSubsystem->AddChannelToGroup(
-    FString Channel,
-    FString ChannelGroup
-);
+`PubnubSubsystem->AddChannelToGroup(  
+    FString Channel,   
+    FString ChannelGroup  
+);  
+`
 ```
 
-Parameter | Type | Description
-----------|------|------------
-Channel | FString | Channel to add.
-ChannelGroup | FString | Target group.
+Parameters  
+• `Channel` (FString) – Channel to add.  
+• `ChannelGroup` (FString) – Target group.  
 
-### Example (`MyGameMode.h`)
+Returns: void
 
+### Sample  
+#### MyGameMode.h
 ```cpp
-// NOTE: This example requires correct PubnubSDK configuration in plugins settings and adding "PubnubLibrary" to PublicDependencyModuleNames in your build.cs  
+`// NOTE: This example requires correct PubnubSDK configuration in plugins settings and adding "PubnubLibrary" to PublicDependencyModuleNames in your build.cs  
 // More info in the documentation: https://www.pubnub.com/docs/sdks/unreal/api-reference/configuration  
   
 #pragma once  
@@ -40,150 +40,148 @@ ChannelGroup | FString | Target group.
 UCLASS()  
 //Replace MYPROJECT with name of your project  
 class MYPROJECT_API AMyGameMode : public AGameModeBase  
+`
 ```
 
-### Example (`MyGameMode.cpp`)
-
+#### MyGameMode.cpp
 ```cpp
-#include "MyGameMode.h"  
+`#include "MyGameMode.h"  
 #include "PubnubSubsystem.h"  
 #include "Kismet/GameplayStatics.h"  
   
 void AMyGameMode::AddChannelToGroupExample()  
 {  
-    // Get PubnubSubsystem from the game instance  
-    UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
-    UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystem<UPubnubSubsystem>();  
+	// Get PubnubSubsystem from the game instance  
+	UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
+	UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
   
-    // Ensure user ID is set  
-    PubnubSubsystem->SetUserID("my_user_id");  
+	// Ensure user ID is set  
+	PubnubSubsystem->SetUserID("my_user_id");  
   
-    FString Channel = "randomChannel";  
-    FString ChannelGroup = "myChannelGroup";  
+	FString Channel = "randomChannel";  
+	FString ChannelGroup = "myChannelGroup";  
+`
 ```
-
-Return: `void`
 
 ---
 
-## List Channels
-
+## List channels in a group
 ```cpp
-PubnubSubsystem->ListChannelsFromGroup(
-    FString ChannelGroup,
-    FOnListChannelsFromGroupResponse OnListChannelsResponse
-);
+`PubnubSubsystem->ListChannelsFromGroup(  
+    FString ChannelGroup,   
+    FOnListChannelsFromGroupResponse OnListChannelsResponse  
+);  
+`
 ```
 
-Parameter | Type | Description
-----------|------|------------
-ChannelGroup | FString | Group to query.
-OnListChannelsResponse | FOnListChannelsFromGroupResponse | Delegate/callback.
+Parameters  
+• `ChannelGroup` (FString) – Group to inspect.  
+• `OnListChannelsResponse` (FOnListChannelsFromGroupResponse) – Result callback.
 
-### Delegate
+Returns: `FOnListChannelsFromGroupResponse`
 
-Field | Type | Description
-------|------|------------
-Error | bool | Operation error flag.
-Status | int | HTTP status code.
-Channels | TArray<FString>& | Channel names in the group.
+### FOnListChannelsFromGroupResponse
+| Field    | Type                | Description                               |
+|----------|---------------------|-------------------------------------------|
+| Error    | bool                | True if the request failed.              |
+| Status   | int                 | HTTP status code.                        |
+| Channels | TArray\<FString\>& | Channel names contained in the group.    |
 
-### Usage
+#### JSON example
+```json
+`{  
+  "error":false,  
+  "payload":{  
+    "channels":[],  
+    "group":"my_channel"  
+  },  
+  "service":"channel-registry",  
+  "status":200  
+}  
+`
+```
 
+### Sample
 ```cpp
-#include "Kismet/GameplayStatics.h"  
+`#include "Kismet/GameplayStatics.h"  
 #include "PubnubSubsystem.h"  
   
 UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
-UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystem<UPubnubSubsystem>();  
+UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
   
 FString Channel = "randomChannel";  
 FString ChannelGroup = "myChannelGroup";  
   
+// Create a pubnub response delegate  
+// you MUST implement your own callback function to handle the response  
 FOnListChannelsFromGroupResponse OnListChannelsResponse;  
 OnListChannelsResponse.BindDynamic(this, &AMyActor::OnListChannelsResponse);  
+  
 // Add channel to channel group  
+`
 ```
-
-### JSON Response
-
-```json
-{  
-  "error": false,  
-  "payload": {  
-    "channels": [],  
-    "group": "my_channel"  
-  },  
-  "service": "channel-registry",  
-  "status": 200  
-}
-```
-
-Return: `FOnListChannelsFromGroupResponse`
 
 ---
 
-## Remove Channels
-
+## Remove a channel from a group
 ```cpp
-PubnubSubsystem->RemoveChannelFromGroup(
-    FString Channel,
-    FString ChannelGroup
-);
+`PubnubSubsystem->RemoveChannelFromGroup(  
+    FString Channel,   
+    FString ChannelGroup  
+);  
+`
 ```
 
-Parameter | Type | Description
-----------|------|------------
-Channel | FString | Channel to remove.
-ChannelGroup | FString | Source group.
+Parameters  
+• `ChannelGroup` (FString) – Group to modify.  
+• `Channel` (FString) – Channel to remove.
 
-### Usage
+Returns: void
 
+### Sample
 ```cpp
-#include "Kismet/GameplayStatics.h"  
+`#include "Kismet/GameplayStatics.h"  
 #include "PubnubSubsystem.h"  
   
 UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
-UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystem<UPubnubSubsystem>();  
+UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
   
 FString Channel = "randomChannel";  
-FString ChannelGroup = "myChannelGroup";  
+FString ChanelGroup = "myChannelGroup";  
   
 // Remove channel from channel group  
 PubnubSubsystem->RemoveChannelFromGroup(Channel, ChannelGroup);  
+`
 ```
-
-Return: `void`
 
 ---
 
-## Delete Channel Group
-
+## Delete a channel group
 ```cpp
-PubnubSubsystem->RemoveChannelGroup(
-    String ChannelGroup
-);
+`PubnubSubsystem->RemoveChannelGroup(  
+    String ChannelGroup  
+);  
+`
 ```
 
-Parameter | Type | Description
-----------|------|------------
-ChannelGroup | FString | Group to delete.
+Parameter  
+• `ChannelGroup` (FString) – Group to delete.
 
-### Usage
+Returns: void
 
+### Sample
 ```cpp
-#include "Kismet/GameplayStatics.h"  
+`#include "Kismet/GameplayStatics.h"  
 #include "PubnubSubsystem.h"  
   
 UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
-UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystem<UPubnubSubsystem>();  
+UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
   
-FString ChannelGroup = "myChannelGroup";  
+FString ChanelGroup = "myChannelGroup";  
   
 // Remove channel group  
 PubnubSubsystem->RemoveChannelGroup(ChannelGroup);  
+`
 ```
 
-Return: `void`  
-
-_Last updated: Apr 29 2025_
+_Last updated: Jul 15 2025_

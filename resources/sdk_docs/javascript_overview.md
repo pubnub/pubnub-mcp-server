@@ -1,79 +1,81 @@
-# JavaScript SDK 9.7.0 – Overview (condensed)
+# JavaScript SDK 9.8.3 – Overview (Condensed)
 
-## Chat SDK  
-For chat-specific helpers (users, typing, threads, …) use the [Chat SDK](/docs/chat/chat-sdk) built on top of this JavaScript SDK.
+Use the JavaScript SDK (browser, Node.js, React Native) or the higher-level [Chat SDK](/docs/chat/chat-sdk).
 
-## Prerequisites  
+---
+
+## Prerequisites
 • JavaScript knowledge  
-• Browser / Node 10+ / React Native env.  
+• Browser / Node 10+ / React Native set-up  
 • PubNub account and keyset  
-• (optional) TypeScript 4+
+• (Optional) TypeScript ≥ 4.0  
 
-## Get your PubNub keys  
-1. Sign in to the Admin Portal.  
-2. Create/choose an app → copy **publish** & **subscribe** keys.  
-(Use separate dev/prod keysets for security.)
+---
 
-## Install the SDK
+## Installation
 
 ### Web (CDN)
-``` 
-`script src="https://cdn.pubnub.com/sdk/javascript/pubnub.9.7.0.js">script>  
+````
+`script src="https://cdn.pubnub.com/sdk/javascript/pubnub.9.8.3.js">script>  
 `
-```
-``` 
-`script src="https://cdn.pubnub.com/sdk/javascript/pubnub.9.7.0.min.js">script>  
+````
+Production:
+````
+`script src="https://cdn.pubnub.com/sdk/javascript/pubnub.9.8.3.min.js">script>  
 `
-```
+````
 
 ### Node.js
-``` 
+````
 `npm install pubnub  
 `
-```
-``` 
+````
+````
 `const PubNub = require('pubnub');  
 `
-```
+````
 
 ### React Native
-``` 
+````
 `npm install pubnub  
 `
-```
-``` 
+````
+````
 `import PubNub from 'pubnub';  
 `
-```
+````
+
+---
 
 ## Initialize PubNub
 
 ### Web
-``` 
+````
 `const pubnub = new PubNub({  
     publishKey: "demo",  
     subscribeKey: "demo",  
     userId: "web-user-" + Math.floor(Math.random() * 1000)  
 });  
 `
-```
+````
 
 ### Node.js
-``` 
+````
 `  
 `
-```
+````
 
 ### React Native
-``` 
+````
 `const pubnub = new PubNub({  
     publishKey: "demo",  
     subscribeKey: "demo",  
     userId: "rn-user-" + Math.floor(Math.random() * 1000)  
 });  
 `
-```
-``` 
+````
+Component-level cleanup:
+````
 `// Example of initialization in a React component (optional)  
 useEffect(() => {  
     // Clean up on component unmount  
@@ -85,30 +87,34 @@ useEffect(() => {
     };  
 }, [pubnub]);  
 `
-```
+````
+
+---
 
 ## Event Listeners
-``` 
+````
 `// Add listener to handle messages, presence events, and connection status  
 pubnub.addListener({  
     message: function(event) {  
         // Handle message event  
         console.log("New message:", event.message);  
-        // Display message in the UI  
         displayMessage(event.message);  
     },  
     presence: function(event) {  
-        // Handle presence event  
         console.log("Presence event:", event);  
-        console.log("Action:", event.action); // join, leave, timeout  
+        console.log("Action:", event.action);  
         console.log("Channel:", event.channel);  
         console.log("Occupancy:", event.occupancy);  
     },  
 `
-```
-show all 44 lines
+````
+````
+`  
+`
+````
 
-``` 
+React Native scaffold (imports shown):
+````
 `// App.js or App.tsx for TypeScript projects  
   
 // Imports  
@@ -125,11 +131,14 @@ import {
   Platform,  
   StatusBar,  
 `
-```
-show all 369 lines
+````
 
-## Subscribe to a Channel
-``` 
+---
+
+## Subscribe
+
+### Web
+````
 `// Create a channel entity  
 const channel = pubnub.channel('hello_world');  
   
@@ -139,34 +148,34 @@ const subscription = channel.subscription();
 // Subscribe  
 subscription.subscribe();  
 `
-```
-``` 
+````
+````
 `  
 `
-```
+````
 
-``` 
+### React Native (hook)
+````
 `useEffect(() => {  
     if (!pubnub) return;  
       
-    // Create a channel entity  
     const channel = pubnub.channel('hello_world');  
-      
-    // Create a subscription  
     const subscription = channel.subscription({  
         receivePresenceEvents: true  
     });  
       
-    // Subscribe  
     subscription.subscribe();  
       
     // Clean up on unmount  
 `
-```
-show all 28 lines
+````
 
-## Publish Messages
-``` 
+---
+
+## Publish
+
+### Web
+````
 `// Function to publish a message  
 async function publishMessage(text) {  
     if (!text.trim()) return;  
@@ -183,13 +192,14 @@ async function publishMessage(text) {
         console.log("Message published with timetoken:", result.timetoken);  
     } catch (error) {  
 `
-```
-show all 25 lines
-``` 
+````
+````
 `  
 `
-```
-``` 
+````
+
+### React Native
+````
 `// State for the input text  
 const [inputText, setInputText] = useState('');  
   
@@ -206,30 +216,35 @@ const publishMessage = async () => {
             },  
             channel: 'hello_world'  
 `
-```
-show all 36 lines
+````
+
+---
 
 ## Run
 
 ### Node.js
-Save `index.js` then:
-``` 
+Save your file (e.g., `index.js`) then:
+````
 `node index.js  
 `
-```
+````
 
 ### React Native
-``` 
+````
 `npm run android  
 # or  
 npm run ios  
 # or  
 npm run web  
 `
-```
+````
 
-### React Native (Expo/CLI project creation)
-``` 
+---
+
+## Example Projects
+
+React Native project creation:
+````
 `# Using Expo (easiest for beginners)  
 npx create-expo-app PubNubChatApp  
 cd PubNubChatApp  
@@ -238,12 +253,14 @@ cd PubNubChatApp
 npx react-native init PubNubChatApp  
 cd PubNubChatApp  
 `
-```
-``` 
+````
+Install SDK:
+````
 `npm install pubnub  
 `
-```
-``` 
+````
+Run (Expo / CLI):
+````
 `# For Expo  
 npx expo start  
   
@@ -252,19 +269,17 @@ npx react-native run-ios
 # or  
 npx react-native run-android  
 `
+````
+
+Complete Web demo (HTML skeleton):
 ```
-
-## Complete Examples
-
-### Web
-``` 
-`DOCTYPE html>  
-html>  
-head>  
-    meta charset="utf-8" />  
-    title>PubNub Chat Exampletitle>  
-    script src="https://cdn.pubnub.com/sdk/javascript/pubnub.9.7.0.js">script>  
-    style>  
+<DOCTYPE html>  
+<html>  
+<head>  
+    <meta charset="utf-8" />  
+    <title>PubNub Chat Exampletitle>  
+    <script src="https://cdn.pubnub.com/sdk/javascript/pubnub.9.8.3.js">script>  
+    <style>  
         #chat-container {  
             max-width: 600px;  
             margin: 0 auto;  
@@ -273,12 +288,9 @@ head>
         }  
         #messages {  
             height: 300px;  
-`
 ```
-show all 134 lines
-
-### React Native
-``` 
+Full React Native example (header only shown):
+````
 `// App.js or App.tsx for TypeScript projects  
   
 // Imports  
@@ -295,17 +307,11 @@ import {
   Platform,  
   StatusBar,  
 `
-```
-show all 369 lines
+````
 
-These examples combine:
-• SDK configuration & cleanup  
-• addListener handling (messages, presence, status)  
-• Entity-based subscriptions  
-• Message publish with error handling  
-• Basic UI (where relevant)
+---
 
-## Next Steps  
-• Use Presence, Storage & Playback, Access Manager, Channel Groups.  
-• Check the [Chat SDK](/docs/chat/chat-sdk) for turnkey chat.  
-• Explore code samples on GitHub, tutorials (IoT dashboard, geolocation, delivery), and join our Discord/support channels.
+## Next Steps
+• Presence, storage, Access Manager, channel groups, typing indicators, read receipts.  
+• See full [API reference](/docs/sdks/javascript/api-reference/configuration) and GitHub samples.  
+• Join our [Discord](https://discord.gg/pubnub) or visit the support portal for help.

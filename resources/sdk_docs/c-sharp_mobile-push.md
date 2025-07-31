@@ -1,169 +1,125 @@
-# Mobile Push Notifications API for C# SDK
+# Mobile Push Notifications API – C# SDK (condensed)
 
-Mobile Push Notifications let you publish through PubNub and deliver through FCM/GCM or APNs (incl. APNS2) without extra server code.  
-Feature must be enabled for your key in the Admin Portal.
+Mobile Push Notifications let you publish through PubNub while delivering the same message through FCM (Android) or APNs/APNs2 (iOS) without extra servers.  
+The add-on must be enabled for the key in the Admin Portal.
 
 ---
 
-## Request Execution
-
-Use `try/catch`; SDK throws on bad client-side parameters, otherwise inspect `PNStatus` for network/server errors.
+## Request execution pattern
 
 ```csharp
-`try  
-{  
-    PNResultPNPublishResult> publishResponse = await pubnub.Publish()  
-        .Message("Why do Java developers wear glasses? Because they can't C#.")  
-        .Channel("my_channel")  
-        .ExecuteAsync();  
-  
-    PNStatus status = publishResponse.Status;  
-  
-    Console.WriteLine("Server status code : " + status.StatusCode.ToString());  
-}  
-catch (Exception ex)  
-{  
-    Console.WriteLine($"Request can't be executed due to error: {ex.Message}");  
-}  
-`
+try
+{
+    PNResult<PNPublishResult> publishResponse = await pubnub.Publish()
+        .Message("Why do Java developers wear glasses? Because they can't C#.")
+        .Channel("my_channel")
+        .ExecuteAsync();
+
+    PNStatus status = publishResponse.Status;
+    Console.WriteLine("Server status code : " + status.StatusCode);
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Request can't be executed due to error: {ex.Message}");
+}
 ```
+• SDK throws an exception for bad parameters.  
+• Network / server errors are found in `status`.
 
 ---
 
-## Add Device to Channel
+## Add device to channel(s)
 
-Enables push on the specified channels for a device token.
-
-### Method
-
-```
-`pubnub.AddPushNotificationsOnChannels()  
-        .PushType(PNPushType)  
-        .Channels(Array)  
-        .DeviceId(string)  
-        .Environment(PushEnvironment)  
-        .Topic(string)  
-        .QueryParam(Dictionarystring,object>)  
-`
+```csharp
+pubnub.AddPushNotificationsOnChannels()
+        .PushType(PNPushType)              // GCM | FCM | APNS2
+        .Channels(Array)                   // channels to enable
+        .DeviceId(string)                  // device push token
+        .Environment(PushEnvironment)      // APNS2 only: Development|Production
+        .Topic(string)                     // APNS2 only: bundle id
+        .QueryParam(Dictionary<string,object>) // optional debug params
 ```
 
-Parameters (all required unless noted):
+Returns: `PNResult<PNPushAddChannelResult>` (no payload; inspect `status`).
 
-* PushType – `PNPushType.GCM`, `PNPushType.FCM`, `PNPushType.APNS2`.  
-* Channels – array of channel names to enable.  
-* DeviceId – push token / device ID.  
-* Environment – `Development` or `Production` (APNS2 only).  
-* Topic – bundle identifier / topic (APNS2 only).  
-* QueryParam – optional `Dictionary<string,object>` for extra URL query params.  
-* ExecuteAsync – returns `PNResult<PNPushAddChannelResult>` (preferred).  
-  * Legacy `Async/Execute` callbacks still supported but deprecated.
-
-#### Example
+Sample:
 
 ```
 `  
 `
 ```
 
-Returns no payload; verify success via `status.IsError()`.
-
 ---
 
-## List Channels For Device
+## List channels for a device
 
-Lists all channels on which the provided device token is enabled.
-
-### Method
-
-```
-`pubnub.AuditPushChannelProvisions()  
-        .DeviceId(string)  
-        .PushType(PNPushType)  
-        .Environment(PushEnvironment)  
-        .Topic(string)  
-        .QueryParam(Dictionarystring,object>)  
-`
+```csharp
+pubnub.AuditPushChannelProvisions()
+        .DeviceId(string)
+        .PushType(PNPushType)              // GCM | FCM | APNS2
+        .Environment(PushEnvironment)      // APNS2 only
+        .Topic(string)                     // APNS2 only
+        .QueryParam(Dictionary<string,object>)
 ```
 
-Parameters:
+Returns:  
+`PNResult<PNPushListProvisionsResult>` → `Channels : List<string>`.
 
-* DeviceId – push token / device ID.  
-* PushType – `PNPushType.GCM`, `PNPushType.FCM`, `PNPushType.APNS2`.  
-* Environment, Topic – as described above (APNS2 only).  
-* QueryParam – optional.  
-* ExecuteAsync – returns `PNResult<PNPushListProvisionsResult>`.
-
-#### Example
+Sample:
 
 ```
 `  
 `
 ```
 
-Return object:  
-`PNPushListProvisionsResult.Channels` → `List<string>` of enabled channels.
-
 ---
 
-## Remove Device From Channel
+## Remove device from channel(s)
 
-Disables push on the specified channels for a device token.
-
-### Method
-
-```
-`pubnub.RemovePushNotificationsFromChannels()  
-        .DeviceId(string)  
-        .Channels(Array)  
-        .PushType(PNPushType)  
-        .Environment(PushEnvironment)  
-        .Topic(string)  
-        .QueryParam(Dictionarystring,object>)  
-`
+```csharp
+pubnub.RemovePushNotificationsFromChannels()
+        .DeviceId(string)
+        .Channels(Array)                   // channels to disable
+        .PushType(PNPushType)              // GCM | FCM | APNS2
+        .Environment(PushEnvironment)      // APNS2 only
+        .Topic(string)                     // APNS2 only
+        .QueryParam(Dictionary<string,object>)
 ```
 
-Parameters mirror *Add Device* with `Channels` indicating channels to remove.  
-`ExecuteAsync` returns `PNResult<PNPushRemoveChannelResult>`.
+Returns: `PNResult<PNPushRemoveChannelResult>` (check `status`).
 
-#### Example
+Sample:
 
 ```
 `  
 `
 ```
 
-No payload; check `status.IsError()`.
-
 ---
 
-## Remove All Mobile Push Notifications
+## Remove all push registrations for a device
 
-Unregisters the device token from **all** channels.
-
-### Method
-
-```
-`pubnub.RemoveAllPushNotificationsFromDeviceWithPushToken()  
-        .DeviceId(string)  
-        .PushType(PNPushType)  
-        .Environment(PushEnvironment)  
-        .Topic(string)  
-        .QueryParam(Dictionarystring,object>)  
-`
+```csharp
+pubnub.RemoveAllPushNotificationsFromDeviceWithPushToken()
+        .DeviceId(string)
+        .PushType(PNPushType)              // GCM | FCM | APNS2
+        .Environment(PushEnvironment)      // APNS2 only
+        .Topic(string)                     // APNS2 only
+        .QueryParam(Dictionary<string,object>)
 ```
 
-Parameters as above (no Channels list).  
-`ExecuteAsync` returns `PNResult<PNPushRemoveAllChannelsResult>`.
+Returns:  
+`PNResult<PNPushRemoveAllChannelsResult>` (empty payload + `status`).
 
-#### Example
+Sample:
 
 ```
 `  
 `
 ```
 
-Return object contains only `PNStatus` (empty data payload).
-
 ---
 
-Last updated: **Jun 30, 2025**
+Notes  
+1. Callback (`Async` / `Execute`) variants are deprecated; use `ExecuteAsync`.  
+2. Always verify `status.IsError` after every operation.

@@ -1,33 +1,33 @@
-# File Sharing API – JavaScript SDK (≤ 5 MB per file)
+# PubNub JavaScript SDK – Files API (Concise Reference)
 
-Subscribers receive a `file` event with `id`, `filename`, and optional `description`.
-
-**Async patterns:** callbacks, promises, Async/Await (recommended; wrap in `try…catch`).
+PubNub files API enables upload, listing, download, deletion, and publication of files (≤ 5 MB) on a channel. All asynchronous examples use the recommended `async/await` pattern; add `try…catch` to handle errors.
 
 ---
 
-## Send file
-Upload a file and automatically publish the related file message.
+## sendFile
 
-### Method
-```
+Uploads a file and publishes a file-message on the target channel.
+
+```js
 pubnub.sendFile(
   params: SendFileParameters
 ): Promise<SendFileResult>;
 ```
 
-### SendFileParameters
-* `channel` **string** – target channel  
-* `file` **FileInput** – file to send  
-* `message` any – optional message  
-* `storeInHistory` boolean (default `true`)  
-* `ttl` number – message TTL (0 = key-set default)  
-* `meta` any  
-* `customMessageType` string – 3-50 chars, case-sensitive  
-* **Deprecated:** `cipherKey` (overrides crypto module; 128-bit legacy)
+SendFileParameters  
+• `channel` (string) – target channel  
+• `file` (FileInput) – file to upload  
+• `message` (any) – optional message payload  
+• `storeInHistory` (boolean, default `true`) – store file-message in history  
+• `ttl` (number, default `0`) – message TTL in minutes  
+• `meta` (any) – message metadata  
+• `customMessageType` (string) – 3–50 chars, alphanumeric, `-` or `_`; cannot start with `pn_`/`pn-`  
 
-### Returns
-```
+*Deprecated:* `cipherKey` (use the Crypto Module instead).
+
+Returns
+
+```js
 {
   id: string,
   name: string,
@@ -35,226 +35,182 @@ pubnub.sendFile(
 }
 ```
 
-### Examples
-```
-  
-```
-Usage with message and custom cipher key:
-```
-  
-```
-
 ---
 
-## List channel files
-```
+## listFiles
+
+Lists files previously uploaded to a channel.
+
+```js
 pubnub.listFiles(
   params: ListFilesParameters
 ): Promise<ListFilesResult>;
 ```
 
-### ListFilesParameters
-* `channel` **string** – target channel  
-* `limit` number (default 100)  
-* `next` string – pagination token
+ListFilesParameters  
+• `channel` (string) – channel to query  
+• `limit` (number, default `100`) – max results  
+• `next` (string) – pagination cursor  
 
-### Returns
-```
+Returns
+
+```js
 {
   status: number,
-  data: Array<{
+  data: [{
     name: string,
     id: string,
     size: number,
     created: string
-  }>,
+  }],
   next: string,
   count: number
 }
 ```
 
-Example:
-```
-  
-```
-
 ---
 
-## Get file URL
-No network call; does not decrypt.
+## getFileUrl
 
-```
+Creates a direct download URL (no network request, no decryption).
+
+```js
 pubnub.getFileUrl(
   params: GetFileUrlParams
 ): string;
 ```
 
-### GetFileUrlParams
-* `channel` string  
-* `id` string  
-* `name` string  
+GetFileUrlParams  
+• `channel` (string)  
+• `id` (string) – file ID  
+• `name` (string) – file name  
 
-Example:
-```
-  
-```
+Example
 
-Returns:
-```
-'https://ps.pndsn.com/v1/files/demo/channels/my_channel/files/12345678-1234-5678-123456789012/cat_picture.jpg'
+```text
+https://ps.pndsn.com/v1/files/{subKey}/channels/my_channel/files/{id}/cat_picture.jpg
 ```
 
 ---
 
-## Download file
-```
+## downloadFile
+
+Downloads a file from a channel.
+
+```js
 pubnub.downloadFile(
   params: DownloadFileParams
-): Promise<DownloadFileResult>;
+): Promise<PubNubFile>;
 ```
 
-### DownloadFileParams
-* `channel` string  
-* `id` string  
-* `name` string  
-* **Deprecated:** `cipherKey`
+DownloadFileParams  
+• `channel` (string)  
+• `id` (string) – file ID  
+• `name` (string) – file name  
 
-Returns: `PubNubFile`
+*Deprecated:* `cipherKey` (use the Crypto Module instead).
 
-Examples:
-```
-  
-```
-Custom cipher key:
-```
-  
-```
+Returns a `PubNubFile` instance (see “PubNub file” below).
 
 ---
 
-## Delete file
-```
+## deleteFile
+
+Deletes a file from a channel.
+
+```js
 pubnub.deleteFile(
   params: DeleteFileParams
 ): Promise<DeleteFileResult>;
 ```
 
-### DeleteFileParams
-* `channel` string  
-* `id` string  
-* `name` string  
+DeleteFileParams  
+• `channel` (string)  
+• `id` (string) – file ID  
+• `name` (string) – file name  
 
-Returns:
-```
+Success response
+
+```js
 { status: 200 }
-```
-Example:
-```
-  
 ```
 
 ---
 
-## Publish file message
-(Re-send the file message if `sendFile` upload succeeded but publish failed.)
+## publishFile
 
-```
+Publishes a file-message (without uploading).  
+Useful when `sendFile` upload succeeded but message publish failed.
+
+```js
 pubnub.publishFile(
   params: PublishFileParams
 ): Promise<PublishFileResult>;
 ```
 
-### PublishFileParams
-* `channel` string  
-* `message` any  
-* `fileId` string  
-* `fileName` string  
-* `storeInHistory` boolean (default `true`)  
-* `ttl` number  
-* `meta` any  
-* `customMessageType` string  
+PublishFileParams  
+• `channel` (string)  
+• `message` (any) – optional payload  
+• `fileId` (string) – file ID  
+• `fileName` (string) – file name  
+• `storeInHistory` (boolean, default `true`)  
+• `ttl` (number, default `0`)  
+• `meta` (any)  
+• `customMessageType` (string) – same rules as above  
 
 Returns
-```
-{ timetoken: number }
-```
 
-Example:
-```
-  
+```js
+{ timetoken: number }
 ```
 
 ---
 
 ## FileInput
-Representations accepted by `sendFile`.
 
-### Node.js
-Streams
-```
-{
-  stream: Readable,
-  name: string,
-  mimeType?: string
-}
-```
-Buffers
-```
-{
-  data: Buffer,
-  name: string,
-  mimeType?: string
-}
+Accepted file representations.
+
+Node.js  
+```ts
+// Streams
+{ stream: Readable, name: string, mimeType?: string }
+
+// Buffers
+{ data: Buffer,   name: string, mimeType?: string }
 ```
 
-### Browsers
-File API
-```
-File
-```
-Strings
-```
-{
-  data: string,
-  name: string,
-  mimeType?: string
-}
-```
-ArrayBuffer
-```
-{
-  data: ArrayBuffer,
-  name: string,
-  mimeType?: string
-}
+Browser  
+```ts
+File                                  // native File
+{ data: string,      name: string, mimeType?: string }  // string
+{ data: ArrayBuffer, name: string, mimeType?: string }  // ArrayBuffer
 ```
 
-### React / React Native
-```
-{
-  uri: string,
-  name: string,
-  mimeType?: string
-}
+React / React Native  
+```ts
+{ uri: string, name: string, mimeType?: string }
 ```
 
 ---
 
-## PubNubFile
-Returned by `downloadFile`.
+## PubNub file
 
-### Node.js
-* `toBuffer(): Promise<Buffer>`
-* `toStream(): Promise<Readable>`
-* `toString(encoding: string)`
+Unified file abstraction.
 
-### Browsers
-* `toFile(): Promise<File>`
-* `toBlob(): Promise<Blob>`
-* `toArrayBuffer(): Promise<ArrayBuffer>`
-* `toString(encoding: string)`
+Node.js  
+• `file.toBuffer(): Promise<Buffer>`  
+• `file.toStream(): Promise<Readable>`  
+• `file.toString(encoding?): string`  
 
-### React / React Native
-* `toBlob(): Promise<Blob>`
+Browser  
+• `file.toFile(): Promise<File>`  
+• `file.toBlob(): Promise<Blob>`  
+• `file.toArrayBuffer(): Promise<ArrayBuffer>`  
+• `file.toString(encoding?): string`  
 
-_Last updated Jun 30 2025_
+React / React Native  
+• `file.toBlob(): Promise<Blob>`
+
+---
+
+Last updated · Jul 15 2025

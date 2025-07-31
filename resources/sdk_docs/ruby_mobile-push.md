@@ -1,11 +1,12 @@
-# Mobile Push Notifications – Ruby SDK
+# Mobile Push Notifications – PubNub Ruby SDK
 
-Enables PubNub publishing to FCM/GCM and APNS2 without additional servers.  
 Requires the **Mobile Push Notifications** add-on (enable in the Admin Portal).
 
 ---
 
 ## Add Device to Channel
+
+Enable push notifications for the specified channels.
 
 ### Method
 
@@ -22,56 +23,57 @@ pubnub.add_channels_to_push(
 )  
 ```
 
-Parameters (all optional unless noted):
-
-* push_token (String, **required**) – Device ID  
-* push_gateway (String, **required**) – `gcm` or `apns2`  
-* channel (String) – Comma-separated channels  
-* topic (String) – iOS bundle ID (APNS2 only)  
-* environment (String) – `development` (default) or `production` (APNS2 only)  
-* auth_key (String) – Access Manager key when enabled  
-* http_sync (Boolean, default `false`) – `true` = sync; `false` = async (`Future`)  
-* callback (Proc) – Executed per envelope
+Parameters  
+* `push_token` (String) – Device ID.  
+* `push_gateway` (String) – `gcm` | `apns2`.  
+* `channel` (String) – Comma-separated channel list.  
+* `topic` (String) – Bundle ID; required for `apns2`.  
+* `environment` (String) – `development` (default) | `production`; `apns2` only.  
+* `auth_key` (String) – PAM key (if enabled).  
+* `http_sync` (Boolean) – `false` (async, returns `Future`) | `true` (sync).  
+* `callback` (Proc) – Invoked per envelope.
 
 ### Example
 
 ```ruby
-require 'pubnub'  
-  
-def add_device_to_channel(pubnub)  
-  # For FCM/GCM  
-  pubnub.add_channels_to_push(  
-    push_token: 'push_token',  
-    push_gateway: 'gcm',  
-    channel: 'channel1,channel2'  
-  ) do |envelope|  
-    if envelope.status[:error]  
-      puts "FCM/GCM Error: #{envelope.status[:error]}"  
-    else  
-      puts "FCM/GCM Success: Device added to channels."  
-    end  
-  end  
+require 'pubnub'
+
+def add_device_to_channel(pubnub)
+  # FCM/GCM
+  pubnub.add_channels_to_push(
+    push_token: 'push_token',
+    push_gateway: 'gcm',
+    channel: 'channel1,channel2'
+  ) do |envelope|
+    if envelope.status[:error]
+      puts "FCM/GCM Error: #{envelope.status[:error]}"
+    else
+      puts 'FCM/GCM Success: Device added to channels.'
+    end
+  end
 end
 ```
 
 ### Response
 
 ```ruby
-@result = {  
-    :code => 200,  
-    :operation => :add_channels_to_push,  
-    :data => [1, "Modified Channels"]  
-},  
-@status = {  
-    :code => 200,  
-    :category => :ack,  
-    :error => false  
+@result = {
+  code: 200,
+  operation: :add_channels_to_push,
+  data: [1, 'Modified Channels']
+},
+@status = {
+  code: 200,
+  category: :ack,
+  error: false
 }
 ```
 
 ---
 
 ## List Channels for Device
+
+Returns channels enabled for the specified device.
 
 ### Method
 
@@ -87,7 +89,8 @@ pubnub.list_push_provisions(
 )  
 ```
 
-Parameters identical to *Add Device* (except `channel`).
+Parameters  
+* `push_token`, `push_gateway`, `topic`, `environment`, `auth_key`, `http_sync`, `callback` – Same semantics as above.
 
 ### Example
 
@@ -110,21 +113,23 @@ pubnub.list_push_provisions(
 ### Response
 
 ```ruby
-@result = {  
-    :code => 200,  
-    :operation => :list_push_provisions,  
-    :data => ["channel1", "channel2"]  
-},  
-@status = {  
-    :code => 200,  
-    :category => :ack,  
-    :error => false  
+@result = {
+  code: 200,
+  operation: :list_push_provisions,
+  data: ['channel1', 'channel2']
+},
+@status = {
+  code: 200,
+  category: :ack,
+  error: false
 }
 ```
 
 ---
 
-## Remove Device from Channel(s)
+## Remove Device from Channel
+
+Disable push notifications on the specified channels (all channels if `channel` is `nil`).
 
 ### Method
 
@@ -138,10 +143,10 @@ pubnub.remove_channels_from_push(
     auth_key: auth_key,
     http_sync: http_sync,
     callback: callback
-)
+)  
 ```
 
-Same parameters as *Add Device*; `channel` can be `nil` to remove from all channels.
+Parameters – Same as previous methods; `channel` indicates channels to remove.
 
 ### Example
 
@@ -158,29 +163,30 @@ pubnub.remove_channels_from_push(
   push_token: 'push_token',
   remove: 'channel1,channel2',
   type: 'apns2',
-  topic: 'myapptopic',
-  environment: 'development'
+  topic: 'myapptopic'
 ) { |envelope| puts envelope }
 ```
 
 ### Response
 
 ```ruby
-@result = {  
-    :code => 200,  
-    :operation => :remove_channels_from_push,  
-    :data => [1, "Modified Channels"]  
-},  
-@status = {  
-    :code => 200,  
-    :category => :ack,  
-    :error => false  
+@result = {
+  code: 200,
+  operation: :remove_channels_from_push,
+  data: [1, 'Modified Channels']
+},
+@status = {
+  code: 200,
+  category: :ack,
+  error: false
 }
 ```
 
 ---
 
-## Remove Device from ALL Channels
+## Remove All Mobile Push Notifications
+
+Disable push notifications for the device on all channels.
 
 ### Method
 
@@ -196,7 +202,7 @@ pubnub.remove_device_from_push(
 )  
 ```
 
-Parameters as in previous calls (no `channel`).
+Parameters – Same as previous methods (no `channel` param).
 
 ### Example
 
@@ -219,16 +225,18 @@ pubnub.remove_device_from_push(
 ### Response
 
 ```ruby
-@result = {  
-    :code => 200,  
-    :operation => :remove_device_from_push,  
-    :data => [1, "Modified Channels"]  
-},  
-@status = {  
-    :code => 200,  
-    :category => :ack,  
-    :error => false  
+@result = {
+  code: 200,
+  operation: :remove_device_from_push,
+  data: [1, 'Modified Channels']
+},
+@status = {
+  code: 200,
+  category: :ack,
+  error: false
 }
 ```
 
-_Last updated: Mar 31 2025_
+---
+
+Last updated: Jul 15, 2025

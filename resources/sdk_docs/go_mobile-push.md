@@ -1,91 +1,91 @@
 # Mobile Push Notifications – Go SDK
 
-Mobile Push Notifications bridge PubNub with APNs (Apple) and FCM/GCM (Google).  
-All methods below require the *Mobile Push Notifications* add-on to be enabled for your key.
+Mobile Push API lets you manage FCM/GCM and APNS2 tokens directly from PubNub (requires the **Mobile Push Notifications** add-on enabled for your key).
 
 ---
 
-## Add Device to Channel
+## Add device to channel
 
-Enable push notifications on one or more channels.
+Enable push on specific channels.
+
+### Method
 
 ```go
 pn.AddPushNotificationsOnChannels().
-        Channels([]string).              // required
-        DeviceIDForPush(string).          // required
-        PushType(PNPushTypeGCM | PNPushTypeAPNS2 | PNPushTypeFCM). // required
-        Topic(string).                   // APNS2 only
-        Environment(PNPushEnvironment).  // APNS2 only
+        Channels([]string).
+        DeviceIDForPush(string).
+        PushType(PNPushTypeGCM | PNPushTypeAPNS2 | PNPushTypeFCM).
+        Topic(string).                // APNS2 only
+        Environment(PNPushEnvironment) // APNS2 only
         QueryParam(map[string]string).
         Execute()
 ```
 
-Parameter | Type | Note
-----------|------|-----
-Channels | []string | Channels to add
-DeviceIDForPush | string | Device token / registration ID
-PushType | enum | PNPushTypeGCM, PNPushTypeFCM, PNPushTypeAPNS2
-Topic | string | APNS2 bundle ID
-Environment | PNPushEnvironment | PNPushEnvironmentDevelopment (default) or PNPushEnvironmentProduction
-QueryParam | map[string]string | Extra query parameters
+Parameter | Type | Default | Notes
+--------- | ---- | ------- | -----
+Channels* | []string | — | Channels to enable.
+DeviceIDForPush* | string | — | Mobile device token.
+PushType | enum | — | PNPushTypeGCM, PNPushTypeAPNS2, PNPushTypeFCM.
+Topic | string | — | APNS2 bundle identifier.
+Environment | enum | PNPushEnvironmentDevelopment | APNS2: Development or Production.
+QueryParam | map[string]string | — | Extra query parameters.
 
-### Example
-
-```go
-// FCM / GCM
-pn.AddPushNotificationsOnChannels().
-        Channels([]string{"ch1", "ch2"}).
-        DeviceIDForPush("device_id").
-        PushType(pubnub.PNPushTypeGCM).
-        Execute()
-
-// APNS2
-pn.AddPushNotificationsOnChannels().
-        Channels([]string{"ch1"}).
-        DeviceIDForPush("device_id").
-        PushType(pubnub.PNPushTypeAPNS2).
-        Topic("com.example.bundle_id").
-        Environment(pubnub.PNPushEnvironmentProduction).
-        Execute()
-```
-
-Return: No data; inspect `status.Error`.
-
----
-
-## List Channels for Device
-
-List all channels on which push is enabled for the given device.
+### Sample
 
 ```go
-pn.ListPushProvisions().
-        DeviceIDForPush(string).          // required
-        PushType(PNPushTypeGCM | PNPushTypeAPNS2 | PNPushTypeFCM). // required
-        Topic(string).                   // APNS2 only
-        Environment(PNPushEnvironment).  // APNS2 only
-        QueryParam(map[string]string).
-        Execute()
-```
+package main
 
-Returns `ListPushProvisionsRequestResponse`:
+import (
+	"fmt"
+	"log"
 
-```go
-type ListPushProvisionsRequestResponse struct {
-    Channels []string
+	pubnub "github.com/pubnub/go/v7"
+)
+
+func main() {
+	// Configure the PubNub instance with demo keys
+	config := pubnub.NewConfigWithUserId("myUniqueUserId")
+	config.SubscribeKey = "demo"
+	config.PublishKey   = "demo"
+	// ...
 }
 ```
 
-### Example
+### Return
+
+No data; check `status.Error`.
+
+---
+
+## List channels for device
+
+List channels currently enabled for a token.
+
+### Method
+
+```go
+pn.ListPushProvisions().
+        DeviceIDForPush(string).
+        PushType(PNPushTypeGCM | PNPushTypeAPNS2 | PNPushTypeFCM).
+        Topic(string).                // APNS2 only
+        Environment(PNPushEnvironment) // APNS2 only
+        QueryParam(map[string]string).
+        Execute()
+```
+
+Same parameter rules as above (Topic / Environment for APNS2 only).
+
+### Sample
 
 ```go
 // GCM / FCM
-resp, status, err := pn.ListPushProvisions().
+pn.ListPushProvisions().
         DeviceIDForPush("device_id").
         PushType(pubnub.PNPushTypeGCM).
         Execute()
 
 // APNS2
-resp, status, err := pn.ListPushProvisions().
+pn.ListPushProvisions().
         DeviceIDForPush("device_id").
         PushType(pubnub.PNPushTypeAPNS2).
         Topic("com.example.bundle_id").
@@ -93,24 +93,31 @@ resp, status, err := pn.ListPushProvisions().
         Execute()
 ```
 
+### Return
+
+`ListPushProvisionsRequestResponse`  
+• `Channels []string` – enabled channels.
+
 ---
 
-## Remove Device from Channel
+## Remove device from channel
 
-Disable push notifications on the specified channels.
+Disable push on specific channels.
+
+### Method
 
 ```go
 pn.RemovePushNotificationsFromChannels().
-        Channels([]string).              // required
-        DeviceIDForPush(string).          // required
-        PushType(PNPushTypeGCM | PNPushTypeAPNS2 | PNPushTypeFCM). // required
-        Topic(string).                   // APNS2 only
-        Environment(PNPushEnvironment).  // APNS2 only
+        Channels([]string).
+        DeviceIDForPush(string).
+        PushType(PNPushTypeGCM | PNPushTypeAPNS2 | PNPushTypeFCM).
+        Topic(string).                // APNS2 only
+        Environment(PNPushEnvironment) // APNS2 only
         QueryParam(map[string]string).
         Execute()
 ```
 
-### Example
+### Sample
 
 ```go
 // FCM / GCM
@@ -130,25 +137,29 @@ pn.RemovePushNotificationsFromChannels().
         Execute()
 ```
 
-Return: No data; inspect `status.Error`.
+### Return
+
+No data; check `status.Error`.
 
 ---
 
-## Remove All Mobile Push Notifications
+## Remove all mobile push notifications
 
-Disable push notifications on **all** channels for the device.
+Disable push on all channels for a token.
+
+### Method
 
 ```go
 pn.RemoveAllPushNotifications().
-        DeviceIDForPush(string).          // required
-        PushType(PNPushTypeGCM | PNPushTypeAPNS2 | PNPushTypeFCM). // required
-        Topic(string).                   // APNS2 only
-        Environment(PNPushEnvironment).  // APNS2 only
+        DeviceIDForPush(string).
+        PushType(PNPushTypeGCM | PNPushTypeAPNS2 | PNPushTypeFCM).
+        Topic(string).                // APNS2 only
+        Environment(PNPushEnvironment) // APNS2 only
         QueryParam(map[string]string).
         Execute()
 ```
 
-### Example
+### Sample
 
 ```go
 // FCM / GCM
@@ -166,6 +177,10 @@ pn.RemoveAllPushNotifications().
         Execute()
 ```
 
-Return: No data; inspect `status.Error`.
+### Return
 
-_Last updated: Mar 31 2025_
+No data; check `status.Error`.
+
+---
+
+Last updated: **Jul 15 2025**

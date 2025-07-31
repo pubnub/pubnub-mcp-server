@@ -1,15 +1,9 @@
-# PubNub Python SDK – File APIs (condensed)
+# File Sharing API – PubNub Python SDK
 
-Supports files ≤ 5 MB.  
-File uploads are stored for your key; all channel subscribers receive a file event (ID, filename, optional description).
+Upload, list, download, delete, and publish messages about files (≤ 5 MB) on a channel.  
+Operations can be executed either synchronously (`.sync()`) or asynchronously (`.pn_async(callback)`).
 
----
-
-## Synchronous vs. Asynchronous execution
-
-`.sync()` → `Envelope` with  
-• `Envelope.result` (API-specific)  
-• `Envelope.status` (`PNStatus`)
+## Request execution
 
 ```
 `pubnub.publish() \  
@@ -18,8 +12,6 @@ File uploads are stored for your key; all channel subscribers receive a file eve
     .sync()  
 `
 ```
-
-`.pn_async(cb)` → `None`, results delivered to callback.
 
 ```
 `def my_callback_function(result, status):  
@@ -32,11 +24,15 @@ pubnub.publish() \
 `
 ```
 
+`Envelope.result` varies per API; `Envelope.status` is always `PNStatus`.
+
 ---
 
-## send_file
+## Send file
 
-Uploads the file and automatically publishes the file message.
+Uploads a file and automatically publishes a file message to the channel.
+
+### Method
 
 ```
 `pubnub.send_file() \  
@@ -51,28 +47,25 @@ Uploads the file and automatically publishes the file message.
 `
 ```
 
-Parameters (required ★):
+Parameters  
+* channel (String, required) – Target channel.  
+* file_name (String, required) – File name.  
+* file_object (bytes | file, required) – File content.  
+* message (Dict) – Payload published with the file.  
+* should_store (Bool, default `True`) – Store message in history.  
+* ttl (Int) – Message storage time.  
+* meta (Dict) – Filtering metadata.  
+* custom_message_type (String) – 3-50 chars, alnum/`-`/`_`.  
+* Deprecated: `cipher_key`.
 
-• ★ `channel` String – target channel  
-• ★ `file_name` String – stored name  
-• ★ `file_object` bytes | file object – content  
-• `message` Dict – payload sent with file  
-• `should_store` Bool (default True) – store message in history  
-• `ttl` Int – message TTL  
-• `meta` Dict – filterable metadata  
-• `custom_message_type` String – 3-50 chars, a–z, 0–9, `_` or `-`  
-
-Deprecated: `cipher_key` (use Crypto Module).
-
-### Usage
-
-Builder style
+### Samples
 
 ```
 `import os  
 from pubnub.pnconfiguration import PNConfiguration  
 from pubnub.pubnub import PubNub  
 from pubnub.exceptions import PubNubException  
+  
   
 def send_file(pubnub: PubNub, file_path: str, channel: str):  
     try:  
@@ -86,13 +79,12 @@ def send_file(pubnub: PubNub, file_path: str, channel: str):
 `
 ```
 
-Named-argument style
-
 ```
 `import os  
 from pubnub.pnconfiguration import PNConfiguration  
 from pubnub.pubnub import PubNub  
 from pubnub.exceptions import PubNubException  
+  
   
 def send_file(pubnub: PubNub, file_path: str, channel: str):  
     try:  
@@ -106,17 +98,18 @@ def send_file(pubnub: PubNub, file_path: str, channel: str):
 `
 ```
 
-Return `Envelope.result` → `PNSendFileResult`
+### Returns
 
-| Property | Type   | Description                          |
-|----------|--------|--------------------------------------|
-| `name`   | String | Uploaded file name                   |
-| `file_id`| String | Uploaded file ID                     |
-| `timestamp` | String | Publish timetoken                 |
+`Envelope.result` → `PNSendFileResult`  
+* name – File name.  
+* file_id – File ID.  
+* timestamp – Publish timetoken.
 
 ---
 
-## list_files
+## List channel files
+
+### Method
 
 ```
 `pubnub.list_files() \  
@@ -124,10 +117,10 @@ Return `Envelope.result` → `PNSendFileResult`
 `
 ```
 
-Parameters:  
-• ★ `channel` String  
-• `limit` Int – items per page  
-• `next` String – forward-pagination cursor
+Parameters  
+* channel (String, required) – Channel.  
+* limit (Int) – Max items.  
+* next (String) – Pagination cursor.
 
 ```
 `  
@@ -143,17 +136,16 @@ for file_data in file_list_response.result.data:
 `
 ```
 
-`Envelope.result` → `PNGetFilesResult`
-
-| Property | Type | Description |
-|----------|------|-------------|
-| `next`   | String | Cursor for next page |
-| `count`  | Int    | Number of files returned |
-| `data`   | List   | List of files: each has `id`, `name`, `size`, `created` |
+Returns → `PNGetFilesResult`  
+* next – Pagination cursor.  
+* count – Returned items.  
+* data – List of `{id, name, size, created}`.
 
 ---
 
-## get_file_url
+## Get file URL
+
+### Method
 
 ```
 `pubnub.get_file_url() \  
@@ -163,7 +155,7 @@ for file_data in file_list_response.result.data:
 `
 ```
 
-Parameters: ★ `channel`, ★ `file_id`, ★ `file_name`
+Parameters: channel, file_id, file_name (all required).
 
 ```
 `  
@@ -180,11 +172,13 @@ print(f'  Download url: {download_url.result.file_url}')
 `
 ```
 
-`Envelope.result` → `PNGetFileDownloadURLResult` (`file_url` String)
+Returns → `PNGetFileDownloadURLResult.file_url`.
 
 ---
 
-## download_file
+## Download file
+
+### Method
 
 ```
 `pubnub.download_file() \  
@@ -194,8 +188,8 @@ print(f'  Download url: {download_url.result.file_url}')
 `
 ```
 
-Parameters: ★ `channel`, ★ `file_id`, ★ `file_name`  
-Deprecated: `cipher_key`
+Parameters: channel, file_id, file_name.  
+Deprecated: `cipher_key`.
 
 ```
 `  
@@ -216,11 +210,13 @@ print(f"File saved as {os.getcwd()}/{file_data['name']}")
 `
 ```
 
-`Envelope.result` → `PNDownloadFileResult` (`data` bytes)
+Returns → `PNDownloadFileResult.data` (bytes).
 
 ---
 
-## delete_file
+## Delete file
+
+### Method
 
 ```
 `pubnub.delete_file() \  
@@ -230,7 +226,7 @@ print(f"File saved as {os.getcwd()}/{file_data['name']}")
 `
 ```
 
-Parameters: ★ `channel`, ★ `file_id`, ★ `file_name`
+Parameters: channel, file_id, file_name.
 
 ```
 `  
@@ -248,13 +244,15 @@ print(f"File deleted")
 `
 ```
 
-`Envelope.result` → `PNDeleteFileResult` (`status` Int)
+Returns → `PNDeleteFileResult.status` (Int).
 
 ---
 
-## publish_file_message
+## Publish file message
 
-Publishes a message about an already-uploaded file (automatically called by `send_file`).
+Publish a message about an already-uploaded file (used internally by `send_file`, or manually if needed).
+
+### Method
 
 ```
 `pubnub.publish_file_message() \  
@@ -269,15 +267,17 @@ Publishes a message about an already-uploaded file (automatically called by `sen
 `
 ```
 
-Key parameters:  
-• ★ `channel`, ★ `file_id`, ★ `file_name`  
-• `message` Dict (payload)  
-• `meta` Dict (filtering)  
-• `custom_message_type` String  
-• `should_store` Bool (default True)  
-• `ttl` Int (0 = key’s retention)
+Parameters  
+* channel (String, required) – Target channel.  
+* message (Dict) – Payload.  
+* file_id (String, required) – File ID.  
+* file_name (String, required) – File name.  
+* meta (Dict) – Filtering metadata.  
+* should_store (Bool, default `True`).  
+* ttl (Int, default `0`).  
+* custom_message_type (String).  
 
-### Usage
+### Samples
 
 ```
 `# synchronous:  
@@ -310,8 +310,8 @@ def callback(response, status):
 `
 ```
 
-`Envelope.result` → `PNPublishFileMessageResult` (`timestamp` String)
+Returns → `PNPublishFileMessageResult.timestamp`.
 
 ---
 
-Last updated May 8 2025
+_Last updated: Jul 15 2025_

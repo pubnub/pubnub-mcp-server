@@ -1,14 +1,14 @@
-# Presence API – Swift Native SDK
+# Presence API – Swift Native SDK (Condensed)
 
-Presence methods require the Presence add-on to be enabled for your keys.
+Presence lets you query real-time occupancy, subscription lists, and custom state. All methods below require the **Presence** add-on to be enabled for your keys.
 
 ---
 
 ## Here Now
 
-Cache: 3 s
+Return current occupancy for one or more channels or channel groups.
 
-```
+```swift
 func hereNow(
     on channels: [String],
     and groups: [String] = [],
@@ -20,46 +20,44 @@ func hereNow(
 ```
 
 Parameters  
-• **on** `[String]` – target channels (required)  
-• **and** `[String] = []` – channel groups  
-• **includeUUIDs** `Bool = true` – `false` omits UUID list  
-• **includeState** `Bool = false` – `true` includes presence state  
-• **custom** `PubNub.RequestConfiguration` – per-request overrides  
-• **completion** `Result<[String: PubNubPresence], Error>` – async result  
+• `channels` – channels to query (required)  
+• `groups` – channel groups to query (default `[]`)  
+• `includeUUIDs` – `false` to omit UUID list (default `true`)  
+• `includeState` – `true` to include per-UUID state (default `false`)  
+• `requestConfig` – per-request configuration (default `.init()`)  
+• `completion` – async `Result` (dictionary keyed by channel)
 
-`PubNubPresence`:
+Cache: 3 s.
 
-```
+### Response Object
+
+```swift
 public protocol PubNubPresence {
-  var channel: String { get }
-  var occupancy: Int { get set }
-  var occupants: [String] { get set }
-  var occupantsState: [String: JSONCodable] { get set }
+
+  var channel: String { get }       // Channel ID
+  var occupancy: Int { get set }    // Total UUIDs
+  var occupants: [String] { get set }              // Known UUIDs
+  var occupantsState: [String: JSONCodable] { get set } // UUID → state
 }
 ```
 
-Success: `[channel : PubNubPresence]`  
-Failure: `Error`
+#### Sample
 
-### Examples
-
-```
-  
+```swift
+// Get UUID list + state for “lobby”
 ```
 
 ```
-  
-```
-
-```
-  
+// (empty block preserved)
 ```
 
 ---
 
 ## Where Now
 
-```
+List channels a specific UUID is currently subscribed to.
+
+```swift
 func whereNow(
     for uuid: String,
     custom requestConfig: PubNub.RequestConfiguration = PubNub.RequestConfiguration(),
@@ -68,26 +66,31 @@ func whereNow(
 ```
 
 Parameters  
-• **for** `String` – UUID to query (required)  
-• **custom** `PubNub.RequestConfiguration`  
-• **completion** `Result<[String: [String]], Error>`  
+• `uuid` – UUID to inspect (required)  
+• `requestConfig` – per-request configuration (default `.init()`)  
+• `completion` – async `Result` (`uuid` → `[channels]`)
 
-Success: `[uuid : [channels]]`  
-Failure: `Error`
+Heartbeat note: restart within the heartbeat window prevents a timeout event.
 
-Example:
+#### Sample
+
+```swift
+// Get channels for UUID “user-123”
+```
 
 ```
-  
+// (empty block preserved)
 ```
 
 ---
 
 ## User State
 
+Store ephemeral, per-channel key/value data for a UUID.
+
 ### Set State
 
-```
+```swift
 func setPresence(
     state: [String: JSONCodableScalar],
     on channels: [String],
@@ -98,18 +101,16 @@ func setPresence(
 ```
 
 Parameters  
-• **state** `[String: JSONCodableScalar]` – custom state (no nesting; keys starting with `pn` reserved)  
-• **on** `[String]` – channels (required)  
-• **and** `[String] = []` – channel groups  
-• **custom** `PubNub.RequestConfiguration`  
-• **completion** `Result<JSONCodable, Error>`  
+• `state` – flat dictionary (keys starting with `pn` are reserved)  
+• `channels` – channels to set state on  
+• `groups` – channel groups  
+• `requestConfig`, `completion` – as above
 
-Success: stored state  
-Failure: `Error`
+Success: returned state as `JSONCodable`.
 
 ### Get State
 
-```
+```swift
 func getPresenceState(
     for uuid: String,
     on channels: [String],
@@ -119,36 +120,34 @@ func getPresenceState(
 )
 ```
 
-Parameters  
-• **for** `String` – UUID (required)  
-• **on** `[String]` – channels  
-• **and** `[String] = []` – channel groups  
-• **custom** `PubNub.RequestConfiguration`  
-• **completion** `Result<(uuid: String, stateByChannel: [String: JSONCodable]), Error>`  
+Success: `(uuid, stateByChannel)` where `stateByChannel` is `[channel: state]`.
 
-Success: `(uuid, [channel : state])`  
-Failure: `Error`
+#### Samples
 
-### Examples
-
-```
-  
+```swift
+// Set score for player on “game-room”
 ```
 
 ```
-  
+// (empty block preserved)
 ```
 
-#### Response to JSON Dictionary
-
-```
-  
+```swift
+// Retrieve state for UUID on multiple channels
 ```
 
-#### Response to custom object
-
 ```
-**
+// (empty block preserved)
 ```
 
-_Last updated: Jun 16 2025_
+### Converting Responses
+
+```swift
+// (empty block preserved)
+```
+
+```swift
+**              // (empty block preserved)
+```
+
+_Last updated: Jul 15 2025_

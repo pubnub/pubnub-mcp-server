@@ -1,14 +1,13 @@
-# Presence API — C# SDK (Condensed)
+# Presence API – C# SDK (condensed)
 
-Presence requires the Presence add-on to be enabled for your PubNub keys in the Admin Portal.
+Presence lets you query real-time occupancy, channel lists per UUID, and set/get custom state.
 
 ---
 
-## Request execution
+## General request pattern
+Use `try / catch` around any SDK call:
 
-Use `try / catch` to handle SDK exceptions and inspect the `status` object for server/network errors.
-
-```
+```  
 `try  
 {  
     PNResultPNPublishResult> publishResponse = await pubnub.Publish()  
@@ -27,16 +26,16 @@ catch (Exception ex)
 `
 ```
 
+`status` contains server/network errors; parameter errors throw an exception.
+
 ---
 
-## Here Now
-
-Query current occupancy and (optionally) user state for channels/groups.
-
-Cache TTL: 3 s.
+## Here Now  (requires Presence add-on)
+Returns current occupancy and (optionally) state for channels/channel groups.  
+Response is cached for 3 s.
 
 ### Method
-```
+```  
 `pubnub.HereNow()  
         .Channels(Array)  
         .ChannelGroups(Array)  
@@ -47,49 +46,39 @@ Cache TTL: 3 s.
 ```
 
 Parameters  
-• Channels (Array) – target channels  
-• ChannelGroups (Array) – target groups  
-• IncludeState (bool) – include presence state  
-• IncludeUUIDs (bool) – include UUID list  
-• QueryParam (Dictionary<string,object>) – custom query params  
+• Channels (Array) – target channels.  
+• ChannelGroups (Array) – target channel groups.  
+• IncludeState (bool) – include user state.  
+• IncludeUUIDs (bool) – include UUID list.  
+• QueryParam (Dictionary<string,object>) – extra query string pairs.  
 
-### Returns  
-`PNResult<PNHereNowResult>`  
-• Result – PNHereNowResult  
-• Status – PNStatus  
+Execution  
+• `ExecuteAsync()` → `PNResult<PNHereNowResult>`  
+(legacy `Async/Execute` callbacks are deprecated).
 
+### Return objects
 `PNHereNowResult`  
 • TotalChannels (int)  
 • TotalOccupancy (int)  
-• Channels (Dictionary<string, PNHereNowChannelData>)  
+• Channels (Dictionary<string, PNHereNowChannelData>)
 
 `PNHereNowChannelData`  
 • ChannelName (string)  
 • Occupancy (int)  
-• Occupants (List<PNHereNowOccupantData>)  
+• Occupants (List<PNHereNowOccupantData>)
 
 `PNHereNowOccupantData`  
 • Uuid (string)  
-• State (object)  
+• State (object)
 
-### Examples
-Get UUID list:
-```
+### Sample
+```  
 `  
 `
 ```
-Synchronous:
-```
-`  
-`
-```
-Return state:
-```
-`  
-`
-```
-Example response (truncated):
-```
+
+### Example response
+```  
 `{  
     "status" : 200,  
     "message" : "OK",  
@@ -99,13 +88,15 @@ Example response (truncated):
         { "state" : { "abcd" : { "age" : 15 } }, "uuid" : "myUUID1" }  
 `
 ```
-Occupancy-only:
-```
+(show all 38 lines)
+
+### Occupancy-only
+```  
 `  
 `
 ```
-Response (truncated):
-```
+Example:
+```  
 `{  
     "status": 200,  
     "message": "OK",  
@@ -115,59 +106,47 @@ Response (truncated):
                 "uuids": [ "70fc1140-22b5-4abc-85b2-ff8c17b24d59" ],  
                 "occupancy": 1  
             },  
+            ...  
 `
 ```
+(show all 23 lines)
 
 ---
 
-## Where Now
-
-Get the list of channels a UUID is currently subscribed to.
+## Where Now  (requires Presence add-on)
+Lists channels currently joined by a UUID.
 
 ### Method
-```
+```  
 `pubnub.WhereNow()  
         .Uuid(string)  
         .QueryParam(Dictionarystring,object>)  
 `
 ```
+
 Parameters  
-• Uuid (string) – target UUID  
-• QueryParam (Dictionary<string,object>) – custom query params  
+• Uuid (string) – target UUID.  
+• QueryParam (Dictionary<string,object>) – additional query pairs.  
 
-### Returns  
-`PNResult<PNWhereNowResult>`  
-• Result – PNWhereNowResult  
-• Status – PNStatus  
+Execution  
+• `ExecuteAsync()` → `PNResult<PNWhereNowResult>`
 
-`PNWhereNowResult`  
-• Channels (List<string>)  
+Return `PNWhereNowResult`  
+• Channels (List<string>)
 
-### Examples
-```
-`  
-`
-```
-Synchronous:
-```
-`  
-`
-```
-Other UUID:
-```
+### Sample
+```  
 `  
 `
 ```
 
 ---
 
-## User State
+## User State  (requires Presence add-on)
+Key/value pairs (Dictionary<string,object>) scoped to a UUID.
 
-Set or get arbitrary key/value state for a UUID on channels or groups.
-
-### Set State
-
-```
+### Set state
+```  
 `pubnub.SetPresenceState()  
         .Channels(Array)  
         .ChannelGroups(Array)  
@@ -176,19 +155,21 @@ Set or get arbitrary key/value state for a UUID on channels or groups.
         .QueryParam(Dictionarystring,object>)  
 `
 ```
+
 Parameters  
-• Channels (Array) – channels to set state  
-• ChannelGroups (Array) – groups to set state  
-• State (Dictionary<string,object>) – key/value pairs  
-• Uuid (string) – target UUID  
-• QueryParam (Dictionary<string,object>) – custom query params  
+• Channels / ChannelGroups (Array) – targets.  
+• State (Dictionary<string,object>) – data to set.  
+• Uuid (string) – UUID to update.  
+• QueryParam – extra query pairs.  
 
-Returns: `PNResult<PNSetStateResult>`  
-• State (Dictionary<string,object>)  
+Execution  
+• `ExecuteAsync()` → `PNResult<PNSetStateResult>`
 
-### Get State
+`PNSetStateResult`  
+• State (Dictionary<string,object>)
 
-```
+### Get state
+```  
 `pubnub.GetPresenceState()  
         .Channels(Array)  
         .ChannelGroups(Array)  
@@ -196,43 +177,21 @@ Returns: `PNResult<PNSetStateResult>`
         .QueryParam(Dictionarystring,object>)  
 `
 ```
-Parameters  
-• Channels (Array) – channels to fetch state  
-• ChannelGroups (Array) – groups to fetch state  
-• Uuid (string) – target UUID  
-• QueryParam (Dictionary<string,object>) – custom query params  
 
-Returns: `PNResult<PNGetStateResult>`  
-• StateByUUID (Dictionary<string,object>)  
+Execution  
+• `ExecuteAsync()` → `PNResult<PNGetStateResult>`
 
-### Examples
-Set state:
-```
+`PNGetStateResult`  
+• StateByUUID (Dictionary<string,object>)
+
+### Samples
+```  
 `  
 `
 ```
-Get state:
-```
-`  
-`
-```
-Synchronous set:
-```
-`  
-`
-```
-Synchronous get:
-```
-`  
-`
-```
-Set for channel group:
-```
-`  
-`
-```
-Example response:
-```
+
+### Sample response
+```  
 `{**    first  : "Robert",  
     last   : "Plant",  
     age    : 59,  
@@ -241,4 +200,4 @@ Example response:
 `
 ```
 
-_Last updated: Jun 30 2025_
+_Last updated: Jul 15 2025_

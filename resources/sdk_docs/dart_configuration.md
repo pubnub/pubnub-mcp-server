@@ -1,241 +1,220 @@
-# PubNub Dart SDK – Configuration (concise)
+# PubNub Dart SDK – Configuration (Condensed)
 
-## Keyset
+## 1. `Keyset`
 
+Use one `Keyset` per subscribe key. Store them in a `KeysetStore`; only one can be the default.
+
+```dart
+Keyset(
+  {String subscribeKey,
+  String publishKey,
+  String secretKey,
+  String authKey,
+  UserId userId}
+)
 ```
-`Keyset(  
-  {String subscribeKey,  
-  String publishKey,  
-  String secretKey,  
-  String authKey,  
-  UserId userId}  
-)   
-`
-```
 
-Parameter | Type | Notes
-----------|------|------
-subscribeKey | String | Required.
-publishKey | String | Needed for publish.
-secretKey | String | Server-side (Access Manager, etc.).
-authKey | String | Used when Access Manager is enabled.
-userId | String | Required – unique per device/user (≤92 UTF-8 chars).  
-cipherKey | String | **Deprecated** – pass via `crypto`.  
-UUID | String | **Deprecated** – use `userId`.
+Property | Type | Default | Notes
+---------|------|---------|------
+subscribeKey | String | – | Required.
+publishKey   | String | – | Needed for publishing.
+secretKey    | String | – | Needed only for Access-Manager admin tasks.
+authKey      | String | – | Used in all restricted requests when Access Manager is enabled.
+userId       | String | – | REQUIRED. Persist a unique ID per user/device.
+cipherKey    | String | – | Deprecated. Pass via `crypto` module instead.
+UUID         | String | – | Deprecated. Use `userId`.
 
-Example
+### Keyset example
 
-```
-`import 'package:pubnub/pubnub.dart';  
-  
-void main() {  
-  final myKeyset = Keyset(  
-    subscribeKey: 'demo',   
-    publishKey: 'demo',   
-    userId: UserId('myUniqueUserId')  
-  );  
-  
-  print('Keyset configured with subscribeKey: ${myKeyset.subscribeKey}');  
-}  
-`
+```dart
+import 'package:pubnub/pubnub.dart';
+
+void main() {
+  final myKeyset = Keyset(
+    subscribeKey: 'demo',
+    publishKey: 'demo',
+    userId: UserId('myUniqueUserId'),
+  );
+
+  print('subscribeKey: ${myKeyset.subscribeKey}');
+}
 ```
 
 ---
 
-## Initialization
+## 2. `PubNub` initialization
 
+```dart
+PubNub(
+  {Keyset defaultKeyset,
+  INetworkingModule networking,
+  IParserModule parser,
+  ICryptoModule crypto}
+)
 ```
-`PubNub(  
-  {Keyset defaultKeyset,   
-  INetworkingModule networking,  
-  IParserModule parser,   
-  ICryptoModule crypto}  
-)   
-`
-```
 
-Arg | Type | Default
-----|------|--------
-defaultKeyset | Keyset | –
-networking | INetworkingModule | `NetworkingModule`
-parser | IParserModule | `ParserModule`
-crypto | ICryptoModule | `CryptoModule`
-
-Keyset selection order:  
-1) `keyset`  2) `using`  3) defaultKeyset  → error if none.
+Arg | Type | Default | Purpose
+----|------|---------|--------
+defaultKeyset | Keyset | – | Used when no keyset is passed to a method.
+networking | INetworkingModule | `NetworkingModule` | Configure `origin`, `ssl`, `retryPolicy`, etc.
+parser | IParserModule | `ParserModule` | Override JSON parsing if needed.
+crypto | ICryptoModule | `CryptoModule` | Encrypt/decrypt messages & files.
 
 ### Crypto module
 
-```
-`// encrypts using 256-bit AES-CBC cipher (recommended)  
-var cryptoModule = CryptoModule.aescbcCryptoModule(CipherKey.fromUtf8('enigma'));  
-  
-// encrypts with 128-bit cipher key entropy (legacy)  
-var cryptoModule = CryptoModule.legacyCryptoModule(CipherKey.fromUtf8('enigma'));  
-  
-// partial encryption  
-var cryptoModule = CryptoModule.aesCbcCryptoModule(CipherKey.fromUtf8('abcd'));  
-var encrypted = cryptoModule.encrypt('Hello'.codeUnits);  
-  
-`
-```
+* No explicit `crypto` ⇒ legacy 128-bit encryption if `cipherKey` supplied.  
+* Recommended: 256-bit AES-CBC.
 
-• 4.2.4+ defaults to legacy if only `cipherKey` supplied.  
-• Older (<4.2.4) clients can’t decrypt AES-CBC 256.
+```dart
+// 256-bit AES-CBC (recommended)
+var cryptoModule = CryptoModule.aescbcCryptoModule(
+    CipherKey.fromUtf8('enigma'));
 
-### Usage
+// legacy 128-bit
+var cryptoModule = CryptoModule.legacyCryptoModule(
+    CipherKey.fromUtf8('enigma'));
 
-```
-`import 'package:pubnub/pubnub.dart';  
-  
-void main() async {  
-  final myKeyset = Keyset(  
-    subscribeKey: 'demo',   
-    publishKey: 'demo',   
-    userId: UserId('myUniqueUserId')  
-  );  
-    
-  final pubnub = PubNub(defaultKeyset: myKeyset);  
-}  
-`
+// manual encryption
+var cryptoModule = CryptoModule.aesCbcCryptoModule(
+    CipherKey.fromUtf8('abcd'));
+var encrypted = cryptoModule.encrypt('Hello'.codeUnits);
 ```
 
-Returns a `PubNub` instance.
+Older SDKs (< 4.2.4) cannot decrypt 256-bit AES-CBC data.
 
-Other setups
+### Basic init
 
-```
-`final pubnub =  
-  PubNub(  
-    defaultKeyset: myKeyset,   
-    networking: NetworkingModule(ssl: false));                // non-secure  
-  
-final pubnub = PubNub(                                        // read-only
-  defaultKeyset:  
-    Keyset(subscribeKey: 'mysubscribeKey',  
-    userId: UserId('myUniqueUserId')));  
-  
-final pubnub = PubNub(                                        // custom origin
-  defaultKeyset: myKeyset,  
-  networking: NetworkingModule(origin: 'example.com', ssl: true),  
-);  
-  
-final pubnub =                                                // SSL on
-  PubNub(  
-    defaultKeyset: myKeyset,  
-    networking: NetworkingModule(ssl: true));  
-  
-final pubnub = PubNub(                                        // Access Mgr
-  defaultKeyset: Keyset(  
-    subscribeKey: 'mySubscribeKey',  
-    secretKey: 'my_secretkey',  
-    userId: UserId('myUniqueUserId')));  
-`
+```dart
+import 'package:pubnub/pubnub.dart';
+
+void main() async {
+  final myKeyset = Keyset(
+    subscribeKey: 'demo',
+    publishKey: 'demo',
+    userId: UserId('myUniqueUserId'),
+  );
+
+  final pubnub = PubNub(defaultKeyset: myKeyset);
+}
 ```
 
----
+Other init variants
 
-## Event listeners
+```dart
+// non-secure
+final pubnub = PubNub(
+  defaultKeyset: myKeyset,
+  networking: NetworkingModule(ssl: false),
+);
 
-```
-`subscription.messages.listen((envelope) {  
-    switch (envelope.messageType) {  
-      case MessageType.normal:  
-          print('${envelope.publishedBy} sent a message: ${envelope.content}');  
-          print('${envelope.channel}');  
-          print('${envelope.publishedAt}');  
-          print('${envelope.content}');  
-          print('${envelope.uuid}');  
-          break;  
-      case MessageType.signal:  
-          print('${envelope.publishedBy} sent a signal message: ${envelope.content}');  
-          print('${envelope.channel}');  
-          print('${envelope.publishedAt}');  
-          print('${envelope.content}');  
-          print('${envelope.uuid}');  
-`
-```
-(message, signal, objects, messageAction, file)
+// read-only
+final pubnub = PubNub(
+  defaultKeyset: Keyset(
+    subscribeKey: 'mysubscribeKey',
+    userId: UserId('myUniqueUserId'),
+  ),
+);
 
----
+// custom origin
+final pubnub = PubNub(
+  defaultKeyset: myKeyset,
+  networking: NetworkingModule(origin: 'example.com', ssl: true),
+);
 
-## userId helpers
+// SSL enabled
+final pubnub = PubNub(
+  defaultKeyset: myKeyset,
+  networking: NetworkingModule(ssl: true),
+);
 
-```
-`var myKeyset =  
-  Keyset(subscribeKey: 'subscribeKey', userId: UserId('myUniqueUserId'));  
-`
-```
-
-```
-`final pubnub = PubNub(  
-    defaultKeyset: Keyset(  
-        subscribeKey: 'mySubscribeKey',  
-        userId: UserId('myUniqueUserId')));  
-  
-var userId = pubnub.keysets.defaultKeyset.userId;  
-`
+// Access-Manager admin (requires secretKey)
+final pubnub = PubNub(
+  defaultKeyset: Keyset(
+    subscribeKey: 'mySubscribeKey',
+    secretKey: 'my_secretkey',
+    userId: UserId('myUniqueUserId'),
+  ),
+);
 ```
 
 ---
 
-## authKey
+## 3. Event listeners (require a `Subscription`)
 
-```
-`var myKeyset = Keyset(  
-  subscribeKey: 'subscribeKey',  
-  authKey: 'myAuthkey',  
-  userId: UserId('myUniqueUserId'));  
-`
+```dart
+subscription.messages.listen((envelope) {
+  switch (envelope.messageType) {
+    case MessageType.normal:
+      print('${envelope.publishedBy} sent: ${envelope.content}');
+      break;
+    case MessageType.signal:
+      print('${envelope.publishedBy} signal: ${envelope.content}');
+      break;
+  }
+});
 ```
 
+Listener types: `message`, `signal`, `objects`, `messageAction`, `file`.
+
+---
+
+## 4. Runtime setters / getters
+
+### userId
+
+```dart
+var myKeyset = Keyset(
+  subscribeKey: 'subscribeKey',
+  userId: UserId('myUniqueUserId'),
+);
+
+final pubnub = PubNub(defaultKeyset: myKeyset);
+var currentUserId = pubnub.keysets.defaultKeyset.userId;
 ```
-`final pubnub = PubNub(  
-  defaultKeyset: Keyset(  
-    subscribeKey: 'mySubscribeKey',  
-    authKey: 'myAuthkey',  
-    userId: UserId('myUniqueUserId')));  
-`
+
+### authKey
+
+```dart
+var myKeyset = Keyset(
+  subscribeKey: 'subscribeKey',
+  authKey: 'myAuthkey',
+  userId: UserId('myUniqueUserId'),
+);
+
+final pubnub = PubNub(defaultKeyset: myKeyset);
+```
+
+### Filter expression (requires Stream Controller add-on)
+
+```dart
+// set
+var myKeyset = Keyset(
+  subscribeKey: 'subscribeKey',
+  userId: UserId('myUniqueUserId'),
+)..filterExpression = 'such=wow';
+
+final pubnub = PubNub(defaultKeyset: myKeyset);
+
+// get
+var filterExpression = pubnub.keysets.defaultKeyset.filterExpression;
 ```
 
 ---
 
-## Filter expression (Stream Controller add-on)
+## 5. Handling disconnects / retry policy
 
-```
-`// to know which filter expression is set  
-var filterExpression = pubnub.keysets.defaultKeyset.filterExpression;  
-`
-```
+```dart
+var pubnub = PubNub(
+  networking: NetworkingModule(
+    retryPolicy: RetryPolicy.exponential(maxRetries: 10),
+  ),
+);
 
-```
-`var myKeyset =  
-    Keyset(subscribeKey: 'subscribeKey', userId: UserId('myUniqueUserId'))  
-    ..filterExpression = 'such=wow';  
-  
-final pubnub = PubNub(defaultKeyset: myKeyset);  
-`
+// available
+RetryPolicy.exponential({int? maxRetries, int? maximumDelay});
+RetryPolicy.linear({int? backoff, int? maxRetries, int? maximumDelay});
 ```
 
 ---
 
-## Reconnect / Retry
-
-```
-`var pubnub = PubNub(  
-    networking:  
-        NetworkingModule(retryPolicy: RetryPolicy.exponential(maxRetries: 10)));  
-`
-```
-
-Retry policies  
-• `RetryPolicy.exponential({int? maxRetries, int? maximumDelay})`  
-• `RetryPolicy.linear({int? backoff, int? maxRetries, int? maximumDelay})`
-
-Argument | Type | Purpose
----------|------|--------
-maximumDelay | int | Max ms before retry.
-backoff | int | Linear backoff ms.
-maxRetries | int | Retry count.
-
-_Last updated: Jun 10 2025_
+Initialization returns a `PubNub` instance that you use to call API methods such as `publish()`, `subscribe()`, etc.

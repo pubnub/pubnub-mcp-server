@@ -1,19 +1,36 @@
-# Swift API & SDK Docs 9.2.1 – Overview (condensed)
+# Swift API & SDK Docs 9.2.1 – Overview
 
-PubNub Swift SDK works on Apple (SwiftUI / UIKit) and Linux.  
-Key tasks: initialize the client, add listeners, subscribe, publish.
+This condensed overview keeps all critical setup details, method signatures, parameters, and code examples for integrating PubNub into a Swift project (SwiftUI or UIKit).  
+
+---
 
 ## Prerequisites
-• Swift basics   • Xcode 14+   • PubNub publish & subscribe keys
+• Swift knowledge  
+• Xcode 14+  
+• PubNub publish & subscribe keys  
 
-## Get your PubNub keys
-1. Sign in / create account on PubNub Admin Portal.  
-2. Create an app → copy its publish & subscribe keys (use separate keysets per environment).
+---
 
-## Install the SDK (always use latest)
+## Get Your Keys
+Create/choose an app in the PubNub Admin Portal and copy the generated **publish** and **subscribe** keys (create separate keysets for prod/dev as needed).
+
+---
+
+## Install the SDK (always use the latest version)
+
+### CocoaPods
+```
+`pod 'PubNubSwift', '~> 9.2.1'  
+`
+```
+
+### Carthage
+```
+`github "pubnub/swift" ~> 9.2.1  
+`
+```
+
 ### Swift Package Manager
-Add in Xcode or edit *Package.swift*:
-
 ```
 `dependencies: [  
   .package(url: "https://github.com/pubnub/swift.git", from: "9.2.1")  
@@ -21,48 +38,25 @@ Add in Xcode or edit *Package.swift*:
 `
 ```
 
-### CocoaPods
-
-```
-`pod 'PubNubSwift', '~> 9.2.1'  
-`
-```
-
-Run `pod install`, then open the *.xcworkspace*.
-
-### Carthage
-
-```
-`github "pubnub/swift" ~> 9.2.1  
-`
-```
-
-Run `carthage update --use-xcframeworks` and add `PubNub.xcframework` to the target.
-
 ### Manual
-
 ```
 `git clone https://github.com/pubnub/swift.git  
 `
 ```
 
-Add the package as a dependency.
-
 ---
 
 ## Initialize PubNub
-SwiftUI – keep a strong reference in a view-model:
 
+### SwiftUI (View-model keeps a strong reference)
 ```
 `import SwiftUI  
 import PubNubSDK  
   
 class PubNubViewModel: ObservableObject {  
-  // Reference to the SDK instance  
   private let pubnub: PubNub  
   
   init() {  
-    // PubNub instance configured with publish/subscribe keys and unique user ID  
     pubnub = PubNub(configuration: PubNubConfiguration(  
       publishKey: "demo",  
       subscribeKey: "demo",  
@@ -72,8 +66,7 @@ class PubNubViewModel: ObservableObject {
 `
 ```
 
-App entry point:
-
+App entry:
 ```
 `import SwiftUI  
 import PubNubSDK  
@@ -90,15 +83,13 @@ struct MyApp: App {
 `
 ```
 
-Simple view:
-
+Basic view:
 ```
 `import SwiftUI  
 import PubNubSDK  
   
 struct ContentView: View {  
   @EnvironmentObject var pubNubViewModel: PubNubViewModel  
-    
   var body: some View {  
     Text("Hello, PubNub!")  
   }  
@@ -106,15 +97,12 @@ struct ContentView: View {
 `
 ```
 
-UIKit:
-
+### UIKit
 ```
 `import UIKit  
 import PubNubSDK  
   
-// A view controller that demonstrates basic PubNub functionality  
 class ViewController: UIViewController {  
-  // PubNub instance configured with publish/subscribe keys and unique user ID  
   private let pubnub: PubNub = PubNub(configuration: PubNubConfiguration(  
     publishKey: "demo",  
     subscribeKey: "demo",  
@@ -126,27 +114,23 @@ class ViewController: UIViewController {
 
 ---
 
-## Event listeners
-Add storage for messages:
+## Set Up Event Listeners
 
+Published store for incoming messages:
 ```
 `@Published var messages: [String] = []  
 `
 ```
 
-SwiftUI listener setup (excerpt):
-
+SwiftUI example (subscription & listeners):
 ```
 `import SwiftUI  
 import PubNubSDK  
   
 class PubNubViewModel: ObservableObject {  
-  // Holds the streamed messages  
   @Published var messages: [String] = []  
-  // Reference to the SDK instance  
   private let pubnub: PubNub  
   
-  // A dedicated subscription object for the example chat channel  
   lazy var subscription: Subscription? = pubnub  
     .channel("hello_world")  
     .subscription(options: ReceivePresenceEvents())  
@@ -155,30 +139,28 @@ class PubNubViewModel: ObservableObject {
 `
 ```
 
-UIKit listener setup (excerpt):
-
+UIKit equivalent:
 ```
 `import UIKit  
 import PubNubSDK  
   
-// A view controller that demonstrates basic PubNub chat functionality  
 class ViewController: UIViewController {  
-  // PubNub instance configured with publish/subscribe keys and unique user ID  
   private let pubnub: PubNub = PubNub(configuration: PubNubConfiguration(  
     publishKey: "demo",  
     subscribeKey: "demo",  
     userId: "device-\(UUID().uuidString.prefix(8))"  
   ))  
   
-  // A dedicated subscription object for the example chat channel  
   private lazy var subscription: Subscription? = pubnub  
     .channel("hello_world")  
 `
 ```
 
-## Subscribe / Unsubscribe
-SwiftUI:
+---
 
+## Subscribe / Unsubscribe
+
+SwiftUI:
 ```
 `import SwiftUI  
 import PubNubSDK  
@@ -190,34 +172,29 @@ struct ContentView: View {
     List(pubNubViewModel.messages, id: \.self) { message in  
       Text(message)  
     }  
-    .onAppear {  
-      pubNubViewModel.subscription?.subscribe()  
-    }  
-    .onDisappear {  
-      pubNubViewModel.subscription?.unsubscribe()  
+    .onAppear { pubNubViewModel.subscription?.subscribe() }  
+    .onDisappear { pubNubViewModel.subscription?.unsubscribe() }  
 `
 ```
 
 UIKit:
-
 ```
 `override func viewWillAppear(_ animated: Bool) {  
   super.viewWillAppear(animated)  
-  // Subscribe to the channel  
   subscription?.subscribe()  
 }  
     
 override func viewWillDisappear(_ animated: Bool) {  
   super.viewWillDisappear(animated)      
-  // Unsubscribe when view disappears  
   subscription?.unsubscribe()  
 }  
 `
 ```
 
-## Publish
-Same implementation for both UI frameworks:
+---
 
+## Publish Messages
+(JSON-serializable, ≤ 32 KiB)
 ```
 `// Called when the connection is established  
 func sendWelcomeMessage() {  
@@ -236,8 +213,9 @@ func sendWelcomeMessage() {
 `
 ```
 
-## Example console output
+---
 
+## Sample Console Output
 ```
 `Connection status changed: connected  
 Message published successfully at 2023-10-23 15:42:36 +0000  
@@ -245,6 +223,4 @@ Message received: Hello from iOS!
 `
 ```
 
----
-
-For detailed API reference, presence, storage, access manager, and full sample apps, visit the links in the original documentation.
+For full API details see the Configuration, Listeners, Presence, Storage, and Access Manager sections of the PubNub Swift SDK reference.

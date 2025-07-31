@@ -1,94 +1,122 @@
-# PubNub Rust SDK – Configuration
+# Configuration API for Rust SDK
 
-Supported Cargo features: `default` `fullaccess` `publish` `subscribe` `presence`
+Build PubNub clients with `PubNubClientBuilder`. The client is transport-agnostic; any transport implementing `Transport` can be used.
 
----
+### Features
+`default`&nbsp;`fullaccess`&nbsp;`publish`&nbsp;`subscribe`&nbsp;`presence`
 
 ## Initialization
 
-Create a client with `PubNubClientBuilder`. All builder methods are chainable and transport-layer agnostic (any type that implements `Transport`).
+### Builder chain
 
-### Builder usage
-
-```rust
-let client = PubNubClientBuilder::with_transport(Transport)
-    .with_keyset(Keyset {
-        publish_key: Some(String),
-        subscribe_key: String,
-        secret_key: String,
-    })
-    .with_user_id(String)
-    .with_instance_id(Into<String>)
-    .with_config(PubNubConfig)
-    .with_retry_configuration(RequestRetryConfiguration)
-    .with_cryptor(T: CryptoProvider)
-    .with_heartbeat_value(u64)
-    .with_heartbeat_interval(u64)
-    .with_suppress_leave_events(bool)
-    .with_filter_expression(String)
-    .build()?;
 ```
+`let client = PubNubClientBuilder::with_transport(Transport)  
+    .with_keyset(Keyset {  
+        publish_key: Some(String),  
+        subscribe_key: String,  
+        secret_key: String,  
+    })  
+    .with_user_id(String)  
+    .with_instance_id(Into<String>)  
+    .with_config(PubNubConfig)  
+    .with_retry_configuration(RequestRetryConfiguration)  
+    .with_cryptor(T: CryptoProvider)  
+    .with_heartbeat_value(u64)  
+    .with_heartbeat_interval(u64)  
+    .with_suppress_leave_events(bool)  
+    .with_filter_expression(String)  
+`
+```
+(show all 16 lines)
 
-### Builder methods
+### Builder methods (essentials)
 
-• `with_transport(Transport)` – transport implementation (`with_reqwest_transport()` available; requires `reqwest` feature).  
-• `with_keyset(Keyset)` – account keys (see *Keyset*).  
-• `with_user_id(String)` – UTF-8 ID (≤92 chars); required.  
-• `with_instance_id(Into<String>)` – client instance identifier.  
-• `with_config(PubNubConfig)` – override `Keyset`/`user_id`; useful for multiple builders.  
-• `with_retry_configuration(RequestRetryConfiguration)` – reconnect policy:  
+* `with_transport(Transport)`  
+  Default: `with_reqwest_transport()` (requires `reqwest` feature).
+
+* `with_keyset(Keyset)`  
+  Admin-portal keys.
+
+* `with_user_id(String)`  
+  UTF-8, ≤ 92 chars. Mandatory for connection.
+
+* `with_instance_id(Into<String>)`  
+  Client instance ID.
+
+* `with_config(PubNubConfig)`  
+  Override `Keyset` and `user_id`.
+
+* `with_retry_configuration(RequestRetryConfiguration)`  
   • `None` (default)  
   • `Linear { delay, max_retry, excluded_endpoints }`  
-  • `Exponential { min_delay, max_delay, max_retry, excluded_endpoints }`  
-  `excluded_endpoints: Vec<Endpoint>` (e.g., `vec![Endpoint::Publish]`).  
-• `with_cryptor(T: CryptoProvider)` – encryption module (see *CryptoModule*).  
-• `with_heartbeat_value(u64)` – presence timeout (default `300`, min `20`).  
-• `with_heartbeat_interval(u64)` – heartbeat send interval; recommended `(heartbeat_value / 2) - 1`. `0` disables heartbeats.  
-• `with_suppress_leave_events(bool)` – default `false`; suppress leave events on unsubscribe.  
-• `with_filter_expression(String)` – subscribe filter expression.  
-• `build()` – returns `PubNub` instance (`Result`).
+  • `Exponential { min_delay, max_delay, max_retry, excluded_endpoints }`
 
----
+* `with_cryptor(T: CryptoProvider)`  
+  Select encryption module.
 
-### Keyset
+* `with_heartbeat_value(u64)`  
+  Presence timeout (default 300 s, min 20).
 
-| Field        | Type          | Description                               |
-|--------------|---------------|-------------------------------------------|
-| `publish_key`| `Some(String)`| Publish key (Admin Portal).               |
-| `subscribe_key`| `String`    | Subscribe key (Admin Portal).             |
-| `secret_key` | `String`      | Secret key; required for Access Manager.  |
+* `with_heartbeat_interval(u64)`  
+  Heartbeat period (typ. `(heartbeat_value / 2) - 1`, min 0).
 
----
+* `with_suppress_leave_events(bool)`  
+  Suppress leave events (default false).
+
+* `with_filter_expression(String)`  
+  Subscribe filter.
+
+* `build()` → `Result<PubNub, Error>`
+
+## Keyset
+
+* `publish_key: Some(String)` – Publish key.  
+* `subscribe_key: String` – Subscribe key.  
+* `secret_key: String` – Secret key (needed for Access Manager).
 
 ## CryptoModule
 
-Implements `CryptoProvider`.
+Two built-in encryption options:
 
-Two built-in algorithms:  
-• 128-bit legacy (default pre-0.3.0)  
-• 256-bit AES-CBC (recommended; supported ≥0.3.0).  
-Both decrypt data from either algorithm.
+1. 256-bit AES-CBC (recommended)  
+2. Legacy 128-bit entropy (back-compat)
 
-```rust
-// 256-bit AES-CBC (recommended)
-let client = PubNubClientBuilder::with_transport(Transport)
-    ...
-    .with_cryptor(CryptoModule::new_aes_cbc_module("enigma", true)?)
-    .build()?;
+```
+`// 256-bit AES-CBC (recommended)  
+let client = PubNubClientBuilder::with_transport(Transport)  
+    ...  
+    .with_cryptor(CryptoModule::new_aes_cbc_module("enigma", true)?)  
+    .build()?;  
+  
+// Legacy 128-bit  
+let client = PubNubClientBuilder::with_transport(Transport)  
+    ...  
+    .with_cryptor(CryptoModule::new_legacy_module("enigma", true)?)  
+    .build()?;  
+`
+```
+Older (<0.3.0) SDKs cannot decrypt 256-bit data.
 
-// 128-bit legacy cipher
-let client = PubNubClientBuilder::with_transport(Transport)
-    ...
-    .with_cryptor(CryptoModule::new_legacy_module("enigma", true)?)
-    .build()?;
+## Sample code
+
+Required `user_id`:
+
+```
+`  
+`
 ```
 
-Older SDKs (<0.3.0) can’t decrypt 256-bit AES-CBC data.
+## Other examples
 
----
+Initialize with custom origin:
 
-### Return value
+```
+`  
+`
+```
 
-`Result<PubNub, PubNubError>` – error on invalid configuration.
+## Event listeners
 
-_Last updated: Apr 22 2025_
+Use `Client`, `Subscription`, or `SubscriptionsSet` for real-time updates. See Publish & Subscribe docs for handlers.
+
+_Last updated: Jul 15 2025_

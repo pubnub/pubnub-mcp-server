@@ -1,183 +1,211 @@
 # Presence API – PHP SDK (Condensed)
 
-Presence must be enabled for your keys in the Admin Portal.
+Presence must be enabled for your keys in the Admin Portal.  
+Cache: `hereNow()` responses are cached for 3 s.
 
 ---
 
 ## Here Now
 
-Return occupancy, UUIDs, and (optionally) state of clients currently subscribed to channels or channel groups.  
-Cache: 3 s.
+Obtain current occupancy, UUID list, and optional state for channels or channel groups.
 
 ### Method
 
 ```
-$pubnub->hereNow()
-    ->channels(string|array)        // Required if channelGroups() not used
-    ->channelGroups(string|array)   // Required if channels() not used
-    ->includeState(bool)            // Default: false
-    ->includeUuids(bool)            // Default: true
+$pubnub->hereNow()  
+    ->channels(string|array)          // target channels  
+    ->channelGroups(string|array)     // or channel groups  
+    ->includeState(boolean) = false   // return user state  
+    ->includeUuids(boolean) = true    // return UUID list  
     ->sync();
 ```
 
-### Basic example
+### Sample Code (bootstrap)
 
-```php
-// Include Composer autoloader (adjust path if needed)
-require_once 'vendor/autoload.php';
-
-use PubNub\PNConfiguration;
-use PubNub\PubNub;
-
-$pnConfig = new PNConfiguration();
-$pnConfig->setSubscribeKey("demo");
-$pnConfig->setPublishKey("demo");
-$pnConfig->setUserId("php-presence-demo-user");
 ```
-<!-- show all 77 lines -->
+  
+// Include Composer autoloader (adjust path if needed)  
+require_once 'vendor/autoload.php';  
+  
+use PubNub\PNConfiguration;  
+use PubNub\PubNub;  
+use PubNub\Exceptions\PubNubServerException;  
+use PubNub\Exceptions\PubNubException;  
+  
+// Create configuration with demo keys  
+$pnConfig = new PNConfiguration();  
+$pnConfig->setSubscribeKey("demo");  
+$pnConfig->setPublishKey("demo");  
+$pnConfig->setUserId("php-presence-demo-user");  
+```
 
-### Result objects
-
-* **PNHereNowResult**
-  * `getTotalChannels(): int`
-  * `getTotalOccupancy(): int`
-  * `getChannels(): array<PNHereNowChannelData>`
-
-* **PNHereNowChannelData**
-  * `getChannelName(): string`
-  * `getOccupancy(): int`
-  * `getOccupants(): array<PNHereNowOccupantData>`
-
-* **PNHereNowOccupantData**
-  * `getUuid(): string`
-  * `getState(): array`
-
-### Other examples
+### Examples
 
 Return UUIDs + state:
 
-```php
-$result = $pubnub->hereNow()
-    ->channels("my_channel")
-    ->includeUuids(true)
-    ->includeState(true)
-    ->sync();
+```
+$result = $pubnub->hereNow()  
+                ->channels("my_channel")  
+                ->includeUuids(true)  
+                ->includeState(true)  
+                ->sync();  
 ```
 
-Return occupancy only:
+Example response (truncated):
 
-```php
-$result = $pubnub->hereNow()
-    ->channels("my_channel")
-    ->includeUuids(false)
-    ->includeState(false)
-    ->sync();
+```
+PubNub\Models\Consumer\Presence\PNHereNowResult Object(  
+    [totalChannels:protected] => 2  
+    [totalOccupancy:protected] => 3  
+    [channels:protected] => Array(  
+        [0] => PubNub\Models\Consumer\Presence\PNHereNowChannelData Object(  
+            [channelName:protected] => ch1  
+            [occupancy:protected] => 1  
+            [occupants:protected] => Array( ... )  
+        )  
+...
+```
+
+Occupancy only:
+
+```
+$result = $pubnub->hereNow()  
+                ->channels("my_channel")  
+                ->includeUuids(false)  
+                ->includeState(false)  
+                ->sync();  
 ```
 
 Channel groups:
 
-```php
-$pubnub->hereNow()
-    ->channelGroups(["cg1", "cg2", "cg3"])
-    ->includeUuids(true)
-    ->includeState(true)
-    ->sync();
 ```
+$pubnub->hereNow()  
+    ->channelGroups(["cg1", "cg2", "cg3"])  
+    ->includeUuids(true)  
+    ->includeState(true)  
+    ->sync();  
+```
+
+Response (truncated):
+
+```
+(  
+    [totalChannels:protected] => 1  
+    [totalOccupancy:protected] => 4  
+    [channels:protected] => Array( ... )  
+...
+```
+
+### Return Objects
+
+PNHereNowResult  
+• getTotalChannels(): int  
+• getTotalOccupancy(): int  
+• getChannels(): PNHereNowChannelData[]
+
+PNHereNowChannelData  
+• getChannelName(): string  
+• getOccupancy(): int  
+• getOccupants(): PNHereNowOccupantData[]
+
+PNHereNowOccupantData  
+• getUuid(): string  
+• getState(): array
 
 ---
 
 ## Where Now
 
-Get channels to which a UUID is presently subscribed.
+List channels to which a UUID is currently subscribed.
 
 ### Method
 
 ```
-$pubnub->whereNow()
-    ->uuid(string)   // Optional; defaults to current client UUID
+$pubnub->whereNow()  
+    ->uuid(string)        // optional, defaults to current user  
     ->sync();
 ```
 
-### Usage
+### Examples
 
-```php
+```
 $result = $pubnub->whereNow()->sync();
 ```
 
-Server response (example):
+```
+$result = $pubnub->whereNow()  
+                ->uuid("his-uuid")  
+                ->sync();  
+```
 
-```json
-{
-  "channels": ["lobby", "game01", "chat"]
+Response:
+
+```
+{  
+    "channels": [ "lobby", "game01", "chat" ]  
 }
 ```
 
-Explicit UUID:
-
-```php
-$result = $pubnub->whereNow()
-    ->uuid("his-uuid")
-    ->sync();
-```
+Note: No timeout event occurs if the client restarts within the heartbeat window.
 
 ---
 
 ## User State
 
-Set or get custom presence state for one or more channels/channel groups.
+Set or retrieve a custom state (JSON) for a UUID on channels/channel-groups.  
+State is transient and disappears when the client disconnects.
 
 ### Set State
 
 ```
-$pubnub->setState()
-    ->channels(string|array)        // or ->channelGroups()
-    ->channelGroups(string|array)
-    ->state(array)                  // Required
-    ->sync();
-```
-
-Example:
-
-```php
-$pubnub->setState()
-    ->channels(["ch1", "ch2", "ch3"])
-    ->state(["age" => 30])
+$pubnub->setState()  
+    ->channels(string|array)          // or  
+    ->channelGroups(string|array)  
+    ->state(array)                    // associative array  
     ->sync();
 ```
 
 ### Get State
 
 ```
-$pubnub->getState()
-    ->channels(string|array)        // or ->channelGroups()
-    ->channelGroups(string|array)
-    ->uuid(string)                  // Optional, defaults to current UUID
+$pubnub->getState()  
+    ->channels(string|array)          // or  
+    ->channelGroups(string|array)  
+    ->uuid(string)                    // optional, defaults to current user  
     ->sync();
 ```
 
-Example:
+### Examples
 
-```php
-$pubnub->getState()
-    ->channels(["ch1", "ch2", "ch3"])
-    ->sync();
+Set state on channels:
+
+```
+$pubnub->setState()  
+    ->channels(["ch1", "ch2", "ch3"])  
+    ->state(["age" => 30])  
+    ->sync();  
 ```
 
-### Result objects
+Get state:
 
-* **PNSetStateResult**
-  * `getState(): array` – channel/UUID → state.
-
-* **PNGetStateResult**
-  * `getChannels(): array` – channel → state.
-
-### Additional example
-
-```php
-$pubnub->setState()
-    ->channelGroups(["gr1", "gr2", "gr3"])
-    ->state(["age" => 30])
-    ->sync();
+```
+$pubnub->getState()  
+    ->channels(["ch1", "ch2", "ch3"])  
+    ->sync();  
 ```
 
-_Last updated: Jun 16 2025_
+Set state on channel groups:
+
+```
+$pubnub->setState()**    ->channelGroups(["gr1", "gr2", "gr3"])  
+    ->state(["age" => 30])  
+    ->sync();  
+```
+
+### Return Objects
+
+PNSetStateResult  
+• setState(): array     // map of UUID → state
+
+PNGetStateResult  
+• getChannels(): array  // map of channel → state

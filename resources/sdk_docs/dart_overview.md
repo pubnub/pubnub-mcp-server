@@ -1,25 +1,32 @@
-# Dart API & SDK Docs 5.2.1 (Overview)
+# PubNub Dart SDK 5.2.1 – Quick Start
 
-Minimal reference to get PubNub working in any Dart or Flutter project.  
-Two paths are shown below; replace `demo` keys with your own.
+This condensed guide shows the minimum you need to:
+
+1. Obtain keys  
+2. Install the SDK  
+3. Initialize PubNub  
+4. Subscribe / listen  
+5. Publish  
+6. Run & test
+
+All code blocks are unchanged from the original documentation.
 
 ---
 
 ## Prerequisites
 • Dart or Flutter SDK installed  
-• PubNub account (publish & subscribe keys)
+• PubNub account with publish & subscribe keys  
 
 ---
 
-## Setup
+## 1  Get PubNub keys
+Create an app in the Admin Portal and copy the generated **publish** and **subscribe** keys.
 
-### Get your PubNub keys
-1. Log in to the PubNub Admin Portal.  
-2. Create / select an app → copy publish & subscribe keys.
+---
 
-### Install the SDK  
-<details><summary>Flutter</summary>
+## 2  Install the SDK
 
+### Flutter
 Add to `pubspec.yaml`:
 
 ```
@@ -30,22 +37,22 @@ Add to `pubspec.yaml`:
 `
 ```
 
-Fetch:
+Then:
 
 ```
 `flutter pub get  
 `
 ```
 
-Android internet permission:
+Android requires:
 
 ```
 `uses-permission android:name="android.permission.INTERNET" />  
 `
 ```
-</details>
 
-<details><summary>Non-Flutter (pure Dart)</summary>
+### Non-Flutter (pure Dart)
+Add to `pubspec.yaml`:
 
 ```
 `dependencies:  
@@ -53,20 +60,20 @@ Android internet permission:
 `
 ```
 
+Then:
+
 ```
 `dart pub get  
 `
 ```
-</details>
 
-Source code: https://github.com/pubnub/dart
+Source: <https://github.com/pubnub/dart>
 
 ---
 
-## Steps
+## 3  Initialize PubNub
 
-### 1. Initialize PubNub  
-<details><summary>Flutter</summary>
+### Flutter (excerpt)
 
 ```
 `// Import required packages  
@@ -86,9 +93,8 @@ class _PubNubAppState extends StatePubNubApp> {
   // Channel name  
 `
 ```
-</details>
 
-<details><summary>Non-Flutter</summary>
+### Non-Flutter
 
 ```
 `// Import required packages  
@@ -104,10 +110,12 @@ var pubnub = PubNub(
 );  
 `
 ```
-</details>
 
-### 2. Set up event listeners  
-<details><summary>Flutter</summary>
+---
+
+## 4  Subscribe & listen
+
+### Flutter
 
 ```
 `void setupPubNub() {  
@@ -128,6 +136,8 @@ var pubnub = PubNub(
 `
 ```
 
+UI snippet:
+
 ```
 `@override  
 Widget build(BuildContext context) {  
@@ -147,13 +157,14 @@ Widget build(BuildContext context) {
 `
 ```
 
+Controller:
+
 ```
 `final TextEditingController _messageController = TextEditingController();  
 `
 ```
-</details>
 
-<details><summary>Non-Flutter</summary>
+### Non-Flutter
 
 ```
 `// Define the channel  
@@ -173,10 +184,12 @@ subscription.presence.listen((presence) {
 });  
 `
 ```
-</details>
 
-### 3. Publish messages  
-<details><summary>Flutter</summary>
+---
+
+## 5  Publish messages (≤ 32 KiB JSON)
+
+### Flutter
 
 ```
 `Futurevoid> sendMessage(String text) async {  
@@ -196,9 +209,8 @@ subscription.presence.listen((presence) {
     // Show error to user  
 `
 ```
-</details>
 
-<details><summary>Non-Flutter</summary>
+### Non-Flutter
 
 ```
 `Futurevoid> publishMessage() async {  
@@ -218,17 +230,19 @@ subscription.presence.listen((presence) {
   
 `
 ```
-</details>
 
-### 4. Run the app  
-<details><summary>Non-Flutter</summary>
+---
+
+## 6  Run
+
+Pure Dart:
 
 ```
 `dart pubnub_example.dart  
 `
 ```
 
-Expected output:
+Sample output:
 
 ```
 `Message to send: {text: Hello, world!, sender: dart_user}  
@@ -236,12 +250,12 @@ Received message: {text: Hello, world!, sender: dart_user}
 Message "Sent" with timetoken: 16967543908123456  
 `
 ```
-</details>
 
 ---
 
-## Complete examples  
-<details><summary>Flutter (truncated)</summary>
+## Complete examples
+
+### Flutter (truncated for brevity)
 
 ```
 `import 'package:flutter/material.dart';  
@@ -261,9 +275,8 @@ class _PubNubAppState extends StatePubNubApp> {
   late PubNub pubnub;  
 `
 ```
-</details>
 
-<details><summary>Pure Dart (truncated)</summary>
+### Non-Flutter (truncated for brevity)
 
 ```
 `import 'package:pubnub/pubnub.dart';  
@@ -283,9 +296,8 @@ Futurevoid> main() async {
     
 `
 ```
-</details>
 
-Sample output:
+Output:
 
 ```
 `Message to send: {text: Hello, world!, sender: dart_user}  
@@ -297,20 +309,19 @@ Cleanup complete.
 
 ---
 
-## Troubleshooting (quick)
+## Troubleshooting (quick list)
 
-• No connection → check keys, internet, firewalls  
-• Message not received → verify channel & publish success  
-• Build errors → confirm dependency & imports, run `pub get`
+• No connection → check keys, network, firewall  
+• No message → verify channel name & publish result  
+• Build errors → run `dart pub get` / `flutter pub get`, confirm imports  
 
 ---
 
 ## Next steps
 
-1. Presence, typing indicators, storage & playback, Access Manager  
-2. Example apps:  
-   • GitHub Dart SDK  
-   • Flutter Simple Chat  
-3. Docs & community: Discord, support portal, AI assistant
+• Presence, Storage, Access Manager  
+• Sample apps: <https://github.com/pubnub/flutter-ref-app-simple-chat>  
+• API reference: links throughout this doc  
+• Community & support: Discord, support portal, AI assistant  
 
-_Last updated May 7 2025_
+_Last updated: May 7 2025_

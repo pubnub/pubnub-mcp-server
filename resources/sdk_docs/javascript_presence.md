@@ -1,21 +1,15 @@
 # Presence API – JavaScript SDK (condensed)
 
-Presence lets you:
-• Detect users joining/leaving channels  
-• Query channel occupancy and user state  
-• List channels a UUID is on  
-• Set/Get per-user state  
-
-Async style: callbacks, Promises, or **async/await** (recommended). Use `try … catch` for errors.
+• Presence add-on must be enabled for your keys.  
+• Supports callbacks, promises, and async/await (recommended).  
+• Heartbeat window rules apply; no timeout event if the client reconnects before heartbeat expires.  
+• hereNow() responses are cached for 3 s.
 
 ---
 
-## Here Now
+## hereNow()
 
-Returns current occupancy and optional state for channels or channel groups.  
-Response cached for 3 s.
-
-### Method
+Returns current occupancy for channels/channel groups.
 
 ```
 `pubnub.hereNow({  
@@ -28,19 +22,19 @@ Response cached for 3 s.
 ```
 
 Parameters  
-• channels – array<string> (required if `channelGroups` omitted)  
-• channelGroups – array<string> (required if `channels` omitted)  
-• includeUUIDs – boolean, default `true`  
-• includeState – boolean, default `false`
+• channels (Array<string>) – channel list (required if channelGroups absent).  
+• channelGroups (Array<string>) – group list (required if channels absent).  
+• includeUUIDs (boolean, default true) – omit UUID list when false.  
+• includeState (boolean, default false) – include per-UUID state when true.
 
-### Basic usage
+### Sample code
 
 ```
 `  
 `
 ```
 
-### Response type
+### Response
 
 ```
 `type hereNowResponse = {  
@@ -52,7 +46,8 @@ Parameters
 ```
 
 ### Additional examples
-Returning State
+
+Returning state
 
 ```
 `  
@@ -78,7 +73,7 @@ Returning State
 `
 ```
 
-Return Occupancy Only
+Return occupancy only (set includeUUIDs =false)
 
 ```
 `  
@@ -104,7 +99,7 @@ Return Occupancy Only
 `
 ```
 
-Channel Group query
+Channel-group usage
 
 ```
 `  
@@ -130,7 +125,7 @@ Channel Group query
 `
 ```
 
-Promises variant
+Promise-style example
 
 ```
 `  
@@ -139,11 +134,9 @@ Promises variant
 
 ---
 
-## Where Now
+## whereNow()
 
-Lists channels a UUID is currently subscribed to.
-
-### Method
+Returns channels to which a UUID is currently subscribed.
 
 ```
 `pubnub.whereNow({  
@@ -153,9 +146,7 @@ Lists channels a UUID is currently subscribed to.
 ```
 
 Parameter  
-• uuid – string, defaults to current client UUID.
-
-### Example
+• uuid (string, default current UUID).
 
 ```
 `  
@@ -181,9 +172,9 @@ Parameter
 
 ## User State
 
-Set or retrieve custom state for one or more channels / channel groups.
+Set or retrieve arbitrary JSON state for a UUID on channels/groups (ephemeral; cleared on disconnect).
 
-### Set State
+### setState
 
 ```
 `pubnub.setState({  
@@ -194,10 +185,10 @@ Set or retrieve custom state for one or more channels / channel groups.
 `
 ```
 
-• channels / channelGroups – one required  
-• state – JSON (flat key/value; ints, floats, strings)
+• Provide either channels or channelGroups.  
+• state: flat key/value pairs (int, float, string). Keys prefixed with `pn` are reserved.
 
-### Get State
+### getState
 
 ```
 `pubnub.getState({  
@@ -208,23 +199,26 @@ Set or retrieve custom state for one or more channels / channel groups.
 `
 ```
 
-### Examples
+• uuid defaults to current UUID.  
+• Provide channels or channelGroups.
 
-Set State
+#### Examples
 
-```
-`  
-`
-```
-
-Get State
+Set state
 
 ```
 `  
 `
 ```
 
-Set State Response
+Get state
+
+```
+`  
+`
+```
+
+Set-state response
 
 ```
 `// Example of Status  
@@ -243,7 +237,7 @@ Set State Response
 `
 ```
 
-Get State Response
+Get-state response
 
 ```
 `// Example of Status**{  
@@ -263,4 +257,4 @@ Get State Response
 `
 ```
 
-_Last updated Jun 30 2025_
+_Last updated Jul 15 2025_

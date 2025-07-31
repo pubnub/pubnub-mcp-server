@@ -1,545 +1,395 @@
 # PubNub Go SDK – App Context (Objects v2)
 
-This condensed reference keeps every code block, method signature, parameter list, data-structure definition, and response schema from the full documentation. Only descriptive prose has been trimmed.
+Essential information, method signatures, parameters, responses, and ALL original code blocks are retained. Narrative text is reduced.
 
 ---
 
-## User (UUID) Metadata
+## Users
 
-### Get All UUID Metadata
-
-Method
+### Get all UUID metadata
 ```
-pn.GetAllUUIDMetadata().
-    Include([]pubnub.PNUUIDMetadataIncludeCustom).
-    Sort(sort).
-    Limit(int).
-    Count(bool).
-    Start(string).
-    End(string).
-    Filter(string).
-    Execute()
+`pn.GetAllUUIDMetadata().  
+    Include([]pubnub.PNUUIDMetadataIncludeCustom).  
+    Sort(sort).  
+    Limit(int).  
+    Count(bool).  
+    Start(string).  
+    End(string).  
+    Filter(string).  
+    Execute()`  
 ```
-
 Parameters  
-• Include – []pubnub.PNUUIDMetadataInclude (`pubnub.PNUUIDMetadataIncludeCustom`)  
-• Sort – array: id | name | updated (`asc`|`desc`)  
-• Limit – int (≤100)  
-• Count – bool  
-• Start / End – string (pagination cursor)  
-• Filter – string (see filtering docs)
+• Include – []pubnub.PNUUIDMetadataInclude (values: `pubnub.PNUUIDMetadataIncludeCustom`)  
+• Sort – []string (`id`,`name`,`updated` + `asc|desc`)  
+• Limit int (default/max 100)  
+• Count bool  
+• Start, End string (pagination tokens)  
+• Filter string (see filtering docs)
 
-Usage
+Sample
 ```
-package main
-import (
-    "fmt"
-    pubnub "github.com/pubnub/go/v7"
-)
-func main() {
-    config := pubnub.NewConfigWithUserId("myUniqueUserId")
-    config.SubscribeKey, config.PublishKey = "demo", "demo"
-    pn := pubnub.NewPubNub(config)
-
-    incl := []pubnub.PNUUIDMetadataInclude{pubnub.PNUUIDMetadataIncludeCustom}
-    …
-}
+`package main  
+import ( "fmt"; pubnub "github.com/pubnub/go/v7")  
+func main() {  
+    config := pubnub.NewConfigWithUserId("myUniqueUserId")  
+    config.SubscribeKey, config.PublishKey = "demo", "demo"  
+    pn := pubnub.NewPubNub(config)  
+    incl := []pubnub.PNUUIDMetadataInclude{pubnub.PNUUIDMetadataIncludeCustom}`  
 ```
-
-Response (`PNGetAllChannelMetadataResponse`)  
-Data []PNUUID • TotalCount int • Next/Prev string
+show all 40 lines
+Response `PNGetAllChannelMetadataResponse`  
+• Data []PNUUID • TotalCount int • Next string • Prev string
 
 ---
 
-### Get UUID Metadata
-
-Method
+### Get UUID metadata
 ```
-pn.PNUUIDMetadataInclude().
-    Include([]pubnub.PNUUIDMetadataIncludeCustom).
-    Sort(sort).
-    ID(string).
-    Execute()
+`pn.PNUUIDMetadataInclude().  
+    Include([]pubnub.PNUUIDMetadataIncludeCustom).  
+    Sort(sort).  
+    ID(string).  
+    Execute()`  
 ```
+Parameters identical to above plus  
+• ID string (defaults to caller uuid)
 
-Parameters  
-• Include – []pubnub.PNUUIDMetadataIncludeCustom  
-• Sort – array id|name|updated (`asc`|`desc`)  
-• ID – string (defaults to current UUID)
-
-Usage
+Sample
 ```
-id := "testuuid"
-incl := []pubnub.PNUUIDMetadataInclude{
-        pubnub.PNUUIDMetadataIncludeCustom,
-}
-res, status, err := pn.GetUUIDMetadata().
-    UUID(id).
-    Include(incl).
-    Execute()
-fmt.Println(res, status, err)
+`id := "testuuid"  
+incl := []pubnub.PNUUIDMetadataInclude{pubnub.PNUUIDMetadataIncludeCustom}  
+res, status, err := pn.GetUUIDMetadata().UUID(id).Include(incl).Execute()`  
 ```
-
-Response (`PNGetUUIDMetadataResponse`)  
-Data PNUUID
+Response `PNGetUUIDMetadataResponse` → Data PNUUID
 
 ---
 
-### Set UUID Metadata
-
-Method
+### Set UUID metadata  
+Partial updates of `Custom` overwrite existing data.
 ```
-pn.SetUUIDMetadata().
-    Include([]pubnub.PNUUIDMetadataIncludeCustom).
-    Sort(sort).
-    ID(id).
-    Name(string).
-    ExternalID(string).
-    ProfileURL(string).
-    Email(string).
-    Custom(map[string]interface{}).
-    Execute()
+`pn.SetUUIDMetadata().  
+    Include([]pubnub.PNUUIDMetadataIncludeCustom).  
+    Sort(sort).  
+    ID(id).  
+    Name(string).  
+    ExternalID(string).  
+    ProfileURL(string).  
+    Email(string).  
+    Custom(map[string]interface{}).  
+    Execute()`  
 ```
-
-Parameters  
-• Include – []pubnub.PNUUIDMetadataInclude (`Custom`)  
-• Sort – array id|name|updated (`asc`|`desc`)  
-• ID – string (defaults to current UUID)  
-• Name – string  
-• ExternalID – string  
-• ProfileURL – string  
-• Email – string  
-• Custom – map[string]interface{}
-
-Usage
+Parameters: same as above plus data fields.  
+Sample
 ```
-id, name := "testuuid", "name"
-extid, purl, email := "extid", "profileurl", "email"
-custom := map[string]interface{}{"a":"b","c":"d"}
-incl := []pubnub.PNUUIDMetadataInclude{pubnub.PNUUIDMetadataIncludeCustom}
-
-res, status, err := pn.SetUUIDMetadata().
-    UUID(id).
-    Name(name).
-    ExternalID(extid).
-    ProfileURL(purl).
-    Email(email).
-    Custom(custom).
-    Include(incl).
-    Execute()
+`id:="testuuid"; name:="name"; ...  
+custom:=map[string]interface{}{"a":"b","c":"d"}  
+incl:=[]pubnub.PNUUIDMetadataInclude{pubnub.PNUUIDMetadataIncludeCustom}  
+res,status,err:=pn.SetUUIDMetadata()`  
 ```
+show all 24 lines  
+Response `PNSetUUIDMetadataResponse` → Data PNUUID
 
-Response (`PNSetUUIDMetadataResponse`)  
-Data PNUUID
-
-PNUUID object  
-ID • Name • ExternalID • ProfileURL • Email • Custom • Updated • ETag
+PNUUID structure  
+ID, Name, ExternalID, ProfileURL, Email, Custom, Updated, ETag
 
 ---
 
-### Remove UUID Metadata
-
-Method
+### Remove UUID metadata
 ```
-pn.RemoveUUIDMetadata().
-    ID(string).
-    Execute()
+`pn.RemoveUUIDMetadata().  
+    ID(string).  
+    Execute()`  
 ```
-
-Parameter ID string
-
-Usage
+Sample
 ```
-id := "testuuid"
-res, status, err := pn.RemoveUUIDMetadata().
-    UUID(id).
-    Execute()
-fmt.Println(res, status, err)
+`id := "testuuid"  
+res, status, err := pn.RemoveUUIDMetadata().UUID(id).Execute()`  
 ```
-
-Response (`PNRemoveUUIDMetadataResponse`) Data interface{}
+Response `PNRemoveUUIDMetadataResponse` → Data interface{}
 
 ---
 
-## Channel Metadata
+## Channels
 
-### Get All Channel Metadata
-
-Method
+### Get all channel metadata
 ```
-pn.GetAllChannelMetadata().
-    Include([]pubnub.PNChannelMetadataInclude).
-    Sort(sort).
-    Limit(int).
-    Count(bool).
-    Start(string).
-    End(string).
-    Filter(string).
-    Execute()
+`pn.GetAllChannelMetadata().  
+    Include([]pubnub.PNChannelMetadataInclude).  
+    Sort(sort).  
+    Limit(int).  
+    Count(bool).  
+    Start(string).  
+    End(string).  
+    Filter(string).  
+    Execute()`  
 ```
+Parameter semantics identical to user list.
 
-Parameters identical to GetAllUUIDMetadata but using `PNChannelMetadataInclude`.
-
-Usage
+Sample
 ```
-incl := []pubnub.PNChannelMetadataInclude{
-        pubnub.PNChannelMetadataIncludeCustom,
-}
-res, status, err := pn.GetAllChannelMetadata().
-    Include(incl).
-    Sort(sort).
-    Limit(100).
-    Count(true).
-    Execute()
+`incl := []pubnub.PNChannelMetadataInclude{pubnub.PNChannelMetadataIncludeCustom}  
+res,status,err:=pn.GetAllChannelMetadata().Include(incl).Sort(sort).Limit(100).Count(true).Execute()`  
 ```
-
-Response (`PNGetAllChannelMetadataResponse`)  
-Data []PNChannel • TotalCount int • Next/Prev string
+Response `PNGetAllChannelMetadataResponse` → Data []PNChannel …
 
 ---
 
-### Get Channel Metadata
-
-Method
+### Get channel metadata
 ```
-pn.GetChannelMetadata().
-    Include([]pubnub.PNChannelMetadataInclude).
-    Sort(sort).
-    ID(string).
-    Execute()
+`pn.GetChannelMetadata().  
+    Include([]pubnub.PNChannelMetadataInclude).  
+    Sort(sort).  
+    ID(string).  
+    Execute()`  
 ```
-
-Usage
+Sample
 ```
-id := "testchannel"
-incl := []pubnub.PNChannelMetadataInclude{
-        pubnub.PNChannelMetadataIncludeCustom,
-}
-res, status, err := pn.GetChannelMetadata().
-    Include(incl).
-    Channel(id).
-    Execute()
+`id:="testchannel"  
+incl:=[]pubnub.PNChannelMetadataInclude{pubnub.PNChannelMetadataIncludeCustom}  
+res,status,err:=pn.GetChannelMetadata().Include(incl).Channel(id).Execute()`  
 ```
-
-Response (`PNGetChannelMetadataResponse`)  
-Data PNChannel
+Response `PNGetChannelMetadataResponse` → Data PNChannel
 
 ---
 
-### Set Channel Metadata
-
-Method
+### Set channel metadata  
+Custom object overwrites previous value.
 ```
-pn.SetChannelMetadata().
-    Include([]pubnub.PNChannelMetadataInclude).
-    Sort(sort).
-    ID(string).
-    Name(string).
-    Description(string).
-    Custom(map[string]interface{}).
-    Execute()
+`pn.SetChannelMetadata().  
+    Include([]pubnub.PNChannelMetadataInclude).  
+    Sort(sort).  
+    ID(string).  
+    Name(string).  
+    Description(string).  
+    Custom(map[string]interface{}).  
+    Execute()`  
 ```
-
-Usage
+Sample
 ```
-id, name, desc := "testchannel", "name", "desc"
-custom := map[string]interface{}{"a":"b","c":"d"}
-incl := []pubnub.PNChannelMetadataInclude{pubnub.PNChannelMetadataIncludeCustom}
-
-res, status, err := pn.SetChannelMetadata().
-    Include(incl).
-    Channel(id).
-    Name(name).
-    Description(desc).
-    Custom(custom).
-    Execute()
+`id:="testchannel"; name:="name"; desc:="desc"  
+custom:=map[string]interface{}{"a":"b","c":"d"}  
+incl:=[]pubnub.PNChannelMetadataInclude{pubnub.PNChannelMetadataIncludeCustom}  
+res,status,err:=pn.SetChannelMetadata().Include(incl).Channel(id).Name(name).Description(desc).Custom(custom).Execute()`  
 ```
+Response `PNSetChannelMetadataResponse` → Data PNChannel
 
-Response (`PNSetChannelMetadataResponse`) Data PNChannel
-
-PNChannel object  
-ID • Name • Description • Custom • Updated • ETag
+PNChannel: ID, Name, Description, Custom, Updated, ETag
 
 ---
 
-### Remove Channel Metadata
-
-Method
+### Remove channel metadata
 ```
-pn.RemoveChannelMetadata().
-    ID(string).
-    Execute()
+`pn.RemoveChannelMetadata().  
+    ID(string).  
+    Execute()`  
 ```
-
-Usage
+Sample
 ```
-id := "testchannel"
-res, status, err := pn.RemoveChannelMetadata().Channel(id).Execute()
+`id := "testchannel"  
+res,status,err := pn.RemoveChannelMetadata().Channel(id).Execute()`  
 ```
-
-Response (`PNRemoveChannelMetadataResponse`) Data interface{}
+Response `PNRemoveChannelMetadataResponse` → Data interface{}
 
 ---
 
-## Channel Memberships (per UUID)
-
-### Get Memberships
+### Other example – iterative update
 ```
-pn.GetMemberships().
-    UUID(string).
-    Include([]pubnub.PNMembershipsInclude).
-    Sort(sort).
-    Limit(int).
-    Count(bool).
-    Start(string).
-    End(string).
-    Filter(string).
-    Execute()
+`package main  
+import ( "bufio"; "fmt"; "os"; "strings"; "github.com/pubnub/go/v7")`  
 ```
-
-Usage
-```
-inclMemberships := []pubnub.PNMembershipsInclude{
-        pubnub.PNMembershipsIncludeCustom,
-        pubnub.PNMembershipsIncludeChannel,
-        pubnub.PNMembershipsIncludeChannelCustom,
-}
-res, status, err := pn.GetMemberships().
-    UUID("testuuid").
-    Include(inclMemberships).
-    Limit(100).
-    Count(true).
-    Execute()
-```
-
-Response (`PNGetMembershipsResponse`)  
-Data []PNMemberships • TotalCount int • Next/Prev string
-
-PNMemberships object  
-ID • Channel PNChannel • Custom • Updated • ETag
+show all 119 lines
 
 ---
 
-### Set Memberships
-```
-pn.SetMemberships().
-    UUID(string).
-    Set([]pubnub.PNMembershipsSet).
-    Include([]pubnub.PNMembershipsInclude).
-    Sort(sort).
-    Limit(int).
-    Count(bool).
-    Start(string).
-    End(string).
-    Execute()
-```
+## Channel Memberships (User ↔ Channel)
 
-Usage
+### Get memberships
 ```
-inclMemberships := []pubnub.PNMembershipsInclude{
-    pubnub.PNMembershipsIncludeCustom,
-    pubnub.PNMembershipsIncludeChannel,
-    pubnub.PNMembershipsIncludeChannelCustom,
-}
-custom := map[string]interface{}{"a":"b","c":"d"}
-channel := pubnub.PNMembershipsChannel{ID: "testchannel"}
-inMem := pubnub.PNMembershipsSet{ID: channel, Custom: custom}
-res, status, err := pn.SetMemberships().
-    UUID("testuuid").
-    Set([]pubnub.PNMembershipsSet{inMem}).
-    Include(inclMemberships).
-    Execute()
+`pn.GetMemberships().  
+    UUID(string).  
+    Include([]pubnub.PNMembershipsInclude).  
+    Sort(sort).  
+    Limit(int).  
+    Count(bool).  
+    Start(string).  
+    End(string).  
+    Filter(string).  
+    Execute()`  
 ```
+Sample
+```
+`inclMemberships:=[]pubnub.PNMembershipsInclude{pubnub.PNMembershipsIncludeCustom,pubnub.PNMembershipsIncludeChannel,pubnub.PNMembershipsIncludeChannelCustom}  
+res,status,err:=pn.GetMemberships().UUID("testuuid").Include(inclMemberships).Limit(100).Count(true).Execute()`  
+```
+Response `PNGetMembershipsResponse` → Data []PNMemberships …
 
-Response (`PNSetMembershipsResponse`) same schema as GetMemberships
+PNMemberships: ID, Channel PNChannel, Custom, Updated, ETag
 
 ---
 
-### Remove Memberships
+### Set memberships
 ```
-pn.RemoveMemberships().
-    UUID(string).
-    Remove([]pubnub.PNMembershipsRemove).
-    Include([]pubnub.PNMembershipsInclude).
-    Limit(int).
-    Count(bool).
-    Start(string).
-    End(string).
-    Execute()
+`pn.SetMemberships().  
+    UUID(string).  
+    Set([]pubnub.PNMembershipsSet).  
+    Include([]pubnub.PNMembershipsInclude).  
+    Sort(sort).  
+    Limit(int).  
+    Count(bool).  
+    Start(string).  
+    End(string).  
+    Execute()`  
 ```
+Sample
+```
+`inclMemberships:=[]pubnub.PNMembershipsInclude{...}  
+custom:=map[string]interface{}{"a":"b","c":"d"}  
+channel:=pubnub.PNMembershipsChannel{ID:"testchannel"}  
+inMem:=pubnub.PNMembershipsSet{ID:channel,`  
+```
+show all 29 lines  
+Response `PNSetMembershipsResponse`
 
-Usage
+### Remove memberships
 ```
-channel := pubnub.PNMembershipsChannel{ID:"testchannel"}
-reArrMem := []pubnub.PNMembershipsRemove{{ID: channel}}
-res, status, err := pn.RemoveMemberships().
-    UUID("testuuid").
-    Remove(reArrMem).
-    Execute()
+`pn.RemoveMemberships().  
+    UUID(string).  
+    Remove([]pubnub.PNMembershipsRemove).  
+    Include([]pubnub.PNMembershipsInclude).  
+    Limit(int).  
+    Count(bool).  
+    Start(string).  
+    End(string).  
+    Execute()`  
 ```
+Sample
+```
+`inclMemberships:=[]pubnub.PNMembershipsInclude{...}  
+channel:=pubnub.PNMembershipsChannel{ID:"testchannel"}  
+reMem:=pubnub.PNMembershipsRemove{ID:channel}`  
+```
+show all 22 lines  
+Response `PNRemoveMembershipsResponse`
 
-Response (`PNRemoveMembershipsResponse`) same schema as GetMemberships
+### Manage memberships (add/update/remove in one call)
+```
+`pn.ManageMemberships().  
+    UUID(string).  
+    Set([]pubnub.PNMembershipsSet).  
+    Remove([]pubnub.PNMembershipsRemove).  
+    Include([]pubnub.PNMembershipsInclude).  
+    Sort(sort).  
+    Limit(int).  
+    Count(bool).  
+    Start(string).  
+    End(string).  
+    Execute()`  
+```
+Sample
+```
+`inclMemberships:=[]pubnub.PNMembershipsInclude{...}  
+custom:=map[string]interface{}{"a":"b"}  
+channel:=pubnub.PNMembershipsChannel{ID:"testchannel"}  
+inMem:=pubnub.PNMembershipsSet{ID:channel,`  
+```
+show all 30 lines  
+Response `PNManageMembershipsResponse`
 
 ---
 
-### Manage Memberships
-```
-pn.ManageMemberships().
-    UUID(string).
-    Set([]pubnub.PNMembershipsSet).
-    Remove([]pubnub.PNMembershipsRemove).
-    Include([]pubnub.PNMembershipsInclude).
-    Sort(sort).
-    Limit(int).
-    Count(bool).
-    Start(string).
-    End(string).
-    Execute()
-```
+## Channel Members (Channel ↔ User)
 
-Usage
+### Get channel members
 ```
-channel := pubnub.PNMembershipsChannel{ID:"testchannel"}
-setArr := []pubnub.PNMembershipsSet{{ID:channel}}
-remArr := []pubnub.PNMembershipsRemove{{ID:channel}}
-res, status, err := pn.ManageMemberships().
-    UUID("testuuid").
-    Set(setArr).
-    Remove(remArr).
-    Include(inclMemberships).
-    Execute()
+`pn.GetChannelMembers().  
+    Channel(string).  
+    Include(PNChannelMembersInclude).  
+    Sort(sort).  
+    Limit(int).  
+    Count(bool).  
+    Start(string).  
+    End(string).  
+    Filter(string).  
+    Execute()`  
 ```
+Sample
+```
+`inclSm:=[]pubnub.PNChannelMembersInclude{pubnub.PNChannelMembersIncludeCustom,pubnub.PNChannelMembersIncludeUUID,pubnub.PNChannelMembersIncludeUUIDCustom}  
+res,status,err:=pn.GetChannelMembers().Channel("testchannel").Include(inclSm).Limit(100).Count(true).Execute()`  
+```
+Response `PNGetChannelMembersResponse`
 
-Response (`PNManageMembershipsResponse`) same schema as GetMemberships
+PNChannelMembers: ID, UUID PNUUID, Custom, Updated, ETag
 
 ---
 
-## Channel Members (per Channel)
-
-### Get Channel Members
+### Set channel members
 ```
-pn.GetChannelMembers().
-    Channel(string).
-    Include(PNChannelMembersInclude).
-    Sort(sort).
-    Limit(int).
-    Count(bool).
-    Start(string).
-    End(string).
-    Filter(string).
-    Execute()
+`pn.SetChannelMembers().  
+    Channel(string).  
+    Set([]pubnub.PNChannelMembersSet).  
+    Include([]pubnub.PNChannelMembersInclude).  
+    Sort(sort).  
+    Limit(int).  
+    Count(bool).  
+    Start(string).  
+    End(string).  
+    Execute()`  
 ```
-
-Usage
+Sample
 ```
-inclSm := []pubnub.PNChannelMembersInclude{
-    pubnub.PNChannelMembersIncludeCustom,
-    pubnub.PNChannelMembersIncludeUUID,
-    pubnub.PNChannelMembersIncludeUUIDCustom,
-}
-res, status, err := pn.GetChannelMembers().
-    Channel("testchannel").
-    Include(inclSm).
-    Limit(100).
-    Count(true).
-    Execute()
+`inclSm:=[]pubnub.PNChannelMembersInclude{...}  
+custom:=map[string]interface{}{"a":"b"}  
+uuid:=pubnub.PNChannelMembersUUID{ID:"testuuid"}  
+inputUUID:=pubnub.PNChannelMembersSet{UUID:uuid,Custom:custom}`  
 ```
+show all 28 lines  
+Response `PNSetChannelMembersResponse`
 
-Response (`PNGetChannelMembersResponse`)  
-Data []PNChannelMembers • TotalCount int • Next/Prev string
+### Remove channel members
+```
+`pn.RemoveChannelMembers().  
+    Channel(string).  
+    Remove([]pubnub.PNChannelMembersRemove{}).  
+    Include([]pubnub.PNChannelMembersInclude).  
+    Limit(int).  
+    Count(bool).  
+    Start(string).  
+    End(string).  
+    Execute()`  
+```
+Sample
+```
+`inclSm:=[]pubnub.PNChannelMembersInclude{...}  
+uuid:=pubnub.PNChannelMembersUUID{ID:"testuuid"}  
+re:=pubnub.PNChannelMembersRemove{UUID:uuid}`  
+```
+show all 24 lines  
+Response `PNRemoveChannelMembersResponse`
 
-PNChannelMembers object  
-ID • UUID PNUUID • Custom • Updated • ETag
+### Manage channel members
+```
+`pn.ManageChannelMembers().  
+    Channel(string).  
+    Set([]pubnub.PNChannelMembersSet).  
+    Remove([]pubnub.PNChannelMembersRemove{}).  
+    Include([]pubnub.PNChannelMembersInclude).  
+    Sort(sort).  
+    Limit(int).  
+    Count(bool).  
+    Start(string).  
+    End(string).  
+    Execute()`  
+```
+Sample
+```
+`inclSm:=[]pubnub.PNChannelMembersInclude{...}  
+custom:=map[string]interface{}{"a":"b"}  
+uuid:=pubnub.PNChannelMembersUUID{ID:"testuuid"}  
+inputUUID:=pubnub.PNChannelMembersSet{UUID:uuid,Custom:custom}`  
+```
+show all 29 lines  
+Response `PNManageMembersResponse`
 
 ---
 
-### Set Channel Members
-```
-pn.SetChannelMembers().
-    Channel(string).
-    Set([]pubnub.PNChannelMembersSet).
-    Include([]pubnub.PNChannelMembersInclude).
-    Sort(sort).
-    Limit(int).
-    Count(bool).
-    Start(string).
-    End(string).
-    Execute()
-```
-
-Usage
-```
-custom := map[string]interface{}{"a":"b","c":"d"}
-uuid := pubnub.PNChannelMembersUUID{ID:"testuuid"}
-inputUUID := pubnub.PNChannelMembersSet{UUID:uuid, Custom:custom}
-
-res, status, err := pn.SetChannelMembers().
-    Channel("testchannel").
-    Set([]pubnub.PNChannelMembersSet{inputUUID}).
-    Include(inclSm).
-    Execute()
-```
-
-Response (`PNSetChannelMembersResponse`) same schema as GetChannelMembers
-
----
-
-### Remove Channel Members
-```
-pn.RemoveChannelMembers().
-    Channel(string).
-    Remove([]pubnub.PNChannelMembersRemove{}).
-    Include([]pubnub.PNChannelMembersInclude).
-    Limit(int).
-    Count(bool).
-    Start(string).
-    End(string).
-    Execute()
-```
-
-Usage
-```
-uuid := pubnub.PNChannelMembersUUID{ID:"testuuid"}
-reArr := []pubnub.PNChannelMembersRemove{{UUID: uuid}}
-res, status, err := pn.RemoveChannelMembers().
-    Channel("testchannel").
-    Remove(reArr).
-    Execute()
-```
-
-Response (`PNRemoveChannelMembersResponse`) same schema as GetChannelMembers
-
----
-
-### Manage Channel Members
-```
-pn.ManageChannelMembers().
-    Channel(string).
-    Set([]pubnub.PNChannelMembersSet).
-    Remove([]pubnub.PNChannelMembersRemove{}).
-    Include([]pubnub.PNChannelMembersInclude).
-    Sort(sort).
-    Limit(int).
-    Count(bool).
-    Start(string).
-    End(string).
-    Execute()
-```
-
-Usage
-```
-inputUUID := pubnub.PNChannelMembersSet{UUID:uuid, Custom:custom}
-rem := pubnub.PNChannelMembersRemove{UUID:uuid}
-res, status, err := pn.ManageChannelMembers().
-    Channel("testchannel").
-    Set([]pubnub.PNChannelMembersSet{inputUUID}).
-    Remove([]pubnub.PNChannelMembersRemove{rem}).
-    Include(inclSm).
-    Execute()
-```
-
-Response (`PNManageMembersResponse`) same schema as GetChannelMembers
-
----
-
-_Last updated Mar 31 2025_
+_Last updated Jul 15 2025_

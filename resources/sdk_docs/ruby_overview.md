@@ -1,62 +1,49 @@
-# Ruby API & SDK Docs 5.5.0 – Overview  
-
-The PubNub Ruby SDK adds real-time capabilities (publish/subscribe, presence, storage, access control, push).  
-Supported Ruby ≥ 2.7.
+# Ruby API & SDK Docs 5.5.0 — Overview (Condensed)
 
 ## Prerequisites
-* Ruby 2.7+ (Bundler optional)  
-* PubNub account with publish & subscribe keys
+* Ruby 2.7+
+* Bundler (optional)
+* PubNub account (publish & subscribe keys)
 
-## Install
-
+## Install the SDK
 ```bash
 gem install pubnub
 ```
-
-Using Bundler:
-
+Bundler:
 ```ruby
 # Gemfile
 source 'https://rubygems.org'
-
 gem 'pubnub', '~> 5.5.0'
 ```
-
 ```bash
 bundle install
 ```
 
-## Initialize the Client
+## Get Your Keys
+Create or open an app in the [PubNub Admin Portal](https://admin.pubnub.com). Copy the **Publish** and **Subscribe** keys.
+
+## Initialize PubNub
+Replace the demo keys with your own.
 ```ruby
 require 'pubnub'
 
 # Initialize PubNub
 pubnub = Pubnub.new(
-  subscribe_key: 'demo',      # ← replace with your key
-  publish_key:   'demo',      # ← replace with your key
+  subscribe_key: 'demo',
+  publish_key:   'demo',
   user_id:       'myUniqueUserId',
-  ssl:           true         # TLS on
+  ssl:           true
 )
 
 puts "PubNub initialized with user_id: #{pubnub.user_id}"
 ```
 
-Params (Pubnub.new):
-* subscribe_key (String, required)  
-* publish_key  (String, required for publishes)  
-* user_id      (String, required)  
-* ssl          (Boolean, default false)
-
-## Event Listeners
+## Set Up Event Listeners
 ```ruby
 # Define callbacks for different event types
 callback = Pubnub::SubscribeCallback.new(
-  message:  ->(envelope) {
-    puts "MESSAGE: #{envelope.result[:data][:message]['text']}"
-  },
-  presence: ->(envelope) {
-    puts "PRESENCE: #{envelope.result[:data]}"
-  },
+  message:  ->(envelope) { puts "MESSAGE: #{envelope.result[:data][:message]['text']}" },
+  presence: ->(envelope) { puts "PRESENCE: #{envelope.result[:data]}" },
   status:   ->(envelope) {
     if envelope.status[:error]
       puts "ERROR: #{envelope.status[:category]}"
@@ -65,6 +52,8 @@ callback = Pubnub::SubscribeCallback.new(
     end
   }
 )
+
+pubnub.add_listener(callback)
 ```
 
 ## Subscribe
@@ -72,18 +61,13 @@ callback = Pubnub::SubscribeCallback.new(
 # Subscribe to a channel
 pubnub.subscribe(
   channels:      ['my_channel'],
-  with_presence: true           # enables presence events
+  with_presence: true
 )
 
 puts "Subscribed to 'my_channel'"
 ```
 
-Method signature:  
-`subscribe(channels:, channel_groups: nil, with_presence: false, **opts)`
-
 ## Publish
-* Messages must be JSON-serializable and ≤ 32 KiB.
-
 ```ruby
 # Define a message to publish
 message = { text: 'Hello world!' }
@@ -101,30 +85,23 @@ pubnub.publish(
 end
 ```
 
-Method signature:  
-`publish(channel:, message:, **opts) { |envelope| ... }`
-
-## Run
+## Run the App
 ```bash
 ruby app.rb
 ```
-
-### Example Output
+Expected output (abbreviated):
 ```text
 PubNub initialized with user_id: myUniqueUserId
 Subscribed to 'my_channel'
-Waiting for messages... (Press Ctrl+C to exit)
 STATUS: ack
 MESSAGE: Hello world!
-PRESENCE: {message: {"action"=>"join", ...}}
-Completed the demonstration
+PRESENCE: { ... "uuid"=>"myUniqueUserId" ... }
 ```
 
 ## Complete Example
 ```ruby
 require 'pubnub'
 
-# Initialize PubNub
 pubnub = Pubnub.new(
   subscribe_key: 'demo',
   publish_key:   'demo',
@@ -132,14 +109,35 @@ pubnub = Pubnub.new(
   ssl:           true
 )
 
-puts "PubNub initialized with user_id: #{pubnub.user_id}"
-
-# Define callbacks for different event types
 callback = Pubnub::SubscribeCallback.new(
-  message: ->(envelope) {
+  message:  ->(envelope) { puts "MESSAGE: #{envelope.result[:data][:message]['text']}" },
+  presence: ->(envelope) { puts "PRESENCE: #{envelope.result[:data]}" },
+  status:   ->(envelope) { puts "STATUS: #{envelope.status[:category]}" }
+)
+
+pubnub.add_listener(callback)
+
+pubnub.subscribe(
+  channels:      ['my_channel'],
+  with_presence: true
+)
+
+pubnub.publish(
+  channel: 'my_channel',
+  message: { text: 'Hello world!' }
+) { |_| }
+
+sleep
 ```
-*(remaining lines unchanged from previous sections)*
 
----
+## Troubleshooting (Quick Ref)
+* **No connection:** check internet, keys, firewall.
+* **Message not received:** confirm channel name, wait, ensure listener added.
+* **Ruby errors:** verify gem installed, Ruby 2.7+, code matches examples.
 
-Next steps: explore Presence, Message Persistence, Access Manager, Channel Groups, Push Notifications. For full API details see PubNub Ruby SDK reference.
+## Next Steps
+* Presence, Message Persistence, Access Manager, Channel Groups, Push Notifications
+* Docs & samples:  
+  * API reference: /docs/sdks/ruby/api-reference  
+  * GitHub: https://github.com/pubnub/ruby  
+  * Discord community & support portal

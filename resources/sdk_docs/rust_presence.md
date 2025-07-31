@@ -1,132 +1,95 @@
-# Presence API – Rust SDK
+# Presence API – Rust SDK (condensed)
 
-Presence lets you query real-time occupancy and manage per-user state.  
-Feature flag: `fullpresence` (enable in Admin Portal).  
-
----
-
-## Here Now
-
-3 s response cache.
-
-### Method
-```rust
-`pubnub  
-    .here_now()  
-    .channels(VecString>)  
-    .channel_groups(VecString>)  
-    .include_state(bool)  
-    .include_user_ids(bool)  
-    .execute()  
-`
-```
-
-Parameters  
-• `channels(Vec<String>)` – target channels  
-• `channel_groups(Vec<String>)` – target groups  
-• `include_state(bool, default false)` – include user state  
-• `include_user_ids(bool, default true)` – include user IDs  
-
-### Returns
-
-HereNowResult  
-• `total_channels: u32`  
-• `total_occupancy: u32`  
-• `channels: Vec<HereNowChannel>`  
-
-HereNowChannel  
-• `name: String`  
-• `occupancy: u32`  
-• `occupants: Vec<HereNowUser>`  
-
-HereNowUser  
-• `user_id: String`  
-• `state: serde_json::Value | Vec<u8>`  
-
-### Basic Usage
-```
-`  
-`
-```
+Presence lets you query real-time occupancy information and manage per-user state.  
+Feature flag: **fullpresence** (must be enabled in the Admin Portal).
 
 ---
 
-## Where Now
+## here_now()
 
-### Method
+Real-time snapshot of channel occupancy.  
+Response is cached for 3 s.
+
 ```rust
-`pubnub  
-    .where_now()  
-    .user_id(String)  
-    .execute()  
-`
+pubnub
+    .here_now()
+    .channels(Vec<String>)        // required – channels to query
+    .channel_groups(Vec<String>)  // optional – channel groups to query
+    .include_state(bool)          // default false – include per-user state
+    .include_user_ids(bool)       // default true  – include UUID list
+    .execute()
 ```
 
-Parameter  
-• `user_id(String)` – user to inspect (defaults to config value)  
+Returns `HereNowResult`:
+* `total_channels: u32`
+* `total_occupancy: u32`
+* `channels: Vec<HereNowChannel>`
 
-### Returns
+`HereNowChannel`  
+* `name: String`
+* `occupancy: u32`
+* `occupants: Vec<HereNowUser>`
 
-WhereNowResult  
-• `channels: Vec<String>`
-
-### Basic Usage
-```
-`  
-`
-```
+`HereNowUser`  
+* `user_id: String`
+* `state: serde_json::Value` (or `Vec<u8>` without `serde`)
 
 ---
 
-## User State
+## where_now()
 
-Presence state is a JSON object.
+List channels to which a given user ID is currently subscribed.
 
-### Set State
 ```rust
-`pubnub  
-    .set_presence_state(T: Serialize)  
-    .channels(VecString>)  
-    .channel_groups(VecString>)  
-    .user_id(String)  
-    .execute()  
-`
+pubnub
+    .where_now()
+    .user_id(String)   // defaults to the UUID in PubNub config
+    .execute()
 ```
 
-### Get State
+Returns `WhereNowResult`:
+* `channels: Vec<String>`
+
+---
+
+## Presence state (set / get)
+
+Key-value metadata attached to a user on specific channels or channel groups.  
+State payload must be a JSON object.
+
+### set_presence_state()
+
 ```rust
-`pubnub  
-    .get_presence_state()  
-    .channels(VecString>)  
-    .channel_groups(VecString>)  
-    .user_id(String)  
-    .execute()  
-`
+pubnub
+    .set_presence_state(T: Serialize) // required state JSON
+    .channels(Vec<String>)            // optional channels
+    .channel_groups(Vec<String>)      // optional channel groups
+    .user_id(String)                  // defaults to configured UUID
+    .execute()
 ```
 
-Shared parameters  
-• `channels(Vec<String>)` – target channels  
-• `channel_groups(Vec<String>)` – target groups  
-• `user_id(String)` – user to set/get state (defaults to config)  
-• `set_presence_state(T)` – JSON state to set (Set only)
+Returns `SetStateResult`:
+* `channel: String`
+* `state: serde_json::Value` (or `Vec<u8>`)
 
-### Returns
+### get_presence_state()
 
-SetStateResult  
-• `channel: String` – channel affected  
-• `state: serde_json::Value | Vec<u8>`  
-
-GetStateResult  
-• `state: Vec<GetStateInfo>`  
-
-GetStateInfo  
-• `channel_name: String`  
-• `state: serde_json::Value | Vec<u8>`  
-
-### Basic Usage
-```
-`  
-`
+```rust
+pubnub
+    .get_presence_state()
+    .channels(Vec<String>)            // optional channels
+    .channel_groups(Vec<String>)      // optional channel groups
+    .user_id(String)                  // defaults to configured UUID
+    .execute()
 ```
 
-_Last updated: Jun 16 2025_
+Returns `GetStateResult`:
+* `state: Vec<GetStateInfo>`
+
+`GetStateInfo`
+* `channel_name: String`
+* `state: serde_json::Value` (or `Vec<u8>`)
+
+---
+
+Last updated: **Jul 15 2025**

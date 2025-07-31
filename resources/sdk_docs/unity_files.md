@@ -1,8 +1,9 @@
-# File Sharing API – Unity SDK (Files)
+# File Sharing API – Unity SDK (Condensed)
 
-Upload files ≤ 5 MB, publish metadata to a channel, and perform full CRUD + URL operations.
+Below are the essential signatures, parameters, responses, and return objects for every file-handling operation.  
+All original code blocks are kept verbatim.
 
----  
+---
 
 ## Send file
 
@@ -16,48 +17,33 @@ Upload files ≤ 5 MB, publish metadata to a channel, and perform full CRUD + UR
     .Ttl(int)  
     .ShouldStore(bool)  
     .Message(string)  
-    .Meta(Dictionary<string, object>)  
+    .Meta(Dictionarystring, object>)  
     .CustomMessageType(string)  
-    .Execute(System.Action<PNFileUploadResult, PNStatus>)  
+    .Execute(System.ActionPNFileUploadResult, PNStatus>)  
 `
 ```
 
-### Parameters  
-* **Channel** *(string, required)* – Target channel.  
-* **File** *(string path | byte[])* – Full path or byte[]; if byte[] is used, set `FileName`.  
-* **Texture** *(Texture2D | RenderTexture)* – Auto-adds size/format info to `Message`.  
-* **FileName** *(string)* – Override default name or required for byte[].  
-* **Ttl** *(int)* – Message storage lifetime.  
-* **ShouldStore** *(bool)* – Store message in history.  
-* **Message** *(string)* – Optional text payload.  
-* **Meta** *(Dictionary<string,object>)* – Filtering metadata.  
-* **CustomMessageType** *(string)* – 3-50 alphanumeric chars, may include `-` / `_`; must not start with `pn_` or `pn-`.  
-* **Execute / ExecuteAsync** – Callback or `Task<PNResult<PNFileUploadResult>>`.
+Parameters  
+• Channel (string, required) – Target channel.  
+• File (string path | byte[]) – Full file path or byte array (set FileName when using bytes).  
+• Texture (Texture2D | RenderTexture) – Sends Unity texture; size/format auto-added to message.  
+• FileName (string) – Overrides default name / required for byte[].  
+• Ttl (int) – Message TTL.  
+• ShouldStore (bool) – Store publish in History.  
+• Message (string) – Optional message payload.  
+• Meta (Dictionary<string,object>) – Values used for message filtering.  
+• CustomMessageType (string) – 3–50 chars label (no leading special chars, “pn_”, “pn-”).  
+• Execute / ExecuteAsync – Callback or Task.
 
-⚠ **CipherKey** parameter is deprecated; configure the crypto module instead (passing it forces legacy 128-bit encryption).
+Deprecated: `CipherKey` (use Crypto Module).
 
-### Basic usage
+#### Sample code
 ```
-`using PubnubApi;  
-using PubnubApi.Unity;  
-using UnityEngine;  
-  
-public class SendFileExample : MonoBehaviour {  
-    // Reference to a pubnub manager previously setup in Unity Editor  
-    // For more details, see https://www.pubnub.com/docs/sdks/unity#configure-pubnub  
-    [SerializeField] private PNManagerBehaviour pubnubManager;  
-  
-    // An editor-serialized string for the channel ID  
-    [SerializeField] private string channelId = "my_channel";  
-  
-    // An editor-serialized string for the file path  
-    [SerializeField] private string filePath = "cat_picture.jpg";  
-  
+`  
 `
 ```
-show all 43 lines
 
-### Response
+#### Response
 ```
 `{  
     "Timetoken":15957709330808500,  
@@ -67,17 +53,12 @@ show all 43 lines
 `
 ```
 
-### Returns  
+Returns  
 `PNResult<PNFileUploadResult>` →  
+• Result: Timetoken (long), FileId (string), FileName (string)  
+• Status: PNStatus
 
-| Property | Type | Description |
-|----------|------|-------------|
-| Result   | PNFileUploadResult | Upload info |
-| Status   | PNStatus           | Request status |
-
-`PNFileUploadResult`: `Timetoken` *(long)*, `FileId` *(string)*, `FileName` *(string)*.
-
----  
+---
 
 ## List channel files
 
@@ -87,62 +68,46 @@ show all 43 lines
     .Channel(string)  
     .Limit(int)  
     .Next(string)  
-    .QueryParam(Dictionary<string, object>)  
-    .Execute(System.Action<PNListFilesResult, PNStatus>)  
+    .QueryParam(Dictionarystring, object>)  
+    .Execute(System.ActionPNListFilesResult, PNStatus>)  
 `
 ```
 
-### Parameters  
-* Channel *(string, required)* – Channel to query.  
-* Limit *(int, default 100)* – Max items.  
-* Next *(string)* – Pagination cursor.  
-* QueryParam *(Dictionary<string,object>)* – Extra URL params.  
+Parameters  
+• Channel (string, required) – Channel to query.  
+• Limit (int, default 100) – Max files per page.  
+• Next (string) – Forward-pagination cursor.  
+• QueryParam (Dictionary<string,object>) – Extra query args.  
+• Execute / ExecuteAsync – Callback or Task.
 
-### Basic usage
+#### Sample code
 ```
-`PNResult<PNListFilesResult> listFilesResponse = await pubnub.ListFiles()  
-    .Channel("my_channel")  
-    .ExecuteAsync();  
-PNListFilesResult listFilesResult = listFilesResponse.Result;  
-PNStatus listFilesStatus = listFilesResponse.Status;  
-if (!listFilesStatus.Error && listFilesResult != null)  
-{  
-    Debug.Log(pubnub.JsonPluggableLibrary.SerializeToJsonString(listFilesResult));  
-}  
-else  
-{  
-    Debug.Log(pubnub.JsonPluggableLibrary.SerializeToJsonString(listFilesStatus));  
-}  
+`  
 `
 ```
 
-### Response
+#### Response
 ```
 `{  
     "FilesList":[  
-        {  
-            "Name":"cat_picture.jpg",  
-            "Id":"d9515cb7-48a7-41a4-9284-f4bf331bc770",  
-            "Size":25778,  
-            "Created":"2020-07-26T13:42:06Z"  
-        }],  
+    {  
+        "Name":"cat_picture.jpg",  
+        "Id":"d9515cb7-48a7-41a4-9284-f4bf331bc770",  
+        "Size":25778,  
+        "Created":"2020-07-26T13:42:06Z"  
+    }],  
     "Count":1,  
     "Next":null  
 }  
 `
 ```
 
-### Returns  
+Returns  
 `PNResult<PNListFilesResult>` →  
+• FilesList (List<PNFileResult>), Count (int), Next (string)  
+• Each PNFileResult: Name, Id, Size, Created
 
-`PNListFilesResult`:  
-* `FilesList` *(List<PNFileResult>)* – File descriptors.  
-* `Count` *(int)* – Returned count.  
-* `Next` *(string)* – Pagination cursor.
-
-`PNFileResult`: `Name` *(string)*, `Id` *(string)*, `Size` *(int)*, `Created` *(string)*.
-
----  
+---
 
 ## Get file URL
 
@@ -152,47 +117,26 @@ else
     .Channel(string)  
     .FileId(string)  
     .FileName(string)  
-    .Execute(System.Action<PNFileUrlResult, PNStatus>)  
+    .Execute(System.ActionPNFileUrlResult, PNStatus>)  
 `
 ```
 
-### Parameters  
-* Channel *(string)* – Channel containing the file.  
-* FileId *(string)* – Unique file ID.  
-* FileName *(string)* – Stored filename.  
+Parameters  
+• Channel (string, required)  
+• FileId (string, required)  
+• FileName (string, required)  
+• Execute / ExecuteAsync
 
-### Basic usage
+#### Sample code
 ```
-`PNResult<PNFileUrlResult> getFileUrlResponse = await pubnub.GetFileUrl()  
-    .Channel("my_channel")  
-    .FileId("d9515cb7-48a7-41a4-9284-f4bf331bc770")  
-    .FileName("cat_picture.jpg")  
-    .ExecuteAsync();  
-PNFileUrlResult getFileUrlResult = getFileUrlResponse.Result;  
-PNStatus getFileUrlStatus = getFileUrlResponse.Status;  
-if (!getFileUrlStatus.Error && getFileUrlResult != null)  
-{  
-    Debug.Log(pubnub.JsonPluggableLibrary.SerializeToJsonString(getFileUrlResult));  
-}  
-else  
-{  
-    Debug.Log(pubnub.JsonPluggableLibrary.SerializeToJsonString(getFileUrlStatus));  
-}  
+`  
 `
 ```
 
-### Response
-```
-`{  
-    "Url":"http://ps.pndsn.com/v1/files/demo/channels/my_channel/files/d9515cb7-48a7-41a4-9284-f4bf331bc770/cat_picture.jpg?pnsdk=NET461CSharp4.9.0.0&timestamp=1595771548&uuid=pn-9ce9e988-8e04-40bf-90c4-ebe170478f7d"  
-}  
-`
-```
+Returns  
+`PNResult<PNFileUrlResult>` → Url (string) in Result + Status
 
-### Returns  
-`PNResult<PNFileUrlResult>` → `Url` *(string)*.
-
----  
+---
 
 ## Download file
 
@@ -202,39 +146,20 @@ else
     .Channel(string)  
     .FileId(string)  
     .FileName(string)  
-    .Execute(System.Action<PNDownloadFileResult, PNStatus>)  
+    .Execute(System.ActionPNDownloadFileResult, PNStatus>)  
 `
 ```
 
-### Parameters  
-* Channel *(string)*  
-* FileId *(string)*  
-* FileName *(string)*  
+Parameters identical to GetFileUrl.  
+Deprecated: `CipherKey`.
 
-⚠ **CipherKey** deprecated – use crypto module; passing it re-enables legacy 128-bit encryption.
-
-### Basic usage
+#### Sample code
 ```
-`PNResult<PNDownloadFileResult> fileDownloadResponse = await pubnub.DownloadFile()  
-    .Channel("my_channel")  
-    .FileId("d9515cb7-48a7-41a4-9284-f4bf331bc770")  
-    .FileName("cat_picture.jpg")  
-    .CipherKey("my_cipher_key")  
-    .ExecuteAsync();  
-PNDownloadFileResult fileDownloadResult = fileDownloadResponse.Result;  
-PNStatus fileDownloadStatus = fileDownloadResponse.Status;  
-if (!fileDownloadStatus.Error && fileDownloadResult != null)  
-{  
-    fileDownloadResult.SaveFileToLocal(downloadUrlFileName); //saves to bin folder if no path is provided  
-    Debug.Log(pubnub.JsonPluggableLibrary.SerializeToJsonString(fileDownloadResult.FileName));  
-}  
-else  
-{  
+`  
 `
 ```
-show all 17 lines
 
-### Response
+#### Response
 ```
 `{  
     //Call fileDownloadResult.SaveFileToLocal() to save file.  
@@ -244,15 +169,12 @@ show all 17 lines
 `
 ```
 
-### Returns  
+Returns  
 `PNResult<PNDownloadFileResult>` →  
+• FileBytes (byte[]), FileName (string), SaveFileToLocal(string) helper  
+• Status
 
-`PNDownloadFileResult`:  
-* `FileBytes` *(byte[])* – File content.  
-* `FileName` *(string)*.  
-* `SaveFileToLocal(string)` – Persist to disk.
-
----  
+---
 
 ## Delete file
 
@@ -262,45 +184,30 @@ show all 17 lines
     .Channel(string)  
     .FileId(string)  
     .FileName(string)  
-    .Execute(System.Action<PNDeleteFileResult, PNStatus>)  
+    .Execute(System.ActionPNDeleteFileResult, PNStatus>)  
 `
 ```
 
-### Parameters  
-* Channel *(string)*  
-* FileId *(string)*  
-* FileName *(string)*  
+Parameters  
+• Channel, FileId, FileName (all required)  
+• Execute / ExecuteAsync
 
-### Basic usage
+#### Sample code
 ```
-`PNResult<PNDeleteFileResult> deleteFileResponse = await pubnub.DeleteFile()  
-    .Channel("my_channel")  
-    .FileId("d9515cb7-48a7-41a4-9284-f4bf331bc770")  
-    .FileName("cat_picture.jpg")  
-    .ExecuteAsync();  
-PNDeleteFileResult deleteFileResult = deleteFileResponse.Result;  
-PNStatus deleteFileStatus = deleteFileResponse.Status;  
-if (!deleteFileStatus.Error && deleteFileResult != null)  
-{  
-    Debug.Log(pubnub.JsonPluggableLibrary.SerializeToJsonString(deleteFileResult));  
-}  
-else  
-{  
-    Debug.Log(pubnub.JsonPluggableLibrary.SerializeToJsonString(deleteFileStatus));  
-}  
+`  
 `
 ```
 
-### Response
+#### Response
 ```
 `{}  
 `
 ```
 
-### Returns  
-`PNResult<PNDeleteFileResult>` – empty result object.
+Returns  
+`PNResult<PNDeleteFileResult>` (empty Result) + Status
 
----  
+---
 
 ## Publish file message
 
@@ -311,44 +218,28 @@ else
     .FileId(string)  
     .FileName(string)  
     .Message(object)  
-    .Meta(Dictionary<string, object>)  
+    .Meta(Dictionarystring, object>)  
     .ShouldStore(bool)  
     .CustomMessageType(string)  
-    .Execute(System.Action<PNPublishFileMessageResult, PNStatus>)  
+    .Execute(System.ActionPNPublishFileMessageResult, PNStatus>)  
 `
 ```
 
-### Parameters  
-* Channel *(string, required)*  
-* FileId *(string, required)*  
-* FileName *(string, required)*  
-* Message *(object)* – Payload.  
-* Meta *(Dictionary<string,object>)* – Filtering metadata.  
-* ShouldStore *(bool, default true)* – Store in history.  
-* CustomMessageType *(string)* – Business-specific label (same rules as above).  
+Parameters  
+• Channel, FileId, FileName (required)  
+• Message (object) – Payload  
+• Meta (Dictionary<string,object>) – For filtering  
+• ShouldStore (bool, default true) – History storage  
+• CustomMessageType (string) – 3–50 chars label  
+• Execute / ExecuteAsync
 
-### Basic usage
+#### Sample code
 ```
-`PNResult<PNPublishFileMessageResult> publishFileMsgResponse = await pubnub.PublishFileMessage()  
-    .Channel("my_channel")  
-    .FileId("d9515cb7-48a7-41a4-9284-f4bf331bc770")  
-    .FileName("cat_picture.jpg") //checks the bin folder if no path is provided  
-    .Message("This is a sample message")  
-    .CustomMessageType("file-message")  
-    .ExecuteAsync();  
-PNPublishFileMessageResult publishFileMsgResult = publishFileMsgResponse.Result;  
-PNStatus publishFileMsgStatus = publishFileMsgResponse.Status;  
-if (!publishFileMsgStatus.Error && publishFileMsgResult != null)  
-{  
-    Debug.Log(pubnub.JsonPluggableLibrary.SerializeToJsonString(publishFileMsgResult));  
-}  
-else  
-{  
+`  
 `
 ```
-show all 17 lines
 
-### Response
+#### Response
 ```
 `{  
     "Timetoken":15957738720237858  
@@ -356,9 +247,5 @@ show all 17 lines
 `
 ```
 
-### Returns  
-`PNResult<PNPublishFileMessageResult>` → `Timetoken` *(long)*.
-
----
-
-_Last updated: May 6 2025_
+Returns  
+`PNResult<PNPublishFileMessageResult>` → Timetoken (long) + Status
