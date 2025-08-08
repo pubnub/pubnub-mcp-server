@@ -48,6 +48,7 @@ async function main() {
     'get_pubnub_presence',
     'write_pubnub_app',  // should expose the app creation instructions tool
     'pubnub_subscribe_and_receive_messages',  // new subscribe and receive tool
+    'pubnub_app_context',  // new app context tool
   ];
   for (const tool of expectedTools) {
     assert(
@@ -242,6 +243,43 @@ async function main() {
     "'App Context' alias did not produce same content as 'objects'"
   );
   console.log("'App Context' alias behaves the same as 'objects' in 'read_pubnub_sdk_docs' tool.");
+
+  // Test rest-api language special case
+  console.log("Testing 'read_pubnub_sdk_docs' tool with language 'rest-api'...");
+  const restApiResult = await client.callTool({
+    name: 'read_pubnub_sdk_docs',
+    arguments: { language: 'rest-api', apiReference: 'configuration' },
+  });
+  assert(
+    Array.isArray(restApiResult.content) && restApiResult.content.length > 0,
+    "'read_pubnub_sdk_docs' tool with language 'rest-api' returned no content."
+  );
+  
+  // Verify that rest-api returns content regardless of apiReference
+  const restApiContent = restApiResult.content[0].text;
+  assert(
+    restApiContent.length > 0,
+    "REST API content should not be empty."
+  );
+  
+  // Test that different apiReference values return the same content for rest-api
+  console.log("Testing 'read_pubnub_sdk_docs' tool with language 'rest-api' and different apiReference...");
+  const restApiResult2 = await client.callTool({
+    name: 'read_pubnub_sdk_docs', 
+    arguments: { language: 'rest-api', apiReference: 'publish-and-subscribe' },
+  });
+  assert(
+    Array.isArray(restApiResult2.content) && restApiResult2.content.length > 0,
+    "'read_pubnub_sdk_docs' tool with language 'rest-api' and different apiReference returned no content."
+  );
+  
+  // Verify both calls return the same content (since rest-api ignores apiReference)
+  assert.deepStrictEqual(
+    restApiResult.content,
+    restApiResult2.content,
+    "REST API should return same content regardless of apiReference parameter"
+  );
+  console.log("'read_pubnub_sdk_docs' tool with language 'rest-api' returned content successfully and ignores apiReference as expected.");
 
   console.log("Testing 'read_pubnub_sdk_docs' tool for language 'java' and all apiReference options...");
   const javaApiReferences = [
@@ -888,6 +926,412 @@ async function main() {
     );
   }
   console.log("'read_pubnub_sdk_docs' missing language error handling works successfully.");
+
+  // Test the new 'pubnub_app_context' tool
+  console.log("Testing 'pubnub_app_context' tool with user operations...");
+  
+  // Generate unique test identifiers
+  const testUserId = `test-user-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+  const testChannelId = `test-channel-${Date.now()}-${Math.floor(Math.random() * 10000)}`;
+  
+  // Test user creation (set operation)
+  console.log(`Creating user '${testUserId}'...`);
+  const createUserResult = await client.callTool({
+    name: 'pubnub_app_context',
+    arguments: {
+      type: 'user',
+      operation: 'set',
+      id: testUserId,
+      data: {
+        name: 'Test User',
+        email: 'test@example.com',
+        externalId: 'ext-123',
+        profileUrl: 'https://example.com/avatar.jpg',
+        custom: {
+          department: 'Engineering',
+          role: 'Developer',
+          level: 'Senior'
+        }
+      }
+    }
+  });
+  
+  assert(
+    Array.isArray(createUserResult.content) && createUserResult.content.length > 0,
+    "'pubnub_app_context' user creation returned no content."
+  );
+  
+  const createdUser = JSON.parse(createUserResult.content[0].text);
+  assert(
+    createdUser && createdUser.data && createdUser.data.name === 'Test User',
+    "Created user data does not match expected values."
+  );
+  console.log("User creation test passed successfully.");
+  
+  // Test user retrieval (get operation)
+  console.log(`Retrieving user '${testUserId}'...`);
+  const getUserResult = await client.callTool({
+    name: 'pubnub_app_context',
+    arguments: {
+      type: 'user',
+      operation: 'get',
+      id: testUserId
+    }
+  });
+  
+  assert(
+    Array.isArray(getUserResult.content) && getUserResult.content.length > 0,
+    "'pubnub_app_context' user retrieval returned no content."
+  );
+  
+  const retrievedUser = JSON.parse(getUserResult.content[0].text);
+  assert(
+    retrievedUser && retrievedUser.data && retrievedUser.data.name === 'Test User',
+    "Retrieved user data does not match expected values."
+  );
+  console.log("User retrieval test passed successfully.");
+  
+  // Test user update
+  console.log(`Updating user '${testUserId}'...`);
+  const updateUserResult = await client.callTool({
+    name: 'pubnub_app_context',
+    arguments: {
+      type: 'user',
+      operation: 'set',
+      id: testUserId,
+      data: {
+        name: 'Updated Test User',
+        email: 'updated@example.com',
+        custom: {
+          department: 'Product',
+          role: 'Manager',
+          level: 'Senior'
+        }
+      }
+    }
+  });
+  
+  assert(
+    Array.isArray(updateUserResult.content) && updateUserResult.content.length > 0,
+    "'pubnub_app_context' user update returned no content."
+  );
+  
+  const updatedUser = JSON.parse(updateUserResult.content[0].text);
+  assert(
+    updatedUser && updatedUser.data && updatedUser.data.name === 'Updated Test User',
+    "Updated user data does not match expected values."
+  );
+  console.log("User update test passed successfully.");
+
+  // Test channel creation (set operation)
+  console.log(`Creating channel '${testChannelId}'...`);
+  const createChannelResult = await client.callTool({
+    name: 'pubnub_app_context',
+    arguments: {
+      type: 'channel',
+      operation: 'set',
+      id: testChannelId,
+      data: {
+        name: 'Test Channel',
+        description: 'A test channel for automated testing',
+        custom: {
+          category: 'testing',
+          public: true,
+          maxMembers: 100
+        }
+      }
+    }
+  });
+  
+  assert(
+    Array.isArray(createChannelResult.content) && createChannelResult.content.length > 0,
+    "'pubnub_app_context' channel creation returned no content."
+  );
+  
+  const createdChannel = JSON.parse(createChannelResult.content[0].text);
+  assert(
+    createdChannel && createdChannel.data && createdChannel.data.name === 'Test Channel',
+    "Created channel data does not match expected values."
+  );
+  console.log("Channel creation test passed successfully.");
+  
+  // Test channel retrieval (get operation)
+  console.log(`Retrieving channel '${testChannelId}'...`);
+  const getChannelResult = await client.callTool({
+    name: 'pubnub_app_context',
+    arguments: {
+      type: 'channel',
+      operation: 'get',
+      id: testChannelId
+    }
+  });
+  
+  assert(
+    Array.isArray(getChannelResult.content) && getChannelResult.content.length > 0,
+    "'pubnub_app_context' channel retrieval returned no content."
+  );
+  
+  const retrievedChannel = JSON.parse(getChannelResult.content[0].text);
+  assert(
+    retrievedChannel && retrievedChannel.data && retrievedChannel.data.name === 'Test Channel',
+    "Retrieved channel data does not match expected values."
+  );
+  console.log("Channel retrieval test passed successfully.");
+
+  // Test membership creation (set operation)
+  console.log(`Creating membership for user '${testUserId}' in channel '${testChannelId}'...`);
+  const createMembershipResult = await client.callTool({
+    name: 'pubnub_app_context',
+    arguments: {
+      type: 'membership',
+      operation: 'set',
+      id: testUserId,
+      data: {
+        channels: [
+          {
+            id: testChannelId,
+            custom: {
+              role: 'admin',
+              joinedAt: new Date().toISOString()
+            }
+          }
+        ]
+      }
+    }
+  });
+  
+  assert(
+    Array.isArray(createMembershipResult.content) && createMembershipResult.content.length > 0,
+    "'pubnub_app_context' membership creation returned no content."
+  );
+  
+  const createdMembership = JSON.parse(createMembershipResult.content[0].text);
+  assert(
+    createdMembership && createdMembership.data && Array.isArray(createdMembership.data),
+    "Created membership data is not in expected format."
+  );
+  console.log("Membership creation test passed successfully.");
+  
+  // Test membership retrieval (get operation)
+  console.log(`Retrieving memberships for user '${testUserId}'...`);
+  const getMembershipResult = await client.callTool({
+    name: 'pubnub_app_context',
+    arguments: {
+      type: 'membership',
+      operation: 'get',
+      id: testUserId
+    }
+  });
+  
+  assert(
+    Array.isArray(getMembershipResult.content) && getMembershipResult.content.length > 0,
+    "'pubnub_app_context' membership retrieval returned no content."
+  );
+  
+  const retrievedMembership = JSON.parse(getMembershipResult.content[0].text);
+  assert(
+    retrievedMembership && retrievedMembership.data && Array.isArray(retrievedMembership.data),
+    "Retrieved membership data is not in expected format."
+  );
+  console.log("Membership retrieval test passed successfully.");
+
+  // Test channel members retrieval (getAll operation for memberships)
+  console.log(`Retrieving members of channel '${testChannelId}'...`);
+  const getChannelMembersResult = await client.callTool({
+    name: 'pubnub_app_context',
+    arguments: {
+      type: 'membership',
+      operation: 'getAll',
+      id: testChannelId
+    }
+  });
+  
+  assert(
+    Array.isArray(getChannelMembersResult.content) && getChannelMembersResult.content.length > 0,
+    "'pubnub_app_context' channel members retrieval returned no content."
+  );
+  
+  const channelMembers = JSON.parse(getChannelMembersResult.content[0].text);
+  assert(
+    channelMembers && channelMembers.data && Array.isArray(channelMembers.data),
+    "Channel members data is not in expected format."
+  );
+  console.log("Channel members retrieval test passed successfully.");
+
+  // Test getAll operations
+  console.log("Testing 'pubnub_app_context' getAll operations...");
+  
+  // Test get all users
+  const getAllUsersResult = await client.callTool({
+    name: 'pubnub_app_context',
+    arguments: {
+      type: 'user',
+      operation: 'getAll',
+      id: '',  // Not used for getAll
+      options: {
+        limit: 10,
+        includeTotalCount: true
+      }
+    }
+  });
+  
+  assert(
+    Array.isArray(getAllUsersResult.content) && getAllUsersResult.content.length > 0,
+    "'pubnub_app_context' get all users returned no content."
+  );
+  
+  const allUsers = JSON.parse(getAllUsersResult.content[0].text);
+  assert(
+    allUsers && allUsers.data && Array.isArray(allUsers.data),
+    "Get all users data is not in expected format."
+  );
+  console.log("Get all users test passed successfully.");
+  
+  // Test get all channels
+  const getAllChannelsResult = await client.callTool({
+    name: 'pubnub_app_context',
+    arguments: {
+      type: 'channel',
+      operation: 'getAll',
+      id: '',  // Not used for getAll
+      options: {
+        limit: 10,
+        includeTotalCount: true
+      }
+    }
+  });
+  
+  assert(
+    Array.isArray(getAllChannelsResult.content) && getAllChannelsResult.content.length > 0,
+    "'pubnub_app_context' get all channels returned no content."
+  );
+  
+  const allChannels = JSON.parse(getAllChannelsResult.content[0].text);
+  assert(
+    allChannels && allChannels.data && Array.isArray(allChannels.data),
+    "Get all channels data is not in expected format."
+  );
+  console.log("Get all channels test passed successfully.");
+
+  // Test filtering and sorting options
+  console.log("Testing 'pubnub_app_context' with filtering and sorting options...");
+  
+  const filteredUsersResult = await client.callTool({
+    name: 'pubnub_app_context',
+    arguments: {
+      type: 'user',
+      operation: 'getAll',
+      id: '',
+      options: {
+        filter: `name LIKE "*Test*"`,
+        sort: { name: 'asc' },
+        limit: 5
+      }
+    }
+  });
+  
+  assert(
+    Array.isArray(filteredUsersResult.content) && filteredUsersResult.content.length > 0,
+    "'pubnub_app_context' filtered users returned no content."
+  );
+  console.log("Filtering and sorting test passed successfully.");
+
+  // Clean up test data
+  console.log("Cleaning up test data...");
+  
+  // Remove membership first
+  await client.callTool({
+    name: 'pubnub_app_context',
+    arguments: {
+      type: 'membership',
+      operation: 'remove',
+      id: testUserId,
+      data: {
+        channels: [{ id: testChannelId }]
+      }
+    }
+  });
+  
+  // Remove user
+  await client.callTool({
+    name: 'pubnub_app_context',
+    arguments: {
+      type: 'user',
+      operation: 'remove',
+      id: testUserId
+    }
+  });
+  
+  // Remove channel
+  await client.callTool({
+    name: 'pubnub_app_context',
+    arguments: {
+      type: 'channel',
+      operation: 'remove',
+      id: testChannelId
+    }
+  });
+  
+  console.log("Test data cleanup completed successfully.");
+
+  // Test error handling for App Context tool
+  console.log("Testing 'pubnub_app_context' error handling...");
+  
+  // Test invalid type
+  try {
+    await client.callTool({
+      name: 'pubnub_app_context',
+      arguments: {
+        type: 'invalid_type',
+        operation: 'get',
+        id: 'test'
+      }
+    });
+    assert(false, "Expected 'pubnub_app_context' with invalid type to throw an error.");
+  } catch (err) {
+    assert(
+      err.message.includes('Invalid arguments for tool pubnub_app_context'),
+      `Unexpected error for invalid type: ${err.message}`
+    );
+  }
+  
+  // Test invalid operation
+  try {
+    await client.callTool({
+      name: 'pubnub_app_context',
+      arguments: {
+        type: 'user',
+        operation: 'invalid_operation',
+        id: 'test'
+      }
+    });
+    assert(false, "Expected 'pubnub_app_context' with invalid operation to throw an error.");
+  } catch (err) {
+    assert(
+      err.message.includes('Invalid arguments for tool pubnub_app_context'),
+      `Unexpected error for invalid operation: ${err.message}`
+    );
+  }
+  
+  // Test missing required parameters
+  try {
+    await client.callTool({
+      name: 'pubnub_app_context',
+      arguments: {
+        type: 'user',
+        operation: 'get'
+        // Missing id parameter
+      }
+    });
+    assert(false, "Expected 'pubnub_app_context' with missing id to throw an error.");
+  } catch (err) {
+    assert(
+      err.message.includes('Invalid arguments for tool pubnub_app_context'),
+      `Unexpected error for missing id: ${err.message}`
+    );
+  }
+  
+  console.log("'pubnub_app_context' error handling tests passed successfully.");
   
   console.log('All tests passed.');
   process.exit(0);

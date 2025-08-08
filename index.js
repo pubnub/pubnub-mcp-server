@@ -46,7 +46,7 @@ const toolDefinitions = {};
 const languages = [
     'javascript', 'python', 'java', 'go', 'ruby',
     'swift', 'objective-c', 'c-sharp', 'php', 'dart',
-    'rust', 'unity', 'kotlin', 'unreal', 'c-core',
+    'rust', 'unity', 'kotlin', 'unreal', 'c-core', 'rest-api',
 ];
 const apiReferences = [
     'configuration',
@@ -94,6 +94,38 @@ toolHandlers['read_pubnub_sdk_docs'] = async ({ language, apiReference }) => {
       }
     }
 
+    // Special case for rest-api - load only the three specific files
+    if (language === 'rest-api') {
+      const restApiFiles = [
+        'rest-api_publish-message-to-channel.md',
+        'rest-api_subscribe-v-2.md',
+        'rest-api_get-message-history.md'
+      ];
+      
+      let combinedRestApiContent = '';
+      
+      for (const filename of restApiFiles) {
+        try {
+          const filePath = pathJoin(__dirname, 'resources', 'sdk_docs', filename);
+          const content = fs.readFileSync(filePath, 'utf8');
+          combinedRestApiContent += content + '\n\n';
+        } catch (err) {
+          console.error(`Error loading ${filename}: ${err}`);
+          combinedRestApiContent += `Error loading ${filename}: ${err.message}\n\n`;
+        }
+      }
+      
+      return {
+        content: [
+          {
+            type: 'text',
+            text: combinedRestApiContent + getPubNubInitSDKInstructions(),
+          },
+        ],
+      };
+    }
+
+    // Regular processing for other languages
     // Try to load from cached files first, fallback to API calls if not available
     let sdkResponse = loadCachedSDKDoc(language, 'overview');
     if (!sdkResponse) {
@@ -892,6 +924,184 @@ toolDefinitions['manage_pubnub_account'] = {
   }
 };
 
+
+// Define the handler for pubnub_app_context
+const appContextOperations = ['get', 'set', 'remove', 'getAll'];
+const appContextTypes = ['user', 'channel', 'membership'];
+
+toolHandlers['pubnub_app_context'] = async ({ type, operation, id, data, options = {} }) => {
+  try {
+    let result;
+    const includeOptions = {
+      customFields: options.includeCustomFields !== false,
+      totalCount: options.includeTotalCount || false,
+      ...options.include
+    };
+
+    if (type === 'user') {
+      switch (operation) {
+        case 'get':
+          result = await pubnub.objects.getUUIDMetadata({
+            uuid: id,
+            include: includeOptions
+          });
+          break;
+        case 'set':
+          result = await pubnub.objects.setUUIDMetadata({
+            uuid: id,
+            data: data,
+            include: includeOptions,
+            ifMatchesEtag: options.ifMatchesEtag
+          });
+          break;
+        case 'remove':
+          result = await pubnub.objects.removeUUIDMetadata({
+            uuid: id
+          });
+          break;
+        case 'getAll':
+          result = await pubnub.objects.getAllUUIDMetadata({
+            include: includeOptions,
+            filter: options.filter,
+            sort: options.sort,
+            limit: options.limit,
+            page: options.page
+          });
+          break;
+      }
+    } else if (type === 'channel') {
+      switch (operation) {
+        case 'get':
+          result = await pubnub.objects.getChannelMetadata({
+            channel: id,
+            include: includeOptions
+          });
+          break;
+        case 'set':
+          result = await pubnub.objects.setChannelMetadata({
+            channel: id,
+            data: data,
+            include: includeOptions,
+            ifMatchesEtag: options.ifMatchesEtag
+          });
+          break;
+        case 'remove':
+          result = await pubnub.objects.removeChannelMetadata({
+            channel: id
+          });
+          break;
+        case 'getAll':
+          result = await pubnub.objects.getAllChannelMetadata({
+            include: includeOptions,
+            filter: options.filter,
+            sort: options.sort,
+            limit: options.limit,
+            page: options.page
+          });
+          break;
+      }
+    } else if (type === 'membership') {
+      switch (operation) {
+        case 'get':
+          result = await pubnub.objects.getMemberships({
+            uuid: id,
+            include: {
+              ...includeOptions,
+              channelFields: options.includeChannelFields !== false,
+              customChannelFields: options.includeCustomChannelFields !== false
+            },
+            filter: options.filter,
+            sort: options.sort,
+            limit: options.limit,
+            page: options.page
+          });
+          break;
+        case 'set':
+          result = await pubnub.objects.setMemberships({
+            uuid: id,
+            channels: data.channels,
+            include: {
+              ...includeOptions,
+              channelFields: options.includeChannelFields !== false,
+              customChannelFields: options.includeCustomChannelFields !== false
+            }
+          });
+          break;
+        case 'remove':
+          result = await pubnub.objects.removeMemberships({
+            uuid: id,
+            channels: data.channels,
+            include: {
+              ...includeOptions,
+              channelFields: options.includeChannelFields !== false,
+              customChannelFields: options.includeCustomChannelFields !== false
+            }
+          });
+          break;
+        case 'getAll':
+          // Get channel members for a specific channel
+          result = await pubnub.objects.getChannelMembers({
+            channel: id,
+            include: {
+              ...includeOptions,
+              uuidFields: options.includeUuidFields !== false,
+              customUuidFields: options.includeCustomUuidFields !== false
+            },
+            filter: options.filter,
+            sort: options.sort,
+            limit: options.limit,
+            page: options.page
+          });
+          break;
+      }
+    }
+
+    return {
+      content: [
+        {
+          type: 'text',
+          text: JSON.stringify(result, null, 2)
+        }
+      ]
+    };
+  } catch (err) {
+    return {
+      content: [
+        {
+          type: 'text',
+          text: `Error performing ${operation} ${type}: ${err.message || err}`
+        }
+      ],
+      isError: true
+    };
+  }
+};
+
+// Define tool metadata for pubnub_app_context
+toolDefinitions['pubnub_app_context'] = {
+  name: 'pubnub_app_context',
+  description: 'Manages PubNub App Context (Objects API) for users, channels, and memberships. Supports CRUD operations including get, set, remove, and getAll. Use this tool to manage user profiles, channel metadata, and membership relationships in your PubNub application.',
+  parameters: {
+    type: z.enum(appContextTypes).describe('Type of App Context object: "user" for user metadata, "channel" for channel metadata, "membership" for user-channel relationships'),
+    operation: z.enum(appContextOperations).describe('Operation to perform: "get" to retrieve, "set" to create/update, "remove" to delete, "getAll" to list all'),
+    id: z.string().describe('Identifier: UUID for users, channel name for channels, UUID for memberships (for membership getAll, use channel name to get channel members)'),
+    data: z.any().optional().describe('Data object for set/remove operations. For users: {name, externalId, profileUrl, email, custom}. For channels: {name, description, custom}. For memberships: {channels: [...]}'),
+    options: z.object({
+      includeCustomFields: z.boolean().optional().default(true).describe('Include custom fields in response'),
+      includeTotalCount: z.boolean().optional().default(false).describe('Include total count in paginated response'),
+      includeChannelFields: z.boolean().optional().default(true).describe('Include channel fields in membership responses'),
+      includeCustomChannelFields: z.boolean().optional().default(true).describe('Include custom channel fields in membership responses'),
+      includeUuidFields: z.boolean().optional().default(true).describe('Include UUID fields in channel member responses'),
+      includeCustomUuidFields: z.boolean().optional().default(true).describe('Include custom UUID fields in channel member responses'),
+      filter: z.string().optional().describe('Filter expression for results'),
+      sort: z.any().optional().describe('Sort criteria (e.g., {id: "asc", name: "desc"})'),
+      limit: z.number().optional().describe('Number of objects to return (max 100)'),
+      page: z.any().optional().describe('Pagination object from previous response'),
+      ifMatchesEtag: z.string().optional().describe('ETag for conditional updates'),
+      include: z.any().optional().describe('Additional include options')
+    }).optional().default({}).describe('Optional parameters for the operation')
+  }
+};
 
 // Define the handler for pubnub_subscribe_and_receive_messages
 toolHandlers['pubnub_subscribe_and_receive_messages'] = async ({ channel, messageCount = 1, timeout }) => {
