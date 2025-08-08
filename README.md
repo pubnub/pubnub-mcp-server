@@ -399,6 +399,44 @@ Remove the MCP server with:
 claude mcp remove pubnub
 ```
 
+## Using VS Code
+
+To install the PubNub MCP Server in VS Code:
+
+### Prerequisites
+- VS Code with GitHub Copilot installed and logged in
+- Node.js (>= 18) and npm
+- A workspace opened in VS Code
+
+### Installation Steps
+
+1. Open the Command Palette (`Ctrl+Shift+P` or `Cmd+Shift+P`)
+2. Type `MCP` and select **MCP: Add Server**
+3. Choose **NPM package** when prompted
+4. Enter `@pubnub/mcp` as the package name
+5. VS Code will install the package and automatically open the `mcp.json` configuration file
+6. Add your PubNub Publish and Subscribe keys to the configuration:
+
+```json
+{
+  "mcpServers": {
+    "@pubnub/mcp": {
+      "command": "npx",
+      "args": ["-y", "@pubnub/mcp"],
+      "env": {
+        "PUBNUB_PUBLISH_KEY": "YOUR_PUBLISH_KEY",
+        "PUBNUB_SUBSCRIBE_KEY": "YOUR_SUBSCRIBE_KEY"
+      }
+    }
+  }
+}
+```
+
+7. Save the `mcp.json` file
+8. Restart VS Code or reload the window to activate the MCP server
+
+The PubNub MCP server will now be available in VS Code with GitHub Copilot, providing access to PubNub SDK documentation and real-time messaging capabilities.
+
 ## Using Claude Desktop
 
 If you prefer the Docker-based MCP server in Claude Desktop:
