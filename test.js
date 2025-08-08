@@ -43,6 +43,7 @@ async function main() {
     'read_pubnub_sdk_docs',
     'read_pubnub_resources',
     'publish_pubnub_message',
+    'signal_pubnub_message',  // new signal tool
     'get_pubnub_messages',
     'get_pubnub_presence',
     'write_pubnub_app',  // should expose the app creation instructions tool
@@ -103,6 +104,20 @@ async function main() {
     "'publish_pubnub_message' tool returned no content."
   );
   console.log("'publish_pubnub_message' tool published message successfully.");
+
+  // Test the 'signal_pubnub_message' tool
+  console.log("Testing 'signal_pubnub_message' tool...");
+  const signalResult = await client.callTool({
+    name: 'signal_pubnub_message',
+    arguments: { channel: 'test-channel', message: 'Hello signal!' },
+  });
+  assert(
+    Array.isArray(signalResult.content) &&
+      signalResult.content.length > 0 &&
+      signalResult.content[0].text.length > 0,
+    "'signal_pubnub_message' tool returned no content."
+  );
+  console.log("'signal_pubnub_message' tool sent signal successfully.");
   // Test the 'get_pubnub_messages' tool
   console.log("Testing 'get_pubnub_messages' tool...");
   const getMessagesResult = await client.callTool({

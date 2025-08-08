@@ -394,6 +394,45 @@ toolDefinitions['publish_pubnub_message'] = {
 };
 
 
+// Define the handler for signal_pubnub_message
+toolHandlers['signal_pubnub_message'] = async ({ channel, message }) => {
+    try {
+      const result = await pubnub.signal({
+        channel,
+        message,
+      });
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Signal sent successfully. Timetoken: ${result.timetoken}`,
+          },
+        ],
+      };
+    } catch (err) {
+      return {
+        content: [
+          {
+            type: 'text',
+            text: `Error sending signal: ${err}`,
+          },
+        ],
+        isError: true,
+      };
+    }
+};
+
+// Define tool metadata for signal_pubnub_message
+toolDefinitions['signal_pubnub_message'] = {
+  name: 'signal_pubnub_message',
+  description: 'Sends a PubNub Signal to a specified channel. Signals are lightweight, fast messages that do not get stored in message history and have a 30-character payload limit. Call this tool when you need to send small, real-time notifications or presence indicators.',
+  parameters: {
+    channel: z.string().describe('Name of the PubNub channel (string) to send the signal to'),
+    message: z.string().describe('Signal payload as a string (max 30 characters)'),
+  }
+};
+
+
 // Define the handler for get_pubnub_messages
 toolHandlers['get_pubnub_messages'] = async ({ channels, start, end, count }) => {
     try {
