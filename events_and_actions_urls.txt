@@ -1,0 +1,11 @@
+https://www.pubnub.com/docs/serverless/events-and-actions/overview
+https://www.pubnub.com/docs/serverless/events-and-actions/events
+https://www.pubnub.com/docs/serverless/events-and-actions/configure-e&a
+https://www.pubnub.com/docs/serverless/events-and-actions/actions/create-webhook-action
+https://www.pubnub.com/docs/serverless/events-and-actions/actions/create-sqs-action
+https://www.pubnub.com/docs/serverless/events-and-actions/actions/create-sqs-action
+https://www.pubnub.com/docs/serverless/events-and-actions/actions/create-s3-action
+https://www.pubnub.com/docs/serverless/events-and-actions/actions/create-kafka-action
+https://www.pubnub.com/docs/serverless/events-and-actions/actions/create-ifttt-action
+https://www.pubnub.com/docs/serverless/events-and-actions/actions/create-amqp-action
+https://www.pubnub.com/docs/serverless/events-and-actions/ena-payloads

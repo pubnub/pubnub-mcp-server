@@ -21,7 +21,7 @@ PubNub SDK Documentation Downloader
 Usage: node download-sdk-docs.js [options]
 
 Options:
-  --model=MODEL              OpenAI model to use for summarization (default: o3-pro-2025-06-10)
+  --model=MODEL              OpenAI model to use for summarization (default: gpt-5)
   --languages=LANG1,LANG2    Comma-separated list of languages to download (default: all)
   --help, -h                 Show this help message
 
@@ -38,7 +38,7 @@ Examples:
 }
 
 const modelFlag = args.find(arg => arg.startsWith('--model='));
-const MODEL = modelFlag ? modelFlag.split('=')[1] : 'o3-pro-2025-06-10';
+const MODEL = modelFlag ? modelFlag.split('=')[1] : 'gpt-5';
 
 const languagesFlag = args.find(arg => arg.startsWith('--languages='));
 const specifiedLanguages = languagesFlag ? languagesFlag.split('=')[1].split(',').map(lang => lang.trim()) : null;

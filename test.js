@@ -484,6 +484,29 @@ async function main() {
   );
   console.log("'read_pubnub_resources' tool with 'how_to_use_channel_filters_subscribe_filters_and_message_filters' returned content successfully.");
 
+  console.log("Testing 'read_pubnub_resources' tool with document 'how_to_use_pubnub_events_and_actions'...");
+  const eventsActionsResult = await client.callTool({
+    name: 'read_pubnub_resources',
+    arguments: { document: 'how_to_use_pubnub_events_and_actions' },
+  });
+  assert(
+    Array.isArray(eventsActionsResult.content) && eventsActionsResult.content.length > 0,
+    "'read_pubnub_resources' with 'how_to_use_pubnub_events_and_actions' returned no content."
+  );
+  assert(
+    eventsActionsResult.content[0].text.includes('PubNub Events & Actions Guide'),
+    "Expected 'PubNub Events & Actions Guide' in 'how_to_use_pubnub_events_and_actions' result"
+  );
+  assert(
+    eventsActionsResult.content[0].text.includes('Events & Actions'),
+    "Expected 'Events & Actions' content in 'how_to_use_pubnub_events_and_actions' result"
+  );
+  assert(
+    eventsActionsResult.content[0].text.length > 1000,
+    "Expected substantial content (>1000 characters) in 'how_to_use_pubnub_events_and_actions' result"
+  );
+  console.log("'read_pubnub_resources' tool with 'how_to_use_pubnub_events_and_actions' returned content successfully.");
+
   // Test error handling for 'read_pubnub_resources' tool with invalid document
   console.log("Testing 'read_pubnub_resources' tool with invalid document...");
   try {
