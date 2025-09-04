@@ -475,11 +475,11 @@ async function main() {
     "Expected 'Message Filters' in 'how_to_use_channel_filters_subscribe_filters_and_message_filters' result"
   );
   assert(
-    channelFiltersResult.content[0].text.includes('Filter Expression Language'),
-    "Expected 'Filter Expression Language' in 'how_to_use_channel_filters_subscribe_filters_and_message_filters' result"
+    channelFiltersResult.content[0].text.includes('What are Subscribe Filters'),
+    "Expected 'What are Subscribe Filters' in 'how_to_use_channel_filters_subscribe_filters_and_message_filters' result"
   );
   assert(
-    channelFiltersResult.content[0].text.includes('message.priority == "high"'),
+    channelFiltersResult.content[0].text.includes('meta.priority == "high"'),
     "Expected filter expression example in 'how_to_use_channel_filters_subscribe_filters_and_message_filters' result"
   );
   console.log("'read_pubnub_resources' tool with 'how_to_use_channel_filters_subscribe_filters_and_message_filters' returned content successfully.");

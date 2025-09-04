@@ -1,4 +1,4 @@
-# Understanding PubNub Subscribe, Channal and Message Filters
+# Understanding PubNub Subscribe, Channel and Message Filters
 
 Subscribe filters allow you to selectively receive messages during subscription by applying server-side filtering logic. Instead of receiving all messages on a channel and filtering them client-side, you can instruct PubNub to only deliver messages that match your specific criteria, reducing bandwidth and improving performance.
 
@@ -7,663 +7,529 @@ Subscribe filters allow you to selectively receive messages during subscription 
 * **Server-Side Filtering:** Filters are applied on PubNub's servers before messages are sent to your client, reducing unnecessary data transmission.
 * **Real-Time Selection:** Only messages matching your filter criteria are delivered to your subscribers.
 * **Bandwidth Optimization:** Significantly reduces network traffic by filtering out unwanted messages at the source.
-* **Expression-Based:** Uses a powerful expression language to define complex filtering logic across multiple message properties.
+* **Expression-Based:** Uses a powerful expression language to define complex filtering logic across message payload and metadata.
 
-## Key Characteristics of Subscribe Filters
+## Filterable Message Components
 
-* **Filter Targets:** You can filter on various message properties:
-  * **Message Payload:** `message.field` - Filter based on message content
-  * **Metadata:** `meta.field` - Filter based on message metadata
-  * **Publisher ID:** `publisher` - Filter based on who sent the message
-  * **Channel:** `channel` - Filter based on channel name
-  * **Timetoken:** `timetoken` - Filter based on message timestamp
-  * **Message Type:** `messageType` - Filter based on custom message type
+### Message Payload Filtering (`data.*`)
 
-* **Comparison Operators:**
-  * **Equality:** `==` (equals), `!=` (not equals)
-  * **Numerical:** `<`, `>`, `<=`, `>=`
-  * **Pattern Matching:** `LIKE` (wildcard matching), `CONTAINS` (substring search)
-
-* **Logical Operators:**
-  * **AND:** `&&` - All conditions must be true
-  * **OR:** `||` - Any condition can be true
-  * **NOT:** `!` - Negation
-
-* **Data Types:**
-  * **Strings:** Must be quoted: `"value"`
-  * **Numbers:** Unquoted: `100`, `3.14`
-  * **Booleans:** `true`, `false`
-
-## Filter Expression Syntax
-
-### Basic Examples
+Access any field within the published message content using the `data.` prefix.
 
 ```javascript
-// Filter by message content
-message.priority == "high"
+// Basic payload filtering
+data.text == "Hello World"                    // Exact text match
+data.type == "announcement"                   // Message type filtering
+data.priority != "low"                        // Exclude low priority
+data.score > 100                              // Numeric comparisons
+data.timestamp LIKE "*2025*"                  // Date/time patterns
 
-// Filter by metadata
-meta.region == "us-west"
+// Nested payload objects
+data.user["name"] == "Alice"                  // User information
+data.config["enabled"] == "true"              // Configuration flags
+data.location["city"] CONTAINS "New York"     // Geographic filtering
 
-// Filter by publisher
-publisher == "user123"
-
-// Filter by channel
-channel == "alerts"
-
-// Numerical comparison
-message.score > 100
-
-// Pattern matching (wildcard)
-message.category LIKE "news*"
-
-// Substring search
-meta.tags CONTAINS "urgent"
+// Payload arrays
+data.recipients[0] == "alice@example.com"     // First recipient
+data.scores[2] > 80                           // Array element comparison
+data.tags CONTAINS "urgent"                  // Array content search
 ```
 
-### Complex Examples
+### Message Metadata Filtering (`meta.*`)
+
+Access metadata attached during publishing using the `meta.` prefix.
 
 ```javascript
-// Multiple conditions with AND
-message.priority == "high" && meta.region == "us"
+// Basic metadata filtering
+meta.priority == "high"                       // Priority levels
+meta.region == "us-west"                      // Geographic routing
+meta.category != "test"                       // Exclude test messages
+meta.level > 5                                // Numeric thresholds
+meta.version LIKE "2.*"                       // Version patterns
 
-// Multiple conditions with OR
-publisher == "admin" || message.type == "system"
+// Nested metadata objects
+meta.user["role"] == "moderator"              // User permissions
+meta.settings["notifications"] == "true"      // User preferences
+meta.device["type"] CONTAINS "mobile"         // Device targeting
 
-// Mixed logical operators
-(message.priority == "high" || message.priority == "critical") && meta.region != "test"
-
-// Wildcard patterns
-message.title LIKE "*breaking*" && meta.category == "news"
-
-// Numerical ranges
-message.score >= 80 && message.score <= 100
+// Metadata arrays
+meta.permissions[0] == "read"                 // First permission
+meta.categories CONTAINS "finance"            // Category membership
+meta.scores[1] >= 75                          // Array element thresholds
 ```
 
-## Common Use Cases
+## Operator Reference
 
-### Chat Applications
+### Comparison Operators
+
+| Operator | Description | Example | Use Case |
+|----------|-------------|---------|----------|
+| `==` | Exact equality | `meta.status == "active"` | Precise matching |
+| `!=` | Not equal | `data.type != "debug"` | Exclusion filtering |
+| `>` | Greater than | `meta.score > 100` | Threshold filtering |
+| `<` | Less than | `data.size < 1024` | Limit filtering |
+| `>=` | Greater or equal | `meta.level >= 5` | Minimum requirements |
+| `<=` | Less or equal | `data.priority <= 3` | Maximum limits |
+
+### Pattern Matching Operators
+
+| Operator | Description | Example | Use Case |
+|----------|-------------|---------|----------|
+| `LIKE` | Wildcard pattern | `data.title LIKE "News*"` | Prefix/suffix matching |
+| `CONTAINS` | Substring search | `meta.tags CONTAINS "urgent"` | Content search |
+
+**Wildcard Rules:**
+- Use `*` for wildcard matching
+- `*` can be at start, end, or both: `"*middle*"`, `"prefix*"`, `"*suffix"`
+- Escape literal asterisks with backslash: `"literal\*"`
+- Pattern matching is case-insensitive
+
+### Arithmetic Operators
+
+| Operator | Description | Example | Use Case |
+|----------|-------------|---------|----------|
+| `%` | Modulo (remainder) | `meta.userId%10 == 0` | Sampling, load balancing |
+| `+` | Addition | `meta.base + 5 > 20` | Calculated thresholds |
+| `-` | Subtraction | `data.total - data.used < 10` | Remaining capacity |
+| `*` | Multiplication | `meta.rate * 100 > 50` | Percentage calculations |
+| `/` | Division | `data.total / data.count > 5` | Averages |
+
+### Logical Operators
+
+| Operator | Description | Example | Use Case |
+|----------|-------------|---------|----------|
+| `&&` | Logical AND | `meta.status == "active" && data.score > 50` | All conditions must be true |
+| `\|\|` | Logical OR | `meta.priority == "high" \|\| data.urgent == "true"` | Any condition can be true |
+| `!` | Logical NOT | `!(data.type == "system")` | Negation |
+
+### Data Access Operators
+
+| Operator | Description | Example | Use Case |
+|----------|-------------|---------|----------|
+| `[index]` | Array element | `meta.tags[0] == "urgent"` | Specific array elements |
+| `["key"]` | Object property | `meta.user["role"] == "admin"` | Nested object access |
+
+## Complex Filter Expressions
+
+### Boolean Logic Combinations
 ```javascript
-// Only receive messages from specific users
-publisher == "moderator" || publisher == "admin"
+// Multiple conditions with precedence
+(meta.priority == "high" || meta.priority == "critical") && 
+data.text CONTAINS "urgent" && 
+meta.region != "test"
 
-// Filter out system messages
-message.type != "system"
+// Cross-field filtering
+meta.userRole == "admin" && 
+data.action == "delete" && 
+data.target["type"] == "production"
 
-// Only high-priority notifications
-message.priority == "high" && meta.urgent == true
+// Nested logical operations
+(meta.user["tier"] == "premium" && data.quota > 1000) ||
+(meta.user["tier"] == "basic" && data.quota <= 100)
+```
+
+### Arithmetic in Filter Logic
+```javascript
+// Modulo for sampling and distribution
+meta.eventId % 100 == 0                      // 1% sampling
+meta.shardKey % 3 == currentShard             // Load distribution  
+data.messageId % 2 != 0                      // Odd messages only
+
+// Calculated thresholds
+meta.score >= (meta.baseScore + meta.bonus)
+data.usage > (data.limit * 0.8)              // 80% threshold warning
+meta.attempts < (meta.maxAttempts - 1)       // Before final attempt
+```
+
+### Advanced Pattern Matching
+```javascript
+// Complex text patterns
+data.subject LIKE "*[URGENT]*" &&
+data.body CONTAINS "maintenance" &&
+!(data.body LIKE "*test*")
+
+// Version and identifier patterns  
+meta.version LIKE "2.1*" &&
+data.buildId LIKE "*-prod-*" &&
+meta.environment != "staging"
+```
+
+### Array and Object Filtering
+```javascript
+// Array element filtering
+meta.permissions[0] == "admin" ||             // First permission
+meta.categories CONTAINS "finance" ||         // Any category
+data.recipients[1] LIKE "*@company.com"       // Second recipient domain
+
+// Nested object filtering
+meta.user["department"] == "engineering" &&
+data.project["status"] == "active" &&
+meta.approval["level"] >= data.security["required"]
+
+// Combined array and object access
+meta.teams[0]["lead"] == currentUser &&
+data.tasks CONTAINS "review" &&
+meta.deadline["days"] <= 7
+```
+
+## Boolean Value Handling
+
+### Boolean Filtering Syntax
+
+```javascript
+// String comparison (recommended - works everywhere)
+meta.enabled == "true"                       // Check if boolean is true
+meta.active == "false"                       // Check if boolean is false
+meta.enabled != "false"                      // Check if boolean is not false
+
+// Numeric boolean flags (alternative)
+meta.isActive == 1                           // 1 for true, 0 for false
+meta.flag == 0                               // 0 for false, 1 for true
+```
+
+### Boolean Publishing Best Practices
+
+```javascript
+// Option 1: Publish booleans as strings (recommended)
+publish({
+  message: { text: "Hello" },
+  meta: { 
+    enabled: "true",     // String boolean
+    active: "false"      // String boolean  
+  }
+});
+
+// Option 2: Use numeric flags
+publish({
+  message: { text: "Hello" },
+  meta: { 
+    enabled: 1,          // 1 = true
+    active: 0            // 0 = false
+  }
+});
+
+// Option 3: Publish for inequality checks  
+publish({
+  message: { text: "Hello" },
+  meta: { 
+    enabled: "true",     // Can use != "false" to check
+    disabled: "false"    // Can use != "true" to check
+  }
+});
+```
+
+## Real-World Use Cases
+
+### Chat Application
+```javascript
+// Comprehensive chat message filtering
+(meta.user["role"] == "moderator" || meta.user["role"] == "admin") &&
+data.text != "" &&
+!(data.text LIKE "*spam*") &&
+meta.channel["private"] != "true" &&
+data.mentions CONTAINS currentUsername
+
+// Direct message filtering
+meta.conversation["participants"] CONTAINS currentUserId &&
+data.type == "direct_message" &&
+meta.conversation["active"] == "true"
 ```
 
 ### IoT Data Streams
 ```javascript
-// Temperature alerts only
-message.sensor == "temperature" && message.value > 30
+// Smart sensor data filtering
+data.sensor["type"] == "temperature" &&
+data.sensor["location"] LIKE "building-a*" &&
+(data.value > meta.thresholds["high"] || data.value < meta.thresholds["low"]) &&
+meta.quality["score"] > 80 &&
+data.timestamp LIKE "*$(getCurrentHour())*"
 
-// Critical device status
-message.status == "critical" || message.battery < 10
-
-// Specific device types
-meta.deviceType LIKE "sensor*"
+// Device health monitoring
+meta.device["status"] != "maintenance" &&
+(data.battery < 20 || data.errors[0] CONTAINS "critical") &&
+meta.location["zone"] == currentZone &&
+data.uptime % 3600 == 0                       // Hourly reports
 ```
 
 ### Gaming Applications
 ```javascript
-// Player actions only (no system events)
-message.type == "player_action"
+// Player action filtering
+data.player["level"] >= meta.room["minLevel"] &&
+meta.game["mode"] == "competitive" &&
+!(data.action LIKE "*cheat*") &&
+(data.score % 100 == 0 || data.achievement == "true") &&
+meta.server["region"] == playerRegion
 
-// High-score achievements
-message.event == "achievement" && message.score > 10000
-
-// Regional game events
-meta.region == "europe" && message.type == "tournament"
+// Tournament event filtering
+meta.tournament["type"] == "championship" &&
+data.participants CONTAINS currentPlayerId &&
+meta.stakes > 1000 &&
+data.match["round"] > 2 &&
+meta.schedule["startTime"] LIKE "*weekend*"
 ```
 
-### Financial Data
+### Financial Trading
 ```javascript
-// Large transactions only
-message.amount > 1000
+// Trading signal filtering
+data.symbol LIKE "CRYPTO*" &&
+data.price > meta.user["minPrice"] &&
+(data.volume * data.price) > meta.filters["minValue"] &&
+meta.exchange["region"] == "US" &&
+data.changePercent > 5
 
-// Specific asset types
-message.asset LIKE "CRYPTO*" || message.asset LIKE "FOREX*"
-
-// Critical price movements
-message.change > 5 || message.change < -5
+// Risk management filtering  
+data.position["size"] <= meta.limits["maxPosition"] &&
+data.account["balance"] > (data.tradeValue * meta.marginRequirement) &&
+!(meta.restrictions CONTAINS "dayTrading") &&
+data.volatility["score"] < meta.riskTolerance
 ```
 
-## Implementation Guide
+## Performance Optimization
 
-### JavaScript SDK
+### Filter Efficiency Guidelines
 
+**Most Efficient (Use First):**
+1. **Exact equality comparisons** - `meta.field == "value"`
+2. **Numeric comparisons** - `data.score > 100` 
+3. **Simple AND conditions** - `field1 == "value" && field2 > 5`
+
+**Moderately Efficient:**
+1. **Pattern matching** - `field LIKE "prefix*"`
+2. **Substring search** - `field CONTAINS "text"`
+3. **Array/object access** - `meta.array[0] == "value"`
+
+**Less Efficient (Use Sparingly):**
+1. **Complex arithmetic** - `(field1 + field2) * field3 > threshold`
+2. **Deep nesting** - Multiple levels of object/array access
+3. **Many OR conditions** - Long chains of `||` operators
+
+### Metadata Design for Performance
 ```javascript
-// Set up your PubNub instance
-const pubnub = new PubNub({
-  publishKey: 'YOUR_PUBLISH_KEY',
-  subscribeKey: 'YOUR_SUBSCRIBE_KEY',
-  userId: 'YOUR_USER_ID'
-});
+// ✅ Efficient metadata structure
+meta: {
+  priority: "high",              // Direct access
+  userType: "premium",           // Avoid nested user.type
+  categoryFlags: "news,urgent",  // Searchable with CONTAINS
+  computedScore: 85,             // Pre-calculated values
+  quickFlags: {                  // Single-level nesting
+    urgent: "true",
+    verified: "true"
+  }
+}
 
-// Define your filter expression
-const filterExpression = 'message.priority == "high" && meta.region == "us"';
-
-// Apply the filter to your PubNub instance
-pubnub.setFilterExpression(filterExpression);
-
-// Create subscription (filter applies to all subscriptions on this instance)
-const subscription = pubnub.subscriptionSet({
-  channels: ['alerts', 'notifications']
-});
-
-// Subscribe with filtering active
-subscription.subscribe();
+// ❌ Less efficient structure  
+meta: {
+  user: {
+    profile: {
+      tier: {
+        level: "premium"         // Too deeply nested
+      }
+    }
+  },
+  categories: ["news", "urgent", "finance", "tech"]  // Better as string
+}
 ```
+
+## Common Patterns and Examples
+
+### Content-Based Routing
+```javascript
+// Route messages by content type and priority
+(data.contentType == "article" && meta.priority == "featured") ||
+(data.contentType == "video" && meta.engagement["score"] > 80) ||
+(data.contentType == "live" && meta.audience CONTAINS "premium")
+
+// Language and region routing
+data.language == userLanguage &&
+meta.regions CONTAINS userRegion &&
+data.localization["available"] == "true"
+```
+
+### User Segmentation
+```javascript
+// Target specific user segments
+meta.userSegment["tier"] == "premium" &&
+meta.preferences["notifications"] == "enabled" &&
+(data.category CONTAINS meta.interests[0] || 
+ data.category CONTAINS meta.interests[1])
+
+// Permission-based filtering
+meta.permissions CONTAINS requiredPermission &&
+meta.user["department"] == targetDepartment &&
+data.securityLevel <= meta.user["clearanceLevel"]
+```
+
+### Event Processing
+```javascript
+// Process events by type and frequency
+data.eventType == "user_action" &&
+meta.sampling["rate"] == 100 &&                // Full sampling
+data.sessionId % 10 == userShard &&            // User-based sharding  
+!(meta.flags CONTAINS "bot")
+
+// Error and monitoring events
+data.severity == "error" &&
+meta.service LIKE "payment*" &&
+data.errorCode != 404 &&
+meta.alerting["escalate"] == "true"
+```
+
+### Time-Based Filtering
+```javascript
+// Time window filtering using patterns
+data.timestamp LIKE "*T09:*" ||               // 9 AM hour
+data.timestamp LIKE "*T10:*" ||               // 10 AM hour  
+data.timestamp LIKE "*T11:*"                  // 11 AM hour
+
+// Business hours filtering
+data.businessHours == "true" &&
+meta.timezone == userTimezone &&
+!(data.schedule CONTAINS "weekend")
+
+// Periodic sampling
+meta.messageId % 1000 == 0 &&                 // Every 1000th message
+data.timestamp LIKE "*:00:*"                  // Top of each minute
+```
+
+## Advanced Techniques
 
 ### Dynamic Filter Building
-
 ```javascript
-function buildFilterExpression(filters, logic = '&&') {
-  const expressions = filters.map(filter => {
-    let leftSide = '';
-    
-    // Determine the filter target
-    switch(filter.target) {
-      case 'message':
-        leftSide = `message.${filter.field}`;
-        break;
-      case 'meta':
-        leftSide = `meta.${filter.field}`;
-        break;
-      case 'publisher':
-        leftSide = 'publisher';
-        break;
-      case 'channel':
-        leftSide = 'channel';
-        break;
-      case 'timetoken':
-        leftSide = 'timetoken';
-        break;
-      case 'messageType':
-        leftSide = 'messageType';
-        break;
-    }
-    
-    // Format the value based on type and operator
-    let value = filter.value;
-    if (filter.type === 'string' || ['LIKE', 'CONTAINS'].includes(filter.operator.toUpperCase())) {
-      value = `"${filter.value}"`;
-    }
-    
-    // Ensure operator is properly formatted
-    const operator = ['LIKE', 'CONTAINS'].includes(filter.operator.toUpperCase()) 
-      ? filter.operator.toUpperCase() 
-      : filter.operator;
-    
-    return `${leftSide} ${operator} ${value}`;
-  }).filter(expr => expr);
+// Build filters programmatically
+function createUserFilter(userId, preferences) {
+  let conditions = [];
   
-  return expressions.join(` ${logic} `);
+  // Base user filtering
+  conditions.push(`meta.targetUsers CONTAINS "${userId}"`);
+  
+  // Preference-based conditions
+  if (preferences.priority) {
+    conditions.push(`meta.priority == "${preferences.priority}"`);
+  }
+  
+  if (preferences.categories.length > 0) {
+    let catConditions = preferences.categories.map(cat => 
+      `data.category == "${cat}"`
+    );
+    conditions.push(`(${catConditions.join(' || ')})`);
+  }
+  
+  // Numeric preferences
+  if (preferences.minScore) {
+    conditions.push(`data.score >= ${preferences.minScore}`);
+  }
+  
+  return conditions.join(' && ');
 }
 
 // Example usage
-const filters = [
-  { target: 'message', field: 'priority', operator: '==', value: 'high', type: 'string' },
-  { target: 'meta', field: 'region', operator: 'LIKE', value: 'us*', type: 'string' }
-];
-
-const expression = buildFilterExpression(filters, '&&');
-// Result: message.priority == "high" && meta.region LIKE "us*"
-```
-
-## Important Syntax Rules
-
-### Quoting Requirements
-- **String values:** Always quote with double quotes: `"value"`
-- **LIKE patterns:** Always quote wildcard patterns: `"pattern*"`
-- **Numbers:** Never quote: `100`, `3.14`
-- **Booleans:** Never quote: `true`, `false`
-
-### Operator Formatting
-- **Case sensitivity:** Use uppercase for `LIKE` and `CONTAINS`
-- **Wildcards:** Only `*` is supported, and only at the end of patterns
-- **Escape sequences:** Use `\*` for literal asterisk in patterns
-
-### Common Syntax Errors
-```javascript
-// ❌ WRONG
-message.name like Todd*        // Missing quotes, wrong case
-meta.score == "100"           // Number shouldn't be quoted
-message.text LIKE *news*      // Wildcard in middle not supported
-
-// ✅ CORRECT
-message.name LIKE "Todd*"     // Quoted pattern, uppercase LIKE
-meta.score == 100             // Unquoted number
-message.text LIKE "*news"     // Wildcard at end only
-```
-
-## Performance Considerations
-
-### Benefits
-- **Reduced Bandwidth:** Only relevant messages are transmitted
-- **Lower Processing:** Client receives pre-filtered data
-- **Battery Savings:** Fewer messages to process on mobile devices
-- **Cost Optimization:** Reduced data transfer costs
-
-### Limitations
-- **Server Resources:** Complex filters may impact server performance
-- **Expression Complexity:** Very complex expressions may have processing overhead
-- **Memory Usage:** Filters are applied in memory on PubNub servers
-
-### Best Practices
-- **Keep filters simple:** Avoid overly complex expressions when possible
-- **Use specific criteria:** More specific filters are generally more efficient
-- **Test thoroughly:** Validate filter expressions before production use
-- **Monitor performance:** Track message delivery rates and latency
-
-## Troubleshooting Common Issues
-
-### Filter Not Working
-```javascript
-// Check filter syntax
-console.log('Filter expression:', filterExpression);
-
-// Verify quotes around string values
-// Ensure operators are properly formatted
-// Check for typos in field names
-```
-
-### No Messages Received
-```javascript
-// Verify filter isn't too restrictive
-// Test with simpler filter first
-// Check that published messages contain the filtered fields
-// Ensure filter is set before subscribing
-```
-
-### Syntax Errors
-```javascript
-// Common fixes:
-// - Add quotes around string values
-// - Use uppercase LIKE and CONTAINS
-// - Check parentheses matching for complex expressions
-// - Verify field names match published message structure
-```
-
-## Filter Expression Language Reference
-
-### Supported Field Types
-| Target | Example | Description |
-|--------|---------|-------------|
-| `message.field` | `message.priority` | Message payload properties |
-| `meta.field` | `meta.region` | Message metadata properties |
-| `publisher` | `publisher` | UUID of message sender |
-| `channel` | `channel` | Channel name |
-| `timetoken` | `timetoken` | Message timestamp |
-| `messageType` | `messageType` | Custom message type |
-
-### Comparison Operators
-| Operator | Usage | Example |
-|----------|-------|---------|
-| `==` | Equals | `message.type == "alert"` |
-| `!=` | Not equals | `publisher != "system"` |
-| `<` | Less than | `message.score < 100` |
-| `>` | Greater than | `message.value > 50` |
-| `<=` | Less than or equal | `message.level <= 5` |
-| `>=` | Greater than or equal | `message.priority >= 3` |
-| `LIKE` | Pattern match | `message.title LIKE "news*"` |
-| `CONTAINS` | Substring | `meta.tags CONTAINS "urgent"` |
-
-### Logical Operators
-| Operator | Usage | Example |
-|----------|-------|---------|
-| `&&` | AND | `message.type == "alert" && meta.urgent == true` |
-| `\|\|` | OR | `publisher == "admin" \|\| message.priority == "high"` |
-| `!` | NOT | `!(message.type == "debug")` |
-
-Subscribe filters are a powerful feature for optimizing real-time message delivery, allowing you to receive only the data your application needs while reducing bandwidth and improving performance.
-
-To initialize the PubNub SDK with your API keys, configure your client in the language of your choice:
-
-JavaScript:
-```javascript
-import PubNub from 'pubnub';
-
-const pubnub = new PubNub({
-  publishKey: 'YOUR_PUBLISH_KEY',
-  subscribeKey: 'YOUR_SUBSCRIBE_KEY',
-  userId: 'YOUR_USER_ID',
+const filter = createUserFilter("alice123", {
+  priority: "high",
+  categories: ["news", "tech"],
+  minScore: 80
 });
-
-// Set a filter expression
-pubnub.setFilterExpression('message.priority == "high"');
+// Result: meta.targetUsers CONTAINS "alice123" && meta.priority == "high" && (data.category == "news" || data.category == "tech") && data.score >= 80
 ```
 
-Python:
-```python
-from pubnub.pnconfiguration import PNConfiguration
-from pubnub.pubnub import PubNub
-
-pnconfig = PNConfiguration()
-pnconfig.publish_key = 'YOUR_PUBLISH_KEY'
-pnconfig.subscribe_key = 'YOUR_SUBSCRIBE_KEY'
-pnconfig.uuid = 'YOUR_USER_ID'
-pnconfig.filter_expression = 'message.priority == "high"'
-pubnub = PubNub(pnconfig)
-```
-
-Ruby:
-```ruby
-require 'pubnub'
-
-pubnub = Pubnub.new(
-  publish_key: 'YOUR_PUBLISH_KEY',
-  subscribe_key: 'YOUR_SUBSCRIBE_KEY',
-  uuid: 'YOUR_USER_ID',
-  filter_expression: 'message.priority == "high"'
-)
-```
-
-Objective-C:
-```objectivec
-#import <PubNub/PubNub.h>
-
-PNConfiguration *configuration = [PNConfiguration configurationWithPublishKey:@"YOUR_PUBLISH_KEY" subscribeKey:@"YOUR_SUBSCRIBE_KEY"];
-configuration.uuid = @"YOUR_USER_ID";
-configuration.filterExpression = @"message.priority == \"high\"";
-PubNub *pubnub = [PubNub clientWithConfiguration:configuration];
-```
-
-## How to Use Channel Filters, Subscribe Filters, and Message Filters
-
-## Overview
-
-PubNub provides powerful filtering capabilities that allow you to control which messages are delivered to your clients and how you query metadata. This guide covers three main types of filtering:
-
-- **Channel Filters**: Control which channels a client can access
-- **Subscribe Filters**: Filter messages during real-time subscriptions
-- **Message Filters**: Filter messages based on content, metadata, and other properties
-
-## Table of Contents
-
-1. [Message Filters](#message-filters)
-2. [Filterable Message Properties](#filterable-message-properties)
-3. [Subscribe Filtering vs. App Context Filtering](#subscribe-filtering-vs-app-context-filtering)
-4. [Filter Language Definition](#filter-language-definition)
-5. [Filter Expression Language Specification](#filter-expression-language-specification)
-
-## Message Filters
-
-Message filters allow you to control which messages are delivered to your subscribers in real-time. By leveraging metadata and message properties, you can create sophisticated filtering rules that ensure clients only receive relevant messages.
-
-With the metadata information being sent with the [published message](/docs/general/messages/publish#publish-with-message-filters), we can now leverage Message Filters to omit messages that aren't important for a particular client. For example, filter out messages that the client published using its User ID.
-
-### How Message Filters Work
-
-Message filters operate by evaluating expressions against incoming messages during the subscription process. When a message matches your filter criteria, it gets delivered to your client. Messages that don't match are filtered out before reaching your application, reducing bandwidth and processing overhead.
-
-In the following code examples, the `userId` variable is used as a placeholder variable that would hold the User ID value for the client. For your servers, this value would be pulled from a server config file. For your clients, this value is received from your server after successful login.
-
-### User ID / UUID
-
-User ID is also referred to as **`UUID`/`uuid`** in some APIs and server responses but **holds the value** of the **`userId`** parameter you set during initialization.
-
-*   JavaScript
-*   Swift
-*   Objective-C
-*   Java
-*   C#
-*   Python
-
+### Multi-Tenant Filtering
 ```javascript
-var pubnub = new PubNub({
-  publishKey: "YOUR_PUBLISH_KEY",
-  subscribeKey: "YOUR_SUBSCRIBE_KEY",
-  userId: userId
-});
+// Tenant isolation with feature flags
+meta.tenantId == currentTenantId &&
+(
+  data.visibility == "public" ||
+  meta.recipients CONTAINS currentUserId ||
+  meta.user["role"] == "admin"
+) &&
+meta.features["advancedFiltering"] == "enabled"
 
-pubnub.setFilterExpression("userId != '" + pubnub.getUserId() + "'");
+// Hierarchical organization filtering
+meta.organization["id"] == orgId &&
+(
+  meta.department CONTAINS userDepartment ||
+  meta.permissions["crossDepartment"] == "true"
+) &&
+data.securityClassification <= userClearanceLevel
 ```
 
-```swift
-// the userId value is received from your server
-var pnconfig = PubNubConfiguration(
-  publishKey: "YOUR_PUBLISH_KEY",
-  subscribeKey: "YOUR_SUBSCRIBE_KEY"
-)
-pnconfig.userId = userId
-pnconfig.filterExpression = "userId != \(userId)"
-var pubnub = PubNub(configuration: pnconfig)
-```
-
-```objective-c
-// the uuid value is received from your server
-PNConfiguration *pnconfig = [PNConfiguration configurationWithPublishKey:@"YOUR_PUBLISH_KEY"
-                                    subscribeKey:@"YOUR_SUBSCRIBE_KEY"];
-pnconfig.uuid = uuid;
-self.pubnub = [PubNub clientWithConfiguration:pnconfig];
-
-NSString *filterExp = [NSString stringWithFormat:@"uuid != '%@'",
-                        self.pubnub.currentConfiguration.uuid];
-[self.pubnub setFilterExpression:filterExp];
-```
-
-```java
-// the UserId value is received from your server
-PNConfiguration.Builder configBuilder = PNConfiguration.builder(
-    new UserId("YOUR_USER_ID"), "YOUR_SUBSCRIBE_KEY");
-configBuilder.publishKey("YOUR_PUBLISH_KEY");
-configBuilder.filterExpression("userId != '" + configBuilder.getUserId() + "'");
-PubNub pubNub = PubNub.create(configBuilder.build());
-```
-
-```csharp
-PNConfiguration pnconfig = new PNConfiguration();
-pnconfig.PublishKey = "YOUR_PUBLISH_KEY";
-pnconfig.SubscribeKey = "YOUR_SUBSCRIBE_KEY";
-pnconfig.UserId = UserId;
-pnconfig.FilterExpression = "UserId != '" + pnconfig.GetCurrentUserId() + "'";
-Pubnub pubnub = new Pubnub(pnconfig);
-```
-
-```python
-pnconfig = PNConfiguration()
-pnconfig.publish_key = "YOUR_PUBLISH_KEY"
-pnconfig.subscribe_key = "YOUR_SUBSCRIBE_KEY"
-pnconfig.user_id = user_id
-pnconfig.filter_expression = "user_id != '" + user_id + "'"
-pubnub = PubNub(pnconfig)
-```
-
-## Filterable Message Properties
-
-Based on PubNub's capabilities, here are all the message items you can filter on when subscribing:
-
-*   Message payload/content - The actual data content of the message
-*   Message metadata - The metadata attached via the [`meta` parameter](/docs/general/messages/publish#publish-with-message-filters) when publishing
-*   Publisher User ID - The unique identifier of the entity that published the message
-*   Channel - The channel on which the message was published
-*   Timetoken - The timestamp when the message was published
-*   Message actions - Related actions performed on the message
-*   Message type - Custom type identifiers if your application uses message typing
-*   Presence events - If you're also handling presence events in your subscription
-*   Signal messages - Lightweight message types can be filtered separately
-*   File messages - Messages related to file uploads
-
-The filtering syntax allows for complex expressions combining these elements using operators like equality checks, pattern matching (LIKE), and logical operators (AND, OR).
-
-## Subscribe Filtering vs. App Context Filtering
-
-PubNub offers two powerful filtering mechanisms that share similar syntax but serve different purposes in your real-time applications.
-
-*   Subscribe Filtering - Used when subscribing to channels to control which messages are delivered to your client
-*   [App Context Filtering](/docs/general/metadata/filtering) - Used when querying metadata to retrieve specific users, channels, or memberships
-
-Both filtering systems:
-
-*   Use the same expression syntax (`==`, `!=`, `>`, `<`, `LIKE`, `&&`, `||`)
-*   Support pattern matching with wildcards
-*   Allow complex boolean expressions
-*   Follow a similar format that evaluates to true/false
-
-Key differences are as follows:
-
-| Feature | Subscribe Filtering | App Context Filtering |
-|---------|--------------------|-----------------------|
-| Purpose | Controls which messages reach subscribers | Queries metadata about entities |
-| Target Data | Messages and their attributes | Users, channels, and memberships |
-| When Applied | During active subscriptions | During metadata retrieval |
-| Implementation | In subscribe method | In metadata query methods |
-
-### Examples
-
-Subscribe Filtering:
-
+### Data Pipeline Filtering
 ```javascript
-// Only receive messages with high priority from the US region
-pubnub.subscribe({
-  channels: ['updates'],
-  filter: 'message.priority == "high" && meta.region == "us"'
-});
+// Stream processing with quality gates
+data.dataQuality["score"] > 95 &&
+meta.source["verified"] == "true" &&
+!(meta.flags CONTAINS "duplicate") &&
+data.schema["version"] == currentSchemaVersion &&
+meta.processing["stage"] == "validated"
+
+// Real-time analytics filtering
+meta.eventCategory == "conversion" &&
+data.value > significantValueThreshold &&
+meta.attribution["source"] != "bot" &&
+data.funnel["step"] >= targetStep &&
+meta.experiment["variant"] == activeVariant
 ```
 
-App Context Filtering:
+## Integration Patterns
 
+### Microservice Communication
 ```javascript
-// Only retrieve active support agent users
-pubnub.objects.getAllUUIDMetadata({
-  filter: 'status == "active" && type == "support_agent"'
-});
+// Service-to-service message filtering
+meta.sourceService != currentServiceName &&
+meta.targetServices CONTAINS currentServiceName &&
+data.messageVersion == supportedVersion &&
+meta.routing["priority"] >= currentServicePriority
+
+// Event-driven architecture
+data.eventType LIKE "order.*" &&
+meta.aggregateId CONTAINS targetEntityId &&
+data.eventVersion <= maxSupportedVersion &&
+meta.correlation["traceId"] == currentTraceId
 ```
 
-While the syntax looks similar, notice how subscribe filtering operates on message properties and metadata, while App Context filtering works with entity attributes like status and type.
+### Real-time Notifications
+```javascript
+// User notification targeting
+meta.userId == targetUserId &&
+meta.preferences["push"] == "enabled" &&
+(
+  data.urgency == "immediate" ||
+  (data.urgency == "normal" && meta.schedule["quietHours"] != "active")
+) &&
+meta.deviceTokens CONTAINS currentDeviceToken
 
-For more examples on how to use the filtering syntax, refer to [App Context filtering](/docs/general/metadata/filtering#examples).
+// Geographic and demographic targeting
+meta.targeting["location"] CONTAINS userCity &&
+meta.demographics["ageGroup"] == userAgeGroup &&
+data.campaign["active"] == "true" &&
+meta.budget["remaining"] > data.cost
+```
 
-## Filter Language Definition
+## Best Practices
 
-The filtering language is extensive and supports many advanced use cases. Here are some common filter examples:
+### Filter Design
+- **Use specific field names** rather than generic terms
+- **Design metadata structure** with filtering in mind from the start
+- **Include computed values** in metadata to avoid complex arithmetic in filters
+- **Use consistent data types** across similar fields
+- **Avoid deep nesting** beyond single-level object/array access
 
-| Expression | Meaning |
-|------------|----------|
-| `string == 'match'` | Exact match |
-| `string LIKE 'match*'` | Asterisk wildcarding, case insensitive |
-| `string LIKE 'match\*'` | Literal match with string containing asterisk character |
-| `('Anne','anna','Ann') LIKE 'ann*'` | Any of the three set members would be a sufficient match |
-| `('a','b','c') CONTAINS string` | Compare against a list of values |
-| `otherstring CONTAINS string` | Check for a substring match |
-| `(3,5,9) contains numValue` | Compare number to a list of values |
-| `!((3,5,9) contains numValue)` | Negation |
-| `string contains numValue` | `str(numValue)` in string |
-| `numValue > (numA + numB - numC)` | Compare number to an arithmetic expression |
-| `(numA ^ numB) != (numValue * 10)` | Compare two expressions |
-| `(~numA / numB)` | Bitwise NOT operation on numA divided by numB |
+### Performance Optimization  
+- **Put most selective conditions first** in compound expressions
+- **Use numeric comparisons** instead of string when possible
+- **Cache filter expressions** rather than rebuilding repeatedly
+- **Monitor filter performance** impact on message throughput
+- **Use modulo sampling** for high-volume streams
 
-## Filter Expression Language Specification
+### Error Prevention
+- **Always quote string values** with double quotes
+- **Use consistent case** for operators (`LIKE`, `CONTAINS` in uppercase)
+- **Test filter expressions** with sample data before deployment
+- **Handle missing fields gracefully** - filtering on non-existent fields returns no matches
+- **Escape special characters** in pattern matching (`\*` for literal asterisk)
 
-The filter expression language follows a formal grammar specification where `compound_expression` is the root element.
+### Troubleshooting
+- **Test with simple expressions first** before building complexity
+- **Verify published message structure** matches filter field references
+- **Check URL encoding** when using REST API directly
+- **Use truthy/falsy checks** when boolean literals don't work as expected
+- **Include fallback logic** for critical message delivery
 
-### Grammar Specification
-
-| Expression | Definition |
-|------------|------------|
-| `<compound_expression>` | `<expression>` \| `<expression> <binary_logical_op> <expression>` |
-| `<binary_logical_op>` | `&&` \| `\|\|` |
-| `<expression>` | `(<expression>)` \| `<operand> <comparison_operator> <operand>` \| `<unary_logical_op> <operand>` |
-| `<numeric_comparison_operator>` | `{==, !=, <, >, <=, >=}` |
-| `<string_comparison_operator>` | `{contains, like}` |
-| `<unary_logical_op>` | `!` |
-| `<operand>` | `(<operand>)` \| `<unary_op> <operand>` \| `<literals> <binary_op> <literals>` |
-| `<unary_op>` | `~` (bitwise NOT) |
-| `<binary_op>` | `\|` (bitwise OR), `&` (bitwise AND), `^` (bitwise XOR), `+`, `-`, `/`, `*` |
-
-### Operator Precedence
-
-1. **Parentheses**: `()`
-2. **Unary operators**: `!` (logical NOT), `~` (bitwise NOT)
-3. **Arithmetic**: `*`, `/` (left-to-right)
-4. **Arithmetic**: `+`, `-` (left-to-right)
-5. **Bitwise**: `&`, `|`, `^` (left-to-right)
-6. **Comparison**: `==`, `!=`, `<`, `>`, `<=`, `>=`, `contains`, `like`
-7. **Logical**: `&&` (AND)
-8. **Logical**: `||` (OR)
-
-## Conclusion
-
-This guide covered the essential aspects of using PubNub's filtering capabilities:
-
-- **Message Filters**: Real-time filtering during subscriptions
-- **Subscribe Filters**: Control message delivery based on content and metadata
-- **Filter Language**: Comprehensive expression syntax for complex filtering logic
-
-### Related Documentation
-
-- [Publishing Messages with Metadata](/docs/general/messages/publish#publish-with-message-filters)
-- [App Context Filtering](/docs/general/metadata/filtering)
-- [Channel Groups](/docs/general/channels/channel-groups)
-- [Presence Events](/docs/general/presence/presence-events)
-
-### Best Practices
-
-- Use specific filter expressions to reduce bandwidth
-- Test filter expressions thoroughly before production deployment
-- Consider filter complexity impact on performance
-- Combine multiple filter types for optimal message routing
-
-# PubNub Filter Types Clarification
-
-## Key Distinction
-
-**Subscribe Filters, Message Filters, and Channel Filters are all the same thing** - they refer to the same real-time message filtering functionality.
-
-**App Context Filters are different** - they serve a completely separate purpose for querying metadata.
-
-## Same Functionality (Different Names)
-
-These terms all describe **real-time message filtering during subscriptions**:
-
-- **Subscribe Filters**
-- **Message Filters** 
-- **Channel Filters**
-
-### What They Do
-- Filter messages in real-time as they're delivered to subscribers
-- Applied during active subscriptions to control which messages reach your client
-- Operate on message properties, metadata, publisher ID, channel, timetoken, etc.
-- Reduce bandwidth by filtering unwanted messages server-side
-
-### Common Use Cases
-- Filter out messages you published yourself: `userId != 'your-user-id'`
-- Only receive high-priority messages: `message.priority == "high"`
-- Regional filtering: `meta.region == "us"`
-- Content-based filtering: `message.type == "alert"`
-
-## Different Functionality
-
-**App Context Filters** serve a completely separate purpose:
-
-### What They Do
-- Query metadata about users, channels, and memberships
-- Applied during metadata retrieval operations (not subscriptions)
-- Work with entity attributes like status, type, custom fields
-- Used with `getAllUUIDMetadata()`, `getAllChannelMetadata()`, etc.
-
-### Example Use Cases
-- Find active support agents: `status == "active" && type == "support_agent"`
-- Query channels by category: `category == "public"`
-- Filter users by location: `custom.location == "New York"`
-
-## Syntax Similarity
-
-Both types use similar expression syntax:
-- Comparison operators: `==`, `!=`, `>`, `<`, `>=`, `<=`
-- Pattern matching: `LIKE` with wildcards
-- Logical operators: `&&`, `||`, `!`
-- Complex boolean expressions
-
-However, they operate on completely different data:
-- **Subscribe/Message/Channel Filters**: Live message data and attributes
-- **App Context Filters**: Stored metadata about entities
-
-## Summary
-
-Remember: **Subscribe Filters = Message Filters = Channel Filters** (same thing, different names)
-
-**App Context Filters** are a separate filtering system for metadata queries.
+Subscribe filters provide a comprehensive solution for sophisticated real-time message routing and delivery optimization, enabling fine-grained control over which messages reach specific subscribers based on content, metadata, and complex business logic.
