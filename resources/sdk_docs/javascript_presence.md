@@ -1,15 +1,18 @@
-# Presence API – JavaScript SDK (condensed)
+# Presence API for JavaScript SDK
 
-• Presence add-on must be enabled for your keys.  
-• Supports callbacks, promises, and async/await (recommended).  
-• Heartbeat window rules apply; no timeout event if the client reconnects before heartbeat expires.  
-• hereNow() responses are cached for 3 s.
+Presence lets you track online/offline users, occupancy, subscriptions, and per-user presence state.
 
----
+- All methods require the Presence add-on to be enabled for your key in the Admin Portal.
+- To receive presence events, see Presence Events.
+- Supported async patterns: callbacks, promises, async/await. Recommended: async/await with try...catch for error handling.
 
-## hereNow()
+## Here now
 
-Returns current occupancy for channels/channel groups.
+Returns the current state of one or more channels: list of UUIDs and occupancy.
+
+Cache: 3-second response cache time.
+
+### Methods
 
 ```
 `pubnub.hereNow({  
@@ -21,13 +24,22 @@ Returns current occupancy for channels/channel groups.
 `
 ```
 
-Parameters  
-• channels (Array<string>) – channel list (required if channelGroups absent).  
-• channelGroups (Array<string>) – group list (required if channels absent).  
-• includeUUIDs (boolean, default true) – omit UUID list when false.  
-• includeState (boolean, default false) – include per-UUID state when true.
+Parameters:
+- channels (array<string>) — Required if channelGroups not provided. Channels to return occupancy for.
+- channelGroups (array<string>) — Required if channels not provided. Channel Groups to return occupancy for. Wildcards not supported.
+- includeUUIDs (boolean, default: true) — If false, UUID list is not returned.
+- includeState (boolean, default: false) — If true, returns subscriber state.
 
 ### Sample code
+
+Reference code
+
+```
+`  
+`
+```
+
+Get a list of UUIDs subscribed to channel
 
 ```
 `  
@@ -38,14 +50,14 @@ Parameters
 
 ```
 `type hereNowResponse = {  
-    totalChannels: number,  
-    totalOccupancy: number,  
-    channels: object  
+    totalChannels: number, // totalChannels = get total of channels  
+    totalOccupancy: number, // totalOccupancy = get total of occupancies  
+    channels: object // channels = get a map with values for each channel with uuids and states for each occupant of the channel  
 }  
 `
 ```
 
-### Additional examples
+### Other examples
 
 Returning state
 
@@ -53,6 +65,8 @@ Returning state
 `  
 `
 ```
+
+Example response
 
 ```
 `// Example of Status  
@@ -72,13 +86,18 @@ Returning state
                 {  
 `
 ```
+show all 35 lines
 
-Return occupancy only (set includeUUIDs =false)
+Return occupancy only
+
+You can return only occupancy for a single channel by specifying the channel and setting includeUUIDs and includeState to false:
 
 ```
 `  
 `
 ```
+
+Example response
 
 ```
 `// Example of Status  
@@ -98,13 +117,16 @@ Return occupancy only (set includeUUIDs =false)
             "name": "my_channel",  
 `
 ```
+show all 19 lines
 
-Channel-group usage
+Channel group usage
 
 ```
 `  
 `
 ```
+
+Example response
 
 ```
 `// Example of Status  
@@ -124,19 +146,22 @@ Channel-group usage
                 {  
 `
 ```
+show all 38 lines
 
-Promise-style example
+Sample code with promises
 
 ```
 `  
 `
 ```
 
----
+## Where now
 
-## whereNow()
+Returns the list of channels a UUID is subscribed to.
 
-Returns channels to which a UUID is currently subscribed.
+Timeout events: If the app restarts (or the page refreshes) within the heartbeat window, no timeout event is generated.
+
+### Methods
 
 ```
 `pubnub.whereNow({  
@@ -145,13 +170,19 @@ Returns channels to which a UUID is currently subscribed.
 `
 ```
 
-Parameter  
-• uuid (string, default current UUID).
+Parameters:
+- uuid (string, default: current uuid) — UUID to return channel list for.
+
+### Sample code
+
+Get a list of channels a UUID is subscribed to
 
 ```
 `  
 `
 ```
+
+### Response
 
 ```
 `// Example of Status  
@@ -168,13 +199,13 @@ Parameter
 `
 ```
 
----
+## User state
 
-## User State
+Clients can set dynamic custom state (for example, typing, score, location) on channels while subscribed. State is not persisted and is lost on disconnect. See Presence State for details.
 
-Set or retrieve arbitrary JSON state for a UUID on channels/groups (ephemeral; cleared on disconnect).
+### Methods
 
-### setState
+Set state
 
 ```
 `pubnub.setState({  
@@ -185,10 +216,12 @@ Set or retrieve arbitrary JSON state for a UUID on channels/groups (ephemeral; c
 `
 ```
 
-• Provide either channels or channelGroups.  
-• state: flat key/value pairs (int, float, string). Keys prefixed with `pn` are reserved.
+Parameters:
+- channels (Array) — Provide channels (or channelGroups). Channels to set the state.
+- channelGroups (Array) — Provide channelGroups (or channels). Channel Groups to set the state.
+- state (any) — JSON object with key/value pairs. Supported types: int, float, string. No nested objects. Keys starting with pn are reserved. If undefined, returns current state for the specified uuid. Existing keys are overwritten; delete keys by setting value to null.
 
-### getState
+Get state
 
 ```
 `pubnub.getState({  
@@ -199,10 +232,12 @@ Set or retrieve arbitrary JSON state for a UUID on channels/groups (ephemeral; c
 `
 ```
 
-• uuid defaults to current UUID.  
-• Provide channels or channelGroups.
+Parameters:
+- uuid (string, default: current uuid) — Subscriber UUID to get state for.
+- channels (Array) — Provide channels (or channelGroups). Channels to get state.
+- channelGroups (Array) — Provide channelGroups (or channels). Channel Groups to get state.
 
-#### Examples
+### Sample code
 
 Set state
 
@@ -218,7 +253,9 @@ Get state
 `
 ```
 
-Set-state response
+### Response
+
+Set state
 
 ```
 `// Example of Status  
@@ -237,7 +274,7 @@ Set-state response
 `
 ```
 
-Get-state response
+Get state
 
 ```
 `// Example of Status**{  
@@ -256,5 +293,3 @@ Get-state response
 }  
 `
 ```
-
-_Last updated Jul 15 2025_

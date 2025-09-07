@@ -1,203 +1,313 @@
-# PubNub JavaScript SDK – Configuration (Condensed)
+# Configuration API for JavaScript SDK
 
-## 1. Load SDK
+JavaScript API reference for configuring PubNub. Include the SDK before initializing the client.
 
-```html
-<script src="https://cdn.pubnub.com/sdk/javascript/pubnub.9.8.3.js"></script>
+```
+`script src="https://cdn.pubnub.com/sdk/javascript/pubnub.9.9.0.js">script>  
+`
 ```
 
----
+## Bundling
 
-## 2. Bundling (opt-out unused modules)
+Bundle only needed modules with Rollup or Webpack. Use environment variables to enable/disable modules.
 
-### Rollup
+- Rollup
+  - Clone the PubNub JavaScript SDK repo.
+  - In rollup.config.js, set enableTreeShaking to true.
+  - Disable modules via env vars, for example:
+    ```
+    `export PRESENCE_MODULE=disabled PUBLISH_MODULE=disabled  
+    `
+    ```
+  - Build:
+    ```
+    rollup -c rollup.config.js --bundleConfigAsCjs
+    ```
+    Bundle is in the upload directory.
 
-1. Clone the repo and set `enableTreeShaking = true` in `rollup.config.js`.  
-2. Disable modules via environment variables, e.g.
-   ```bash
-   export PRESENCE_MODULE=disabled PUBLISH_MODULE=disabled
-   ```
-3. Build:
-   ```bash
-   rollup -c rollup.config.js --bundleConfigAsCjs
-   ```
-   The bundle is created in `/upload`.
+- Webpack
+  - Clone the PubNub JavaScript SDK repo.
+  - Create webpack.config.js (based on rollup.config.js). Enable/disable modules with env vars:
+    ```
+    `const webpack = require('webpack');  
+    
+    module.exports = {  
+      // Other configuration...  
+      plugins: [  
+        new webpack.DefinePlugin({  
+          'process.env.CRYPTO_MODULE': JSON.stringify(process.env.CRYPTO_MODULE ?? 'enabled'),  
+          'process.env.SHARED_WORKER': JSON.stringify(process.env.SHARED_WORKER ?? 'enabled'),  
+          'process.env.PUBLISH_MODULE': JSON.stringify(process.env.PUBLISH_MODULE ?? 'enabled'),  
+          'process.env.SUBSCRIBE_MODULE': JSON.stringify(process.env.SUBSCRIBE_MODULE ?? 'enabled'),  
+          'process.env.SUBSCRIBE_EVENT_ENGINE_MODULE': JSON.stringify(process.env.SUBSCRIBE_EVENT_ENGINE_MODULE ?? 'enabled'),  
+          'process.env.SUBSCRIBE_MANAGER_MODULE': JSON.stringify(process.env.SUBSCRIBE_MANAGER_MODULE ?? 'enabled'),  
+          'process.env.PRESENCE_MODULE': JSON.stringify(process.env.PRESENCE_MODULE ?? 'enabled'),  
+          'process.env.PAM_MODULE': JSON.stringify(process.env.PAM_MODULE ?? 'enabled'),  
+          'process.env.CHANNEL_GROUPS_MODULE': JSON.stringify(process.env.CHANNEL_GROUPS_MODULE ?? 'enabled'),  
+    `
+    ```
+    show all 24 lines
+  - Optionally disable modules:
+    ```
+    `export PRESENCE_MODULE=disabled PUBLISH_MODULE=disabled  
+    `
+    ```
+  - Build:
+    ```
+    npx webpack --config webpack.config.js
+    ```
 
-### Webpack
+## Initialization
 
-`webpack.config.js` (excerpt):
+Initialize the PubNub client with your keys and configuration.
 
-```js
-const webpack = require('webpack');
+### Method(s)
 
-module.exports = {
-  // …other config…
-  plugins: [
-    new webpack.DefinePlugin({
-      'process.env.CRYPTO_MODULE': JSON.stringify(process.env.CRYPTO_MODULE ?? 'enabled'),
-      'process.env.SHARED_WORKER': JSON.stringify(process.env.SHARED_WORKER ?? 'enabled'),
-      'process.env.PUBLISH_MODULE': JSON.stringify(process.env.PUBLISH_MODULE ?? 'enabled'),
-      'process.env.SUBSCRIBE_MODULE': JSON.stringify(process.env.SUBSCRIBE_MODULE ?? 'enabled'),
-      'process.env.SUBSCRIBE_EVENT_ENGINE_MODULE': JSON.stringify(process.env.SUBSCRIBE_EVENT_ENGINE_MODULE ?? 'enabled'),
-      'process.env.SUBSCRIBE_MANAGER_MODULE': JSON.stringify(process.env.SUBSCRIBE_MANAGER_MODULE ?? 'enabled'),
-      'process.env.PRESENCE_MODULE': JSON.stringify(process.env.PRESENCE_MODULE ?? 'enabled'),
-      'process.env.PAM_MODULE': JSON.stringify(process.env.PAM_MODULE ?? 'enabled'),
-      'process.env.CHANNEL_GROUPS_MODULE': JSON.stringify(process.env.CHANNEL_GROUPS_MODULE ?? 'enabled'),
-    }),
-  ],
-};
+```
+`pubnub.PubNub({  
+  subscribeKey: string,  
+  publishKey: string,  
+  userId: string,  
+  authKey: string,  
+  logVerbosity: boolean,  
+  ssl: boolean,  
+  origin: string | string[],  
+  presenceTimeout: number,  
+  heartbeatInterval: number,  
+  keepAlive: boolean,  
+  keepAliveSettings: any,  
+  suppressLeaveEvents: boolean,  
+  requestMessageCountThreshold: number,  
+  enableEventEngine: boolean  
+`
+```
+show all 25 lines
+
+Parameters (Type • Default • Description):
+- subscribeKey • string • n/a • Subscribe key for channel subscriptions.
+- publishKey • string • n/a • Publish key for sending messages.
+- userId • string • n/a • Required unique UTF‑8 string (≤92 alphanumeric chars). Must be set to connect.
+- secretKey • string • n/a • Admin key for Access Manager (server-side only). Grants root PAM permissions.
+- authKey • string • n/a • Access Manager token for resource authorization.
+- logVerbosity • boolean • false • Log HTTP information.
+- ssl • boolean • true (v4.20.0+) • Use HTTPS for requests.
+- origin • string | string[] • ps.pndsn.com • Custom domain(s) if required.
+- presenceTimeout • number • 300 • How long the server considers the client alive (seconds).
+- heartbeatInterval • number • Not Set • Heartbeat frequency; typically (presenceTimeout / 2) - 1; min 3.
+- keepAlive • boolean • false • Reuse TCP connection per host.
+- keepAliveSettings • any • { keepAliveMsecs:1000, freeSocketKeepAliveTimeout:15000, timeout:30000, maxSockets:Infinity, maxFreeSockets:256 } • Node.js HTTP agent tuning.
+- suppressLeaveEvents • boolean • false • Do not send leave requests when true.
+- requestMessageCountThreshold • number • 100 • Emit PNRequestMessageCountExceededCategory if exceeded.
+- enableEventEngine • boolean • false • Use standardized subscribe/presence workflows and statuses.
+  - When true: autoNetworkDetection is ignored; maintainPresenceState is enabled automatically.
+- restore • boolean • false (browser only; requires listenToBrowserNetworkEvents=true) •
+  - true: move to disconnected without sending leave; keep timetoken/channels; try to catch up.
+  - false: reset timetoken and active channels/groups.
+- retryConfiguration • RequestRetryPolicy • ExponentialRetryPolicy (subscribe only) • Configure reconnection. You can exclude endpoint groups.
+  - Policies:
+    - PubNub.NoneRetryPolicy()
+    - PubNub.LinearRetryPolicy({ delay, maximumRetry, excluded })
+    - PubNub.ExponentialRetryPolicy({ minimumDelay, maximumDelay, maximumRetry, excluded })
+- autoNetworkDetection • boolean • false (browser/Node; only when enableEventEngine=false) • Emit PNNetworkDownCategory/PNNetworkUpCategory on network changes.
+- listenToBrowserNetworkEvents • boolean • true (browser only) • Listen for reachability and reconnect on network changes; set false if browser events are unreliable.
+- maintainPresenceState • boolean • true (only when enableEventEngine=true) • Send custom presence state with each subscribe call.
+- cryptoModule • PubNub.CryptoModule.legacyCryptoModule({ cipherKey, useRandomIVs }) | PubNub.CryptoModule.aesCbcCryptoModule({ cipherKey }) • None • Cryptography module for messages/files.
+- subscriptionWorkerUrl • string • None • URL for shared worker; see Shared workers.
+- cipherKey • string • n/a • Deprecated; pass via cryptoModule.
+- useRandomIVs • boolean • true • Deprecated; pass via cryptoModule. Random IVs recommended.
+- uuid • string • n/a • Deprecated; use userId instead.
+
+##### Disabling random initialization vector
+Only for backward compatibility (<4.31.0). Do not disable random IVs for new apps.
+
+#### cryptoModule
+
+Configures message/file encryption. Two options:
+- Legacy 128‑bit encryption (keep existing behavior).
+- Recommended 256‑bit AES‑CBC (explicitly set in config).
+
+If cryptoModule is not set but cipherKey/useRandomIVs are set, legacy encryption is used. See Encryption docs for details.
+
+#### Shared workers
+
+Shared workers manage concurrent connections/presence across tabs/windows.
+
+Source:
+```
+`http://cdn.pubnub.com/sdk/javascript/pubnub.worker.9.9.0.js  
+`
 ```
 
-Disable modules and build:
+Host under the same origin as your app (Same-origin Policy).
 
-```bash
-export PRESENCE_MODULE=disabled PUBLISH_MODULE=disabled
-npx webpack --config webpack.config.js
+##### Configuration
+
+Download and host the shared worker:
+```
+`http://cdn.pubnub.com/sdk/javascript/pubnub.worker.9.9.0.js  
+`
 ```
 
----
-
-## 3. Initialization
-
-```js
-pubnub = new PubNub({
-  subscribeKey: string,                 // required
-  publishKey:  string,                  // optional for read-only
-  userId:      string,                  // required
-  authKey:     string,
-  secretKey:   string,                  // servers only
-  logVerbosity: boolean,
-  ssl:                  boolean,        // default true ≥4.20
-  origin:               string|string[],
-  presenceTimeout:      number,         // default 300 s
-  heartbeatInterval:    number,
-  keepAlive:            boolean,
-  keepAliveSettings:    object,
-  suppressLeaveEvents:  boolean,
-  requestMessageCountThreshold: number, // default 100
-  enableEventEngine:    boolean,
-  restore:              boolean (browser),
-  retryConfiguration:   RequestRetryPolicy,
-  autoNetworkDetection: boolean,
-  listenToBrowserNetworkEvents: boolean,
-  maintainPresenceState: boolean,
-  cryptoModule:         PubNub.CryptoModule,
-  subscriptionWorkerUrl:string,
-  cipherKey:            string, // deprecated, use cryptoModule
-  useRandomIVs:         boolean,// deprecated, use cryptoModule
-  uuid:                 string  // deprecated, use userId
-});
+Set subscriptionWorkerUrl on initialization:
+```
+`  
+`
 ```
 
-Key parameters (defaults shown above when relevant):
+When set, the client uses the worker to aggregate subscriptions.
 
-• `userId` – unique, persistent identifier (required).  
-• `secretKey` – **servers only**; grants full PAM permissions.  
-• `cryptoModule` – choose legacy (128-bit) or `PubNub.CryptoModule.aesCbcCryptoModule({ cipherKey })` (256-bit AES-CBC).  
-• `subscriptionWorkerUrl` – enable shared-worker mode (see below).
+##### Worker version
+Worker version must match the PubNub client version.
 
----
+### Sample code
 
-## 4. Cryptography (`cryptoModule`)
-
-• Legacy 128-bit cipher (default if only `cipherKey`/`useRandomIVs` are set).  
-• Recommended: 256-bit AES-CBC → explicitly set `cryptoModule: PubNub.CryptoModule.aesCbcCryptoModule({ cipherKey })`.  
-• SDKs < 7.3.3 cannot decrypt AES-CBC.
-
----
-
-## 5. Shared Workers
-
-SDK-provided worker (version must match SDK):
-
-```text
-http://cdn.pubnub.com/sdk/javascript/pubnub.worker.9.8.3.js
+Reference code and required userId:
+```
+`  
+`
 ```
 
-Host under the same origin and initialize:
+### Server operations
 
-```js
-new PubNub({
-  /* …keys… */
-  userId: "myUniqueUserId",
-  subscriptionWorkerUrl: "/pubnub.worker.9.8.3.js"
-});
+Use secretKey for server-side Access Manager administration (secure environments only). Always set userId.
+
+```
+`var pubnub = new PubNub({  
+    subscribeKey: "mySubscribeKey",  
+    publishKey: "myPublishKey",  
+    userId: "myUniqueUserId",  
+    secretKey: "secretKey",  
+    heartbeatInterval: 0  
+});  
+`
 ```
 
-Aggregates connections across tabs and prevents spurious presence events.
+### Other examples
 
----
-
-## 6. Common Initialization Examples
-
-Read-write:
-
-```js
-var pubnub = new PubNub({
-  subscribeKey: "subKey",
-  publishKey:   "pubKey",
-  userId:       "myUniqueUserId"
-});
+#### Initialization for a Read-Only client
+Omit publishKey when the client only reads messages.
+```
+`  
+`
 ```
 
-Read-only (omit `publishKey`):
-
-```js
-var pubnub = new PubNub({
-  subscribeKey: "subKey",
-  userId:       "myUniqueUserId"
-});
+#### Initializing with SSL enabled
+Set ssl: true to enable TLS.
+```
+`  
+`
 ```
 
-TLS:
+## Event listeners
 
-```js
-var pubnub = new PubNub({
-  subscribeKey: "subKey",
-  publishKey:   "pubKey",
-  userId:       "myUniqueUserId",
-  ssl: true
-});
+- PubNub client: updates from all subscriptions.
+- Subscription: updates for a specific channel/group/metadata/user.
+- SubscriptionsSet: updates for a set of subscriptions.
+
+See Publish & Subscribe for details.
+
+## User ID
+
+A required unique alphanumeric identifier identifying the client.
+
+### Set user ID
+
+Set userId during initialization or via setUserId.
+
+```
+`var pubnub = new PubNub({  
+    subscribeKey: "mySubscribeKey",  
+    publishKey: "myPublishKey",  
+    userId: "myUniqueUserId"  
+});  
+`
 ```
 
-Server with `secretKey`:
-
-```js
-var pubnub = new PubNub({
-  subscribeKey: "subKey",
-  publishKey:   "pubKey",
-  userId:       "serverInstance-1",
-  secretKey:    "secretKey",
-  heartbeatInterval: 0
-});
+```
+`pubnub.setUserId(string)  
+`
 ```
 
----
+- userId • string • userId to set.
 
-## 7. User ID Helpers
-
-```js
-pubnub.setUserId(string);  // change userId at runtime
-pubnub.getUserId();        // returns current userId
+```
+`pubnub.setUserId("myUniqueUserId")  
+`
 ```
 
----
+### Save user ID
 
-## 8. Authentication Key
+When set at initialization in a browser, userId is saved to localStorage automatically (or implement your own caching).
 
-```js
-pubnub.setAuthKey(string); // replace auth key
+### Get user ID
+
+Get the current userId:
+```
+`pubnub.getUserId();  
+`
 ```
 
----
+Recommendation: userId is visible to clients (e.g., via dev tools). Avoid emails/usernames.
 
-## 9. Stream Filter Expression (requires Stream Controller add-on)
+## Authentication key
 
-```js
-pubnub.setFilterExpression(filterExpression: string);
-pubnub.getFilterExpression(); // returns current expression
+Reset or update the auth key at runtime (typically set during initialization for PAM-enabled apps).
+
+### Property
+
+```
+`pubnub.setAuthKey(string)  
+`
 ```
 
----
+- key • string • Auth key to set.
 
-_Last updated: Jul 16 2025_
+### Sample code
+
+```
+`  
+`
+```
+
+### Returns
+
+None.
+
+## Filter expression
+
+Requires Stream Controller add-on enabled in Admin Portal.
+
+Filter server-side to receive only messages matching the expression.
+
+### Method(s)
+
+```
+`pubnub.setFilterExpression(  
+  filterExpression: string  
+)  
+`
+```
+
+- filterExpression • string • PSV2 filter for subscribe.
+
+```
+`pubnub.getFilterExpression()  
+`
+```
+
+This method has no arguments.
+
+### Sample code
+
+#### Set filter expression
+```
+`  
+`
+```
+
+#### Get filter expression
+```
+`**`
+```
+
+Last updated on Sep 3, 2025**

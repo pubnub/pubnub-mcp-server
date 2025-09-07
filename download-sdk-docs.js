@@ -210,8 +210,6 @@ ${chatPrompt}`
                                 content: chatPrompt
                             }
                         ],
-                        max_tokens: 4000,
-                        temperature: 0.1
                     });
                     console.log(`    ✅ GPT-4 fallback successful`);
                     return response.choices[0].message.content;
@@ -236,8 +234,6 @@ ${chatPrompt}`
                             content: chatPrompt
                         }
                     ],
-                    max_tokens: 4000,
-                    temperature: 0.1
                 });
                 console.log(`    ✅ Chat completions successful`);
                 return response.choices[0].message.content;
@@ -250,8 +246,6 @@ ${chatPrompt}`
                     const response = await openai.completions.create({
                         model: MODEL,
                         prompt: completionPrompt,
-                        max_tokens: 4000,
-                        temperature: 0.1,
                         stop: null
                     });
                     console.log(`    ✅ Completions successful`);

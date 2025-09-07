@@ -1,23 +1,28 @@
-# Message Persistence API – JavaScript SDK (Storage & Playback)
+# Message Persistence API for JavaScript SDK
 
-Message Persistence stores every published message (optional AES-256 encryption) and lets you:
-• Fetch stored messages, reactions, and files  
-• Delete stored messages  
-• Count stored messages  
+Message Persistence provides real-time access to stored messages (timestamped to 10ns, replicated across zones/regions). Messages can be encrypted with AES-256. You control retention (1 day, 7 days, 30 days, 3 months, 6 months, 1 year, or Unlimited). You can retrieve:
+- Messages
+- Message reactions
+- Files (via File Sharing API)
 
-Retention is account-configurable: 1 day, 7 days, 30 days, 3 mo, 6 mo, 1 yr, or Unlimited.
+Supported async patterns: Callbacks, Promises, Async/Await (recommended). Async/Await returns status only on error; use try...catch.
 
-Async patterns: callbacks, promises, or (recommended) async/await with `try…catch`.
+## Fetch history
 
----
+Requires Message Persistence (enable in Admin Portal).
 
-## Fetch History  (requires Message Persistence)
+Fetch historical messages from one or more channels. Use includeMessageActions to include message actions. Order and range:
+- start only: messages older than start.
+- end only: messages from end and newer.
+- start and end: messages between them (end inclusive).
+Limits:
+- Single channel: up to 100 messages.
+- Multiple channels (up to 500): up to 25 messages per channel.
+- With includeMessageActions: limit is 25 and only one channel allowed.
+Page by making iterative calls and adjusting start.
 
-• Returns up to 100 msgs on one channel or 25 msgs on ≤500 channels (25 if `includeMessageActions` is true).  
-• `start` only → older than `start`; `end` only → `end` and newer; both → between them (`end` inclusive).  
-• When `includeMessageActions` is true, response may be truncated and include a `more` link.
+### Method(s)
 
-### Method
 ```
 `pubnub.fetchMessages({  
     channels: Arraystring>,  
@@ -33,27 +38,37 @@ Async patterns: callbacks, promises, or (recommended) async/await with `try…ca
 `
 ```
 
-Parameter essentials  
-• `channels` *Array<string>* max 500 – required  
-• `count` number – default 100 (single channel) / 25 (multi-channel or with actions)  
-• `includeMessageType` boolean – default true  
-• `includeCustomMessageType` boolean  
-• `includeUUID` boolean – default true  
-• `includeMeta` boolean  
-• `includeMessageActions` boolean – single-channel only; max 25 k actions/msg  
-• `start`, `end` string timetokens
+Parameters:
+- channels (Array<string>, required): Channels to fetch from (up to 500).
+- count (number, default: 100 for single channel, 25 for multi-channel or when includeMessageActions): Number per channel.
+- includeMessageType (boolean, default: true): Include message type.
+- includeCustomMessageType (boolean): Retrieve messages with the custom message type.
+- includeUUID (boolean, default: true): Include publisher uuid.
+- includeMeta (boolean): Include meta object from publish time.
+- includeMessageActions (boolean): Retrieve messages with actions. If used, limit is 25; only one channel allowed. Response may be truncated; more link provided.
+- start (string): Timetoken start (exclusive).
+- end (string): Timetoken end (inclusive).
+
+Truncated response: When including message actions, response may include more for pagination. Make iterative calls using returned parameters.
 
 ### Sample code
+
+Reference code (self-contained):
+
+Retrieve a message from a channel:
+
 ```
 `  
 `
 ```
+
 ```
 `  
 `
 ```
 
 ### Response
+
 ```
 `//Example of status  
 {  
@@ -72,15 +87,21 @@ Parameter essentials
                 "uuid":"my-uuid",  
 `
 ```
-(show all 23 lines)
+show all 23 lines
+
+### Other examples
 
 #### Fetch messages with metadata and actions
+
 ```
 `  
 `
 ```
 
-#### Sample response (actions object)
+#### Fetch messages with metadata and actions response
+
+Return information on message actions using actions (deprecated: data).
+
 ```
 `// Example of status  
 {  
@@ -99,15 +120,17 @@ Parameter essentials
                 "message":{  
 `
 ```
-(show all 40 lines)
+show all 40 lines
 
----
+## Delete messages from history
 
-## Delete Messages from History  (requires Message Persistence & “Enable Delete-From-History”, secret key)
+Requires Message Persistence (enable in Admin Portal). Also enable Delete-From-History and initialize SDK with a secret key.
 
-`start` is exclusive, `end` inclusive.
+Remove messages from a channel’s history.
+- start is exclusive; end is inclusive.
 
-### Method
+### Method(s)
+
 ```
 `pubnub.deleteMessages({  
     channel: string,  
@@ -117,17 +140,20 @@ Parameter essentials
 `
 ```
 
-Parameters  
-• `channel` string – required  
-• `start`, `end` string timetokens
+Parameters:
+- channel (string, required): Channel to delete from.
+- start (string): Timetoken start (exclusive).
+- end (string): Timetoken end (inclusive).
 
 ### Sample code
+
 ```
 `  
 `
 ```
 
 ### Response
+
 ```
 `{  
     error: false,  
@@ -137,19 +163,28 @@ Parameters
 `
 ```
 
-#### Delete a specific message
+### Other examples
+
+#### Delete specific message from a Message Persistence
+
+To delete a specific message, pass publish timetoken in End and timetoken-1 in Start (e.g., Start=15526611838554309, End=15526611838554310).
+
 ```
 `  
 `
 ```
 
----
+## Message counts
 
-## Message Counts  (requires Message Persistence)
+Requires Message Persistence (enable in Admin Portal).
 
-Returns number of messages published **≥** each supplied timetoken (last 30 days if unlimited retention).
+Returns the number of messages published since the given time (timetoken >= channelTimetokens).
+- Unlimited retention: only last 30 days are counted.
+- Channels without messages: 0.
+- Channels with 10,000+ messages: 10000.
 
-### Method
+### Method(s)
+
 ```
 `pubnub.messageCounts({  
     channels: Arraystring>,  
@@ -158,17 +193,21 @@ Returns number of messages published **≥** each supplied timetoken (last 30 da
 `
 ```
 
-Parameters  
-• `channels` Array<string> – required  
-• `channelTimetokens` Array<string> – one timetoken for all channels or one per channel
+Parameters:
+- channels (Array<string>, required): Channels to fetch the count for.
+- channelTimetokens (Array<string>, required): Same order as channels. A single timetoken applies to all channels; otherwise lengths must match or PNStatus error returned.
 
 ### Sample code
+
 ```
 `  
 `
 ```
 
 ### Returns
+
+Message count:
+
 ```
 `{  
     channels: {  
@@ -179,6 +218,7 @@ Parameters
 ```
 
 ### Status response
+
 ```
 `{  
     error: false,  
@@ -188,17 +228,36 @@ Parameters
 `
 ```
 
-#### Example (different timetokens per channel)
+### Other examples
+
+#### Retrieve count of messages using different timetokens for each channel
+
 ```
 `  
 `
 ```
 
----
+## History (deprecated)
 
-## History (deprecated – use Fetch History)
+Requires Message Persistence (enable in Admin Portal).
 
-### Method
+Deprecated. Use fetch history instead.
+
+Fetches historical messages of a channel. Control order and retrieval:
+- Default newest-first window (reverse=false).
+- Oldest-first by setting reverse=true.
+- Page by providing start OR end.
+- Retrieve slice by providing both start AND end.
+- Limit via count (max 100).
+
+Start & End clarity:
+- start only: messages older than up to start.
+- end only: messages matching end and newer.
+- both: messages between them (end inclusive).
+- Max 100 per call; page by adjusting start.
+
+### Method(s)
+
 ```
 `pubnub.history({  
     channel: string,  
@@ -212,18 +271,27 @@ Parameters
 `
 ```
 
-Key points  
-• Max 100 msgs; `reverse` ignored if both `start` and `end` provided.  
-• `start` exclusive, `end` inclusive.  
-• `stringifiedTimeToken: true` recommended for large integers.
+Parameters:
+- channel (string, required): Channel to fetch from.
+- reverse (boolean, default: false): Traverse from oldest to newest. If both start and end are provided, reverse is ignored; results start from newest within range.
+- count (number, default/max: 100): Number to return.
+- stringifiedTimeToken (boolean, default: false): Return timetokens as strings.
+- includeMeta (boolean): Include meta object.
+- start (string): Timetoken start (exclusive).
+- end (string): Timetoken end (inclusive).
+
+Reverse behavior: Messages are returned in ascending time order. reverse affects which end of the interval retrieval starts from when more than count messages exist.
 
 ### Sample code
+
+Retrieve the last 100 messages on a channel:
+
 ```
 `try {  
     const result = await pubnub.history({  
         channel: "history_channel",  
-        count: 100,  
-        stringifiedTimeToken: true,  
+        count: 100, // how many items to fetch  
+        stringifiedTimeToken: true, // false is the default  
     });  
 } catch (status) {  
     console.log(status);  
@@ -232,6 +300,7 @@ Key points
 ```
 
 ### Response
+
 ```
 `// Example of Status  
 {  
@@ -250,25 +319,19 @@ Key points
         },  
 `
 ```
-(show all 21 lines)
+show all 21 lines
 
-#### Additional examples  
-• Retrieve oldest 3 messages (`reverse: true`)  
-• Page forwards from a timetoken (`reverse: true`, `start`)  
-• Page backwards until a timetoken (`end`)  
-• Full paging loop (`while`)  
-• Fetch with metadata  
-• Promise-based usage
+### Other examples
 
-(All original code blocks retained below.)
+#### Use history() to retrieve the three oldest messages by retrieving from the time line in reverse
 
 ```
 `try {  
     const result = await pubnub.history({  
         channel: "my_channel",  
         reverse: true, // Setting to true will traverse the time line in reverse starting with the oldest message first.  
-        count: 3,  
-        stringifiedTimeToken: true,  
+        count: 3, // how many items to fetch  
+        stringifiedTimeToken: true, // false is the default  
     });  
 } catch (status) {  
     console.log(status);  
@@ -276,13 +339,15 @@ Key points
 `
 ```
 
+#### Use history() to retrieve messages newer than a given timetoken by paging from oldest message to newest message starting at a single point in time (exclusive)
+
 ```
 `try {  
     const result = await pubnub.history({  
         channel: "my_channel",  
-        reverse: true,  
-        stringifiedTimeToken: true,  
-        start: "13406746780720711",  
+        reverse: true, // Setting to true will traverse the time line in reverse starting with the oldest message first.  
+        stringifiedTimeToken: true, // false is the default  
+        start: "13406746780720711", // start timetoken to fetch  
     });  
 } catch (status) {  
     console.log(status);  
@@ -290,18 +355,24 @@ Key points
 `
 ```
 
+#### Use history() to retrieve messages until a given timetoken by paging from newest message to oldest message until a specific end point in time (inclusive)
+
 ```
 `try {  
     const result = await pubnub.history({  
         channel: "my_channel",  
-        stringifiedTimeToken: true,  
-        end: "13406746780720711",  
+        stringifiedTimeToken: true, // false is the default  
+        end: "13406746780720711", // start timetoken to fetch  
     });  
 } catch (status) {  
     console.log(status);  
 }  
 `
 ```
+
+#### History paging example
+
+Usage: Call with nothing or a valid timetoken.
 
 ```
 `async function getAllMessages(initialTimetoken = 0) {  
@@ -313,15 +384,17 @@ Key points
         const { messages, startTimeToken, endTimeToken } = await pubnub.history(  
             {  
                 channel: "history_test",  
-                stringifiedTimeToken: true,  
-                start: timetoken,  
+                stringifiedTimeToken: true, // false is the default  
+                start: timetoken, // start timetoken to fetch  
             }  
         );  
   
         latestCount = messages.length;  
 `
 ```
-(show all 28 lines)
+show all 28 lines
+
+#### Fetch messages with metadata
 
 ```
 `try {  
@@ -336,13 +409,15 @@ Key points
 `
 ```
 
+#### Sample code with promises
+
 ```
 `pubnub.history({**    channel: 'history_channel',  
-    reverse: true,  
-    count: 100,  
-    stringifiedTimeToken: true,  
-    start: '123123123123',  
-    end: '123123123133',  
+    reverse: true, // Setting to true will traverse the time line in reverse starting with the oldest message first.  
+    count: 100, // how many items to fetch  
+    stringifiedTimeToken: true, // false is the default  
+    start: '123123123123', // start timetoken to fetch  
+    end: '123123123133', // end timetoken to fetch  
 }).then((response) => {  
     console.log(response);  
 }).catch((error) => {  
@@ -351,4 +426,4 @@ Key points
 `
 ```
 
-_Last updated Jul 15 2025_
+Last updated on Sep 3, 2025**
