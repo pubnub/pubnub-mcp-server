@@ -110,7 +110,7 @@ toolHandlers['read_pubnub_sdk_docs'] = async ({ language, apiReference }) => {
           const content = fs.readFileSync(filePath, 'utf8');
           combinedRestApiContent += content + '\n\n';
         } catch (err) {
-          console.error(`Error loading ${filename}: ${err}`);
+          //console.error(`Error loading ${filename}: ${err}`);
           combinedRestApiContent += `Error loading ${filename}: ${err.message}\n\n`;
         }
       }
@@ -126,7 +126,7 @@ toolHandlers['read_pubnub_sdk_docs'] = async ({ language, apiReference }) => {
     }
 
     // Regular processing for other languages
-    // Try to load from cached files first, fallback to API calls if not available
+    // Try to load from cached files first (with version checking), fallback to API calls if not available or outdated
     let sdkResponse = loadCachedSDKDoc(language, 'overview');
     if (!sdkResponse) {
       const sdkURL = `https://www.pubnub.com/docs/sdks/${language}`;
@@ -176,7 +176,7 @@ function loadLanguageFile(file) {
     const content = fs.readFileSync(pathJoin(__dirname, 'resources', 'languages', `${file}.md`), 'utf8');
     return content;
   } catch (err) {
-    console.error(`Error loading specific langauge file ${file}: ${err}`);
+    //console.error(`Error loading specific langauge file ${file}: ${err}`);
     return '';
   }
 }
@@ -188,7 +188,7 @@ function loadPresenceBestPracticesFile(language) {
       const content = fs.readFileSync(pathJoin(__dirname, 'resources', 'how_to_use_pubnub_presence_best_practices.md'), 'utf8');
       return content;
     } catch (err) {
-      console.error(`Error loading presence best practices file: ${err}`);
+      //console.error(`Error loading presence best practices file: ${err}`);
       return '';
     }
   }
@@ -200,15 +200,41 @@ function sanitizeFilename(str) {
   return str.replace(/[^a-z0-9-]/gi, '_');
 }
 
-// Function that loads cached SDK documentation from local files
-function loadCachedSDKDoc(language, type) {
+// Function that loads cached SDK documentation from local files with version checking
+function loadCachedSDKDoc(language, type, forceRefresh = false) {
   try {
     const filename = `${sanitizeFilename(language)}_${sanitizeFilename(type)}.md`;
     const filePath = pathJoin(__dirname, 'resources', 'sdk_docs', filename);
+    
+    // Check if file exists
+    if (!fs.existsSync(filePath)) {
+      return null;
+    }
+    
     const content = fs.readFileSync(filePath, 'utf8');
-    return content;
+    
+    // Skip version checking if force refresh is requested or for REST API
+    if (forceRefresh || language === 'rest-api') {
+      return content;
+    }
+    
+    // Extract version from cached content
+    const cachedVersion = extractVersionFromCachedDoc(content);
+    const currentVersion = sdkVersions[language];
+    
+    // If we have both versions and they match, return cached content
+    if (cachedVersion && currentVersion && isVersionMatch(cachedVersion, currentVersion)) {
+      return content;
+    }
+    
+    // If versions don't match or we can't determine versions, return null to trigger fresh fetch
+    if (cachedVersion && currentVersion && !isVersionMatch(cachedVersion, currentVersion)) {
+      //console.log(`Version mismatch for ${language}: cached=${cachedVersion}, current=${currentVersion}. Will fetch fresh content.`);
+    }
+    
+    return null;
   } catch (err) {
-    console.error(`Error loading cached SDK doc ${language}_${type}: ${err}`);
+    //console.error(`Error loading cached SDK doc ${language}_${type}: ${err}`);
     return null;
   }
 }
@@ -228,6 +254,85 @@ async function loadArticle(url) {
     return converter.turndown(article?.innerHTML || '');
   } catch (err) {
     return `Error fetching ${url}: ${err.message}`;
+  }
+}
+
+// SDK Version Management System
+const sdkVersions = {}; // Store current SDK versions: { language: version }
+
+// Extract version from cached SDK documentation content
+function extractVersionFromCachedDoc(content) {
+  if (!content) return null;
+  
+  // Look for version patterns in the first few lines
+  const lines = content.split('\n').slice(0, 10);
+  for (const line of lines) {
+    // Pattern: "# Language API & SDK Docs X.Y.Z"
+    const versionMatch = line.match(/^#\s+\w+\s+.*?(\d+\.\d+\.\d+)/i);
+    if (versionMatch) {
+      return versionMatch[1];
+    }
+  }
+  return null;
+}
+
+// Fetch current SDK version from PubNub documentation
+async function fetchCurrentSDKVersion(language) {
+  try {
+    const sdkURL = `https://www.pubnub.com/docs/sdks/${language}`;
+    const response = await fetch(sdkURL);
+    if (!response.ok) {
+      //console.error(`Failed to fetch version for ${language}: ${response.status}`);
+      return null;
+    }
+
+    const html = await response.text();
+    const root = parse(html);
+    const article = root.querySelector('article');
+    
+    if (article) {
+      const text = article.text;
+      // Look for version patterns in the content
+      const versionMatch = text.match(/(\d+\.\d+\.\d+)/);
+      if (versionMatch) {
+        return versionMatch[1];
+      }
+    }
+    return null;
+  } catch (err) {
+    //console.error(`Error fetching current SDK version for ${language}: ${err.message}`);
+    return null;
+  }
+}
+
+// Compare versions and determine if cached version is current
+function isVersionMatch(cachedVersion, currentVersion) {
+  if (!cachedVersion || !currentVersion) return false;
+  return cachedVersion === currentVersion;
+}
+
+// Check and update SDK versions for all supported languages
+async function checkAndUpdateVersions() {
+  //console.log('Checking SDK versions...');
+  
+  for (const language of languages) {
+    if (language === 'rest-api') continue; // Skip REST API as it doesn't have versions
+    
+    try {
+      // Get current version from web
+      const currentVersion = await fetchCurrentSDKVersion(language);
+      if (currentVersion) {
+        sdkVersions[language] = currentVersion;
+        //console.log(`${language}: current version ${currentVersion}`);
+      } else {
+        //console.log(`${language}: could not determine current version`);
+      }
+      
+      // Add small delay between requests to avoid overwhelming the server
+      await new Promise(resolve => setTimeout(resolve, 100));
+    } catch (err) {
+      //console.error(`Error checking version for ${language}: ${err.message}`);
+    }
   }
 }
 
@@ -266,7 +371,7 @@ try {
     }
   }
 } catch (err) {
-  console.error(`Error loading chat_sdk_urls.txt: ${err}`);
+  //console.error(`Error loading chat_sdk_urls.txt: ${err}`);
 }
 const chatSdkLanguages = Object.keys(chatSdkDocsUrlMap);
 const chatSdkTopics = chatSdkLanguages.length > 0
@@ -330,7 +435,7 @@ const pubnubResourceOptions = (() => {
     }
     return [...topLevel, ...langFiles];
   } catch (err) {
-    console.error(`Error reading resources directories: ${err}`);
+    //console.error(`Error reading resources directories: ${err}`);
     return [];
   }
 })();
@@ -1310,6 +1415,17 @@ PubNub *pubnub = [PubNub clientWithConfiguration:configuration];
 Replace 'your-unique-uuid' with a unique identifier for your client instance.
 `;
 }
+
+// Initialize SDK version checking on startup
+(async () => {
+  try {
+    await checkAndUpdateVersions();
+    //console.log('SDK version checking completed.');
+  } catch (err) {
+    //console.error('Error during SDK version checking:', err.message);
+    //console.log('Continuing with server startup...');
+  }
+})();
 
 if (process.env.MCP_SUBSCRIBE_ANALYTICS_DISABLED !== 'true') {
   // Online: PubNub server instance for MCP messages
