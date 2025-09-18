@@ -556,3 +556,66 @@ Or via npm:
 npm run test-all
 ```
 
+## Publishing to MCP Registry
+
+This server is automatically published to the MCP Registry when new versions are released. The publishing process uses GitHub Actions for automated CI/CD.
+
+### Automated Publishing Setup
+
+The repository includes automated publishing configuration:
+
+- **`server.json`** - MCP registry configuration file
+- **`.github/workflows/publish-mcp.yml`** - GitHub Actions workflow for automated publishing
+
+### Prerequisites for Publishing
+
+1. **NPM Token**: Add `NPM_TOKEN` as a secret in your GitHub repository:
+   - Go to GitHub repo Settings → Secrets → Actions
+   - Add `NPM_TOKEN` with your npm publishing token
+
+2. **Version Management**: Ensure `package.json` version is properly maintained
+
+### Publishing a New Version
+
+To publish a new version to both npm and the MCP Registry:
+
+```bash
+# Update version (patch, minor, or major)
+npm version patch
+
+# Push changes and tags to trigger automated publishing
+git push origin main
+git push origin --tags
+```
+
+### Automated Publishing Process
+
+When you push a version tag (e.g., `v1.0.98`), the GitHub Actions workflow automatically:
+
+1. **Runs Tests** - Executes the test suite to ensure quality
+2. **Publishes to NPM** - Updates the npm package (`@pubnub/mcp`)
+3. **Publishes to MCP Registry** - Updates the MCP Registry entry using GitHub OIDC authentication
+4. **Syncs Versions** - Ensures version consistency between `package.json` and `server.json`
+
+### Manual Publishing (Alternative)
+
+If you need to publish manually:
+
+```bash
+# Install the MCP Publisher CLI
+curl -fsSL https://registry.modelcontextprotocol.io/install.sh | bash
+
+# Login using GitHub authentication (for io.github.pubnub.* namespace)
+mcp-publisher login github
+
+# Publish to the MCP Registry
+mcp-publisher publish
+```
+
+### Registry Information
+
+- **Registry Name**: `io.github.pubnub.mcp-server`
+- **Package**: `npm:@pubnub/mcp`
+- **Namespace**: `io.github.pubnub.*` (GitHub-authenticated)
+- **Authentication**: GitHub OIDC (automated) or GitHub OAuth (manual)
+
