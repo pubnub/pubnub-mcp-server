@@ -5,8 +5,8 @@ By adding this server to Cursor IDE, you can:
 - Fetch formatted PubNub JavaScript, Python, and Java SDK documentation.
 - Access PubNub Functions documentation from a static Markdown file.
 
-<a href="https://glama.ai/mcp/servers/@stephenlb/pubnub-mcp-server">
-  <img width="380" height="200" src="https://glama.ai/mcp/servers/@stephenlb/pubnub-mcp-server/badge" alt="PubNub Server MCP server" />
+<a href="https://glama.ai/mcp/servers/@pubnub/pubnub-mcp-server">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@pubnub/pubnub-mcp-server/badge" alt="PubNub Server MCP server" />
 </a>
 
 ## Example Prompts
@@ -157,7 +157,7 @@ Claude Desktop may use an old verson of node.
 You may need to set the command to the full path of your node installation.
 
 ```shell
-git clone https://github.com/stephenlb/pubnub-mcp-server.git
+git clone https://github.com/pubnub/pubnub-mcp-server.git
 ```
 
 MCP server is located in the `index.js` file.:
