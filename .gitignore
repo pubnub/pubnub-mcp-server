@@ -1,1 +1,5 @@
 node_modules
+.DS_Store
+login
+task.txt
+url-task.txt
