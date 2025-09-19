@@ -1,7 +1,7 @@
 {
   "$schema": "https://registry.modelcontextprotocol.io/schemas/server.json",
   "name": "io.github.pubnub.mcp-server",
-  "description": "PubNub Model Context Protocol (MCP) Server for Cursor and Claude. Provides tools for PubNub real-time messaging including publishing messages, retrieving message history, managing presence, accessing SDK documentation, and managing PubNub account resources.",
+  "description": "PubNub MCP for Real-time messaging. API Access and SDK documentation.",
   "homepage": "https://github.com/pubnub/pubnub-mcp-server",
   "license": "MIT",
   "keywords": [
