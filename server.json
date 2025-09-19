@@ -1,6 +1,6 @@
 {
   "$schema": "https://registry.modelcontextprotocol.io/schemas/server.json",
-  "name": "io.github.pubnub.mcp-server",
+  "name": "io.github.pubnub/mcp-server",
   "description": "PubNub MCP for Real-time messaging. API Access and SDK documentation.",
   "homepage": "https://github.com/pubnub/pubnub-mcp-server",
   "license": "MIT",
