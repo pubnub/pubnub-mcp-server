@@ -26,6 +26,6 @@ startCommand:
         PUBNUB_SUBSCRIBE_KEY: config.subscribeKey
       }
     })
-  exampleConfig:
+  config:
     publishKey: demo
     subscribeKey: demo
