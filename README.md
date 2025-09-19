@@ -1,6 +1,6 @@
-[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/pubnub-pubnub-mcp-server-badge.png)](https://mseep.ai/app/pubnub-pubnub-mcp-server)
-
 ![MCP Server Logo](https://github.com/pubnub/pubnub-mcp-server/raw/main/context/pubnub-mcp-server-model-context-protocol.jpg)
+
+[![MseeP.ai Security Assessment Badge](https://mseep.net/pr/pubnub-pubnub-mcp-server-badge.png)](https://mseep.ai/app/pubnub-pubnub-mcp-server)
 
 # PubNub Model Context Protocol (MCP) Server for Cursor IDE
 
