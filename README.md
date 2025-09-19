@@ -2,7 +2,7 @@
 
 # PubNub Model Context Protocol (MCP) Server for Cursor IDE
 
-[![smithery badge](https://smithery.ai/badge/@stephenlb/pubnub-mcp-server)](https://smithery.ai/server/@stephenlb/pubnub-mcp-server)
+[![smithery badge](https://smithery.ai/badge/@pubnub/pubnub-mcp-server)](https://smithery.ai/server/@pubnub/pubnub-mcp-server)
 
 This repository provides a CLI-based Model Context Protocol (MCP) server that exposes PubNub SDK documentation and PubNub API resources to LLM-powered tools.
 This improves the LLM AI Agent's ability to understand and interact with PubNub's SDKs and APIs.
@@ -40,10 +40,10 @@ This requires Node.js (>= 18) and npm (https://nodejs.org/).
 
 ### Installing via Smithery
 
-To install PubNub MCP Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@stephenlb/pubnub-mcp-server):
+To install PubNub MCP Server for Claude Desktop automatically via [Smithery](https://smithery.ai/server/@pubnub/pubnub-mcp-server):
 
 ```bash
-npx -y @smithery/cli install @stephenlb/pubnub-mcp-server --client claude
+npx -y @smithery/cli install @pubnub/pubnub-mcp-server --client claude
 ```
 
 ### Installing Manually
@@ -175,7 +175,7 @@ Claude Desktop may use an old verson of node.
 You may need to set the command to the full path of your node installation.
 
 ```shell
-git clone https://github.com/stephenlb/pubnub-mcp-server.git
+git clone https://github.com/pubnub/pubnub-mcp-server.git
 ```
 
 MCP server is located in the `index.js` file.:
