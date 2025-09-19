@@ -1,158 +1,394 @@
-# How to Use the KV Store Module in PubNub Functions
+# How to Use the KV Store Module in PubNub Functions 2.0
 
-The `kvstore` (Key-Value Store) module in PubNub Functions provides a simple way to persist and retrieve data across different executions of your Functions or even between different Functions within the same keyset. It's useful for storing state, counters, configuration, cached data, and more.
+The `kvstore` (Key-Value Store) module in PubNub Functions provides a globally-distributed, persistent storage solution for your serverless code. It's useful for storing state, counters, configuration, cached data, and more across different Function executions.
 
 ## Requiring the KV Store Module
 
 To use the `kvstore` module, you first need to require it in your Function:
 
 ```javascript
-const db = require("kvstore"); // Or 'kvstore', 'store', etc. 'db' is a common alias.
+const db = require("kvstore"); // Common alias
+// or
+const store = require("kvstore");
+// or  
+const kvstore = require("kvstore");
 ```
 
 ## Core Methods
 
 All methods of the `kvstore` module return Promises, so you should always use `async/await` with `try/catch` for error handling.
 
-### 1. `db.setItem(key, value, ttlInMinutes?)` / `db.set(key, value, ttlInMinutes?)`
-   Stores a value associated with a key.
-   *   `key` (String): The unique key for the data.
-   *   `value` (Any): The data to store. It can be a string, number, boolean, object, or array. It will be JSON-stringified.
-   *   `ttlInMinutes` (Number, optional): Time-To-Live in minutes. If provided, the item will automatically expire after this duration. Max TTL is 43200 minutes (30 days). If not provided, the item persists indefinitely or until deleted.
-   *   `db.set()` is an alias for `db.setItem()`.
+### 1. `db.set(key, value, ttlMinutes?)`
+
+Stores a JavaScript object or value under the given key with optional Time-To-Live.
+
+*   `key` (String): The unique key for the data (up to 250 characters).
+*   `value` (Any): The data to store. Can be any JSON-serializable data (object, array, string, number, boolean).
+*   `ttlMinutes` (Number, optional): Time-To-Live in minutes (minimum 1 minute, maximum 1 year = 525,600 minutes). If not provided, defaults to 24 hours (1440 minutes).
 
 ```javascript
-// Example: Storing data
-await db.setItem("user_preferences:123", { theme: "dark", notifications: true });
-await db.set("session_count", 0); // Using 'set' alias
-await db.setItem("temp_data_abc", { value: "expires soon" }, 60); // Expires in 60 minutes
+// Store user preferences with 7-day TTL
+await db.set("user_preferences:123", { 
+  theme: "dark", 
+  notifications: true,
+  language: "en"
+}, 10080); // 7 days
+
+// Store session data with default 24-hour TTL
+await db.set("session:abc123", {
+  userId: "user123",
+  createdAt: new Date().toISOString(),
+  lastActivity: Date.now()
+});
+
+// Store a simple value
+await db.set("last_update_timestamp", Date.now(), 60); // 1 hour TTL
 ```
 
-### 2. `db.getItem(key)` / `db.get(key)`
-   Retrieves the value associated with a key.
-   *   `key` (String): The key of the data to retrieve.
-   *   Returns the stored value. If the key doesn't exist or the item has expired, it typically returns `null`.
-   *   `db.get()` is an alias for `db.getItem()`.
+### 2. `db.get(key)`
+
+Retrieves the value associated with a key.
+
+*   `key` (String): The key of the data to retrieve.
+*   Returns the stored value. If the key doesn't exist or has expired, returns `null`.
 
 ```javascript
-// Example: Retrieving data
-const userPrefs = await db.getItem("user_preferences:123");
+// Retrieve user preferences
+const userPrefs = await db.get("user_preferences:123");
 if (userPrefs) {
   console.log('User Theme:', userPrefs.theme);
+  console.log('Notifications enabled:', userPrefs.notifications);
 } else {
   console.log('No preferences found for user 123.');
 }
 
-const sessionCount = await db.get("session_count"); // Using 'get' alias
+// Check if session is valid
+const sessionData = await db.get("session:abc123");
+if (sessionData) {
+  const lastActivity = sessionData.lastActivity;
+  const now = Date.now();
+  if (now - lastActivity > 1800000) { // 30 minutes
+    console.log('Session expired due to inactivity');
+  }
+}
 ```
 
-### 3. `db.removeItem(key)`
-   Deletes a key and its associated value from the store.
-   *   `key` (String): The key of the data to remove.
+### 3. `db.setItem(key, stringValue, ttlMinutes?)`
+
+Like `set()`, but specifically optimized for plain string values.
+
+*   `key` (String): The key for the data.
+*   `stringValue` (String): The string value to store.
+*   `ttlMinutes` (Number, optional): TTL in minutes.
 
 ```javascript
-// Example: Removing data
-await db.removeItem("temp_data_abc");
+// Store a simple string value
+await db.setItem("api_cache_key", "cached_response_data", 30);
+
+// Store JSON as string (though db.set() is preferred for objects)
+await db.setItem("config", JSON.stringify({ version: "2.0" }), 1440);
 ```
 
-### 4. `db.increment(key, incrementValue?)` / `db.incr(key, incrementValue?)`
-   Atomically increments a numerical value stored at a key. If the key doesn't exist, it's initialized to `0` before incrementing.
-   *   `key` (String): The key of the counter.
-   *   `incrementValue` (Number, optional): The value to increment by. Defaults to `1`. Can be negative to decrement.
-   *   Returns the new value after incrementing.
+### 4. `db.getItem(key)`
+
+Retrieve a string value by key. Returns the string or `null` if not found.
 
 ```javascript
-// Example: Incrementing a counter
-const newCount = await db.increment("page_views:/home");
-console.log('New home page views:', newCount);
-
-await db.incr("active_users", -1); // Decrementing
+const cachedData = await db.getItem("api_cache_key");
+if (cachedData) {
+  console.log('Cache hit:', cachedData);
+} else {
+  console.log('Cache miss - need to fetch fresh data');
+}
 ```
 
-### 5. `db.getCounter(key)`
-   Retrieves the current value of a counter key. Similar to `getItem`, but specifically for counters.
-   *   `key` (String): The key of the counter.
-   *   Returns the numerical value or `null` if not set.
+### 5. `db.removeItem(key)`
+
+Deletes a key and its associated value from the store.
 
 ```javascript
-// Example: Getting a counter value
+// Clean up expired session
+await db.removeItem("session:abc123");
+
+// Remove user data after account deletion
+await db.removeItem("user_preferences:123");
+```
+
+### 6. Counter Operations
+
+The KV store supports atomic counters for safe incrementing across distributed function instances.
+
+#### `db.getCounter(key)`
+
+Get the current value of a counter. If the counter was never set, returns `0`.
+
+```javascript
 const currentViews = await db.getCounter("page_views:/home");
+console.log('Current page views:', currentViews);
 ```
 
-### 6. `db.deleteCounter(key)`
-   Deletes a counter key.
-   *   `key` (String): The key of the counter to delete.
+#### `db.incrCounter(key, increment?)`
 
-### 7. `db.getAllItems()`
-   Retrieves all non-expired key-value pairs from the store for the current keyset.
-   *   **Use with caution:** This can be a very expensive operation if you have a large number of items in the KV Store. It's generally not recommended for frequent use in high-throughput Functions.
-   *   Returns an object where keys are the item keys and values are the stored items.
+Atomically increment a counter and return the new value. If the counter doesn't exist, it's initialized to `0` before incrementing.
 
-### 8. `db.getKeys()`
-   Retrieves all non-expired keys from the store for the current keyset.
-   *   **Use with caution:** Similar to `getAllItems()`, this can be resource-intensive.
-   *   Returns an array of keys.
+*   `key` (String): The counter key.
+*   `increment` (Number, optional): Amount to increment by (defaults to `1`). Can be negative to decrement.
 
-## Examples
+```javascript
+// Increment page view counter
+const newViewCount = await db.incrCounter("page_views:/home");
+console.log('New page view count:', newViewCount);
 
-### Example: Counting Message Types (On Before Publish)
+// Increment by custom amount
+const totalScore = await db.incrCounter("user_score:123", 50);
+
+// Decrement counter
+const remainingCredits = await db.incrCounter("user_credits:123", -1);
+
+// Track daily events
+const today = new Date().toISOString().split('T')[0];
+const dailyCount = await db.incrCounter(`events:login:${today}`);
+```
+
+### 7. Key Management
+
+#### `db.getKeys(paginationKey?)`
+
+Retrieve up to 100 keys currently stored. For more than 100 keys, use pagination.
+
+*   `paginationKey` (String, optional): Token for retrieving the next page of results.
+*   Returns an object with `keys` array and optional `next` pagination token.
+
+```javascript
+// Get all keys (first page)
+const result = await db.getKeys();
+console.log('Found keys:', result.keys);
+
+// If there are more than 100 keys, paginate
+if (result.next) {
+  const nextPage = await db.getKeys(result.next);
+  console.log('Next page keys:', nextPage.keys);
+}
+
+// Find all user preference keys
+const allKeys = await db.getKeys();
+const userPrefKeys = allKeys.keys.filter(key => key.startsWith('user_preferences:'));
+console.log('User preference keys:', userPrefKeys);
+```
+
+#### `db.getCounterKeys()`
+
+List keys that have counter values (similar to `getKeys`, but specifically for counters).
+
+```javascript
+const counterKeys = await db.getCounterKeys();
+console.log('All counter keys:', counterKeys);
+```
+
+## Practical Examples
+
+### Example 1: Rate Limiting with KV Store
 
 ```javascript
 export default async (request) => {
   const db = require('kvstore');
-  const pubnub = require('pubnub'); // For logging errors
-
+  const userId = request.message.userId;
+  
   try {
-    const messageType = request.message.type || 'unknown';
-    const counterKey = `message_type_count:${messageType}`;
-
-    const newTypeCount = await db.increment(counterKey);
-    console.log(`Count for message type '${messageType}': ${newTypeCount}`);
-
-    // Add total message count
-    const totalMessageCount = await db.increment('total_messages_processed_function');
-    request.message.processingCount = totalMessageCount; // Augment message
-
+    // Check rate limit for user (max 10 requests per minute)
+    const rateLimitKey = `rate_limit:${userId}:${Math.floor(Date.now() / 60000)}`;
+    const currentCount = await db.getCounter(rateLimitKey);
+    
+    if (currentCount >= 10) {
+      console.log(`Rate limit exceeded for user ${userId}`);
+      return request.abort();
+    }
+    
+    // Increment request counter with 2-minute TTL
+    await db.incrCounter(rateLimitKey);
+    await db.set(rateLimitKey + '_ttl', Date.now(), 2); // Mark for cleanup
+    
+    // Add rate limit info to message
+    request.message.rateLimitRemaining = 10 - (currentCount + 1);
+    
     return request.ok();
   } catch (error) {
-    console.error('KV Store operation failed:', error);
-    // Optionally publish error to a debug channel
-    await pubnub.publish({
-        channel: 'function_kv_errors',
-        message: { error: 'KV Store failed', details: error.message, request: request.message }
-    });
-    return request.abort();
+    console.error('Rate limiting error:', error);
+    return request.ok(); // Allow on error to avoid blocking
   }
 };
 ```
 
-### Example: Simple Caching with TTL (On Request)
+### Example 2: Message Caching and Deduplication
+
+```javascript
+export default async (request) => {
+  const db = require('kvstore');
+  const crypto = require('crypto');
+  
+  try {
+    // Create message hash for deduplication
+    const messageHash = await crypto.sha256(JSON.stringify(request.message));
+    const dedupeKey = `message_hash:${messageHash}`;
+    
+    // Check if we've seen this message before (within last 5 minutes)
+    const existingMessage = await db.get(dedupeKey);
+    if (existingMessage) {
+      console.log('Duplicate message detected, ignoring');
+      return request.abort();
+    }
+    
+    // Store message hash with 5-minute TTL
+    await db.set(dedupeKey, {
+      originalChannel: request.channels[0],
+      timestamp: Date.now(),
+      messageId: request.message.id
+    }, 5);
+    
+    // Cache the processed message for potential retrieval
+    if (request.message.id) {
+      await db.set(`cached_message:${request.message.id}`, request.message, 1440);
+    }
+    
+    return request.ok();
+  } catch (error) {
+    console.error('Caching error:', error);
+    return request.ok();
+  }
+};
+```
+
+### Example 3: User Session Management
 
 ```javascript
 export default async (request, response) => {
   const db = require('kvstore');
-  const xhr = require('xhr');
-
-  const cacheKey = `external_api_data:${request.params.id}`; // Assuming an ID in request params
-  const CACHE_TTL_MINUTES = 10; // Cache for 10 minutes
-
+  const uuid = require('uuid');
+  
   try {
-    let data = await db.getItem(cacheKey);
+    const action = request.query.action;
+    const sessionToken = request.headers['authorization']?.replace('Bearer ', '');
+    
+    switch (action) {
+      case 'login':
+        // Create new session
+        const newSessionId = uuid.v4();
+        const sessionData = {
+          userId: request.body.userId,
+          createdAt: new Date().toISOString(),
+          lastActivity: Date.now(),
+          ipAddress: request.headers['x-forwarded-for'] || 'unknown'
+        };
+        
+        // Store session with 24-hour TTL
+        await db.set(`session:${newSessionId}`, sessionData, 1440);
+        
+        // Track active sessions count
+        await db.incrCounter('active_sessions');
+        
+        return response.send({ sessionToken: newSessionId }, 200);
+        
+      case 'validate':
+        // Validate existing session
+        if (!sessionToken) {
+          return response.send({ error: 'No session token' }, 401);
+        }
+        
+        const session = await db.get(`session:${sessionToken}`);
+        if (!session) {
+          return response.send({ error: 'Invalid session' }, 401);
+        }
+        
+        // Update last activity
+        session.lastActivity = Date.now();
+        await db.set(`session:${sessionToken}`, session, 1440);
+        
+        return response.send({ valid: true, userId: session.userId }, 200);
+        
+      case 'logout':
+        // End session
+        if (sessionToken) {
+          const existingSession = await db.get(`session:${sessionToken}`);
+          if (existingSession) {
+            await db.removeItem(`session:${sessionToken}`);
+            await db.incrCounter('active_sessions', -1);
+          }
+        }
+        
+        return response.send({ message: 'Logged out' }, 200);
+        
+      default:
+        return response.send({ error: 'Invalid action' }, 400);
+    }
+  } catch (error) {
+    console.error('Session management error:', error);
+    return response.send({ error: 'Internal server error' }, 500);
+  }
+};
+```
 
-    if (data) {
-      console.log('Serving from cache:', cacheKey);
-      response.headers['X-Cache-Hit'] = 'true';
-    } else {
-      console.log('Cache miss. 
+### Example 4: Configuration Management
+
+```javascript
+export default async (request) => {
+  const db = require('kvstore');
+  
+  try {
+    // Get application configuration with fallback to defaults
+    const config = await db.get('app_config') || {
+      maxMessageSize: 1024,
+      rateLimitPerMinute: 60,
+      enabledFeatures: ['analytics', 'caching'],
+      version: '1.0.0'
+    };
+    
+    // Apply configuration to message processing
+    if (JSON.stringify(request.message).length > config.maxMessageSize) {
+      console.log(`Message too large: ${JSON.stringify(request.message).length} > ${config.maxMessageSize}`);
+      return request.abort();
+    }
+    
+    // Add configuration context to message
+    request.message.processedWith = {
+      configVersion: config.version,
+      features: config.enabledFeatures,
+      timestamp: Date.now()
+    };
+    
+    // Update usage statistics
+    await db.incrCounter('messages_processed_total');
+    
+    const today = new Date().toISOString().split('T')[0];
+    await db.incrCounter(`messages_processed:${today}`);
+    
+    return request.ok();
+  } catch (error) {
+    console.error('Configuration error:', error);
+    return request.ok(); // Continue processing with defaults
+  }
+};
+```
 
 ## Limits and Considerations
 
 *   **Size Limits:**
     *   Key size: Up to 250 characters.
     *   Value size: Up to 30KB (after JSON stringification).
-    *   Total KV Store size: Check PubNub documentation for the latest limits per keyset (often around 100MB or more, but subject to change and plan).
-*   **Rate Limits:** There are rate limits on how frequently you can access the KV Store. High-frequency reads/writes might get throttled.
+    *   Total KV Store size per keyset: Check current PubNub documentation for limits.
+*   **Rate Limits:** High-frequency reads/writes may be throttled. Design your functions to handle this gracefully.
 *   **Data Types:** Values are stored as JSON. Complex objects are automatically stringified and parsed.
-*   **Atomicity:** `increment` is an atomic operation, making it safe for concurrent updates to counters.
-*   **Scope:** The KV Store is scoped to your PubNub keyset. 
+*   **Atomicity:** `incrCounter` operations are atomic, making them safe for concurrent updates across distributed function instances.
+*   **Scope:** The KV Store is scoped to your PubNub keyset. All Functions under the same keyset share the same store.
+*   **Consistency:** The KV Store is eventually consistent across regions. For most use cases, this provides sufficient consistency, but be aware of this for highly time-sensitive operations.
+*   **TTL Behavior:** Items with expired TTL are automatically removed. The minimum TTL is 1 minute, maximum is 1 year.
+*   **Operation Limits:** Remember that KV Store operations count toward the 3-operation limit per function execution.
 
+## Best Practices
+
+*   **Use meaningful key naming conventions** like `user:${userId}`, `session:${sessionId}`, `cache:${hashKey}` to organize your data.
+*   **Set appropriate TTLs** to prevent unlimited data accumulation and to ensure data freshness.
+*   **Handle null returns gracefully** since `get()` returns `null` for missing or expired keys.
+*   **Use counters for metrics** rather than storing and incrementing regular values, as counters are atomic.
+*   **Consider data relationships** when designing your key structure to enable efficient queries.
+*   **Monitor KV usage** to stay within size and rate limits.
+*   **Use pagination** with `getKeys()` when you might have more than 100 keys.

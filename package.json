@@ -1,19 +1,24 @@
 {
   "name": "@pubnub/mcp",
-  "version": "1.0.38",
+  "version": "1.0.104",
   "type": "module",
   "description": "PubNub Model Context Protocol MCP Server for Cursor and Claude",
   "main": "index.js",
   "bin": "index.js",
   "scripts": {
-    "test": "node test.js"
+    "test": "node test.js",
+    "test-all": "node test_all.js"
   },
   "files": [
+    "index.js",
+    "lib",
+    "chat_sdk_urls.txt",
+    "package.json",
     "resources"
   ],
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/stephenlb/pubnub-mcp-server.git"
+    "url": "git+https://github.com/pubnub/pubnub-mcp-server.git"
   },
   "keywords": [
     "PubNub",
@@ -24,14 +29,25 @@
   "author": "Stephen Blum",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/stephenlb/pubnub-mcp-server/issues"
+    "url": "https://github.com/pubnub/pubnub-mcp-server/issues"
   },
-  "homepage": "https://github.com/stephenlb/pubnub-mcp-server#readme",
+  "homepage": "https://github.com/pubnub/pubnub-mcp-server#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
     "@modelcontextprotocol/sdk": "^1.10.2",
-    "dotenv": "^16.5.0",
-    "jsdom": "^26.1.0",
-    "pubnub": "^9.5.2",
-    "turndown": "^7.2.0"
+    "cbor-sync": "^1.0.4",
+    "eventsource": "^4.0.0",
+    "express": "^5.1.0",
+    "node-html-parser": "^6.1.13",
+    "pubnub": "^9.6.0",
+    "zod": "^3.25.67"
+  },
+  "devDependencies": {
+    "openai": "^4.0.0"
+  },
+  "overrides": {
+    "react-native-url-polyfill": "npm:whatwg-url@^11.0.0"
   }
 }

@@ -32,6 +32,33 @@ PubNub Access Manager (PAM) allows you to control client access to channels and 
         *   Ensure TLS (SSL) is enabled (usually default in SDKs).
         *   Optionally, provide a `cipherKey` if you are using end-to-end AES encryption for message payloads.
 
+> **⚠️ Critical: Use `authKey` Not `token` for Client Configuration**
+> 
+> When implementing Access Manager authentication, always use the `authKey` parameter in client initialization:
+> 
+> ```javascript
+> // ✅ CORRECT: Use authKey for client configuration
+> const pubnub = new PubNub({
+>   subscribeKey: 'mySubscribeKey',
+>   publishKey: 'myPublishKey',
+>   userId: 'myUserId',
+>   authKey: 'auth_token_from_server'  // ✅ CORRECT parameter name
+> });
+> ```
+> 
+> **DO NOT** use `token` as a configuration parameter:
+> ```javascript
+> // ❌ INCORRECT: Do not use token in client configuration
+> const pubnub = new PubNub({
+>   subscribeKey: 'mySubscribeKey',
+>   publishKey: 'myPublishKey', 
+>   userId: 'myUserId',
+>   token: 'auth_token_from_server'  // ❌ WRONG: This will not work
+> });
+> ```
+> 
+> The `token` parameter is only used in Access Manager methods like `grantToken()` and `setToken()`, not in client initialization.
+
 **How PAM Secures Keys:**
 *   Clients operate with temporary auth-keys that have limited, specific permissions.
 *   Your main Publish and Subscribe keys are not directly exposed or used for all operations on the client.

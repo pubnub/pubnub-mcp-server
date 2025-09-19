@@ -1,9 +1,15 @@
 # How to Use File Sharing with PubNub
 
-PubNub's File Sharing feature allows you to upload, send, and receive files (like images, videos, documents) through the PubNub network. Files are stored by PubNub, and messages are published to channels to notify clients about available files.
+> **🔑 Feature Enablement Required**
+> 
+> To use File Sharing, you must enable it in your PubNub Admin Portal:
+> 1. Navigate to your keyset settings
+> 2. Enable the **File Sharing** add-on
+> 3. Configure storage limits if needed
+> 
+> Without enabling File Sharing, file upload/download operations will fail with errors.
 
-**Enabling File Sharing:**
-You must enable the "File Sharing" (or "Files") add-on for your keyset in the PubNub Admin Portal before you can use these features.
+PubNub's File Sharing feature allows you to upload, send, and receive files (like images, videos, documents) through the PubNub network. Files are stored by PubNub, and messages are published to channels to notify clients about available files.
 
 ## Core Concepts
 

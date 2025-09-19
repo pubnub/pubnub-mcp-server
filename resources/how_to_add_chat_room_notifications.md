@@ -1,5 +1,15 @@
 # How to Add Notifications to a Chat Room App Using PubNub
 
+> **🔑 Feature Enablement Required**
+> 
+> For Mobile Push Notifications, you must enable the feature in your PubNub Admin Portal:
+> 1. Navigate to your keyset settings
+> 2. Enable the **Mobile Push Notifications** add-on
+> 3. Configure your APNS (iOS) and/or FCM (Android) credentials
+> 4. Upload certificates or server keys as required
+> 
+> Without enabling Mobile Push Notifications and configuring platform credentials, push notifications will not work.
+
 Adding notifications to a chat room application enhances user engagement by informing them of new messages or important events, even when they are not actively viewing a specific chat room or the app itself. 
 
 ## 1. 

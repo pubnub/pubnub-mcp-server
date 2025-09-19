@@ -1,5 +1,14 @@
 # How to Use Message Persistence (Storage & History) with PubNub
 
+> **🔑 Feature Enablement Required**
+> 
+> To use Message Persistence, you must enable it in your PubNub Admin Portal:
+> 1. Navigate to your keyset settings
+> 2. Enable the **Message Persistence** add-on
+> 3. Configure the **Retention Period** (1, 7, 30, 90, 180, 365 days, or Unlimited)
+> 
+> Without enabling Message Persistence, messages are only cached briefly (~20 minutes) and the History API will return limited or no results.
+
 PubNub's Message Persistence feature allows you to store messages published to channels and retrieve them later using the History API. This is crucial for scenarios where clients need to catch up on messages missed while offline, display chat history, or audit past communications.
 
 ## Overview
