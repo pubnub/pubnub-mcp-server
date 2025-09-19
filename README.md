@@ -29,6 +29,10 @@ This improves the LLM AI Agent's ability to understand and interact with PubNub'
 - Input validation via Zod schemas for all tool parameters, ensuring robust error handling.
 - Extensible tool definitions leveraging the Model Context Protocol SDK (`@modelcontextprotocol/sdk`) with `McpServer` and `StdioServerTransport`.
 
+<a href="https://glama.ai/mcp/servers/@pubnub/pubnub-mcp-server">
+  <img width="380" height="200" src="https://glama.ai/mcp/servers/@pubnub/pubnub-mcp-server/badge" alt="PubNub Server MCP server" />
+</a>
+
 ## Example Prompts
 
 - "Write a PubNub app that lets the user watch streaming videos with built-in multi-user chat with PubNub."
