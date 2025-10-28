@@ -251,6 +251,12 @@ node index.js --chat-sdk
 }
 ```
 
+#### Codex CLI Integration
+```bash
+# Install Chat SDK mode MCP server
+codex mcp add pubnub -e PUBNUB_PUBLISH_KEY=your_publish_key -e PUBNUB_SUBSCRIBE_KEY=your_subscribe_key -- npx -y @pubnub/mcp
+```
+
 #### Claude Code Integration
 ```bash
 # Install Chat SDK mode MCP server

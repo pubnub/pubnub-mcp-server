@@ -36,6 +36,40 @@ const server = new McpServer({
   version: pkg.version,
 });
 
+// Register a prompt
+server.registerPrompt = function() {
+  return {
+    message: 'Use the registered tools to interact with PubNub',
+    availableTools: [
+      'read_pubnub_sdk_docs - Retrieve SDK documentation for specific languages',
+      'read_pubnub_chat_sdk_docs - Retrieve Chat SDK documentation',
+      'read_pubnub_resources - Access conceptual guides and how-to documentation',
+      'publish_pubnub_message - Publish messages to PubNub channels',
+      'signal_pubnub_message - Send lightweight signals to channels',
+      'get_pubnub_messages - Fetch historical messages from channels',
+      'get_pubnub_presence - Get real-time presence information',
+      'write_pubnub_app - Generate app creation instructions',
+      'manage_pubnub_account - Manage PubNub apps and API keys',
+      'pubnub_app_context - Manage App Context (users, channels, memberships)',
+      'pubnub_subscribe_and_receive_messages - Subscribe and receive real-time messages'
+    ]
+  };
+};
+
+// Register a resource
+server.registerResource = function() {
+  return {
+    message: 'PubNub MCP Server provides access to PubNub functionality through registered tools',
+    instructions: 'Call the appropriate tool methods to interact with PubNub services',
+    toolCategories: {
+      documentation: ['read_pubnub_sdk_docs', 'read_pubnub_chat_sdk_docs', 'read_pubnub_resources', 'write_pubnub_app'],
+      messaging: ['publish_pubnub_message', 'signal_pubnub_message', 'get_pubnub_messages', 'pubnub_subscribe_and_receive_messages'],
+      presence: ['get_pubnub_presence'],
+      management: ['manage_pubnub_account', 'pubnub_app_context']
+    }
+  };
+};
+
 // Store tool handlers for reuse in HTTP sessions
 const toolHandlers = {};
 
