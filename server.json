@@ -1,36 +1,20 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-07-09/server.schema.json",
   "name": "io.github.pubnub/mcp-server",
-  "status":"active",
   "description": "PubNub MCP for Real-time messaging. API Access and SDK documentation.",
-  "homepage": "https://github.com/pubnub/pubnub-mcp-server",
-  "license": "MIT",
-  "repository":{"url":"https://github.com/pubnub/pubnub-mcp-server","source":"github"},
-  "keywords": [
-    "pubnub",
-    "real-time",
-    "messaging",
-    "pub-sub",
-    "websockets",
-    "chat",
-    "notifications",
-    "presence",
-    "mcp",
-    "model-context-protocol"
-  ],
-  "authors": [
-    {
-      "name": "Stephen Blum",
-      "email": "stephen@pubnub.com"
-    }
-  ],
-  "sourceUrl": "https://github.com/pubnub/pubnub-mcp-server",
-  "vendor": {
-    "name": "PubNub",
-    "url": "https://www.pubnub.com"
+  "version": "1.0.111",
+  "status": "active",
+  "repository": {
+    "url": "https://github.com/pubnub/pubnub-mcp-server",
+    "source": "github"
   },
-  "deployment": {
-    "type": "package",
-    "package": "npm:@pubnub/mcp"
-  }
+  "website_url": "https://github.com/pubnub/pubnub-mcp-server",
+  "packages": [{
+    "registry_type": "npm",
+    "identifier": "@pubnub/mcp",
+    "version": "1.0.111",
+    "transport": {
+      "type": "stdio"
+    }
+  }]
 }
