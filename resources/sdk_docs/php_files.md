@@ -1,214 +1,227 @@
-# File Sharing API – PHP SDK (Condensed)
+# File Sharing API for PHP SDK
 
-Upload, list, download, delete, and publish messages for files (≤ 5 MB) on a channel. Subscribers receive events with the file ID, name, and optional description.
-
----
+Upload and share files up to 5 MB on a channel. Uploaded files are stored and associated with your key. Channel subscribers receive a file event with file ID, filename, and optional description.
 
 ## Send file
 
-Uploads and publishes the file (calls `publishFileMessage` internally).
+Upload a file to a channel and publish a file message (internally calls publishFileMessage).
 
-### Method
+### Method(s)
 
 ```
-`$pubnub->sendFile()  
-    ->channel(string)  
-    ->fileName(string)  
-    ->message(string|array)  
-    ->shouldStore(Boolean)  
-    ->shouldCompress(Boolean)  
-    ->ttl(Int)  
-    ->fileHandle(Resource)  
-    ->fileContent(bytes|File)  
-    ->meta(string|array)  
-    ->customMessageType(string)  
-    ->sync();  
+`1$pubnub->sendFile()  
+2    ->channel(string)  
+3    ->fileName(string)  
+4    ->message(string|array)  
+5    ->shouldStore(Boolean)  
+6    ->shouldCompress(Boolean)  
+7    ->ttl(Int)  
+8    ->fileHandle(Resource)  
+9    ->fileContent(bytes|File)  
+10    ->meta(string|array)  
+11    ->customMessageType(string)  
+12    ->sync();  
 `
 ```
 
-### Parameters
+Parameters:
+- channel (string, required): Target channel.
+- fileName (string, required): Name of the file to send.
+- message (string|array): Message to send with the file.
+- shouldStore (Boolean, default: True): Store the published file message in channel history.
+- shouldCompress (Boolean, default: True): Compress the request payload.
+- ttl (Int): How long the message is stored.
+- fileHandle (Resource): Pointer to a readable resource.
+- fileContent (bytes|File): Input stream with file content.
+- meta (string|array): Metadata for message filtering.
+- customMessageType (string): 3–50 chars, case-sensitive alphanumeric; dashes and underscores allowed; cannot start with special chars or pn_/pn-. Examples: text, action, poll.
 
-* **channel** *(string, required)* – Target channel.  
-* **fileName** *(string, required)* – Name to store.  
-* **message** *(string | array)* – Message published with the file.  
-* **shouldStore** *(Boolean, default true)* – Store message in history.  
-* **shouldCompress** *(Boolean, default true)* – Compress payload.  
-* **ttl** *(Int)* – Message TTL (secs).  
-* **fileHandle** *(Resource)* – Resource pointer to read from.  
-* **fileContent** *(bytes | File)* – Raw file data.  
-* **meta** *(string | array)* – Metadata for filtering.  
-* **customMessageType** *(string)* – 3–50 chars, alphanum, `-` or `_` allowed.
-
-### Returns: `PNSendFileResult`
-
-* **name** *(string)* – File name.  
-* **fileId** *(string)* – File ID.
-
-### Sample
+### Sample code
 
 ```
-`
-// Include Composer autoloader
-require_once 'vendor/autoload.php';
-
-use PubNub\PNConfiguration;
-use PubNub\PubNub;
-
-$pnConfig = new PNConfiguration();
-$pnConfig->setSubscribeKey("demo");
-$pnConfig->setPublishKey("demo");
-$pnConfig->setUserId("php-file-upload-demo");
-`
+1
+  
 ```
 
----
+### Returns
+
+PNSendFileResult:
+- name (string): Uploaded file name.
+- fileId (string): Uploaded file ID.
 
 ## List channel files
 
-### Method
+Retrieve files uploaded to a channel.
+
+### Method(s)
 
 ```
-`$pubnub->listFiles()  
-    ->channel(string)  
-    ->sync();  
+`1$pubnub->listFiles()  
+2    ->channel(string)  
+3    ->sync();  
 `
 ```
 
-### Parameter
+Parameters:
+- channel (string, required): Channel to list files from.
 
-* **channel** *(string, required)* – Channel to query.
+### Sample code
 
-### Returns: `PNGetFilesResult`
+```
+1
+  
+```
 
-* **next / prev** *(string)* – Pagination tokens.  
-* **count** *(int)* – Number of files returned.  
-* **data** *(array<PNGetFilesItem>)* – File entries.
+### Returns
 
-`PNGetFilesItem`  
-* **id** *(string)* – File ID.  
-* **name** *(string)* – File name.  
-* **size** *(string)* – File size.  
-* **creationTime** *(string)* – ISO timestamp.
+PNGetFilesResult:
+- next (string): Token for forward pagination.
+- prev (string): Token for backward pagination.
+- count (Int): Number of files returned.
+- data (Array<PNGetFilesItem>)
 
----
+PNGetFilesItem:
+- id (string): File ID.
+- name (string): File name.
+- size (string): File size.
+- creationTime (string): Creation time.
 
 ## Get file URL
 
-### Method
+Generate a download URL for a file.
+
+### Method(s)
 
 ```
-`$pubnub.getFileDownloadUrl()  
-    ->channel(string)  
-    ->fileId(string)  
-    ->fileName(string)  
-    ->sync()  
+`1$pubnub.getFileDownloadUrl()  
+2    ->channel(string)  
+3    ->fileId(string)  
+4    ->fileName(string)  
+5    ->sync()  
 `
 ```
 
-### Parameters
+Parameters:
+- channel (string, required): Channel of the uploaded file.
+- fileName (string, required): Stored file name.
+- fileId (string, required): File identifier.
 
-* **channel** *(string, required)*  
-* **fileId** *(string, required)*  
-* **fileName** *(string, required)*  
+### Sample code
 
-### Returns: `PNGetFileDownloadURLResult`
+```
+1
+  
+```
 
-* **fileUrl** *(string)* – Direct download URL.
+### Returns
 
----
+PNGetFileDownloadURLResult:
+- fileUrl (string): URL for downloading the file.
 
 ## Download file
 
-### Method
+Download a file from a channel.
+
+### Method(s)
 
 ```
-`$pubnub.downloadFile()  
-    ->channel(string)  
-    ->fileId(string)  
-    ->fileName(string)  
-    ->sync()  
+`1$pubnub.downloadFile()  
+2    ->channel(string)  
+3    ->fileId(string)  
+4    ->fileName(string)  
+5    ->sync()  
 `
 ```
 
-### Parameters
+Parameters:
+- channel (string, required): Channel of the uploaded file.
+- fileName (string, required): Stored file name.
+- fileId (string, required): File identifier.
 
-* **channel**, **fileId**, **fileName** – Same as above.
+### Sample code
 
-### Returns: `PNDownloadFileResult`
+```
+1
+  
+```
 
-* **fileContent** *(bytes)* – File data.
+### Returns
 
----
+PNDownloadFileResult:
+- fileContent (bytes): The downloaded file content.
 
 ## Delete file
 
-### Method
+Delete a file from a channel.
+
+### Method(s)
 
 ```
-`$pubnub.deleteFile()  
-    ->channel(string)  
-    ->fileId(string)  
-    ->fileName(string)  
-    ->sync()  
+`1$pubnub.deleteFile()  
+2    ->channel(string)  
+3    ->fileId(string)  
+4    ->fileName(string)  
+5    ->sync()  
 `
 ```
 
-### Parameters
+Parameters:
+- channel (string, required): Channel from which to delete.
+- fileId (string, required): File identifier.
+- fileName (string, required): File name.
 
-* **channel**, **fileId**, **fileName** – Same as above.
+### Sample code
 
-### Returns: `PNDeleteFileResult`
+```
+1
+  
+```
 
-* **status** *(int)* – HTTP status code.
+### Returns
 
----
+PNDeleteFileResult:
+- status (Int): Status code.
 
 ## Publish file message
 
-Publishes a message that references an already-uploaded file.
+Publish the uploaded file message to a channel. Called internally by sendFile; use directly to resend a file message without re-uploading if sendFile fails with operation PNPublishFileMessageOperation.
 
-### Method
+### Method(s)
 
 ```
-`$pubnub.publishFileMessage()  
-    ->channel(string)  
-    ->fileId(string)  
-    ->fileName(string)  
-    ->message(string|array)  
-    ->meta(string|array)  
-    ->shouldStore(Boolean)  
-    ->ttl(Int)  
-    ->customMessageType(string)  
-    ->sync();  
+`1$pubnub.publishFileMessage()  
+2    ->channel(string)  
+3    ->fileId(string)  
+4    ->fileName(string)  
+5    ->message(string|array)  
+6    ->meta(string|array)  
+7    ->shouldStore(Boolean)  
+8    ->ttl(Int)  
+9    ->customMessageType(string)  
+10    ->sync();  
 `
 ```
 
-### Parameters
+Parameters:
+- channel (String, required): Channel to publish the file message.
+- file_id (String, required): File identifier.
+- file_name (String, required): File name.
+- message (Dictionary): Payload.
+- meta (Dictionary): Metadata for filtering.
+- should_store (Boolean, default: True): Store message in history.
+- ttl (Int, default: 0): Time to store the message; defaults to key set retention if not specified.
+- customMessageType (string): 3–50 chars, case-sensitive alphanumeric; dashes and underscores allowed; cannot start with special chars or pn_/pn-. Examples: text, action, poll.
 
-* **channel** *(string, required)* – Channel.  
-* **fileId** *(string, required)* – File ID.  
-* **fileName** *(string, required)* – File name.  
-* **message** *(string | array)* – Payload.  
-* **meta** *(string | array)* – Metadata.  
-* **shouldStore** *(Boolean, default true)* – Store in history.  
-* **ttl** *(Int, default 0)* – TTL.  
-* **customMessageType** *(string)* – Business label (3–50 chars).
-
-### Sample
+### Sample code
 
 ```
-`pubnub.publishFileMessage()  
-    ->message("Hey, this is the requested file.")  
-    ->channel("channel_1")  
-    ->fileId("p1n4ppl3p1zz4")  
-    ->fileName("pinapplePizza.jpg")  
-    ->customMessageType("file-message")  
-    ->sync();  
-`
+1
+  
 ```
 
-### Returns: `PNPublishFileMessageResult`
+### Returns
 
-* **timestamp** *(string)* – Publish timetoken.
+PNPublishFileMessageResult:
+- timestamp (string): Timetoken when the message was published.
 
-_Last updated: Jul 15 2025_
+Last updated on Sep 3, 2025

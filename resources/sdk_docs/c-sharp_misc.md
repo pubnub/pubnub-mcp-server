@@ -1,194 +1,147 @@
-# Utility Methods – PubNub C# SDK (Misc)
+# Utility Methods API for C# SDK
 
-The following summarizes the miscellaneous utility APIs. All code blocks, method signatures, parameters, and critical notes are preserved.
+The methods on this page are utility methods that don't fit into other categories.
 
----
+##### Request execution
 
-## Request execution
-
-Use `try / catch`. SDK throws exceptions for invalid input; network/server errors are returned in `status`.
+Use try/catch with the C# SDK. Invalid parameters throw an exception. If the request reaches the server but fails (server error or network issue), error details are in the returned status.
 
 ```
-`try  
-{  
-    PNResultPNPublishResult> publishResponse = await pubnub.Publish()  
-        .Message("Why do Java developers wear glasses? Because they can't C#.")  
-        .Channel("my_channel")  
-        .ExecuteAsync();  
+1try  
+2{  
+3    PNResultPNPublishResult> publishResponse = await pubnub.Publish()  
+4        .Message("Why do Java developers wear glasses? Because they can't C#.")  
+5        .Channel("my_channel")  
+6        .ExecuteAsync();  
+7
   
-    PNStatus status = publishResponse.Status;  
+8    PNStatus status = publishResponse.Status;  
+9
   
-    Console.WriteLine("Server status code : " + status.StatusCode.ToString());  
-}  
-catch (Exception ex)  
-{  
-    Console.WriteLine($"Request can't be executed due to error: {ex.Message}");  
-}  
+10    Console.WriteLine("Server status code : " + status.StatusCode.ToString());  
+11}  
+12catch (Exception ex)  
+13{  
+14    Console.WriteLine($"Request can't be executed due to error: {ex.Message}");  
+15}  
+```
+
+## Destroy[​](#destroy)
+
+Destroy frees up the threads and allows for clean exit.
+
+### Method(s)[​](#methods)
+
+```
+`1destroy()  
 `
 ```
 
----
-
-## destroy()
-
-Free resources and exit cleanly.
+### Sample code[​](#sample-code)
 
 ```
-`destroy()  
+1
+  
+```
+
+### Returns[​](#returns)
+
+None
+
+## Disconnect[​](#disconnect)
+
+Force the SDK to stop all requests to PubNub when there are active subscribe channels.
+
+### Method(s)[​](#methods-1)
+
+```
+`1DisconnectT>()  
 `
 ```
 
-Returns: none.
+This method doesn't take any arguments.
+
+### Sample code[​](#sample-code-1)
 
 ```
-`  
+1
+  
+```
+
+## Get subscribed channel groups[​](#get-subscribed-channel-groups)
+
+Returns all subscribed channel groups as List<String>.
+
+### Method(s)[​](#methods-2)
+
+```
+`1Liststring> GetSubscribedChannelGroups()  
 `
 ```
 
----
+### Sample code[​](#sample-code-2)
 
-## Encrypt (string)
-
-Encrypt a string.
+#### Get subscribed channel groups[​](#get-subscribed-channel-groups-1)
 
 ```
-`pubnub.Encrypt(inputString, cipherKey)  
+1
+  
+```
+
+### Response[​](#response)
+
+`List<String>`
+
+```
+`1["channelGroup1", "channelGroup2"]  
 `
 ```
 
-Parameters  
-• `inputString` (string) – data to encrypt.  
-• `cipherKey` (string, deprecated) – overrides `CryptoModule`; uses legacy 128-bit encryption.
+## Get subscribed channels[​](#get-subscribed-channels)
+
+Returns all subscribed channels as List<String>.
+
+### Method(s)[​](#methods-3)
 
 ```
-`  
+`1Liststring> GetSubscribedChannels()  
 `
 ```
 
----
+### Sample code[​](#sample-code-3)
 
-## Encrypt file
-
-Encrypt file contents.
+#### Get subscribed channels[​](#get-subscribed-channels-1)
 
 ```
-`pubnub.EncryptFile(sourceFile, destinationFile)   
-pubnub.EncryptFile(sourceFile, destinationFile, cipherKey)  
+1
+  
+```
+
+### Response[​](#response-1)
+
+`List<String>`
+
+```
+`1["channel1", "channel2"]  
 `
 ```
 
+## Reconnect[​](#reconnect)
+
+Force the SDK to try to reach PubNub again.
+
+### Method(s)[​](#methods-4)
+
 ```
-`byte[] outputBytes = pubnub.EncryptFile(sourceBytes) byte[] outputBytes = pubnub.EncryptFile(sourceBytes, cipherKey)  
+`1ReconnectT>(bool resetSubscribeToken)  
 `
 ```
 
-Parameters  
-• `sourceFile` (string) – file to encrypt.  
-• `destinationFile` (string) – output path.  
-• `sourceBytes` (byte[]) – file bytes.  
-• `cipherKey` (string, deprecated) – custom key; triggers legacy 128-bit encryption.
+- resetSubscribeToken (bool): Passing true sends zero timetoken upon reconnect.
+
+### Sample code[​](#sample-code-4)
 
 ```
-`  
-`
+1
+**
 ```
-
----
-
-## Decrypt (string)
-
-Decrypt a string.
-
-```
-`pubnub.Decrypt(inputString, cipherKey)  
-`
-```
-
-Parameters mirror `Encrypt`.
-
-```
-`  
-`
-```
-
----
-
-## Decrypt file
-
-```
-`pubnub.DecryptFile(sourceFile, destinationFile); pubnub.DecryptFile(sourceFile, destinationFile, cipherKey);  
-`
-```
-
-```
-`byte[] outputBytes = pubnub.DecryptFile(sourceBytes) byte[] outputBytes = pubnub.DecryptFile(sourceBytes, cipherKey)  
-`
-```
-
-Parameters mirror `Encrypt file`.
-
-```
-`  
-`
-```
-
----
-
-## Disconnect
-
-Force-stop all requests when subscribed channels are active.
-
-```
-`DisconnectT>()  
-`
-```
-
-```
-`  
-`
-```
-
----
-
-## Get subscribed channel groups
-
-```
-`Liststring> GetSubscribedChannelGroups()  
-`
-```
-
-```
-`["channelGroup1", "channelGroup2"]  
-`
-```
-
----
-
-## Get subscribed channels
-
-```
-`Liststring> GetSubscribedChannels()  
-`
-```
-
-```
-`["channel1", "channel2"]  
-`
-```
-
----
-
-## Reconnect
-
-```
-`ReconnectT>(bool resetSubscribeToken)  
-`
-```
-
-• `resetSubscribeToken` (bool) – `true` sends zero timetoken.
-
-```
-`**`
-```
-
-_Last updated: Jul 15 2025_

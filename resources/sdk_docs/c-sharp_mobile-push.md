@@ -1,13 +1,14 @@
-# Mobile Push Notifications API – C# SDK (condensed)
+# Mobile Push Notifications API for C# SDK
 
-Mobile Push Notifications let you publish through PubNub while delivering the same message through FCM (Android) or APNs/APNs2 (iOS) without extra servers.  
-The add-on must be enabled for the key in the Admin Portal.
+Connect PubNub publishing to third-party push services: Google Android FCM (Firebase Cloud Messaging) and Apple iOS APNs (Apple Push Notification service). Requires Mobile Push Notifications add-on (enable in the Admin Portal).
 
----
+To learn more, read Mobile Push Notifications.
 
-## Request execution pattern
+##### Request execution
 
-```csharp
+Use try/catch. Invalid parameters throw exceptions; server/network errors are in the returned status.
+
+```
 try
 {
     PNResult<PNPublishResult> publishResponse = await pubnub.Publish()
@@ -16,110 +17,165 @@ try
         .ExecuteAsync();
 
     PNStatus status = publishResponse.Status;
-    Console.WriteLine("Server status code : " + status.StatusCode);
+    Console.WriteLine("Server status code : " + status.StatusCode.ToString());
 }
 catch (Exception ex)
 {
     Console.WriteLine($"Request can't be executed due to error: {ex.Message}");
 }
 ```
-• SDK throws an exception for bad parameters.  
-• Network / server errors are found in `status`.
 
----
+## Add a device to a push notifications channel
 
-## Add device to channel(s)
+Enable mobile push notifications on a set of channels.
 
-```csharp
+### Method(s)
+
+```
 pubnub.AddPushNotificationsOnChannels()
-        .PushType(PNPushType)              // GCM | FCM | APNS2
-        .Channels(Array)                   // channels to enable
-        .DeviceId(string)                  // device push token
-        .Environment(PushEnvironment)      // APNS2 only: Development|Production
-        .Topic(string)                     // APNS2 only: bundle id
-        .QueryParam(Dictionary<string,object>) // optional debug params
+    .PushType(PNPushType)
+    .Channels(Array)
+    .DeviceId(string)
+    .Environment(PushEnvironment)
+    .Topic(string)
+    .QueryParam(Dictionary<string, object>)
 ```
 
-Returns: `PNResult<PNPushAddChannelResult>` (no payload; inspect `status`).
+- PushType (required) — Type: PNPushType. One of: PNPushType.FCM or PNPushType.APNS2
+- Channels (required) — Type: Array. Channels to enable for push notifications.
+- DeviceId (required) — Type: string. Device ID (push token).
+- Environment — Type: PushEnvironment. APNs environment (Development, Production).
+- Topic — Type: string. APNs topic (bundle identifier).
+- QueryParam — Type: Dictionary<string, object>. Name/value pairs as query parameters.
+- Execute — Type: PNCallback. Callback of type PNPushAddChannelResult. Deprecated; prefer ExecuteAsync.
+- ExecuteAsync — Returns PNResult<PNPushAddChannelResult>.
 
-Sample:
+### Sample code
+
+##### Reference code
 
 ```
-`  
-`
+
 ```
 
----
+#### Add device to channel
 
-## List channels for a device
+```
 
-```csharp
+```
+
+### Returns
+
+No payload is returned. Check status.isError() on the status object.
+
+## List push notifications channels for a device
+
+Get all channels with push notifications for the specified push token.
+
+### Method(s)
+
+```
 pubnub.AuditPushChannelProvisions()
-        .DeviceId(string)
-        .PushType(PNPushType)              // GCM | FCM | APNS2
-        .Environment(PushEnvironment)      // APNS2 only
-        .Topic(string)                     // APNS2 only
-        .QueryParam(Dictionary<string,object>)
+    .DeviceId(string)
+    .PushType(PNPushType)
+    .Environment(PushEnvironment)
+    .Topic(string)
+    .QueryParam(Dictionary<string, object>)
 ```
 
-Returns:  
-`PNResult<PNPushListProvisionsResult>` → `Channels : List<string>`.
+- DeviceId (required) — Type: string. Device ID (push token).
+- PushType (required) — Type: PNPushType. One of: PNPushType.FCM or PNPushType.APNS2
+- Environment — Type: PushEnvironment. APNs environment (Development, Production).
+- Topic — Type: string. APNs topic (bundle identifier).
+- QueryParam — Type: Dictionary<string, object>. Name/value pairs as query parameters.
+- Execute — Type: PNCallback. Callback of type PNPushListProvisionsResult. Deprecated; prefer ExecuteAsync.
+- ExecuteAsync — Returns PNResult<PNPushListProvisionsResult>.
 
-Sample:
+### Sample code
+
+#### List channels for device
 
 ```
-`  
-`
+
 ```
 
----
+### Returns
 
-## Remove device from channel(s)
+PNPushListProvisionsResult with:
+- Channels — List<string>. Channels associated with push notifications.
 
-```csharp
+## Remove a device from push notifications channels
+
+Disable push notifications on selected channels.
+
+### Method(s)
+
+```
 pubnub.RemovePushNotificationsFromChannels()
-        .DeviceId(string)
-        .Channels(Array)                   // channels to disable
-        .PushType(PNPushType)              // GCM | FCM | APNS2
-        .Environment(PushEnvironment)      // APNS2 only
-        .Topic(string)                     // APNS2 only
-        .QueryParam(Dictionary<string,object>)
+    .DeviceId(string)
+    .Channels(Array)
+    .PushType(PNPushType)
+    .Environment(PushEnvironment)
+    .Topic(string)
+    .QueryParam(Dictionary<string, object>)
 ```
 
-Returns: `PNResult<PNPushRemoveChannelResult>` (check `status`).
+- DeviceId (required) — Type: string. Device ID (push token).
+- Channels (required) — Type: Array. Channels to disable for push notifications.
+- PushType (required) — Type: PNPushType. One of: PNPushType.FCM or PNPushType.APNS2
+- Environment — Type: PushEnvironment. APNs environment (Development, Production).
+- Topic — Type: string. APNs topic (bundle identifier).
+- QueryParam — Type: Dictionary<string, object>. Name/value pairs as query parameters.
+- Execute — Type: PNCallback. Callback of type PNPushRemoveChannelResult. Deprecated; prefer ExecuteAsync.
+- ExecuteAsync — Returns PNResult<PNPushRemoveChannelResult>.
 
-Sample:
+### Sample code
+
+#### Remove device from channel
 
 ```
-`  
-`
+
 ```
 
----
+### Returns
 
-## Remove all push registrations for a device
+No payload is returned. Check status.isError() on the status object.
 
-```csharp
+## Remove a device from all push notifications channels
+
+Disable push notifications from all channels registered for the specified push token.
+
+### Method(s)
+
+```
 pubnub.RemoveAllPushNotificationsFromDeviceWithPushToken()
-        .DeviceId(string)
-        .PushType(PNPushType)              // GCM | FCM | APNS2
-        .Environment(PushEnvironment)      // APNS2 only
-        .Topic(string)                     // APNS2 only
-        .QueryParam(Dictionary<string,object>)
+    .DeviceId(string)
+    .PushType(PNPushType)
+    .Environment(PushEnvironment)
+    .Topic(string)
+    .QueryParam(Dictionary<string, object>)
 ```
 
-Returns:  
-`PNResult<PNPushRemoveAllChannelsResult>` (empty payload + `status`).
+- DeviceId (required) — Type: string. Device ID (push token).
+- PushType (required) — Type: PNPushType. One of: PNPushType.FCM or PNPushType.APNS2
+- Environment — Type: PushEnvironment. APNs environment (Development, Production).
+- Topic — Type: string. APNs topic (bundle identifier).
+- QueryParam — Type: Dictionary<string, object>. Name/value pairs as query parameters.
+- Execute — Type: PNCallback. Callback of type PNPushRemoveAllChannelsResult. Deprecated; prefer ExecuteAsync.
+- ExecuteAsync — Returns PNResult<PNPushRemoveAllChannelsResult>.
 
-Sample:
+### Sample code
+
+#### Remove all mobile push notifications
 
 ```
-`  
-`
+
 ```
 
----
+### Returns
 
-Notes  
-1. Callback (`Async` / `Execute`) variants are deprecated; use `ExecuteAsync`.  
-2. Always verify `status.IsError` after every operation.
+PNPushRemoveAllChannelsResult with:
+- PNPushRemoveAllChannelsResult — Object. Empty object on success.
+- PNStatus — Object. Request status (error or success).
+
+Last updated on Oct 28, 2025

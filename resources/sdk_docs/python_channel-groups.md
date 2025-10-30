@@ -1,189 +1,308 @@
-# Channel Groups – Python SDK (Condensed)
+# Channel Groups API for Python SDK
 
-Channel Groups let you treat a collection of channels as a single subscription target.  
-• Publish **to individual channels only**, not to a group.  
-• All Channel-Group APIs require the **Stream Controller** add-on.  
+Channel groups bundle thousands of channels under a name for subscribing. You can't publish to a channel group—publish to individual channels.
 
-## Request Execution
+##### Request execution and return values
 
-Synchronous  
-````
-`pubnub.publish() \  
-    .channel("myChannel") \  
-    .message("Hello from PubNub Python SDK") \  
-    .sync()  
+Operations can be synchronous or asynchronous.
+
+`.sync()` returns an `Envelope` with:
+- `Envelope.result` (type varies per API)
+- `Envelope.status` (`PnStatus`)
+
+```
+`1pubnub.publish() \  
+2    .channel("myChannel") \  
+3    .message("Hello from PubNub Python SDK") \  
+4    .sync()  
 `
-````  
-• Returns `Envelope(result, status)` where `result` is API-specific and `status` is `PNStatus`.
+```
 
-Asynchronous  
-````
-`def my_callback_function(result, status):  
-    print(f'TT: {result.timetoken}, status: {status.category.name}')  
+`.pn_async(callback)` returns `None` and passes `result` and `status` to your callback.
+
+```
+1def my_callback_function(result, status):  
+2    print(f'TT: {result.timetoken}, status: {status.category.name}')  
+3
   
-pubnub.publish() \  
-    .channel("myChannel") \  
-    .message("Hello from PubNub Python SDK") \  
-    .pn_async(my_callback_function)  
+4pubnub.publish() \  
+5    .channel("myChannel") \  
+6    .message("Hello from PubNub Python SDK") \  
+7    .pn_async(my_callback_function)  
+
+```
+
+## Add channels to a channel group
+
+##### Requires Stream Controller add-on
+
+Enable Stream Controller for your key in the Admin Portal.
+
+Adds channels to a channel group.
+
+### Method(s)
+
+Maximum 200 channels per API call.
+
+```
+`1pubnub.add_channel_to_channel_group() \  
+2    .channels(String|List|Tuple) \  
+3    .channel_group(String)  
 `
-````  
-• Returns `None`; callback receives `result, status`.
+```
 
----
+- channels (String | List | Tuple): Channel(s) to add.
+- channel_group (String): Target channel group.
 
-## 1. Add Channels to a Group
+### Sample code
 
-Method  
-````
-`pubnub.add_channel_to_channel_group() \  
-    .channels(String|List|Tuple) \  
-    .channel_group(String)  
-`
-````  
-Parameters  
-• `channels` (str | list | tuple) – up to 200 per call  
-• `channel_group` (str) – target group  
+#### Add channels
 
-Sample – Builder pattern  
-````
-`import os  
-from pubnub.pnconfiguration import PNConfiguration  
-from pubnub.pubnub import PubNub  
-from pubnub.exceptions import PubNubException  
+- Builder Pattern
+- Named Arguments
+
+```
+1import os  
+2from pubnub.pnconfiguration import PNConfiguration  
+3from pubnub.pubnub import PubNub  
+4from pubnub.exceptions import PubNubException  
+5
   
+6
   
-def add_channels_to_group(pubnub: PubNub):  
-    try:  
-        pubnub.add_channel_to_channel_group() \  
-            .channels(["ch1", "ch2"]) \  
-            .channel_group("cg1") \  
-            .sync()  
-        print("Channels added to channel group successfully.")  
-    except PubNubException as e:  
-        print(f"Error: {e}")  
-`
-````
-
-Sample – Named args  
-````
-`import os  
-from pubnub.pnconfiguration import PNConfiguration  
-from pubnub.pubnub import PubNub  
-from pubnub.exceptions import PubNubException  
+7def add_channels_to_group(pubnub: PubNub):  
+8    try:  
+9        pubnub.add_channel_to_channel_group() \  
+10            .channels(["ch1", "ch2"]) \  
+11            .channel_group("cg1") \  
+12            .sync()  
+13        print("Channels added to channel group successfully.")  
+14    except PubNubException as e:  
+15        print(f"Error: {e}")  
+16
   
+17
   
-def add_channels_to_group(pubnub: PubNub):  
-    try:  
-        pubnub.add_channel_to_channel_group(  
-            channels=["ch1", "ch2"],  
-            channel_group="cg1"  
-        ).sync()  
-        print("Channels added to channel group successfully.")  
-    except PubNubException as e:  
-        print(f"Error: {e}")  
+18def main():  
+19    # Configuration for PubNub instance  
+20    pn_config = PNConfiguration()  
+21    pn_config.publish_key = os.getenv('PUBLISH_KEY', 'demo')  
+22    pn_config.subscribe_key = os.getenv('SUBSCRIBE_KEY', 'demo')  
+23    pn_config.user_id = os.getenv('USER_ID', 'my_custom_user_id')  
+24
+  
+25    # Initialize PubNub client  
+26    pubnub = PubNub(pn_config)  
+27
+  
+28    # Add channels to group  
+29    add_channels_to_group(pubnub)  
+30
+  
+31
+  
+32if __name__ == "__main__":  
+33    main()  
+
+```
+
+```
+1import os  
+2from pubnub.pnconfiguration import PNConfiguration  
+3from pubnub.pubnub import PubNub  
+4from pubnub.exceptions import PubNubException  
+5
+  
+6
+  
+7def add_channels_to_group(pubnub: PubNub):  
+8    try:  
+9        pubnub.add_channel_to_channel_group(  
+10            channels=["ch1", "ch2"],  
+11            channel_group="cg1"  
+12        ).sync()  
+13        print("Channels added to channel group successfully.")  
+14    except PubNubException as e:  
+15        print(f"Error: {e}")  
+16
+  
+17
+  
+18def main():  
+19    # Configuration for PubNub instance  
+20    pn_config = PNConfiguration()  
+21    pn_config.publish_key = os.getenv('PUBLISH_KEY', 'demo')  
+22    pn_config.subscribe_key = os.getenv('SUBSCRIBE_KEY', 'demo')  
+23    pn_config.user_id = os.getenv('USER_ID', 'my_custom_user_id')  
+24
+  
+25    # Initialize PubNub client  
+26    pubnub = PubNub(pn_config)  
+27
+  
+28    # Add channels to group  
+29    add_channels_to_group(pubnub)  
+30
+  
+31
+  
+32if __name__ == "__main__":  
+33    main()  
+34
+  
+
+```
+
+### Returns
+
+`add_channel_to_channel_group()` returns an `Envelope`:
+- result: `PNChannelGroupsAddChannelResult`
+- status: `PNStatus`
+
+#### PNChannelGroupsAddChannelResult
+
+```
+`1Channel successfully added  
 `
-````
+```
 
-Return  
-`Envelope.result` → `PNChannelGroupsAddChannelResult`  
-````
-`Channel successfully added  
+## List channels in a channel group
+
+##### Requires Stream Controller add-on
+
+Lists all channels in a channel group.
+
+### Method(s)
+
+```
+`1pubnub.list_channels_in_channel_group() \  
+2    .channel_group(String)  
 `
-````
+```
 
----
+- channel_group (String): Channel group to fetch.
 
-## 2. List Channels in a Group
+### Sample code
 
-Method  
-````
-`pubnub.list_channels_in_channel_group() \  
-    .channel_group(String)  
+#### List channels
+
+- Builder Pattern
+- Named Arguments
+
+```
+`1result = pubnub.list_channels_in_channel_group() \  
+2    .channel_group("cg1") \  
+3    .sync()  
 `
-````  
-Parameter: `channel_group` (str)
+```
 
-Sample  
-````
-`result = pubnub.list_channels_in_channel_group() \  
-    .channel_group("cg1") \  
-    .sync()  
+```
+`1result = pubnub.list_channels_in_channel_group(channel_group="cg1").sync()  
 `
-````  
+```
 
-````
-`result = pubnub.list_channels_in_channel_group(channel_group="cg1").sync()  
+### Returns
+
+`list_channels_in_channel_group()` returns an `Envelope`:
+- result: `PNChannelGroupsListResult`
+- status: `PNStatus`
+
+#### PNChannelGroupsListResult
+
+- channels (Dictionary): A list of channels in a channel group.
+
+## Remove channels from a channel group
+
+##### Requires Stream Controller add-on
+
+Removes channels from a channel group.
+
+### Method(s)
+
+```
+`1pubnub.remove_channel_from_channel_group() \  
+2    .channels(String|List|Tuple) \  
+3    .channel_group(String)  
 `
-````  
+```
 
-Return  
-`Envelope.result` → `PNChannelGroupsListResult`  
-• `channels` – list of channels
+- channels (String | List | Tuple): Channels to remove.
+- channel_group (String): Channel group to remove channels from.
 
----
+### Sample code
 
-## 3. Remove Channels from a Group
+#### Remove channels
 
-Method  
-````
-`pubnub.remove_channel_from_channel_group() \  
-    .channels(String|List|Tuple) \  
-    .channel_group(String)  
+- Builder Pattern
+- Named Arguments
+
+```
+`1pubnub.remove_channel_from_channel_group() \  
+2    .channels(["son", "daughter"]) \  
+3    .channel_group("channel_group") \  
+4    .sync()  
 `
-````  
-Parameters  
-• `channels` (str | list | tuple) – channels to remove  
-• `channel_group` (str) – target group  
+```
 
-Sample  
-````
-`pubnub.remove_channel_from_channel_group() \  
-    .channels(["son", "daughter"]) \  
-    .channel_group("channel_group") \  
-    .sync()  
+```
+`1pubnub.remove_channel_from_channel_group(channels=["ch1", "ch2"], channel_group="cg1").sync()  
 `
-````  
+```
 
-````
-`pubnub.remove_channel_from_channel_group(channels=["ch1", "ch2"], channel_group="cg1").sync()  
+### Returns
+
+`remove_channel_from_channel_group()` returns an `Envelope`:
+- result: `PNChannelGroupsRemoveChannelResult`
+- status: `PNStatus`
+
+#### PNChannelGroupsRemoveChannelResult
+
+```
+`1Channel successfully removed  
 `
-````  
+```
 
-Return  
-`Envelope.result` → `PNChannelGroupsRemoveChannelResult`  
-````
-`Channel successfully removed  
+## Delete a channel group
+
+##### Requires Stream Controller add-on
+
+Deletes a channel group.
+
+### Method(s)
+
+```
+`1pubnub.remove_channel_group(channel_group)  
 `
-````
+```
 
----
+- channel_group (String): Channel group to remove.
 
-## 4. Delete a Channel Group
+### Sample code
 
-Method  
-````
-`pubnub.remove_channel_group(channel_group)  
+#### Delete channel group
+
+- Builder Pattern
+- Named Arguments
+
+```
+`1pubnub.remove_channel_group() \  
+2    .channel_group("cg1") \  
+3    .sync()  
 `
-````  
-Parameter: `channel_group` (str)
+```
 
-Sample  
-````
-`pubnub.remove_channel_group() \  
-    .channel_group("cg1") \  
-    .sync()  
+```
+`1pubnub.remove_channel_group(channel_group="cg1").sync()  
 `
-````  
+```
 
-````
-`pubnub.remove_channel_group(channel_group="cg1").sync()  
-`
-````  
+### Returns
 
-Return  
-`Envelope.result` → `PNChannelGroupsRemoveGroupResult`  
-````
-`Group successfully removed**`
-````
+`remove_channel_group()` returns an `Envelope`:
+- result: `PNChannelGroupsRemoveGroupResult`
+- status: `PNStatus`
 
-_Last updated Jul 15 2025_
+#### PNChannelGroupsRemoveGroupResult
+
+```
+`1Group successfully removed**`

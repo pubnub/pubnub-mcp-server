@@ -1,156 +1,183 @@
-# Mobile Push Notifications API – Unity SDK (Condensed)
+# Mobile Push Notifications API for Unity SDK
 
-All operations require the **Mobile Push Notifications** add-on to be enabled for your PubNub key in the Admin Portal.
+Connect native PubNub publishing to third-party push services: Google Android FCM (Firebase Cloud Messaging) and Apple iOS APNs (Apple Push Notification service). Learn more: Mobile Push Notifications (/docs/general/push/send).
 
----
+Prerequisites
+- Requires Mobile Push Notifications add-on. Enable for your key in the Admin Portal (https://admin.pubnub.com/). See enabling add-on features: https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-.
 
-## Add device to one or more channels
+## Add a device to a push notifications channel[​](#add-a-device-to-a-push-notifications-channel)
 
-### Method
+Enable mobile push notifications on a set of channels.
 
-```csharp
-`pubnub.AddPushNotificationsOnChannels()  
-    .PushType(PNPushType)  
-    .Channels(Array)  
-    .DeviceId(string)  
-    .Environment(PushEnvironment)  
-    .Topic(string)  
-    .QueryParam(Dictionarystring,object>)  
-    .Execute(System.ActionPNPushAddChannelResult, PNStatus>)  
+### Method(s)[​](#methods)
+
+Use the following method(s) in the Unity SDK:
+
+```
+`1pubnub.AddPushNotificationsOnChannels()  
+2    .PushType(PNPushType)  
+3    .Channels(Array)  
+4    .DeviceId(string)  
+5    .Environment(PushEnvironment)  
+6    .Topic(string)  
+7    .QueryParam(Dictionarystring,object>)  
+8    .Execute(System.ActionPNPushAddChannelResult, PNStatus>)  
 `
 ```
 
-### Parameters
+Parameters and options
+- PushType (PNPushType): Accepted values: PNPushType.GCM, PNPushType.FCM, PNPushType.APNS2.
+- Channels (Array): Channels to enable for push notifications.
+- DeviceId (string): Device token.
+- Environment (PushEnvironment): APNs environment (APNS2 only).
+- Topic (string): APNs topic (bundle identifier) (APNS2 only).
+- QueryParam (Dictionary<string, object>): Optional query parameters for debugging.
+- Callback/Async:
+  - Execute: System.Action<PNPushAddChannelResult, PNStatus>
+  - ExecuteAsync: Task<PNResult<PNPushAddChannelResult>>
 
-* PushType (PNPushType) – `PNPushType.GCM`, `PNPushType.FCM`, `PNPushType.APNS2`.
-* Channels (Array\<string>) – Channels to enable for push.
-* DeviceId (string) – Device push token.
-* Environment (PushEnvironment) – **APNS2 only**. `Development` or `Production`.
-* Topic (string) – **APNS2 only**. Bundle identifier.
-* QueryParam (Dictionary\<string, object>) – Optional query‐string pairs.
-* Execute / ExecuteAsync – Callback or `Task<PNResult<PNPushAddChannelResult>>`.
+### Sample code[​](#sample-code)
 
-### Sample
+#### Add device to channel[​](#add-device-to-channel)
+
+##### Reference code
+This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
 
 ```
-`  
+1
+  
+
+```
+
+### Returns[​](#returns)
+
+AddPushNotificationsOnChannels() does not return actionable data. Check status.isError() on the status object.
+
+## List push notifications channels for a device[​](#list-push-notifications-channels-for-a-device)
+
+List channels that have push notifications enabled for the specified device token.
+
+### Method(s)[​](#methods-1)
+
+Use the following method(s) in the Unity SDK:
+
+```
+`1pubnub.AuditPushChannelProvisions()  
+2    .DeviceId(string)  
+3    .PushType(PNPushType)  
+4    .Environment(PushEnvironment)  
+5    .Topic(string)  
+6    .QueryParam(Dictionarystring,object>)  
+7    .Execute(System.ActionPNPushListProvisionsResult, PNStatus>)  
 `
 ```
 
-### Return
+Parameters and options
+- DeviceId (string): Device token.
+- PushType (PNPushType): Accepted values: PNPushType.GCM, PNPushType.FCM, PNPushType.APNS2.
+- Environment (PushEnvironment): APNs environment (APNS2 only).
+- Topic (string): APNs topic (bundle identifier) (APNS2 only).
+- QueryParam (Dictionary<string, object>): Optional query parameters for debugging.
+- Callback/Async:
+  - Execute: System.Action<PNPushListProvisionsResult, PNStatus>
+  - ExecuteAsync: Task<PNResult<PNPushListProvisionsResult>>
 
-No payload. Check `PNStatus.IsError()`.
+### Sample code[​](#sample-code-1)
 
----
+#### List channels for device[​](#list-channels-for-device)
 
-## List channels for a device
+```
+1
+  
 
-### Method
+```
 
-```csharp
-`pubnub.AuditPushChannelProvisions()  
-    .DeviceId(string)  
-    .PushType(PNPushType)  
-    .Environment(PushEnvironment)  
-    .Topic(string)  
-    .QueryParam(Dictionarystring,object>)  
-    .Execute(System.ActionPNPushListProvisionsResult, PNStatus>)  
+### Returns[​](#returns-1)
+
+AuditPushChannelProvisions() returns PNPushListProvisionsResult with:
+- Channels (List<string>): Channels with push notifications enabled.
+
+## Remove a device from push notifications channels[​](#remove-a-device-from-push-notifications-channels)
+
+Disable mobile push notifications on a set of channels.
+
+### Method(s)[​](#methods-2)
+
+Use the following method(s) in the Unity SDK:
+
+```
+`1pubnub.RemovePushNotificationsFromChannels()  
+2    .DeviceId(string)  
+3    .Channels(Array)  
+4    .PushType(PNPushType)  
+5    .Environment(PushEnvironment)  
+6    .Topic(string)  
+7    .QueryParam(Dictionarystring,object>)  
 `
 ```
 
-### Parameters
+Parameters and options
+- DeviceId (string): Device token.
+- Channels (Array): Channels to disable for push notifications.
+- PushType (PNPushType): Accepted values: PNPushType.GCM, PNPushType.FCM, PNPushType.APNS2.
+- Environment (PushEnvironment): APNs environment (APNS2 only).
+- Topic (string): APNs topic (bundle identifier) (APNS2 only).
+- QueryParam (Dictionary<string, object>): Optional query parameters for debugging.
 
-* DeviceId (string)
-* PushType (PNPushType) – `GCM`, `FCM`, `APNS2`.
-* Environment (PushEnvironment) – **APNS2 only**.
-* Topic (string) – **APNS2 only**.
-* QueryParam (Dictionary\<string, object>)
-* Execute / ExecuteAsync – `PNPushListProvisionsResult`.
+### Sample code[​](#sample-code-2)
 
-### Sample
+#### Remove device from channel[​](#remove-device-from-channel)
 
 ```
-`  
+1
+  
+
+```
+
+### Returns[​](#returns-2)
+
+RemovePushNotificationsFromChannels() does not return actionable data. Check status.isError() on the status object.
+
+## Remove a device from all push notifications channels[​](#remove-a-device-from-all-push-notifications-channels)
+
+Disable mobile push notifications from all channels registered with the specified device token.
+
+### Method(s)[​](#methods-3)
+
+Use the following method(s) in the Unity SDK:
+
+```
+`1pubnub.RemoveAllPushNotificationsFromDeviceWithPushToken()  
+2    .DeviceId(string)  
+3    .PushType(PNPushType)  
+4    .Environment(PushEnvironment)  
+5    .Topic(string)  
+6    .QueryParam(Dictionarystring,object>)  
+7    .Execute(System.ActionPNPushRemoveAllChannelsResult, PNStatus>)  
 `
 ```
 
-### Return (`PNPushListProvisionsResult`)
+Parameters and options
+- DeviceId (string): Device token.
+- PushType (PNPushType): Accepted values: PNPushType.GCM, PNPushType.FCM, PNPushType.APNS2.
+- Environment (PushEnvironment): APNs environment (APNS2 only).
+- Topic (string): APNs topic (bundle identifier) (APNS2 only).
+- QueryParam (Dictionary<string, object>): Optional query parameters for debugging.
+- Callback/Async:
+  - Execute: System.Action<PNPushRemoveAllChannelsResult, PNStatus>
 
-* Channels (List\<string>) – Channels enabled for push.
+### Sample code[​](#sample-code-3)
 
----
-
-## Remove device from specific channels
-
-### Method
-
-```csharp
-`pubnub.RemovePushNotificationsFromChannels()  
-    .DeviceId(string)  
-    .Channels(Array)  
-    .PushType(PNPushType)  
-    .Environment(PushEnvironment)  
-    .Topic(string)  
-    .QueryParam(Dictionarystring,object>)  
-`
-```
-
-### Parameters
-
-* DeviceId (string)
-* Channels (Array\<string>) – Channels to disable.
-* PushType (PNPushType) – `GCM`, `FCM`, `APNS2`.
-* Environment (PushEnvironment) – **APNS2 only**.
-* Topic (string) – **APNS2 only**.
-* QueryParam (Dictionary\<string, object>)
-* Execute / ExecuteAsync – `PNPushRemoveChannelResult`.
-
-### Sample
+#### Remove all mobile push notifications[​](#remove-all-mobile-push-notifications)
 
 ```
-`  
-`
-```
-
-### Return
-
-No payload. Check `PNStatus.IsError()`.
-
----
-
-## Remove device from all channels
-
-### Method
-
-```csharp
-`pubnub.RemoveAllPushNotificationsFromDeviceWithPushToken()  
-    .DeviceId(string)  
-    .PushType(PNPushType)  
-    .Environment(PushEnvironment)  
-    .Topic(string)  
-    .QueryParam(Dictionarystring,object>)  
-    .Execute(System.ActionPNPushRemoveAllChannelsResult, PNStatus>)  
-`
-```
-
-### Parameters
-
-* DeviceId (string)
-* PushType (PNPushType) – `GCM`, `FCM`, `APNS2`.
-* Environment (PushEnvironment) – **APNS2 only**.
-* Topic (string) – **APNS2 only**.
-* QueryParam (Dictionary\<string, object>)
-* Execute / ExecuteAsync – `PNPushRemoveAllChannelsResult`.
-
-### Sample
+1
+  
 
 ```
-`  
-`
-```
 
-### Return (`PNPushRemoveAllChannelsResult`)
+### Returns[​](#returns-3)
 
-Empty result object; verify success via `PNStatus`.
+RemoveAllPushNotificationsFromDeviceWithPushToken() returns PNPushRemoveAllChannelsResult and PNStatus.
 
-_Last updated: Jul 15 2025_
+Last updated on Oct 29, 2025

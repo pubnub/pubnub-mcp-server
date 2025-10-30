@@ -1,292 +1,378 @@
-# PubNub Dart SDK – Files
+# File Sharing API for Dart SDK
 
-Maximum file size: **5 MB**. All code blocks below are unchanged from the original docs.
-
----
+Upload and share files up to 5 MB. When a file is uploaded to a channel, subscribers receive a file event containing file ID, filename, and optional description.
 
 ## Send file
 
-Uploads a file and automatically publishes a file message on the channel (internally uses `publishFileMessage`).
+Uploads a file and publishes its file message on the channel. Internally calls Publish file message.
 
-### Method
+### Method(s)
+
 ```
-`pubnub.files.sendFile(  
-  String channel,   
-  String fileName,   
-  Listint> file,  
-  {dynamic? fileMessage,  
-  bool? storeFileMessage,  
-  int? fileMessageTtl,  
-  String? customMessageType  
-  dynamic? fileMessageMeta,  
-  Keyset? keyset,  
-  String? using}  
-)  
+`1pubnub.files.sendFile(  
+2  String channel,   
+3  String fileName,   
+4  Listint> file,  
+5  {dynamic? fileMessage,  
+6  bool? storeFileMessage,  
+7  int? fileMessageTtl,  
+8  String? customMessageType  
+9  dynamic? fileMessageMeta,  
+10  Keyset? keyset,  
+11  String? using}  
+12)  
 `
 ```
 
-Parameters  
-• `channel` (String) – target channel  
-• `fileName` (String) – file name  
-• `file` (List<int>) – file bytes  
-• `fileMessage` (dynamic) – payload that accompanies the file  
-• `storeFileMessage` (bool, default `true`) – store in history  
-• `fileMessageTtl` (int) – TTL in hours (ignored if `storeFileMessage` is false)  
-• `customMessageType` (String) – 3–50 char label, no `pn_`/`pn-` prefix  
-• `fileMessageMeta` (dynamic) – stream-filtering metadata  
-• `keyset` (Keyset) – override default keyset  
-• `using` (String) – keyset name from `keysetStore`
+Parameters:
+- channel (String, required): Channel to send the file to.
+- fileName (String, required): Name of the file.
+- file (List<int>, required): File content (bytes).
+- fileMessage (dynamic, default null): File message published with the file.
+- storeFileMessage (bool, default true): Store message in history. If not set, keyset history config applies.
+- fileMessageTtl (int): If storeFileMessage is true and fileMessageTtl is 0, store with no expiry. If true and set to x, expire in x hours unless keyset retention is Unlimited. Ignored if storeFileMessage is false. If not set, defaults to key expiry value.
+- customMessageType (String): 3–50 chars, case-sensitive alphanumeric; dashes and underscores allowed; cannot start with special chars or pn_/pn-. Examples: text, action, poll.
+- fileMessageMeta (dynamic): Additional info for stream filtering.
+- keyset (Keyset, default: PubNub default keyset): Override keyset.
+- using (String): Keyset name from keysetStore for this call.
 
-Deprecated: `cipherKey` (use crypto module instead).
+Deprecated parameter:
+- cipherKey: Deprecated. Use crypto module instead. Passing cipherKey overrides crypto module and uses legacy 128-bit encryption.
 
-#### Sample
+### Sample code
+
 ```
-`import 'dart:convert';  
-import 'package:pubnub/pubnub.dart';  
+1import 'dart:convert';  
+2import 'package:pubnub/pubnub.dart';  
+3
   
-void main() async {  
-  // Create PubNub instance with default keyset.  
-  var pubnub = PubNub(  
-    defaultKeyset: Keyset(  
-      subscribeKey: 'demo',  
-      publishKey: 'demo',  
-      userId: UserId('myUniqueUserId'),  
-    ),  
-  );  
+4void main() async {  
+5  // Create PubNub instance with default keyset.  
+6  var pubnub = PubNub(  
+7    defaultKeyset: Keyset(  
+8      subscribeKey: 'demo',  
+9      publishKey: 'demo',  
+10      userId: UserId('myUniqueUserId'),  
+11    ),  
+12  );  
+13
   
-  // File details  
-  String channel = 'my_channel';  
+14  // File details  
+15  String channel = 'my_channel';  
+16  String fileName = 'example.txt';  
+17  Listint> fileContent = utf8.encode('Hello, PubNub! This is a test file.');  
+18
+  
+19  // Send the file  
+20  var result = await pubnub.files.sendFile(  
+21    channel,  
+22    fileName,  
+23    fileContent,  
+24    fileMessage: 'Check out this file!',  
+25  );  
+26
+  
+27  // Print result  
+28  print('File uploaded and file message published - timetoken ${result.timetoken}');  
+29}  
+```
+
+### Response
+
+```
+`1{  
+2  "timetoken": 15957709330808500,  
+3  "status": 200,  
+4  "file": {  
+5      "id": "d9515cb7-48a7-41a4-9284-f4bf331bc770",  
+6      "name": "cat_picture.jpg"  
+7  }  
+8}  
 `
 ```
 
-#### Response
-```
-`{  
-  "timetoken": 15957709330808500,  
-  "status": 200,  
-  "file": {  
-      "id": "d9515cb7-48a7-41a4-9284-f4bf331bc770",  
-      "name": "cat_picture.jpg"  
-  }  
-}  
-`
-```
+### Returns
 
-Returns: `PublishFileMessageResult`  
-• `timetoken` (int) – publish time  
-• `isError` (bool) – upload status  
-• `description` (String) – status text  
-• `fileInfo` (`FileInfo`) – `id`, `name`, `url`
+PublishFileMessageResult:
+- timetoken (int)
+- isError (bool)
+- description (String)
+- fileInfo (FileInfo)
 
----
+FileInfo:
+- id (String)
+- name (String)
+- url (String)
 
 ## List channel files
 
-### Method
+Retrieves files uploaded to a channel.
+
+### Method(s)
+
 ```
-`pubnub.files.listFiles(  
-  String channel,  
-  {int? limit,   
-  String? next,   
-  Keyset? keyset,   
-  String? using}  
-)  
+`1pubnub.files.listFiles(  
+2  String channel,  
+3  {int? limit,   
+4  String? next,   
+5  Keyset? keyset,   
+6  String? using}  
+7)  
 `
 ```
 
-Parameters  
-• `channel` (String) – channel name  
-• `limit` (int) – max items  
-• `next` (String) – pagination token  
-• `keyset`, `using` – same as above
+Parameters:
+- channel (String, required): Channel to list files from.
+- limit (int): Max number of files returned.
+- next (String): Forward pagination cursor to fetch next page.
+- keyset (Keyset, default: PubNub default keyset): Override keyset.
+- using (String): Keyset name from keysetStore for this call.
 
-#### Sample
+### Sample code
+
 ```
-`var result = await pubnub.files.listFiles('my_channel');  
+1var result = await pubnub.files.listFiles('my_channel');  
+2
   
-print('There are ${result.count} no. of files uploaded');  
+3print('There are ${result.count} no. of files uploaded');  
+```
+
+### Response
+
+```
+`1{  
+2  "data":[  
+3      {  
+4      "name":"cat_picture.jpg",  
+5      "id":"d9515cb7-48a7-41a4-9284-f4bf331bc770",  
+6      "size":25778,  
+7      "created":"202007 - 26T13:42:06Z"  
+8      }],  
+9   "status": 200  
+10   "totalCount": 1,  
+11   "next": null,  
+12   "prev": null  
+13}  
 `
 ```
 
-#### Response
-```
-`{  
-  "data":[{  
-      "name":"cat_picture.jpg",  
-      "id":"d9515cb7-48a7-41a4-9284-f4bf331bc770",  
-      "size":25778,  
-      "created":"202007 - 26T13:42:06Z"  
-  }],  
-  "status": 200,  
-  "totalCount": 1,  
-  "next": null,  
-  "prev": null  
-}  
-`
-```
+### Returns
 
-Returns: `ListFilesResult` (`filesDetail`, `next`, `count`).  
-`FileDetail` ⇒ `name`, `id`, `size`, `created`.
+ListFilesResult:
+- filesDetail (List<FileDetail>)
+- next (String): Forward pagination cursor.
+- count (int)
 
----
+FileDetail:
+- name (String)
+- id (String)
+- size (int)
+- created (String)
 
 ## Get file URL
 
-### Method
+Generates a URL to download a file from a channel.
+
+### Method(s)
+
 ```
-`pubnub.files.getFileUrl(  
-  String channel,   
-  String fileId,   
-  String fileName,  
-  {Keyset? keyset,   
-  String? using})  
+`1pubnub.files.getFileUrl(  
+2  String channel,   
+3  String fileId,   
+4  String fileName,  
+5  {Keyset? keyset,   
+6  String? using})  
 `
 ```
 
-Parameters: `channel`, `fileId`, `fileName`, `keyset`, `using`.
+Parameters:
+- channel (String, required)
+- fileId (String, required)
+- fileName (String, required)
+- keyset (Keyset, default: PubNub default keyset)
+- using (String): Keyset name from keysetStore for this call.
 
-#### Sample
+### Sample code
+
 ```
-`var fileURL = pubnub.files.getFileUrl(  
-  'my_channel', 'someFileID', 'cat_picture.jpg'  
-);  
-print('URI to download file is ${fileURL}');  
+`1var fileURL = pubnub.files.getFileUrl(  
+2  'my_channel', 'someFileID', 'cat_picture.jpg'  
+3);  
+4print('URI to download file is ${fileURL}');  
 `
 ```
 
-#### Response
+### Response
+
 ```
-`https://ps.pndsn.com/v1/files/demo/channels/my_channel/files/someFileId/cat_picture.jpg?pnsdk=PubNub-Dart%2F1.2.0  
+`1https://ps.pndsn.com/v1/files/demo/channels/my_channel/files/someFileId/cat_picture.jpg?pnsdk=PubNub-Dart%2F1.2.0  
 `
 ```
 
-Returns: `Uri`
+### Returns
 
----
+Uri
 
 ## Download file
 
-### Method
+Downloads a file.
+
+### Method(s)
+
 ```
-`pubnub.files.downloadFile(  
-  String channel,   
-  String fileId,   
-  String fileName,  
-  {Keyset? keyset,   
-  String? using})  
+`1pubnub.files.downloadFile(  
+2  String channel,   
+3  String fileId,   
+4  String fileName,  
+5  {Keyset? keyset,   
+6  String? using})  
 `
 ```
 
-Parameters identical to Get file URL.  
-Deprecated: `cipherKey`.
+Parameters:
+- channel (String, required)
+- fileId (String, required)
+- fileName (String, required)
+- keyset (Keyset, default: PubNub default keyset)
+- using (String): Keyset name from keysetStore for this call.
 
-#### Sample
+Deprecated parameter:
+- cipherKey: Deprecated. Use crypto module instead. Passing cipherKey overrides crypto module and uses legacy 128-bit encryption.
+
+### Sample code
+
 ```
-`var result = await pubnub.files.downloadFile(  
-  'my_channel', 'someFileID', 'cat_picture.jpg');  
+`1var result = await pubnub.files.downloadFile(  
+2  'my_channel', 'someFileID', 'cat_picture.jpg');  
 `
 ```
 
-#### Response
+### Response
+
 ```
-`{  
-    "fileContent":   
-}  
+`1{  
+2    "fileContent":   
+3}  
 `
 ```
 
-Returns: `DownloadFileResult` → `fileContent` (bytes).
+### Returns
 
----
+DownloadFileResult:
+- fileContent (dynamic): Bytes of the downloaded file.
 
 ## Delete file
 
-### Method
+Deletes a file from a channel.
+
+### Method(s)
+
 ```
-`pubnub.files.deleteFile(  
-  String channel,   
-  String fileId,   
-  String fileName,  
-  {Keyset? keyset,   
-  String? using})  
+`1pubnub.files.deleteFile(  
+2  String channel,   
+3  String fileId,   
+4  String fileName,  
+5  {Keyset? keyset,   
+6  String? using})  
 `
 ```
 
-#### Sample
+Parameters:
+- channel (String, required)
+- fileId (String, required)
+- fileName (String, required)
+- keyset (Keyset, default: PubNub default keyset)
+- using (String): Keyset name from keysetStore for this call.
+
+### Sample code
+
 ```
-`await pubnub.files.deleteFile(  
-  'my_channel', 'someFileID', 'cat_picture.jpg');  
+`1await pubnub.files.deleteFile(  
+2  'my_channel', 'someFileID', 'cat_picture.jpg');  
 `
 ```
 
-#### Response
+### Response
+
 ```
-`{  
-  "status": 200  
-}  
+`1{  
+2  "status": 200  
+3}  
 `
 ```
 
-Returns: `DeleteFileResult`
+### Returns
 
----
+DeleteFileResult
 
 ## Publish file message
 
-Used when the upload succeeds but the automatic publish fails (or for manual publishing).
+Publishes a file message to a channel. Used by Send file after upload. Can be called manually if Send file upload succeeded but message publish failed.
 
-### Method
+### Method(s)
+
 ```
-`pubnub.files.publishFileMessage(  
-  String channel,   
-  FileMessage message,  
-  {bool? storeMessage,  
-  int? ttl,  
-  dynamic? meta,  
-  Keyset? keyset,  
-  String? using,  
-  String? customMessageType})  
+`1pubnub.files.publishFileMessage(  
+2  String channel,   
+3  FileMessage message,  
+4  {bool? storeMessage,  
+5  int? ttl,  
+6  dynamic? meta,  
+7  Keyset? keyset,  
+8  String? using,  
+9  String? customMessageType})  
 `
 ```
 
-Parameters  
-• `channel` (String) – target channel  
-• `message` (FileMessage) – contains `fileInfo` and optional `message`  
-• `storeMessage` (bool, default `true`) – store in history  
-• `ttl` (int) – message TTL (hours)  
-• `meta` (dynamic) – stream-filter metadata  
-• `keyset`, `using`, `customMessageType` – same rules as above
+Parameters:
+- channel (String, required)
+- message (FileMessage, required)
+- storeMessage (bool, default true): Store in history; falls back to keyset config if not set.
+- ttl (int): If storeMessage is true and ttl is 0, store with no expiry. If true and set to x, expire in x hours unless retention is Unlimited. Ignored if storeMessage is false. If not set, defaults to key expiry value.
+- meta (dynamic): Additional info for stream filtering.
+- keyset (Keyset, default: PubNub default keyset)
+- using (String): Keyset name from keysetStore for this call.
+- customMessageType (String): 3–50 chars, case-sensitive alphanumeric; dashes and underscores allowed; cannot start with special chars or pn_/pn-. Examples: text, action, poll.
 
-#### Sample
+### Sample code
+
 ```
-`var fileInfo = {  
-  'id': 'someFileID',  
-  'name': 'cat_picture.jpg'  
-};  
+1var fileInfo = {  
+2  'id': 'someFileID',  
+3  'name': 'cat_picture.jpg'  
+4};  
+5
   
-var message = FileMessage(fileInfo, message: 'Look at this photo!');  
-var result =  
-  await pubnub.files.publishFileMessage('my_channel', message, customMessageType: 'file-message');  
-      
-print('file message published - timetoken ${result.timetoken}');  
+6var message = FileMessage(fileInfo, message: 'Look at this photo!');  
+7var result =  
+8  await pubnub.files.publishFileMessage('my_channel', message, customMessageType: 'file-message');  
+9      
+10print('file message published - timetoken ${result.timetoken}');  
+```
+
+### Response
+
+```
+`1{  
+2  "timetoken": 15957709330808500,  
+3  "status": 200,  
+4  "file": {  
+5      "id": "d9515cb7-48a7-41a4-9284-f4bf331bc770",  
+6      "name": "cat_picture.jpg",  
+7  }  
+8}  
 `
 ```
 
-#### Response
-```
-`{  
-  "timetoken": 15957709330808500,  
-  "status": 200,  
-  "file": {  
-      "id": "d9515cb7-48a7-41a4-9284-f4bf331bc770",  
-      "name": "cat_picture.jpg",  
-  }  
-}  
-`
-```
+### Returns
 
-Returns: `PNFileUploadResult` (`timetoken`, `description`, `isError`, `fileInfo`).
+PNFileUploadResult:
+- timetoken (int)
+- description (String): e.g., "sent" on success
+- isError (bool)
+- fileInfo (FileInfo)
 
----
-
-_Last updated Jul 15 2025_
+FileInfo:
+- id (String)
+- name (String)
+- url (String)

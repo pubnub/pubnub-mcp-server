@@ -1,293 +1,606 @@
-# Message Actions API – Objective-C SDK (condensed)
+# Message Actions API for Objective-C SDK
 
-Message Actions (aka Reactions) let you attach metadata (emoji, receipts, etc.) to any stored message. All Message-Action APIs require **Message Persistence** to be enabled for your keys.
+Use Message Actions to add/remove metadata (for example, receipts and reactions) on published messages. Clients can subscribe to receive message action events and fetch past actions from Message Persistence.
 
----
+Reactions
+- "Message Reactions" is a specific use of Message Actions for emoji/social reactions. Same API, different terminology.
 
-## Add Message Reaction
+## Add message action
 
-### Method  
-```objective-c
-- (void)addMessageActionWithRequest:(PNAddMessageActionRequest *)request
-                         completion:(nullable PNAddMessageActionCompletionBlock)block;
+Requires Message Persistence (enable in Admin Portal).
+
+Add an action to a published message. The response includes the added action.
+
+### Method(s)
+
+Use this Objective-C method:
+
 ```
-
-### PNAddMessageActionRequest  
-* `type`   NSString – feature name, ≤15 chars.  
-* `value`  NSString – data to store with the action.  
-* `channel` NSString – channel that holds the target message.  
-* `messageTimetoken` NSNumber – timetoken of the target message.
-
-### Sample  
-```objective-c
-`// Basic configuration  
-PNConfiguration *config = [PNConfiguration configurationWithPublishKey:@"demo"  
-                                                          subscribeKey:@"demo"  
-                                                                userID:@"actionUser"];  
-  
-// Create a PubNub client instance  
-PubNub *client = [PubNub clientWithConfiguration:config];  
-  
-// Add listener for PubNub events  
-[client addListener:self];  
-  
-// Create a request object for adding a message action  
-PNAddMessageActionRequest *request = [PNAddMessageActionRequest requestWithChannel:@"chat"  
-                                                                  messageTimetoken:@(17457898826964534)];  
-  
+`1- (void)addMessageActionWithRequest:(PNAddMessageActionRequest *)request   
+2                         completion:(nullable PNAddMessageActionCompletionBlock)block;  
 `
 ```
-show all 55 lines
 
-### Response  
-```objective-c
-@interface PNAddMessageActionData : PNServiceData
-@property (nonatomic, nullable, readonly, strong) PNMessageAction *action;
-@end
+Parameters:
+- request (PNAddMessageActionRequest): message action details.
+- block (PNAddMessageActionCompletionBlock): completion block.
 
-@interface PNAddMessageActionStatus : PNAcknowledgmentStatus
-@property (nonatomic, readonly, strong) PNAddMessageActionData *data;
-@end
+PNAddMessageActionRequest:
+- type (NSString, required): Action type (max 15 chars).
+- value (NSString, required): Action value.
+- channel (NSString, required): Channel name of the target message.
+- messageTimetoken (NSNumber, required): Timetoken of the target message.
+
+### Sample code
+
+```
+1// Basic configuration  
+2PNConfiguration *config = [PNConfiguration configurationWithPublishKey:@"demo"  
+3                                                          subscribeKey:@"demo"  
+4                                                                userID:@"actionUser"];  
+5
+  
+6// Create a PubNub client instance  
+7PubNub *client = [PubNub clientWithConfiguration:config];  
+8
+  
+9// Add listener for PubNub events  
+10[client addListener:self];  
+11
+  
+12// Create a request object for adding a message action  
+13PNAddMessageActionRequest *request = [PNAddMessageActionRequest requestWithChannel:@"chat"  
+14                                                                  messageTimetoken:@(17457898826964534)];  
+15
+  
+16// Set the required properties  
+17request.type = @"reaction";  
+18request.value = @"smile";  
+19
+  
+20// Send the request  
+21[client addMessageActionWithRequest:request completion:^(PNAddMessageActionStatus *status) {  
+22    if (!status.isError) {  
+23        NSLog(@"✅ Message action successfully added!");  
+24        NSLog(@"Action type: %@", status.data.action.type);  
+25        NSLog(@"Action value: %@", status.data.action.value);  
+26        NSLog(@"Action timetoken: %@", status.data.action.actionTimetoken);  
+27    } else {  
+28        if (status.statusCode == 207) {  
+29            NSLog(@"⚠️ Message action has been added, but event not published.");  
+30        } else {  
+31            NSLog(@"❌ Error adding message action: %@", status.errorData.information);  
+32            NSLog(@"Error category: %@", @(status.category));  
+33        }  
+34    }  
+35}];  
+36
+  
+37// Subscribe to a chat channel  
+38PNSubscribeRequest *request = [PNSubscribeRequest requestWithChannels:@[@"chat-channel"]  
+39                                                        channelGroups:nil];  
+40      
+41[self.client subscribeWithRequest:request];  
+42
+  
+43// Required PNEventsListener methods  
+44- (void)client:(PubNub *)client didReceiveStatus:(PNStatus *)status {  
+45    if (status.category == PNConnectedCategory) {  
+46        NSLog(@"✅ Successfully connected to PubNub!");  
+47    } else if (status.isError) {  
+48        NSLog(@"❌ PubNub connection error: %@", status);  
+49    }  
+50}  
+51
+  
+52- (void)client:(PubNub *)client didReceiveMessageAction:(PNMessageActionResult *)action {  
+53    NSLog(@"📢 Received message action event!");  
+54    NSLog(@"Action type: %@, value: %@", action.data.action.type, action.data.action.value);  
+55}  
+
 ```
 
----
+### Response
 
-## Add Message Reaction (builder pattern)
+```
+1@interface PNAddMessageActionData : PNServiceData  
+2
+  
+3// Added message action.  
+4@property (nonatomic, nullable, readonly, strong) PNMessageAction *action;  
+5
+  
+6@end  
+7
+  
+8@interface PNAddMessageActionStatus : PNAcknowledgmentStatus  
+9
+  
+10// Add message action request processed information.  
+11@property (nonatomic, readonly, strong) PNAddMessageActionData *data;  
+12
+  
+13@end  
 
-### Builder  
-```objective-c
-addMessageAction()
-    .channel(NSString *)
-    .messageTimetoken(NSNumber *)
-    .type(NSString *)
-    .value(NSString *)
-    .performWithCompletion(nullable PNAddMessageActionCompletionBlock);
 ```
 
-### Sample  
-```objective-c
-`self.client.addMessageAction()  
-    .channel(@"chat")  
-    .messageTimetoken(@(1234567890))  
-    .type(@"reaction")  
-    .value(@"smile")  
-    .performWithCompletion(^(PNAddMessageActionStatus *status) {  
-        if (!status.isError) {  
-            /**  
-             * Message action successfully added.  
-             * Created message action information available here: status.data.action  
-             */  
-        } else {  
-            if (status.statusCode == 207) {  
-                // Message action has been added, but event not published.  
-            } else {  
+## Add message action (builder pattern)
+
+Requires Message Persistence.
+
+Add an action to a published message. The response includes the added action.
+
+### Method(s)
+
+Use this Objective-C method:
+
+```
+`1addMessageAction()  
+2    .channel(NSString *)  
+3    .messageTimetoken(NSNumber *)  
+4    .type(NSString *)  
+5    .value(NSString *)  
+6    .performWithCompletion(nullable PNAddMessageActionCompletionBlock);  
 `
 ```
-show all 24 lines
 
-### Response  
-```objective-c
-@interface PNAddMessageActionData : PNServiceData
-@property (nonatomic, nullable, readonly, strong) PNMessageAction *action;
-@end
+Parameters:
+- channel (NSString, required): Target message channel.
+- messageTimetoken (NSNumber, required): Timetoken of the target message.
+- type (NSString, required): Action type.
+- value (NSString, required): Action value.
+- block (PNAddMessageActionCompletionBlock): Completion block.
 
-@interface PNAddMessageActionStatus : PNAcknowledgmentStatus
-@property (nonatomic, readonly, strong) PNAddMessageActionData *data;
-@end
+### Sample code
+
 ```
-
----
-
-## Remove Message Reaction
-
-### Method  
-```objective-c
-- (void)removeMessageActionWithRequest:(PNRemoveMessageActionRequest *)request
-                            completion:(nullable PNRemoveMessageActionCompletionBlock)block;
-```
-
-### PNRemoveMessageActionRequest  
-* `actionTimetoken` NSNumber – timetoken of the action itself.  
-* `channel` NSString – channel that stores the target message.  
-* `messageTimetoken` NSNumber – timetoken of the target message.
-
-### Sample  
-```objective-c
-`PNRemoveMessageActionRequest *request = [PNRemoveMessageActionRequest requestWithChannel:@"chat"  
-                                                                        messageTimetoken:@(1234567890)];  
-request.actionTimetoken = @(1234567891);  
-  
-[self.client removeMessageActionWithRequest:request  
-                                 completion:^(PNAcknowledgmentStatus *status) {  
-  
-    if (!status.isError) {  
-        // Message action successfully removed.  
-    } else {  
-        /**  
-         * Handle remove message action error. Check 'category' property to find out possible  
-         * issue because of which request did fail.  
-         *  
-         * Request can be resent using: [status retry]  
+`1self.client.addMessageAction()  
+2    .channel(@"chat")  
+3    .messageTimetoken(@(1234567890))  
+4    .type(@"reaction")  
+5    .value(@"smile")  
+6    .performWithCompletion(^(PNAddMessageActionStatus *status) {  
+7        if (!status.isError) {  
+8            /**  
+9             * Message action successfully added.  
+10             * Created message action information available here: status.data.action  
+11             */  
+12        } else {  
+13            if (status.statusCode == 207) {  
+14                // Message action has been added, but event not published.  
+15            } else {  
+16                /**  
+17                 * Handle add message action error. Check 'category' property to find out possible  
+18                 * issue because of which request did fail.  
+19                 *  
+20                 * Request can be resent using: [status retry]  
+21                 */  
+22            }  
+23        }  
+24    });  
 `
 ```
-show all 18 lines
 
-### Response  
-```objective-c
-@interface PNErrorData : PNServiceData
-@property (nonatomic, readonly, strong) NSString *information;
-@end
+### Response
 
-@interface PNAcknowledgmentStatus : PNErrorStatus
-@property (nonatomic, readonly, assign, getter = isError) BOOL error;
-@property (nonatomic, readonly, strong) PNErrorData *errorData;
-@end
+```
+1@interface PNAddMessageActionData : PNServiceData  
+2
+  
+3// Added message action.  
+4@property (nonatomic, nullable, readonly, strong) PNMessageAction *action;  
+5
+  
+6@end  
+7
+  
+8@interface PNAddMessageActionStatus : PNAcknowledgmentStatus  
+9
+  
+10// Add message action request processed information.  
+11@property (nonatomic, readonly, strong) PNAddMessageActionData *data;  
+12
+  
+13@end  
+
 ```
 
----
+## Remove message action
 
-## Remove Message Reaction (builder pattern)
+Requires Message Persistence.
 
-### Builder  
-```objective-c
-removeMessageAction()
-    .channel(NSString *)
-    .messageTimetoken(NSNumber *)
-    .actionTimetoken(NSNumber *)
-    .performWithCompletion(nullable PNRemoveMessageActionCompletionBlock);
+Remove a previously added action from a published message. The response is empty.
+
+### Method(s)
+
+Use this Objective-C method:
+
 ```
-
-### Sample  
-```objective-c
-`self.client.removeMessageAction()  
-    .channel("chat")  
-    .messageTimetoken(@(1234567890))  
-    .actionTimetoken(@(1234567891))  
-    .performWithCompletion(^(PNCreateSpaceStatus *status) {  
-        if (!status.isError) {  
-            // Message action successfully removed.  
-        } else {  
-            /**  
-             * Handle remove message action error. Check 'category' property to find out possible  
-             * issue because of which request did fail.  
-             *  
-             * Request can be resent using: [status retry]  
-             */  
-        }  
+`1- (void)removeMessageActionWithRequest:(PNRemoveMessageActionRequest *)request   
+2                            completion:(nullable PNRemoveMessageActionCompletionBlock)block;  
 `
 ```
-show all 16 lines
 
-### Response  
-```objective-c
-@interface PNErrorData : PNServiceData
-@property (nonatomic, readonly, strong) NSString *information;
-@end
+Parameters:
+- request (PNRemoveMessageActionRequest): message action to remove.
+- block (PNRemoveMessageActionCompletionBlock): completion block.
 
-@interface PNAcknowledgmentStatus : PNErrorStatus
-@property (nonatomic, readonly, assign, getter = isError) BOOL error;
-@property (nonatomic, readonly, strong) PNErrorData *errorData;
-@end
+PNRemoveMessageActionRequest:
+- actionTimetoken (NSNumber, required): Timetoken of the message action to remove.
+- channel (NSString, required): Target message channel.
+- messageTimetoken (NSNumber, required): Timetoken of the target message.
+
+### Sample code
+
+```
+1PNRemoveMessageActionRequest *request = [PNRemoveMessageActionRequest requestWithChannel:@"chat"  
+2                                                                        messageTimetoken:@(1234567890)];  
+3request.actionTimetoken = @(1234567891);  
+4
+  
+5[self.client removeMessageActionWithRequest:request  
+6                                 completion:^(PNAcknowledgmentStatus *status) {  
+7
+  
+8    if (!status.isError) {  
+9        // Message action successfully removed.  
+10    } else {  
+11        /**  
+12         * Handle remove message action error. Check 'category' property to find out possible  
+13         * issue because of which request did fail.  
+14         *  
+15         * Request can be resent using: [status retry]  
+16         */  
+17    }  
+18}];  
+
 ```
 
----
+### Response
 
-## Get Message Reactions
+```
+1@interface PNErrorData : PNServiceData  
+2
+  
+3// Stringified error information.  
+4@property (nonatomic, readonly, strong) NSString *information;  
+5
+  
+6@end  
+7
+  
+8@interface PNAcknowledgmentStatus : PNErrorStatus  
+9
+  
+10// Whether status object represent error or not.  
+11@property (nonatomic, readonly, assign, getter = isError) BOOL error;  
+12
+  
+13// Additional information related to error status object.  
+14@property (nonatomic, readonly, strong) PNErrorData *errorData;  
+15
+  
+16@end  
 
-### Method  
-```objective-c
-- (void)fetchMessagesActionsWithRequest:(PNFetchMessagesActionsRequest *)request
-                             completion:(PNFetchMessageActionsCompletionBlock)block;
 ```
 
-### PNFetchMessageActionsRequest  
-* `channel` NSString – source channel.  
-* `start`  NSNumber – return actions < this timetoken.  
-* `end`    NSNumber – return actions ≥ this timetoken.  
-* `limit`  NSUInteger – max actions to return.
+## Remove message action (builder pattern)
 
-### Sample  
-```objective-c
-`PNFetchMessageActionsRequest *request = [PNFetchMessageActionsRequest requestWithChannel:@"chat"];  
-request.start = @(1234567891);  
-request.limit = 200;  
-  
-[self.client fetchMessageActionsWithRequest:request  
-                                 completion:^(PNFetchMessageActionsResult *result,  
-                                              PNErrorStatus *status) {  
-  
-    if (!status.isError) {  
-        /**  
-         * Message actions successfully fetched.  
-         * Result object has following information:  
-         *     result.data.actions - list of message action instances  
-         *     result.data.start - fetched messages actions time range start (oldest message  
-         *         action timetoken).  
+Requires Message Persistence.
+
+Remove a previously added action from a published message. The response is empty.
+
+### Method(s)
+
+```
+`1removeMessageAction()  
+2    .channel(NSString *)  
+3    .messageTimetoken(NSNumber *)  
+4    .actionTimetoken(NSNumber *)  
+5    .performWithCompletion(nullable PNRemoveMessageActionCompletionBlock);  
 `
 ```
-show all 26 lines
 
-### Response  
-```objective-c
-@interface PNFetchMessageActionsData : PNServiceData
-@property (nonatomic, readonly, strong) NSArray<PNMessageAction *> *actions;
-@property (nonatomic, readonly, strong) NSNumber *start;
-@property (nonatomic, readonly, strong) NSNumber *end;
-@end
+Parameters:
+- channel (NSString, required): Target message channel.
+- messageTimetoken (NSNumber, required): Timetoken of the target message.
+- actionTimetoken (NSNumber, required): Timetoken of the action to remove.
+- block (PNRemoveMessageActionCompletionBlock): Completion block.
 
-@interface PNErrorStatus : PNStatus
-@property (nonatomic, readonly, assign, getter = isError) BOOL error;
-@property (nonatomic, readonly, strong) PNErrorData *errorData;
-@end
+### Sample code
+
+```
+`1self.client.removeMessageAction()  
+2    .channel("chat")  
+3    .messageTimetoken(@(1234567890))  
+4    .actionTimetoken(@(1234567891))  
+5    .performWithCompletion(^(PNCreateSpaceStatus *status) {  
+6        if (!status.isError) {  
+7            // Message action successfully removed.  
+8        } else {  
+9            /**  
+10             * Handle remove message action error. Check 'category' property to find out possible  
+11             * issue because of which request did fail.  
+12             *  
+13             * Request can be resent using: [status retry]  
+14             */  
+15        }  
+16    });  
+`
 ```
 
----
+### Response
+
+```
+1@interface PNErrorData : PNServiceData  
+2
+  
+3// Stringified error information.  
+4@property (nonatomic, readonly, strong) NSString *information;  
+5
+  
+6@end  
+7
+  
+8@interface PNAcknowledgmentStatus : PNErrorStatus  
+9
+  
+10// Whether status object represent error or not.  
+11@property (nonatomic, readonly, assign, getter = isError) BOOL error;  
+12
+  
+13// Additional information related to error status object.  
+14@property (nonatomic, readonly, strong) PNErrorData *errorData;  
+15
+  
+16@end  
+
+```
+
+## Get message actions
+
+Requires Message Persistence.
+
+Get a list of message actions in a channel. Response is sorted by action timetoken (ascending).
+
+### Method(s)
+
+Use this Objective-C method:
+
+```
+`1- (void)fetchMessagesActionsWithRequest:(PNFetchMessagesActionsRequest *)request   
+2                             completion:(PNFetchMessageActionsCompletionBlock)block;  
+`
+```
+
+Parameters:
+- request (PNFetchMessageActionsRequest): parameters to fetch message actions.
+- block (PNFetchMessageActionsCompletionBlock): completion block.
+
+PNFetchMessageActionsRequest:
+- start (NSNumber, optional): Action timetoken for the start of the range (exclusive).
+- end (NSNumber, optional): Action timetoken for the end of the range (inclusive).
+- limit (NSUInteger, optional): Number of actions to return.
+- channel (NSString, required): Channel to list actions for.
+
+### Sample code
+
+```
+1PNFetchMessageActionsRequest *request = [PNFetchMessageActionsRequest requestWithChannel:@"chat"];  
+2request.start = @(1234567891);  
+3request.limit = 200;  
+4
+  
+5[self.client fetchMessageActionsWithRequest:request  
+6                                 completion:^(PNFetchMessageActionsResult *result,  
+7                                              PNErrorStatus *status) {  
+8
+  
+9    if (!status.isError) {  
+10        /**  
+11         * Message actions successfully fetched.  
+12         * Result object has following information:  
+13         *     result.data.actions - list of message action instances  
+14         *     result.data.start - fetched messages actions time range start (oldest message  
+15         *         action timetoken).  
+16         *     result.data.end - fetched messages actions time range end (newest action timetoken).  
+17         */  
+18    } else {  
+19        /**  
+20         * Handle fetch message actions error. Check 'category' property to find out possible  
+21         * issue because of which request did fail.  
+22         *  
+23         * Request can be resent using: [status retry]  
+24         */  
+25    }  
+26}];  
+
+```
+
+### Response
+
+```
+1@interface PNFetchMessageActionsData : PNServiceData  
+2
+  
+3// List of fetched messages actions.  
+4@property (nonatomic, readonly, strong) NSArrayPNMessageAction *> *actions;  
+5
+  
+6/**  
+7 * Fetched messages actions time range start (oldest message action timetoken).  
+8 *  
+9 * This timetoken can be used as 'start' value to fetch older messages actions.  
+10 */  
+11@property (nonatomic, readonly, strong) NSNumber *start;  
+12
+  
+13// Fetched messages actions time range end (newest action timetoken).  
+14@property (nonatomic, readonly, strong) NSNumber *end;  
+15
+  
+16@end  
+17
+  
+18@interface PNFetchMessageActionsResult : PNResult  
+19
+  
+20// Fetch message actions request processed information.  
+21@property (nonatomic, readonly, strong) PNFetchMessageActionsData *data;  
+22
+  
+23@end  
+
+```
+
+Error response used in case of failure:
+
+```
+1@interface PNErrorData : PNServiceData  
+2
+  
+3// Stringified error information.  
+4@property (nonatomic, readonly, strong) NSString *information;  
+5
+  
+6@end  
+7
+  
+8@interface PNErrorStatus : PNStatus  
+9
+  
+10// Whether status object represent error or not.  
+11@property (nonatomic, readonly, assign, getter = isError) BOOL error;  
+12
+  
+13// Additional information related to error status object.  
+14@property (nonatomic, readonly, strong) PNErrorData *errorData;  
+15
+  
+16@end  
+
+```
 
 ## Get Message Reactions (builder pattern)
 
-### Builder  
-```objective-c
-fetchMessageActions()
-    .channel(NSString *)
-    .start(NSNumber *)
-    .end(NSNumber *)
-    .limit(NSUInteger)
-    .performWithCompletion(PNFetchMessageActionsCompletionBlock);
-```
+Requires Message Persistence.
 
-### Sample  
-```objective-c
-`self.client.fetchMessageActions()  
-    .channel(@"chat")  
-    .start(@(1234567891))  
-    .limit(200)  
-    .performWithCompletion(^(PNFetchMessageActionsResult *result,  
-                             NErrorStatus *status) {  
-  
-        if (!status.isError) {  
-            /**  
-             * Message action successfully added.  
-             * Result object has following information:  
-             *     result.data.actions - list of message action instances  
-             *     result.data.start - fetched messages actions time range start (oldest message  
-             *         action timetoken).  
-             *     result.data.end - fetched messages actions time range end (newest action timetoken).  
+Get a list of message actions in a channel. Returns actions sorted by action timetoken (ascending).
+
+### Method(s)
+
+To get Message Actions you can use the following method(s) in the Objective-C SDK:
+
+```
+`1fetchMessageActions()  
+2    .channel(NSString *)  
+3    .start(NSNumber *)  
+4    .end(NSNumber *)  
+5    .limit(NSUInteger)  
+6    .performWithCompletion(PNFetchMessageActionsCompletionBlock);  
 `
 ```
-show all 25 lines
 
-### Response  
-```objective-c
-@interface PNFetchMessageActionsData : PNServiceData
-@property (nonatomic, readonly, strong) NSArray<PNMessageAction *> *actions;
-@property (nonatomic, readonly, strong) NSNumber *start;
-@property (nonatomic, readonly, strong) NSNumber *end;
-@end
+Parameters:
+- channel (NSString, required): Channel to retrieve actions from.
+- start (NSNumber, optional): Start timetoken; return values will be less than start.
+- end (NSNumber, optional): End timetoken; return values will be greater than or equal to end.
+- limit (NSUInteger, optional): Number of actions to return.
+- block (PNFetchMessageActionsCompletionBlock): Completion block.
 
-@interface PNErrorStatus : PNStatus
-@property (nonatomic, readonly, assign, getter = isError) BOOL error;
-@property (nonatomic, readonly, strong) PNErrorData *errorData;
-@end
+### Sample code
+
+```
+1self.client.fetchMessageActions()  
+2    .channel(@"chat")  
+3    .start(@(1234567891))  
+4    .limit(200)  
+5    .performWithCompletion(^(PNFetchMessageActionsResult *result,  
+6                             NErrorStatus *status) {  
+7
+  
+8        if (!status.isError) {  
+9            /**  
+10             * Message action successfully added.  
+11             * Result object has following information:  
+12             *     result.data.actions - list of message action instances  
+13             *     result.data.start - fetched messages actions time range start (oldest message  
+14             *         action timetoken).  
+15             *     result.data.end - fetched messages actions time range end (newest action timetoken).  
+16             */  
+17        } else {  
+18            /**  
+19             * Handle fetch message actions error. Check 'category' property to find out possible  
+20             * issue because of which request did fail.  
+21             *  
+22             * Request can be resent using: [status retry]  
+23             */  
+24        }  
+25    });  
+
 ```
 
-_Last updated: Jul 15 2025_
+### Response
+
+Response objects returned by client when fetch message actions is used:
+
+```
+1@interface PNFetchMessageActionsData : PNServiceData  
+2
+  
+3// List of fetched messages actions.  
+4@property (nonatomic, readonly, strong) NSArrayPNMessageAction *> *actions;  
+5
+  
+6/**  
+7 * Fetched messages actions time range start (oldest message action timetoken).  
+8 *  
+9 * This timetoken can be used as 'start' value to fetch older messages actions.  
+10 */  
+11@property (nonatomic, readonly, strong) NSNumber *start;  
+12
+  
+13// Fetched messages actions time range end (newest action timetoken).  
+14@property (nonatomic, readonly, strong) NSNumber *end;  
+15
+  
+16@end  
+17
+  
+18@interface PNFetchMessageActionsResult : PNResult  
+19
+  
+20// Fetch message actions request processed information.  
+21@property (nonatomic, readonly, strong) PNFetchMessageActionsData *data;  
+22
+  
+23@end  
+
+```
+
+Error response used in case of failure:
+
+```
+1@interface PNErrorData : PNServiceData  
+2
+  
+3// Stringified error information.  
+4@property (nonatomic, readonly, strong) NSString *information;  
+5
+  
+6@end  
+7
+  
+8@interface PNErrorStatus : PNStatus  
+9
+  
+10// Whether status object represent error or not.  
+11@property (nonatomic, readonly, assign, getter = isError) BOOL error;  
+12
+  
+13// Additional information related to error status object.  
+14@property (nonatomic, readonly, strong) PNErrorData *errorData;  
+15
+**16@end  
+
+```

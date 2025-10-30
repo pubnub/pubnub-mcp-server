@@ -1,98 +1,87 @@
-# Subscribe V2 (REST)
+# Subscribe V2
 
-Subscribe is a long-poll GET request.  
-Endpoint:  
+- You must send at least two subscribe calls to begin receiving messages:
+  - Initial subscribe: set `tt=0`.
+  - Subsequent subscribes: set `tt` to the last response’s `t.t` and set `tr` to the last response’s `t.r`.
+- Each subscribe call returns messages with timetokens more recent than the one passed. Always set `tr` to the last received `r` to stay on the same region and avoid duplicate messages.
+- Message type is denoted by `e`:
+  - `0` or missing: regular message
+  - `1`: Signal
+  - `2`: Objects
+  - `3`: Message Actions
+  - `4`: Files
+- If subscribed to a channel group `myCG` and a message arrives on member channel `myCH`, `b` contains "myCG", and `c` contains "myCH".
+- Message Actions: Action add/remove events are published on the same channel as the parent message with `e=3`; payload includes action details and the acting `UUID` is in `i`.
+- When subscribing to both channels and channel groups, entries for non-channel-group member channels are identical to their standard channel entries.
 
-```
-GET https://ps.pndsn.com/v2/subscribe/{sub_key}/{channel}/0
-```
+### Success Responses
 
-Call flow  
-1. First call: `tt=0` (initial timetoken).  
-2. Each subsequent call:  
-   • Set `tt` to the last value of `t.t` returned.  
-   • Set `tr` to the last value of `t.r` returned (keeps you on the same data center and avoids duplicate messages).  
-Continue calling immediately after the previous request completes.
+On success, an object is returned. See Responses for bodies and schema.
 
----
+### Error Responses
 
-## Path Parameters (required)
+- Non-200 HTTP status indicates an error. You may or may not receive parseable JSON.
+- On non-common status and/or unparseable JSON, assume error, call the error callback with available info, wait 1 second, and retry indefinitely.
+- Subscribe logic must be durable and always retry; developers can still unsubscribe as needed.
 
-| Name      | Description                                    |
-|-----------|------------------------------------------------|
-| `sub_key` | Your Subscribe Key (from Admin Portal).        |
-| `channel` | Comma-separated channel list. Use a single comma (`,`) when subscribing only to channel groups. |
+## Path Parameters
+
+- `sub_key` string — REQUIRED  
+  Your app's subscribe key from Admin Portal.
+- `channel` string — REQUIRED  
+  Channel ID(s) to subscribe to. Use comma to subscribe to multiple channels. Use a single comma (`,`) if subscribing to no channels (only channel groups).
+  Example:  
+  `myChannel`
+- `callback` string — REQUIRED  
+  JSONP callback name; use `0` for no callback.  
+  Example (myCallback):  
+  `myCallback`  
+  Example (zero):  
+  `0`
 
 ## Query Parameters
 
-| Name            | Type / Default | Description / Example |
-|-----------------|----------------|-----------------------|
-| `callback`*     | string / —     | JSONP function name, or `0` for none. |
-| `tt`            | string / `0`   | Timetoken to resume from.<br>Example: `1231312313123` |
-| `tr`            | string / —     | Region returned by previous subscribe. |
-| `channel-group` | string / —     | Comma-separated channel-group list.<br>Example: `cg1,cg2` |
-| `state`         | string / —     | URL-encoded JSON state object.<br>Example: `%7B%22text%22%3A%22hey%22%7D` |
-| `heartbeat`     | int / `300`    | Presence timeout (seconds). |
-| `auth`          | string / —     | Auth key or token. |
-| `uuid`          | string / —     | Client UUID (≤ 92 UTF-8 chars). |
-| `filter-expr`   | string / —     | Message filter expression.<br>Example: `uuid%20!%3D%20'cvc1'` |
-| `signature`     | string / —     | Signature (required if Access Manager & no token). |
-| `timestamp`     | int / —        | Unix epoch used when `signature` is present. |
+- `tt` string  
+  `0` for initial subscribe, or a valid timetoken to resume/continue/fast-forward.  
+  Example:  
+  `1231312313123`
+- `tr` string  
+  Region returned from the initial or any subsequent subscribe call; prevents duplicates by keeping you on the same data center.
+- `channel-group` string  
+  Channel group name(s) to subscribe to (comma-separated allowed).  
+  Example:  
+  `cg1,cg2,cg3`
+- `state` string  
+  URL-encoded JSON object of state per channel.  
+  Example:  
+  `%7B%22text%22%3A%22hey%22%7D`
+- `heartbeat` integer  
+  Presence timeout (seconds). Default: 300. Presence only.
+- `auth` string  
+  Auth key (legacy) or token for Access Manager.  
+  Example:  
+  `myAuthKey`
+- `uuid` string  
+  UTF-8 string (max 92 chars) identifying the client.  
+  Example:  
+  `myUniqueUserId`
+- `filter-expr` string  
+  Subscribe filter expression.  
+  Example:  
+  `uuid%20!%3D%20%27cvc1%27`
+- `signature` string  
+  Signature verifying the request (used with Access Manager). If Access Manager is enabled, either a valid authorization token or a signature is required.
+- `timestamp` integer  
+  Unix epoch used as nonce for signature; ±60s NTP skew max. Required if `signature` is supplied.
 
-\*`callback` is mandatory even when using `0`.
+## Responses
 
----
+`200` Success
 
-## Message Types (`e` field)
-
-| `e` | Type            |
-|-----|-----------------|
-| 0 / missing | Standard message |
-| 1   | Signal          |
-| 2   | Objects         |
-| 3   | Message Action  |
-| 4   | Files           |
-
-Message actions (add/remove) are delivered as standard subscribe events with `e = 3`; the acting `uuid` is in field `i`.
-
----
-
-## Success Response 200
-
-Common envelope:
+##### Body (For normal messages)
 
 ```
-{
-  "t": {         // subscribe cursor
-    "t": "<timetoken>",
-    "r": <region>
-  },
-  "m": [         // array of messages
-    {
-      "a": "1",            // shard
-      "f": 0,              // flags
-      "e": 0,              // message type (see table above)
-      "i": "<uuid>",       // publishing client
-      "s": 1,              // sequence
-      "p": {               // publish metadata
-        "t": "<pub_timetoken>",
-        "r": <region>
-      },
-      "k": "<sub_key>",
-      "c": "<channel>",    // channel
-      "b": "<cg>",         // channel-group if any
-      "d": <payload>,      // message payload
-      "cmt": "<custom>"    // optional message-type
-    }
-  ]
-}
-```
-
-Sample bodies:
-
-##### Normal Message
-```
-{  
+`{  
 "t": {  
 "t": "15628652479932717",  
 "r": 4  
@@ -106,13 +95,21 @@ Sample bodies:
 "t": "15628652479933927",  
 "r": 4  
 },  
-"k": "demo",
-...
+"k": "demo",  
+"c": "my-channel",  
+"d": "my message",  
+"cmt": "chat_custom_message_type",  
+"b": "my-channel"  
+}  
+]  
+}  
+`
 ```
 
-##### Signal (`e = 1`)
+##### Body (For messages of type `Signal`)
+
 ```
-{  
+`{  
 "t": {  
 "t": "15665475668624925",  
 "r": 7  
@@ -121,13 +118,27 @@ Sample bodies:
 {  
 "a": "1",  
 "f": 0,  
-"e": 1,
-...
+"e": 1,  
+"i": "pn-2fedcc05-9909-4d46-9129-a75cb8b69a5a",  
+"p": {  
+"t": "15665475668605765",  
+"r": 7  
+},  
+"k": "sub-c-s9n4nan48rn-casd2-1123123e9-8b24-569e8a5c3af3",  
+"c": "userid0",  
+"d": "my-signal",  
+"cmt": "chat_custom_message_type",  
+"b": "userid0"  
+}  
+]  
+}  
+`
 ```
 
-##### Objects (`e = 2`)
+##### Body (For messages of type `Objects`)
+
 ```
-{  
+`{  
 "t": {  
 "t": "15665291391003207",  
 "r": 7  
@@ -136,13 +147,37 @@ Sample bodies:
 {  
 "a": "1",  
 "f": 0,  
-"e": 2,
-...
+"e": 2,  
+"p": {  
+"t": "15665291390119767",  
+"r": 2  
+},  
+"k": "sub-c-s9n4nan48rn-casd2-1123123e9-8b24-569e8a5c3af3",  
+"c": "spaceid0",  
+"d": {  
+"source": "objects",  
+"version": "1.0",  
+"event": "update",  
+"type": "space",  
+"data": {  
+"description": "desc5",  
+"eTag": "AYSay6Cm6YfKEA",  
+"id": "spaceid0",  
+"name": "name",  
+"updated": "2019-08-23T02:58:58.983927Z"  
+}  
+},  
+"b": "spaceid0"  
+}  
+]  
+}  
+`
 ```
 
-##### Message Actions (`e = 3`)
+##### Body (For messages of type `Message Actions`)
+
 ```
-{  
+`{  
 "t": {  
 "t": "15694740174268096",  
 "r": 56  
@@ -150,13 +185,36 @@ Sample bodies:
 "m": [  
 {  
 "f": 0,  
-"e": 3,
-...
+"e": 3,  
+"i": "pn-53ca01eb-f7c5-4653-9639-ab45b8768d0f",  
+"p": {  
+"t": "15694740174271958",  
+"r": 56  
+},  
+"k": "sub-c-d7da9e58-c997-11e9-a139-dab2c75acd6f",  
+"c": "my-channel",  
+"d": {  
+"source": "actions",  
+"version": "1.0",  
+"data": {  
+"messageTimetoken": "15694739912496365",  
+"type": "reaction",  
+"value": "smiley_face",  
+"actionTimetoken": "15694740173724452"  
+},  
+"event": "added"  
+},  
+"b": "my-channel"  
+}  
+]  
+}  
+`
 ```
 
-##### Files (`e = 4`)
+##### Body (For messages of type `Files`)
+
 ```
-{  
+`{  
 "t": {  
 "t": "15632184115458813",  
 "r": 1  
@@ -164,45 +222,78 @@ Sample bodies:
 "m": [  
 {  
 "a": "1",  
-"f": 514,
-...
+"f": 514,  
+"p": {  
+"t": "15632184115444394",  
+"r": 1  
+},  
+"k": "demo",  
+"c": "my-channel",  
+"d": {  
+"message": "Hello World",  
+"file": {  
+"id": "5a3eb38c-483a-4b25-ac01-c4e20deba6d6",  
+"name": "test_file.jpg"  
+}  
+},  
+"e": "4",  
+"i": "uuid-1",  
+"b": "my-channel"  
+}  
+]  
+}  
+`
 ```
 
----
+Schema — OPTIONAL
 
-## Error Responses
+- `t` object — OPTIONAL  
+  - `t` string — OPTIONAL — the timetoken  
+  - `r` integer — OPTIONAL — the region
+- `m` object[] — OPTIONAL  
+  - `a` string — OPTIONAL — Shard  
+  - `f` integer — OPTIONAL — Flags  
+  - `e` integer — OPTIONAL — Message type (1 Signal, 2 Objects, 3 MessageAction, 4 Files)  
+  - `i` string — OPTIONAL — Issuing Client Id  
+  - `s` integer — OPTIONAL — Sequence number  
+  - `p` object — OPTIONAL — Publish Timetoken Metadata  
+    - `t` string — OPTIONAL  
+    - `r` integer — OPTIONAL  
+  - `k` string — OPTIONAL — Subscribe Key  
+  - `c` string — OPTIONAL — Channel  
+  - `d` string — OPTIONAL — The payload  
+  - `b` string — OPTIONAL — Subscription match or channel group  
+  - `cmt` string — OPTIONAL — Published custom message type data if query parameter set
 
-| HTTP | Meaning                       | Notes                              |
-|------|-------------------------------|------------------------------------|
-| 400  | Bad Request                   | Malformed parameters.              |
-| 403  | Unauthorized                  | Invalid or missing auth / signature|
-| 413  | Payload Too Large (>64 KB)    |                                    |
-| 429  | Rate limit exceeded           |                                    |
+`400` Bad Request
 
-On non-200 responses: invoke error callback, wait 1 s, and retry indefinitely (or until the app decides to unsubscribe).
+Schema — OPTIONAL
+- `status` integer — OPTIONAL
+- `service` string — OPTIONAL
+- `error` boolean — OPTIONAL
+- `message` string — OPTIONAL
 
----
+`403` Unauthorized access
 
-## Schema (all fields optional unless noted)
+Schema — OPTIONAL
+- `message` string — OPTIONAL
+- `payload` object — OPTIONAL
+- `channels` string[] — OPTIONAL
+- `error` boolean — OPTIONAL
+- `service` string — OPTIONAL
+- `status` integer — OPTIONAL
 
-`t.t`   — cursor timetoken (string)  
-`t.r`   — region (int)  
-`m[]`   — array of message objects  
-Within `m[]` objects:  
+`413` Request Entity too large (larger than 64 bytes).
 
-• `a`  shard (string)  
-• `f`  flags (int)  
-• `e`  message type (int, see table)  
-• `i`  issuing client UUID (string)  
-• `s`  sequence number (int)  
-• `p.t` publish timetoken (string)  
-• `p.r` publish region (int)  
-• `k`  subscribe key (string)  
-• `c`  channel name (string)  
-• `b`  channel group (string)  
-• `d`  payload (JSON)  
-• `cmt` custom message type (string)  
+Schema — OPTIONAL
+- `status` integer — OPTIONAL
+- `service` string — OPTIONAL
+- `error` boolean — OPTIONAL
+- `message` string — OPTIONAL
 
----
+`429` Request rate limit exceeded.
 
-Implement robust retry logic, always using the latest `t.t` and `t.r` returned.
+Schema — OPTIONAL
+- `status` integer — OPTIONAL
+- `error` boolean — OPTIONAL
+- `message` string — OPTIONAL

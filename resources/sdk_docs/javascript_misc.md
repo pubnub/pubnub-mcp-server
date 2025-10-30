@@ -1,10 +1,10 @@
 # Utility Methods API for JavaScript SDK
 
-Utility methods that don't fit other categories.
+Utility methods that don't fit into other categories.
 
 ## PubNubFile
 
-Internal representation of a file. Methods vary by environment.
+Internal file representation used by the SDK. Extraction methods vary by environment.
 
 ### Extracting the file
 
@@ -12,14 +12,14 @@ Internal representation of a file. Methods vary by environment.
 
 - file.toBuffer() returns Promise<Buffer>
 - file.toStream() returns Promise<Readable>
-- file.toString(encoding: string) returns a string encoded using encoding (defaults to utf8 if not available)
+- file.toString(encoding: string) returns a string encoded using encoding (defaults to utf8)
 
 ##### Methods supported in a browser
 
 - file.toFile() returns Promise<File>
 - file.toBlob() returns Promise<Blob>
 - file.toArrayBuffer() returns Promise<ArrayBuffer>
-- file.toString(encoding: string) returns a string encoded using encoding (defaults to utf8 if not available)
+- file.toString(encoding: string) returns a string encoded using encoding (defaults to utf8)
 
 ##### React and React Native
 
@@ -31,7 +31,7 @@ Internal representation of a file. Methods vary by environment.
 pubnub.File.create(input: FileInput): PubNubFile;
 ```
 
-FileInput supports multiple environments:
+FileInput accepts different shapes per environment.
 
 #### Node.js
 
@@ -98,7 +98,7 @@ Stop all requests to PubNub when there are active subscribe channels.
 disconnect()
 ```
 
-No arguments.
+This method doesn't take any arguments.
 
 ### Sample code
 
@@ -116,7 +116,7 @@ Force the SDK to try to reach PubNub again.
 reconnect()
 ```
 
-No arguments.
+This method doesn't take any arguments.
 
 ### Sample code
 
@@ -131,12 +131,12 @@ Assign or reassign a proxy configuration at runtime. Node.js only.
 ### Method(s)
 
 ```
-setProxy({ String hostname, Number port, String protocol })
+setProxy({String hostname, Number port, String protocol})
 ```
 
-- hostname: String. IP address or URI to use.
-- port: Number. Proxy port.
-- protocol: String. Default: http. Supported: http, https, socks5, socks4, pac.
+- hostname (String): IP address or URI.
+- port (Number): Proxy listen port.
+- protocol (String, default: http): Supported values: http, https, socks5, socks4, pac.
 
 ### Sample code
 
@@ -149,5 +149,6 @@ setProxy({ String hostname, Number port, String protocol })
 #### Delete the proxy in run time
 
 ```
+1
 **
 ```

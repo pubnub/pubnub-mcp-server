@@ -1,295 +1,480 @@
-# Presence API – Unreal SDK (Condensed)
+# Presence API for Unreal SDK (Condensed)
 
-Presence lets you query occupancy, user state, and send heartbeats. All methods require the Presence add-on to be enabled for your keys.
+Presence tracks online/offline users, channel occupancy, and user state. Available via Blueprints or C++.
 
----
+Requires Presence add-on enabled for your key in the Admin Portal. For events, see Presence Events.
 
-## 1. List users from channel
+## Setup
 
-• 3 s response cache  
-• Returns occupancy and (optionally) UUIDs and state.
+- Blueprints: use the Pubnub Subsystem node.
+- C++: add dependency to PubnubLibrary in Source/YourProject/YourProject.Build.cs, compile, and use as a Game Instance Subsystem.
 
-#### Method
-```cpp
-`PubnubSubsystem->ListUsersFromChannel(  
-    FString Channel,   
-    FOnListUsersFromChannelResponse ListUsersFromChannelResponse,   
-    FPubnubListUsersFromChannelSettings ListUsersFromChannelSettings = FPubnubListUsersFromChannelSettings()  
-);  
+```
+`PrivateDependencyModuleNames.AddRange(new string[] { "PubnubLibrary" });  
 `
 ```
 
-#### Parameters
-* Channel (FString) – channel to query  
-* ListUsersFromChannelResponse (FOnListUsersFromChannelResponse) – callback  
-* ListUsersFromChannelSettings – optional
-
-`FPubnubListUsersFromChannelSettings`  
-* ChannelGroups (FString) – comma-delimited groups  
-* DisableUserID (bool, default true) – omit UUIDs when true  
-* State (bool, default false) – include state when true
-
-#### Return (FOnListUsersFromChannelResponse)
-* Status (int) – HTTP code  
-* Message (FString) – status text  
-* Data (FPubnubListUsersFromChannelWrapper)
-
-`FPubnubListUsersFromChannelWrapper`  
-* Occupancy (int) – number of users  
-* UuidsState (TMap<FString,FString>) – UUID → state map
-
-#### JSON example
-```json
-`{  
-  "status": 200,   
-  "message": "OK",   
-  "occupancy": 2,   
-  "uuids": [  
-    {"uuid": "uuid-1"},   
-    {"uuid": "uuid-2"}  
-  ],   
-  "service": "Presence"  
-}  
-`
 ```
-
-#### Sample code
-MyGameMode.h
-```cpp
-`// NOTE: This example requires correct PubnubSDK configuration in plugins settings and adding "PubnubLibrary" to PublicDependencyModuleNames in your build.cs  
-// More info in the documentation: https://www.pubnub.com/docs/sdks/unreal/api-reference/configuration  
-  
-#pragma once  
-  
-#include "CoreMinimal.h"  
-#include "GameFramework/GameModeBase.h"  
-#include "MyGameMode.generated.h"  
-  
-/**  
- *   
- */  
-UCLASS()  
-//Replace MYPROJECT with name of your project  
-class MYPROJECT_API AMyGameMode : public AGameModeBase  
-`
-```
-
-MyGameMode.cpp
-```cpp
-`#include "MyGameMode.h"  
-#include "PubnubSubsystem.h"  
 #include "Kismet/GameplayStatics.h"  
-  
-void AMyGameMode::ListUsersFromChannelExample()  
-{  
-	// Get PubnubSubsystem from the game instance  
-	UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
-	UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
-  
-	// Ensure user ID is set  
-	PubnubSubsystem->SetUserID("my_user_id");  
-  
-	FString Channel = "randomChannel";  
-  
-`
-```
-
-Return occupancy only
-```cpp
-`#include "Kismet/GameplayStatics.h"  
 #include "PubnubSubsystem.h"  
+
   
 UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
 UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
-  
-FString Channel = "randomChannel";  
-  
-// Create a pubnub response delegate  
-// you MUST implement your own callback function to handle the response  
-FPubnubListUsersFromChannelSettings ListUsersFromChannelResponse;  
-ListUsersFromChannelResponse.BindDynamic(this, &AMyActor::ListUsersFromChannelResponse);  
-  
-// Create the list users settings  
-FPubnubListUsersFromChannelSettings ListUsersFromChannelSettings;  
+
+```
+
+```
+`PubnubSubsystem->SubscribeToChannel("MyChannel");  
 `
 ```
 
 ---
 
-## 2. List user subscribed channels
+## List users from channel - Channel entity
 
-#### Method
-```cpp
-`PubnubSubsystem->ListUserSubscribedChannels(  
-    FString UserID,   
-    FOnListUsersSubscribedChannelsResponse ListUserSubscribedChannelsResponse  
-);  
-`
+Returns UUIDs currently subscribed and channel occupancy.
+
+Cache: 3 seconds.
+
+### Method(s)
+
+Create a Channel entity and call ListUsersFromChannel:
+
+```
+1UPubnubChannelEntity* ChannelEntity = PubnubSubsystem->CreateChannelEntity("my-channel");  
+2
+  
+3ChannelEntity->ListUsersFromChannel(  
+4    FOnListUsersFromChannelResponse ListUsersFromChannelResponse,   
+5    FPubnubListUsersFromChannelSettings ListUsersFromChannelSettings = FPubnubListUsersFromChannelSettings()  
+6);  
+
 ```
 
-#### Parameters  
-* UserID (FString) – target user  
-* ListUserSubscribedChannelsResponse (FOnListUsersSubscribedChannelsResponse) – callback
+- ListUsersFromChannelResponse (required): Type FOnListUsersFromChannelResponse. Result delegate. Native alternative: FOnListUsersFromChannelResponseNative.
+- ListUsersFromChannelSettings: Type FPubnubListUsersFromChannelSettings. Method configuration.
 
-#### Return (FOnListUsersSubscribedChannelsResponse)
-* Status (int)  
-* Message (FString)  
-* Channels (TArray<FString>&)
+#### FPubnubListUsersFromChannelSettings
 
-#### JSON example
-```json
-`{  
-  "status": 200,   
-  "message": "OK",   
-  "payload": {  
-    "channels": ["my_channel"]  
-  },   
-  "service": "Presence"  
-}  
-`
+- ChannelGroups: FString. Comma-delimited channel group names. Ignored if empty. No wildcards.
+- DisableUserID: bool. Whether to disable including user IDs in the response. Default true.
+- State: bool. Whether to include client state in the response. Default false.
+
+### Sample code
+
+#### Actor.h
+```
+1
+  
+
 ```
 
-#### Sample
-```cpp
-`#include "Kismet/GameplayStatics.h"  
-#include "PubnubSubsystem.h"  
+#### Actor.cpp
+```
+1
   
-UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
-UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
-  
-FString UserId = "myUserId";  
-  
-// Create a pubnub response delegate  
-// you MUST implement your own callback function to handle the response  
-FOnListUsersSubscribedChannelsResponse ListUsersFromChannelResponse;  
-ListUserSubscribedChannelsResponse.BindDynamic(this, &AMyActor::OnListUsersFromChannelResponse);  
-  
-// List users from the channel using the specified settings  
-PubnubSubsystem->ListUserSubscribedChannels(UserId, ListUserSubscribedChannelsResponse);  
-`
+
 ```
 
----
+### Returns
 
-## 3. User state
+Void. Delegate returns FOnListUsersFromChannelResponse.
 
-### 3.1 Set state
-```cpp
-`PubnubSubsystem->SetState(  
-    FString Channel,   
-    FString StateJson,   
-    FPubnubSetStateSettings SetStateSettings = FPubnubSetStateSettings()  
-);  
-`
+#### FOnListUsersFromChannelResponse
+
+- Result: FPubnubOperationResult. Operation result.
+- Data: FPubnubListUsersFromChannelWrapper. Result data.
+
+#### FPubnubListUsersFromChannelWrapper
+
+- Occupancy: int. Number of users in the channel.
+- UsersState: TMap<FString, FString>. Map of user IDs and their state.
+
+#### FOnListUsersFromChannelResponseNative
+
+- Result: const FPubnubOperationResult&.
+- Data: const FPubnubListUsersFromChannelWrapper&.
+
+### Other examples
+
+#### Return occupancy only
+
+#### Actor.h
 ```
-Parameters  
-* Channel (FString) – target channel  
-* StateJson (FString) – JSON state  
-* SetStateSettings – optional
+1
+  
 
-`FPubnubSetStateSettings`  
-* ChannelGroups (FString)  
-* UserID (FString) – defaults to current user  
-* HeartBeat (bool) – also send heartbeat
-
-Sample
-```cpp
-`#include "Kismet/GameplayStatics.h"  
-#include "PubnubSubsystem.h"  
-  
-UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
-UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
-  
-FString Channel = "exampleChannel";  
-FString StateJson = "{\"mood\": \"happy\"}";   
-  
-// Create the set state settings  
-FPubnubSetStateSettings SetStateSettings;  
-SetStateSettings.ChannelGroups = "group1,group2"; // Example channel groups  
-SetStateSettings.UserID = "user123"; // Example user ID  
-SetStateSettings.HeartBeat = true; // Set state and make a heartbeat call  
-  
-`
 ```
 
-### 3.2 Get state
-```cpp
-`PubnubSubsystem->GetState(  
-    FString Channel,   
-    FString ChannelGroup,   
-    FString UserID,   
-    FOnPubnubResponse OnGetStateResponse  
-);  
-`
+#### Actor.cpp
 ```
-Sample
-```cpp
-`#include "Kismet/GameplayStatics.h"  
-#include "PubnubSubsystem.h"  
+1
   
-UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
-UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
-  
-FString Channel = "exampleChannel";  
-FString ChannelGroup = "";  
-FString UserID = "user123";  
-  
-// Create the response delegate  
-// you MUST implement your own callback function to handle the response  
-FOnPubnubResponse OnGetStateResponse;  
-OnGetStateResponse.BindDynamic(this, &AMyActor::OnGetStateResponse);  
-  
-`
+
 ```
 
-GetState JSON
-```json
-`{  
-  "status": 200,   
-  "message": "OK",   
-  "payload": {  
-    "happy": "true"  
-  },   
-  "service": "Presence"  
-}  
-`
+#### Use lambda
+
+#### Actor.h
+```
+1
+  
+
+```
+
+#### Actor.cpp
+```
+1
+  
+
 ```
 
 ---
 
-## 4. Heartbeat
+## List users from channel - PubNub client
 
-Sends presence heartbeat to channels/groups (even if not subscribed).
+Returns UUIDs currently subscribed and channel occupancy.
 
-#### Method
-```cpp
-`PubnubSubsystem->Heartbeat(  
-    FString Channel,   
-    FString ChannelGroup  
-);  
+Cache: 3 seconds.
+
+### Method(s)
+
+```
+`1PubnubSubsystem->ListUsersFromChannel(  
+2    FString Channel,   
+3    FOnListUsersFromChannelResponse ListUsersFromChannelResponse,   
+4    FPubnubListUsersFromChannelSettings ListUsersFromChannelSettings = FPubnubListUsersFromChannelSettings()  
+5);  
 `
 ```
 
-Parameters  
-* Channel (FString)  
-* ChannelGroup (FString)
+- Channel (required): FString. Channel name.
+- ListUsersFromChannelResponse (required): FOnListUsersFromChannelResponse. Native alternative: FOnListUsersFromChannelResponseNative.
+- ListUsersFromChannelSettings: FPubnubListUsersFromChannelSettings.
 
-Sample
-```cpp
-`#include "Kismet/GameplayStatics.h"  
-#include "PubnubSubsystem.h"  
+### Sample code
+
+#### Actor.h
+```
+1
   
-UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
-UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
+
+```
+
+#### Actor.cpp
+```
+1
   
-FString Channel = "exampleChannel";  
-FString ChannelGroup = "exampleGroup";  
+
+```
+
+### Returns
+
+Void. Delegate returns FOnListUsersFromChannelResponse.
+
+### Other examples
+
+#### Return occupancy only
+
+#### Actor.h
+```
+1
   
-// Send the heartbeat to the specified channel and channel group  
-PubnubSubsystem->Heartbeat(Channel, ChannelGroup);  
-`
+
+```
+
+#### Actor.cpp
+```
+1
+  
+
+```
+
+#### Use lambda
+
+#### Actor.h
+```
+1
+  
+
+```
+
+#### Actor.cpp
+```
+1
+  
+
 ```
 
 ---
 
-_Last updated Jul 15 2025_
+## List user subscribed channels
+
+Returns the list of channels a User ID is subscribed to.
+
+Timeout: If the app restarts within the heartbeat window, no timeout event is generated.
+
+### Method(s)
+
+```
+`1PubnubSubsystem->ListUserSubscribedChannels(  
+2    FString UserID,   
+3    FOnListUsersSubscribedChannelsResponse ListUserSubscribedChannelsResponse  
+4);  
+`
+```
+
+- UserID (required): FString. Target user.
+- ListUserSubscribedChannelsResponse (required): FOnListUsersSubscribedChannelsResponse.
+
+### Sample code
+
+#### Actor.h
+```
+1
+  
+
+```
+
+#### Actor.cpp
+```
+1
+  
+
+```
+
+### Returns
+
+Void. Delegate returns FOnListUsersSubscribedChannelsResponse.
+
+#### FOnListUsersSubscribedChannelsResponse
+
+- Result: FPubnubOperationResult.
+- Channels: TArray<FString>&. Channel names.
+
+#### FOnListUsersSubscribedChannelsResponseNative
+
+- Result: const FPubnubOperationResult&.
+- Channels: const TArray<FString>&.
+
+### Other examples
+
+#### Use lambda
+
+#### Actor.h
+```
+1
+  
+
+```
+
+#### Actor.cpp
+```
+1
+  
+
+```
+
+---
+
+## User state
+
+Set/get key/value pairs specific to a subscriber User ID.
+
+### Method(s)
+
+#### Set state
+
+```
+`1PubnubSubsystem->SetState(  
+2    FString Channel,   
+3    FString StateJson,   
+4    FOnSetStateResponse OnSetStateResponse,  
+5    FPubnubSetStateSettings SetStateSettings = FPubnubSetStateSettings()  
+6);  
+`
+```
+
+- Channel (required): FString. Target channel.
+- StateJson (required): FString. JSON object for state.
+- OnSetStateResponse (required): FOnSetStateResponse. Native alternative: FOnSetStateResponseNative.
+- SetStateSettings: FPubnubSetStateSettings.
+
+#### FPubnubSetStateSettings
+
+- ChannelGroups: FString. Comma-delimited channel groups. Ignored if empty.
+- UserID: FString. User to set state for. If NULL, uses current context User ID.
+- HeartBeat: bool. Whether to set state and issue a /heartbeat call simultaneously.
+
+#### Get state
+
+```
+`1PubnubSubsystem->GetState(  
+2    FString Channel,   
+3    FString ChannelGroup,   
+4    FString UserID,   
+5    FOnGetStateResponse OnGetStateResponse  
+6);  
+`
+```
+
+- Channel: FString. Channel to get state of.
+- ChannelGroup: FString. Channel group to get state of.
+- UserID: FString. Target user.
+- OnGetStateResponse (required): FOnGetStateResponse.
+
+### Sample code
+
+#### Actor.h
+```
+1
+  
+
+```
+
+#### Actor.cpp
+```
+1
+  
+
+```
+
+#### Get State
+
+#### Actor.h
+```
+1
+  
+
+```
+
+#### Actor.cpp
+```
+1
+  
+
+```
+
+### Returns
+
+SetState returns FOnSetStateResponse.
+
+#### FOnSetStateResponse
+
+- Result: FPubnubOperationResult.
+
+#### FOnSetStateResponseNative
+
+- Result: const FPubnubOperationResult&.
+
+GetState returns FOnGetStateResponse.
+
+#### FOnGetStateResponse
+
+- Result: FPubnubOperationResult.
+- StateResponse: FString. State JSON.
+
+#### FOnGetStateResponseNative
+
+- Result: const FPubnubOperationResult&.
+- StateResponse: FString.
+
+### Other examples
+
+#### Set state with result struct
+
+#### Actor.h
+```
+1
+  
+
+```
+
+#### Actor.cpp
+```
+1
+  
+
+```
+
+#### Set state for a channel group
+
+#### Actor.h
+```
+1
+  
+
+```
+
+#### Actor.cpp
+```
+1
+  
+
+```
+
+#### Set state with lambda
+
+#### Actor.h
+```
+1
+  
+
+```
+
+#### Actor.cpp
+```
+1
+  
+
+```
+
+#### Get state from channel group
+
+#### Actor.h
+```
+1
+  
+
+```
+
+#### Actor.cpp
+```
+1
+  
+
+```
+
+#### Get state from channel group with lambda
+
+#### Actor.h
+```
+1
+  
+
+```
+
+#### Actor.cpp
+```
+1
+  
+
+```
+
+---
+
+## Complete example
+
+#### ASample_PresenceFull.h
+```
+1
+  
+
+```
+
+#### ASample_PresenceFull.cpp
+```
+1
+**
+```

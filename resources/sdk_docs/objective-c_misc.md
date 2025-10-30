@@ -1,346 +1,492 @@
-# Utility Methods API – Objective-C SDK (misc)
+# Utility Methods API for Objective-C SDK
 
-Below is a concise reference that retains every code block, method signature, parameter description, and other critical technical details from the original document.
-
----
-
-## Time
-
-17-digit precision Unix epoch timetoken.
-
-Algorithm:
-
-```
-timetoken = (Unix epoch time in seconds) * 10000000
-```
-
-Example:
-
-```
-08/19/2013 @ 9:20pm UTC = 1376961606
-timetoken = 13769616060000000
-```
-
-Method:
-
-```objective-c
-- (void)timeWithCompletion:(PNTimeCompletionBlock)block;
-```
-
-* `block` PNTimeCompletionBlock — returns `PNTimeResult *result` (with `timetoken`) or `PNErrorStatus *status`.
-
-Sample:
-
-```objective-c
-PNConfiguration *config = [PNConfiguration configurationWithPublishKey:@"demo"
-                                                          subscribeKey:@"demo"
-                                                                userID:@"timeUser"];
-PubNub *client = [PubNub clientWithConfiguration:config];
-
-[client timeWithCompletion:^(PNTimeResult *result, PNErrorStatus *status) {
-    if (!status) {
-        NSNumber *timetoken = result.data.timetoken;
-        NSLog(@"✅ Received PubNub server timetoken: %@", timetoken);
-    }
-}];
-```
-
-Result objects:
-
-```objective-c
-@interface PNTimeData : PNServiceData
-@property (nonatomic, readonly, strong) NSNumber *timetoken;
-@end
-
-@interface PNTimeResult : PNResult
-@property (nonatomic, readonly, strong) PNTimeData *data;
-@end
-```
-
----
+Utility methods that don't fit other categories.
 
 ## Get size of message
 
-Calculate message size before publish.
+Calculate the resulting message size before sending to PubNub.
 
-Method variants:
+### Method(s)
 
-```objective-c
-- (void)sizeOfMessage:(id)message
-            toChannel:(NSString *)channel
-       withCompletion:(PNMessageSizeCalculationCompletionBlock)block;
+```
+`1- (void)sizeOfMessage:(id)message   
+2            toChannel:(NSString *)channel   
+3       withCompletion:(PNMessageSizeCalculationCompletionBlock)block;  
+`
+```
+- message (id): Message to measure.
+- channel (NSString): Destination channel (part of request URI).
+- block (PNMessageSizeCalculationCompletionBlock): Completion block with calculated size.
 
-- (void)sizeOfMessage:(id)message
-            toChannel:(NSString *)channel
-           compressed:(BOOL)compressMessage
-       withCompletion:(PNMessageSizeCalculationCompletionBlock)block;
+```
+`1- (void)sizeOfMessage:(id)message   
+2            toChannel:(NSString *)channel   
+3           compressed:(BOOL)compressMessage   
+4       withCompletion:(PNMessageSizeCalculationCompletionBlock)block;  
+`
+```
+- message (id)
+- channel (NSString)
+- compressMessage (BOOL): YES to compress before sending.
+- block (PNMessageSizeCalculationCompletionBlock)
 
-- (void)sizeOfMessage:(id)message
-            toChannel:(NSString *)channel
-       storeInHistory:(BOOL)shouldStore
-       withCompletion:(PNMessageSizeCalculationCompletionBlock)block;
+```
+`1- (void)sizeOfMessage:(id)message   
+2            toChannel:(NSString *)channel   
+3       storeInHistory:(BOOL)shouldStore   
+4       withCompletion:(PNMessageSizeCalculationCompletionBlock)block;  
+`
+```
+- message (id)
+- channel (NSString)
+- shouldStore (BOOL): YES to store in Message Persistence.
+- block (PNMessageSizeCalculationCompletionBlock)
 
-- (void)sizeOfMessage:(id)message
-            toChannel:(NSString *)channel
-           compressed:(BOOL)compressMessage
-       storeInHistory:(BOOL)shouldStore
-       withCompletion:(PNMessageSizeCalculationCompletionBlock)block;
+```
+`1- (void)sizeOfMessage:(id)message   
+2            toChannel:(NSString *)channel   
+3           compressed:(BOOL)compressMessage   
+4       storeInHistory:(BOOL)shouldStore   
+5       withCompletion:(PNMessageSizeCalculationCompletionBlock)block;  
+`
+```
+- message (id)
+- channel (NSString)
+- compressMessage (BOOL): YES to compress.
+- shouldStore (BOOL): NO to skip history.
+- block (PNMessageSizeCalculationCompletionBlock)
 
-- (void)sizeOfMessage:(id)message
-            toChannel:(NSString *)channel
-         withMetadata:(nullable NSDictionary<NSString *, id> *)metadata
-           completion:(PNMessageSizeCalculationCompletionBlock)block;
+```
+`1- (void)sizeOfMessage:(id)message   
+2            toChannel:(NSString *)channel   
+3         withMetadata:(nullable NSDictionaryNSString *, id> *)metadata   
+4           completion:(PNMessageSizeCalculationCompletionBlock)block;  
+`
+```
+- message (id)
+- channel (NSString)
+- metadata (NSDictionary<NSString *, id>): Values used by PubNub for message filtering.
+- block (PNMessageSizeCalculationCompletionBlock)
 
-- (void)sizeOfMessage:(id)message
-            toChannel:(NSString *)channel
-           compressed:(BOOL)compressMessage
-         withMetadata:(nullable NSDictionary<NSString *, id> *)metadata
-           completion:(PNMessageSizeCalculationCompletionBlock)block;
+```
+`1- (void)sizeOfMessage:(id)message   
+2            toChannel:(NSString *)channel   
+3           compressed:(BOOL)compressMessage   
+4         withMetadata:(nullable NSDictionaryNSString *, id> *)metadata   
+5           completion:(PNMessageSizeCalculationCompletionBlock)block;  
+`
+```
+- message (id)
+- channel (NSString)
+- compressMessage (BOOL): YES to compress.
+- metadata (NSDictionary<NSString *, id>)
+- block (PNMessageSizeCalculationCompletionBlock)
 
-- (void)sizeOfMessage:(id)message
-            toChannel:(NSString *)channel
-       storeInHistory:(BOOL)shouldStore
-         withMetadata:(nullable NSDictionary<NSString *, id> *)metadata
-           completion:(PNMessageSizeCalculationCompletionBlock)block;
+```
+`1- (void)sizeOfMessage:(id)message   
+2            toChannel:(NSString *)channel   
+3       storeInHistory:(BOOL)shouldStore   
+4         withMetadata:(nullable NSDictionaryNSString *, id> *)metadata   
+5           completion:(PNMessageSizeCalculationCompletionBlock)block;  
+`
+```
+- message (id)
+- channel (NSString)
+- shouldStore (BOOL): YES to store in history.
+- metadata (NSDictionary<NSString *, id>)
+- block (PNMessageSizeCalculationCompletionBlock)
 
-- (void)sizeOfMessage:(id)message
-            toChannel:(NSString *)channel
-           compressed:(BOOL)compressMessage
-       storeInHistory:(BOOL)shouldStore
-         withMetadata:(nullable NSDictionary<NSString *, id> *)metadata
-           completion:(PNMessageSizeCalculationCompletionBlock)block;
+```
+`1- (void)sizeOfMessage:(id)message   
+2            toChannel:(NSString *)channel   
+3           compressed:(BOOL)compressMessage   
+4       storeInHistory:(BOOL)shouldStore   
+5         withMetadata:(nullable NSDictionaryNSString *, id> *)metadata   
+6           completion:(PNMessageSizeCalculationCompletionBlock)block;  
+`
+```
+- message (id)
+- channel (NSString)
+- shouldStore (BOOL): YES to store in history.
+- compressMessage (BOOL): YES to compress.
+- metadata (NSDictionary<NSString *, id>)
+- block (PNMessageSizeCalculationCompletionBlock)
+
+### Sample code
+
+#### Get message size
+
+```
+1[self.client sizeOfMessage: @{@"Hello": @"world"} toChannel: @"announcement"  
+2             withCompletion:^(NSInteger size) {  
+3
+  
+4    // Process calculated target message size.  
+5 }];  
+
 ```
 
-Parameters:  
-`message` id • `channel` NSString • `compressMessage` BOOL • `shouldStore` BOOL • `metadata` NSDictionary • `block` PNMessageSizeCalculationCompletionBlock (returns `NSInteger size`).
+### Returns
 
-Samples:
+The message size
 
-```objective-c
-[self.client sizeOfMessage:@{@"Hello":@"world"} toChannel:@"announcement"
-             withCompletion:^(NSInteger size) {
-    // use size
-}];
+### Other examples
 
-[self.client sizeOfMessage:@{@"Hello":@"World"} toChannel:@"announcement"
-              withMetadata:@{@"senderID":@"bob"} completion:^(NSInteger size) {
-    // use size
-}];
+#### Get size of message with metadata
+
 ```
+1[self.client sizeOfMessage: @{@"Hello": @"World"} toChannel: @"announcement"  
+2              withMetadata: @{@"senderID": @"bob"} completion:^(NSInteger size) {  
+3
+  
+4    // Process calculated target message size.  
+5}];  
 
-Returns: message size (`NSInteger`).
-
----
-
-## Encrypt  (Deprecated: legacy 128-bit cipher)
-
-Methods:
-
-```objective-c
-+ (nullable NSString *)encrypt:(NSData *)data
-                       withKey:(NSString *)key;
-
-+ (nullable NSString *)encrypt:(NSData *)data
-                       withKey:(NSString *)key
-                      andError:(NSError * _Nullable * )error;
 ```
-
-Sample:
-
-```objective-c
-PNCryptoModule *aesCBCCrypto =
-    [PNCryptoModule AESCBCCryptoModuleWithCipherKey:@"enigma"
-                         randomInitializationVector:YES];
-
-NSString *message = @"No one should see me as plain";
-NSData *messageData = [message dataUsingEncoding:NSUTF8StringEncoding];
-NSString *secretMessage = [aesCBCCrypto encrypt:messageData];
-```
-
-Return: Base64-encoded encrypted string or `nil` on failure.
-
----
-
-## Decrypt  (Deprecated: legacy 128-bit cipher)
-
-Methods:
-
-```objective-c
-+ (nullable NSData *)decrypt:(NSString *)object
-                     withKey:(NSString *)key;
-
-+ (nullable NSData *)decrypt:(NSString *)object
-                     withKey:(NSString *)key
-                    andError:(NSError * _Nullable * )error;
-```
-
-Sample:
-
-```objective-c
-PNCryptoModule *aesCBCCrypto =
-    [PNCryptoModule AESCBCCryptoModuleWithCipherKey:@"enigma"
-                         randomInitializationVector:YES];
-
-NSString *encryptedMessage = messagePayload[@"secret"];
-NSData *secureData =
-    [[NSData alloc] initWithBase64EncodedString:encryptedMessage options:0];
-NSData *messageData = [aesCBCCrypto decrypt:secureData];
-NSString *decryptedMessage =
-    [[NSString alloc] initWithData:messageData encoding:NSUTF8StringEncoding];
-```
-
-Return: original `NSData` or `nil`.
-
----
 
 ## Push notification configuration
 
 ### PNAPNSNotificationConfiguration
 
-```objective-c
-+ (instancetype)defaultConfiguration;
+Configure delivery for HTTP/2-based APNs.
 
-+ (instancetype)configurationWithTargets:
-        (NSArray<PNAPNSNotificationTarget *> *)targets;
+#### Method(s)
 
-+ (instancetype)configurationWithCollapseID:(nullable NSString *)collapseId
-                             expirationDate:(nullable NSDate *)date
-                                    targets:(NSArray<PNAPNSNotificationTarget *> *)targets;
+```
+`1+ (instancetype)defaultConfiguration  
+`
+```
+- Default: single target using NSBundle.mainBundle.bundleIdentifier as topic in PNAPNSDevelopment.
+
+```
+`1+ (instancetype)configurationWithTargets:(NSArrayPNAPNSNotificationTarget *> *)targets  
+`
+```
+- targets (NSArray<PNAPNSNotificationTarget *> *): Target topics list. If empty, defaults to bundle identifier topic in PNAPNSDevelopment.
+
+```
+`1+ (instancetype)configurationWithCollapseID:(nullable NSString *)collapseId   
+2                             expirationDate:(nullable NSDate *)date   
+3                                    targets:(NSArrayPNAPNSNotificationTarget *> *)targets;  
+`
+```
+- collapseId (NSString): APNs apns-collapse-id header.
+- date (NSDate): APNs apns-expiration header (delivery retry until date).
+- targets (NSArray<PNAPNSNotificationTarget *> *): Target topics list. Defaults if empty as above.
+
+#### Sample code
+
+Create configuration with collapse ID and 10s expiration:
+
+```
+1PNAPNSNotificationConfiguration *configuration = nil;  
+2PNNotificationsPayload *builder = nil;  
+3
+  
+4PNAPNSNotificationTarget *target = [PNAPNSNotificationTarget targetForTopic:@"com.meetings.chat.app"];  
+5NSDate *expirationDate = [NSDate dateWithTimeIntervalSinceNow:10];  
+6configuration = [PNAPNSNotificationConfiguration configurationWithCollapseID:@"invitations"  
+7                                                              expirationDate:expirationDate  
+8                                                                     targets:@[target]];  
+
 ```
 
-Sample:
+#### Response
 
-```objective-c
-PNAPNSNotificationTarget *target =
-    [PNAPNSNotificationTarget targetForTopic:@"com.meetings.chat.app"];
-NSDate *expirationDate = [NSDate dateWithTimeIntervalSinceNow:10];
+Configured PNAPNSNotificationConfiguration instance.
 
-PNAPNSNotificationConfiguration *configuration =
-    [PNAPNSNotificationConfiguration configurationWithCollapseID:@"invitations"
-                                                  expirationDate:expirationDate
-                                                         targets:@[target]];
-```
+### PNAPNSNotificationPayload
+
+APNs-specific payload options.
+
+#### Properties
+
+- configurations (NSArray<PNAPNSNotificationConfiguration *> *): HTTP/2 APNs delivery configurations. If empty when PNAPNS2Push requested, a default configuration is created for PNAPNSDevelopment with NSBundle.mainBundle.bundleIdentifier as topic.
+- notification (NSMutableDictionary): User-visible key-value pairs.
+- payload (NSMutableDictionary): Platform-specific payload; can include additional data.
+- silent (BOOL): If YES, removes alert, sound, badge from payload for OS-handled delivery.
 
 ### PNAPNSNotificationTarget
 
-```objective-c
-+ (instancetype)defaultTarget;
+Configure APNs notification recipient.
 
-+ (instancetype)targetForTopic:(NSString *)topic;
+#### Method(s)
 
-+ (instancetype)targetForTopic:(NSString *)topic
-                 inEnvironment:(PNAPNSEnvironment)environment
-           withExcludedDevices:(nullable NSArray<NSData *> *)excludedDevices;
+```
+`1+ (instancetype)defaultTarget  
+`
+```
+- Default: PNAPNSDevelopment, topic = NSBundle.mainBundle.bundleIdentifier.
+
+```
+`1+ (instancetype)targetForTopic:(NSString *)topic  
+`
+```
+- topic (NSString): APNs topic (usually bundle identifier). Used as apns-topic header.
+
+```
+`1+ (instancetype)targetForTopic:(NSString *)topic   
+2                 inEnvironment:(PNAPNSEnvironment)environment   
+3           withExcludedDevices:(nullable NSArrayNSData *> *)excludedDevices;  
+`
+```
+- topic (NSString): APNs topic; apns-topic header.
+- environment (PNAPNSEnvironment): PNAPNSDevelopment | PNAPNSProduction.
+- excludedDevices (NSArray<NSData *> *): Device push tokens to exclude from delivery.
+
+#### Sample code
+
+Exclude current device from recipients:
+
+```
+`1PNAPNSNotificationTarget *target = [PNAPNSNotificationTarget targetForTopic:@"com.meetings.chat.app"  
+2                                                              inEnvironment:PNAPNSProduction  
+3                                                        withExcludedDevices:@[self.currentDevicePushToken]];  
+`
 ```
 
-Sample:
+#### Response
 
-```objective-c
-PNAPNSNotificationTarget *target =
-    [PNAPNSNotificationTarget targetForTopic:@"com.meetings.chat.app"
-                               inEnvironment:PNAPNSProduction
-                         withExcludedDevices:@[self.currentDevicePushToken]];
-```
+Configured PNAPNSNotificationTarget instance.
 
-### PNAPNSNotificationPayload  (APNs)
+### PNFCMNotificationPayload
 
-Key properties:
+FCM-specific payload options.
 
-* `configurations` NSArray<PNAPNSNotificationConfiguration *>  
-* `notification` NSMutableDictionary (user-visible keys)  
-* `payload` NSMutableDictionary (platform specific)  
-* `silent` BOOL  
+#### Properties
 
-### PNFCMNotificationPayload  (FCM)
-
-Key properties:
-
-* `notification` NSMutableDictionary  
-* `data` NSMutableDictionary  
-* `silent` BOOL  
-* `icon` NSString  
-* `tag` NSString  
-* `payload` NSMutableDictionary  
+- notification (NSMutableDictionary): User-visible key-value pairs.
+- data (NSMutableDictionary): Additional key-value data. Convert objects/scalars to strings. Keys must not be from: from, message_type, or start with google or gcm, and must not be any reserved words listed in Firebase docs.
+- silent (BOOL): If YES, moves notification under data key for OS-handled delivery.
+- icon (NSString): Icon to show in notification.
+- tag (NSString): Unique identifier for notification updates.
+- payload (NSMutableDictionary): Platform-specific payload, plus additional data.
 
 ### PNNotificationsPayload
 
-Create builder:
+Builder for multi-platform notification payloads. Provides per-platform fine-tuning and access to raw payload dictionaries.
 
-```objective-c
-+ (instancetype)payloadsWithNotificationTitle:(nullable NSString *)title
-                                         body:(nullable NSString *)body;
+#### Method(s)
+
 ```
+`1+ (instancetype)payloadsWithNotificationTitle:(nullable NSString *)title   
+2                                         body:(nullable NSString *)body;  
+`
+```
+- title (NSString): Notification title (displayed instead of app name).
+- body (NSString): Notification body text.
 
 Builder properties:
+- subtitle (NSString): Additional context.
+- badge (NSNumber): Badge count.
+- sound (NSString): Sound file path or system sound name.
+- apns (PNAPNSNotificationPayload): APNs-specific builder.
+- fcm (PNFCMNotificationPayload): FCM-specific builder.
 
-* `subtitle` NSString  
-* `badge` NSNumber  
-* `sound` NSString  
-* `apns` PNAPNSNotificationPayload  
-* `fcm`  PNFCMNotificationPayload  
+#### Sample code
 
-Generate dictionary:
+Create notification payload builder:
 
-```objective-c
-- (NSDictionary *)dictionaryRepresentationFor:(PNPushType)pushTypes;
+```
+`1PNNotificationsPayload *builder = nil;  
+2builder = [PNNotificationsPayload payloadsWithNotificationTitle:@"Chat invitation"  
+3                                                           body:@"You have been invited to 'quiz' chat"];  
+`
 ```
 
-`PNPushType` bit-fields: `PNAPNSPush | PNAPNS2Push | PNFCMPush | PNMPNSPush`.
+#### Response
 
-Sample – create payload, publish with APNs2 + FCM:
+Configured PNNotificationsPayload instance.
 
-```objective-c
-PNNotificationsPayload *builder =
-    [PNNotificationsPayload payloadsWithNotificationTitle:@"Chat invitation"
-                                                     body:@"You have been invited to 'quiz' chat"];
-builder.sound = @"default";
-NSDictionary *payload = [builder dictionaryRepresentationFor:PNAPNS2Push|PNFCMPush];
+#### Other examples
 
-NSDictionary *message = @{
-    @"message": @"Max invited you to 'quiz' chat room",
-    @"roomID": @"ewuiogw9vewg0"
-};
+#### Generate simple notification payload for FCM and APNS
 
-[self.client publish:message toChannel:@"chat-bot" mobilePushPayload:payload
-      withCompletion:^(PNPublishStatus *status) {
-    // Handle publish results
-}];
+```
+1PNNotificationsPayload *builder = nil;  
+2builder = [PNNotificationsPayload payloadsWithNotificationTitle:@"Chat invitation"  
+3                                                            body:@"You have been invited to 'quiz' chat"];  
+4builder.sound = @"default";  
+5
+  
+6NSLog(@"Notifications payload: %@", [builder dictionaryRepresentationFor:PNAPNSPush|PNFCMPush]);  
+
 ```
 
-Output examples (abbreviated):
+##### Output
 
-```json
-{
-    "pn_apns": {
-        "aps": {
-            "alert": { "body": "...", "title": "..." },
-            "sound": "default"
-        }
-    },
-    "pn_fcm": {
-        "notification": { "body": "...", "title": "..." }
-    }
-}
+```
+`1{  
+2    "pn_apns": {  
+3        "aps": {  
+4            "alert": {  
+5                "body": "You have been invited to 'quiz' chat",  
+6                "title": "Chat invitation"  
+7            },  
+8            "sound": "default"  
+9        }  
+10    },  
+11    "pn_fcm": {  
+12        "notification": {  
+13            "body": "You have been invited to 'quiz' chat",  
+14            "title": "Chat invitation"  
+15        },  
+16        "android": {  
+17            "notification": {  
+18                "sound": "default"  
+19            }  
+20        }  
+21    }  
+22}  
+`
 ```
 
-HTTP/2-based APNs payload with custom configuration:
+#### Generate simple notification payload for FCM and HTTP/2-based APNs (default configuration)
 
-```json
-{
-    "pn_apns": {
-        "aps": { "alert": { "body": "Chat invitation", "title": "You have been invited to 'quiz' chat" } },
-        "pn_push": [{
-            "collapse_id": "invitations",
-            "expiration": "2019-11-28T22:06:09Z",
-            "targets": [{
-                "environment": "development",
-                "topic": "com.meetings.chat.app"
-            }]
-        }]
-    }
-}
+```
+1PNNotificationsPayload *builder = nil;  
+2builder = [PNNotificationsPayload payloadsWithNotificationTitle:@"Chat invitation"  
+3                                                            body:@"You have been invited to 'quiz' chat"];  
+4builder.sound = @"default";  
+5
+  
+6NSLog(@"Notifications payload: %@", [builder dictionaryRepresentationFor:PNAPNS2Push|PNFCMPush]);  
+
 ```
 
----
+##### Output
 
-_Last updated: Jul 15 2025_
+```
+`1{  
+2    "pn_apns": {  
+3        "aps": {  
+4            "alert": {  
+5                "body": "You have been invited to 'quiz' chat",  
+6                "title": "Chat invitation"  
+7            },  
+8            "sound": "default"  
+9        },  
+10        "pn_push": [  
+11            {  
+12                "targets": [  
+13                    {  
+14                        "environment": "development",  
+15                        "topic": "com.meetings.chat.app"  
+16                    }  
+17                ],  
+18                "version": "v2"  
+19            }  
+20        ]  
+21    },  
+22    "pn_fcm": {  
+23        "notification": {  
+24            "body": "You have been invited to 'quiz' chat",  
+25            "title": "Chat invitation"  
+26        },  
+27        "android": {  
+28            "notification": {  
+29                "sound": "default"  
+30            }  
+31        }  
+32    }  
+33}  
+`
+```
+
+#### Generate simple notification payload for FCM and HTTP/2-based APNs (custom configuration)
+
+```
+1PNAPNSNotificationConfiguration *configuration = nil;  
+2PNNotificationsPayload *builder = nil;  
+3
+  
+4PNAPNSNotificationTarget *target = [PNAPNSNotificationTarget targetForTopic:@"com.meetings.chat.app"];  
+5NSDate *expirationDate = [NSDate dateWithTimeIntervalSinceNow:10];  
+6configuration = [PNAPNSNotificationConfiguration configurationWithCollapseID:@"invitations"  
+7                                                                expirationDate:expirationDate  
+8                                                                        targets:@[target]];  
+9
+  
+10builder = [PNNotificationsPayload payloadsWithNotificationTitle:@"Chat invitation"  
+11                                                            body:@"You have been invited to 'quiz' chat"];  
+12builder.apns.configurations = @[configuration];  
+13
+  
+14NSLog(@"Notifications payload: %@", [builder dictionaryRepresentationFor:PNAPNS2Push|PNFCMPush]);  
+
+```
+
+##### Output
+
+```
+`1{  
+2    "pn_apns": {  
+3        "aps": {  
+4            "alert": {  
+5                "body": "Chat invitation",  
+6                "title": "You have been invited to 'quiz' chat"  
+7            }  
+8        },  
+9        "pn_push": [  
+10            {  
+11                "collapse_id": "invitations",  
+12                "expiration": "2019-11-28T22:06:09Z",  
+13                "targets": [  
+14                    {  
+15                        "environment": "development",  
+16                        "topic": "com.meetings.chat.app"  
+17                    }  
+18                ],  
+19                "version": "v2"  
+20            }  
+21        ]  
+22    },  
+23    "pn_fcm": {  
+24        "notification": {  
+25            "body": "You have been invited to 'quiz' chat",  
+26            "title": "Chat invitation"  
+27        }  
+28    }  
+29}  
+`
+```
+
+APNs will retry delivery up to 10 seconds; notifications with the same collapse_id are grouped.
+
+```
+`1- (NSDictionary *)dictionaryRepresentationFor:(PNPushType)pushTypes  
+`
+```
+- pushTypes (PNPushType): Bitfield for platforms to include:
+  - PNAPNSPush
+  - PNAPNS2Push
+  - PNFCMPush
+  - PNMPNSPush
+
+#### Sample code
+
+Publish message with notification payload:
+
+```
+1PNNotificationsPayload *builder = nil;  
+2builder = [PNNotificationsPayload payloadsWithNotificationTitle:@"Chat invitation"  
+3                                                           body:@"You have been invited to 'quiz' chat"];  
+4NSDictionary *payload = [builder dictionaryRepresentationFor:PNAPNS2Push|PNFCMPush];  
+5NSDictionary *message = @{  
+6    @"message": @"Max invited you to 'quiz' chat room",  
+7    @"roomID": @"ewuiogw9vewg0"  
+8};  
+9
+  
+10[self.client publish:message toChannel:@"chat-bot" mobilePushPayload:payload  
+11      withCompletion:^(PNPublishStatus *status) {  
+12   // Handle publish results  
+13}];  
+
+```
+
+#### Response
+
+Dictionary suitable for publish, triggering remote notifications for specified platforms.
+
+Last updated on Sep 3, 2025

@@ -1,278 +1,293 @@
-# File Sharing API – Go SDK (Condensed)
+# File Sharing API for Go SDK
 
-Upload, manage, and share files (≤ 5 MB) on PubNub channels. All method signatures, parameters, and examples are preserved below.
-
----
+Upload and share files up to 5 MB on PubNub. When a file is uploaded to a channel, subscribers receive a file event containing file ID, filename, and optional description.
 
 ## Send file
 
-Upload a file and automatically publish its metadata message on the channel.
+Uploads a file to storage and publishes a message on the channel with file metadata. Internally calls PublishFileMessage.
 
 ### Method(s)
-```go
-`pn.SendFile().  
-    Channel(string).  
-    Message(string).  
-    Name(string).  
-    File(*os.File).  
-    TTL(int).  
-    ShouldStore(bool).  
-    Meta(interface{}).  
-    CustomMessageType(string).      
-    Execute()  
+
+```
+`1pn.SendFile().  
+2    Channel(string).  
+3    Message(interface{}).  
+4    Name(string).  
+5    File(*os.File).  
+6    TTL(int).  
+7    ShouldStore(bool).  
+8    Meta(interface{}).  
+9    CustomMessageType(string).  
+10    UseRawMessage(bool).      
+11    Execute()  
 `
 ```
 
-Parameters  
-* **Channel** (string, required) – target channel.  
-* **Message** (string) – accompanying text.  
-* **Name** (string) – file name.  
-* **File** (*os.File, required) – pointer to file.  
-* **TTL** (int) – storage time.  
-* **ShouldStore** (bool, default `true`) – store in history.  
-* **Meta** (interface{}) – filtering metadata.  
-* **CustomMessageType** (string) – 3–50 chars label.
+Parameters:
+- Channel (required)  
+  Type: string; Default: n/a  
+  Channel to upload the file.
+- Message  
+  Type: interface; Default: n/a  
+  Message to send along with the file. Any JSON-serializable type: string, map[string]interface{}, []interface{}, number, bool, etc.
+- File (required)  
+  Type: *os.File; Default: n/a  
+  Pointer to the file object.
+- TTL  
+  Type: int; Default: n/a  
+  How long the message should be stored in the channel's storage.
+- ShouldStore  
+  Type: bool; Default: false  
+  Whether to store the published file message in the channel's history.
+- Meta  
+  Type: interface; Default: null  
+  Metadata object for message filtering.
+- CustomMessageType  
+  Type: string; Default: n/a  
+  Case-sensitive, alphanumeric label (3–50 chars). Dashes (-) and underscores (_) allowed. Cannot start with special characters or pn_/pn- (examples: text, action, poll).
+- UseRawMessage  
+  Type: bool; Default: false  
+  When true, sends the message directly without {"text": ...} wrapper. When false, wraps in a "text" field. Works with any JSON-serializable type.
 
-Deprecated: `CipherKey` (use Crypto Module).
+Deprecated:
+- CipherKey: Use the crypto module instead (/docs/sdks/go/api-reference/configuration#cryptomodule). If passed, it overrides the crypto module and uses legacy 128-bit encryption.
 
-#### Sample code
-```go
-`package main  
-  
-import (  
-	"fmt"  
-	"log"  
-	"os"  
-  
-	pubnub "github.com/pubnub/go/v7"  
-)  
-  
-func main() {  
-	// Configure the PubNub instance with demo keys  
-	config := pubnub.NewConfigWithUserId("myUniqueUserId")  
-	config.SubscribeKey = "demo"  
-	config.PublishKey = "demo"  
-`
+### Sample code
+
 ```
-_show all 49 lines_
+1
+  
 
-#### Returns
-`PNSendFileResponse`  
-* Data – PNFileData  
-* Timestamp – int64
+```
 
-##### PNFileData
-* ID – string
+### Returns
 
----
+PNSendFileResponse:
+- Data: PNFileData (see PNFileData)
+- Timestamp: int64 (timetoken when the message was published)
+
+PNFileData:
+- ID: string
 
 ## List channel files
 
+Retrieve files uploaded to a channel.
+
 ### Method(s)
-```go
-`pn.ListFiles().  
-    Channel(string).  
-    Limit(int).  
-    Next(string).  
-    Execute()  
+
+```
+`1pn.ListFiles().  
+2    Channel(string).  
+3    Limit(int).  
+4    Next(string).  
+5    Execute()  
 `
 ```
 
-Parameters  
-* **Channel** (string, required)  
-* **Limit** (int, default 100)  
-* **Next** (string) – pagination cursor
+Parameters:
+- Channel (required)  
+  Type: string; Default: n/a  
+  Channel to list files from.
+- Limit  
+  Type: int; Default: 100  
+  Number of files to return.
+- Next  
+  Type: string; Default: n/a  
+  Server-provided cursor for forward pagination.
 
-#### Sample code
-```go
-`resListFile, statusListFile, errListFile := pn.ListFiles()  
-    .Channel("my_channel")  
-    .Execute()  
-fmt.Println(resListFile, statusListFile, errListFile)  
-if resListFile != nil {  
-    for _, m := range resListFile.Data {  
-        fmt.Println(m.ID, m.Created, m.Name, m.Size)  
-    }  
-}  
-`
+### Sample code
+
+```
+1
+  
+
 ```
 
-#### Returns
-`PNListFilesResponse`  
-* Data – []PNFileInfo  
-* Count – int  
-* Next – string
+### Returns
 
-##### PNFileInfo
-* Name – string  
-* Id – string  
-* Size – int  
-* Created – string
+PNListFilesResponse:
+- Data: PNFileInfo (see PNFileInfo)
+- Count: int
+- Next: string (pagination cursor)
 
----
+PNFileInfo:
+- Name: string
+- Id: string
+- Size: int
+- Created: string
 
 ## Get file URL
 
+Generate a URL to download a file from a channel.
+
 ### Method(s)
-```go
-`pn.GetFileURL().  
-    Channel(string).  
-    ID(string).  
-    Name(string).  
-    Execute()  
+
+```
+`1pn.GetFileURL().  
+2    Channel(string).  
+3    ID(string).  
+4    Name(string).  
+5    Execute()  
 `
 ```
 
-Parameters  
-* **Channel** (string, required)  
-* **ID** (string, required)  
-* **Name** (string, required)
+Parameters:
+- Channel (required)  
+  Type: string  
+  Channel where the file was uploaded.
+- ID (required)  
+  Type: string  
+  Unique file identifier assigned during upload.
+- Name (required)  
+  Type: string  
+  Stored filename for the channel.
 
-#### Sample code
-```go
-`resGetFileUrl, statusGetFileUrl, errGetFileUrl := pn.GetFileURL()  
-    .Channel("my_channel")  
-    .ID("d9515cb7-48a7-41a4-9284-f4bf331bc770")  
-    .Name("cat_picture.jpg")  
-    .Execute()  
-fmt.Println(resGetFileUrl, statusGetFileUrl, errGetFileUrl)  
-fmt.Println(resGetFileUrl.URL)  
-`
+### Sample code
+
+```
+1
+  
+
 ```
 
-#### Returns
-`PNGetFileURLResponse`  
-* Url – string
+### Returns
 
----
+PNGetFileURLResponse:
+- Url: string
 
 ## Download file
 
+Download a file from a channel.
+
 ### Method(s)
-```go
-`pn.DownloadFile().  
-    Channel(string).  
-    ID(string).  
-    Name(string).  
-    Execute()  
+
+```
+`1pn.DownloadFile().  
+2    Channel(string).  
+3    ID(string).  
+4    Name(string).  
+5    Execute()  
 `
 ```
 
-Parameters  
-* **Channel** (string, required)  
-* **ID** (string, required)  
-* **Name** (string, required)
+Parameters:
+- Channel (required)  
+  Type: string  
+  Channel where the file was uploaded.
+- ID (required)  
+  Type: string  
+  Unique file identifier assigned during upload.
+- Name (required)  
+  Type: string  
+  Stored filename for the channel.
 
-Deprecated: `CipherKey`.
+Deprecated:
+- CipherKey: Use the crypto module instead (/docs/sdks/go/api-reference/configuration#cryptomodule). If passed, it overrides the crypto module and uses legacy 128-bit encryption.
 
-#### Sample code
-```go
-`resDLFile, statusDLFile, errDLFile := pn.DownloadFile()  
-    .Channel("my_channel")  
-    .ID("d9515cb7-48a7-41a4-9284-f4bf331bc770")  
-    .Name("cat_picture.jpg")  
-    .Execute()  
-if resDLFile != nil {  
-    filepathOutput := "cat_picture.jpg"  
-    out, _ := os.Create(filepathOutput)  
-    _, err := io.Copy(out, resDLFile.File)  
+### Sample code
+
+```
+1
   
-    if err != nil {  
-        fmt.Println(err)  
-    }  
-}  
-`
+
 ```
 
-#### Returns
-`PNDownloadFileResponse`  
-* File – io.Reader
+### Returns
 
----
+PNDownloadFileResponse:
+- File: io.Reader (use to save the file)
 
 ## Delete file
 
+Delete a file from a channel.
+
 ### Method(s)
-```go
-`pn.DeleteFile().  
-    Channel(string).  
-    ID(string).  
-    Name(string).  
-    Execute()  
+
+```
+`1pn.DeleteFile().  
+2    Channel(string).  
+3    ID(string).  
+4    Name(string).  
+5    Execute()  
 `
 ```
 
-Parameters  
-* **Channel** (string, required)  
-* **ID** (string, required)  
-* **Name** (string, required)
+Parameters:
+- Channel (required)  
+  Type: string  
+  Channel where the file exists.
+- ID (required)  
+  Type: string  
+  Unique file identifier to delete.
+- Name (required)  
+  Type: string  
+  Filename to delete from the channel.
 
-#### Sample code
-```go
-`_, statusDelFile, errDelFile := pn.DeleteFile()  
-    .Channel("my_channel")  
-    .ID("d9515cb7-48a7-41a4-9284-f4bf331bc770")  
-    .Name("cat_picture.jpg")  
-    .Execute()  
-fmt.Println(statusDelFile, errDelFile)  
-`
+### Sample code
+
+```
+1
+  
+
 ```
 
-#### Returns
-`PNDeleteFileResponse` (nil)
+### Returns
 
----
+PNDeleteFileResponse: nil
 
 ## Publish file message
 
-Send a file message if `SendFile` upload succeeded but publish failed.
+Publish the uploaded file message to a channel. Called by SendFile after upload. Use directly if SendFile fails with PNPublishFileMessageOperation to resend the message without re-uploading.
 
 ### Method(s)
-```go
-`pn.PublishFileMessage().  
-    TTL(int).  
-    Meta(interface{}).  
-    ShouldStore(bool).  
-    Channel(string).  
-    Message(PNPublishFileMessage).  
-    CustomMessageType(string).  
-    Execute()  
+
+```
+`1pn.PublishFileMessage().  
+2    TTL(int).  
+3    Meta(interface{}).  
+4    ShouldStore(bool).  
+5    Channel(string).  
+6    Message(PNPublishFileMessage).  
+7    CustomMessageType(string).  
+8    UseRawMessage(bool).  
+9    Execute()  
 `
 ```
 
-Parameters  
-* **TTL** (int)  
-* **Meta** (interface{})  
-* **ShouldStore** (bool, default `true`)  
-* **Channel** (string, required)  
-* **Message** (PNPublishFileMessage, required)  
-* **CustomMessageType** (string)
+Parameters:
+- TTL  
+  Type: int; Default: n/a  
+  How long the message should be stored.
+- Meta  
+  Type: interface; Default: n/a  
+  Metadata object for filtering.
+- ShouldStore  
+  Type: bool; Default: true  
+  Store in history.
+- Channel (required)  
+  Type: string; Default: n/a  
+  Channel to publish to.
+- Message (required)  
+  Type: PNPublishFileMessage; Default: n/a  
+  Payload describing the uploaded file.
+- CustomMessageType  
+  Type: string; Default: n/a  
+  Case-sensitive, alphanumeric label (3–50 chars). Dashes (-) and underscores (_) allowed. Cannot start with special characters or pn_/pn- (examples: text, action, poll).
+- UseRawMessage  
+  Type: bool; Default: false  
+  When true, sends the message directly without {"text": ...} wrapper.
 
-#### Sample code
-```go
-`m := PNPublishMessage{  
-    Text: "Look at this photo!",  
-}  
-  
-file := PNFileInfoForPublish{  
-    ID:   "d9515cb7-48a7-41a4-9284-f4bf331bc770",  
-    Name: "cat_picture.jpg",  
-}  
-  
-message := PNPublishFileMessage{  
-    PNFile:    file,  
-    PNMessage: m,  
-}  
-resPubFile, pubFileResponseStatus, errPubFileResponse := pn.PublishFileMessage()  
-    .Channel("my_channel")  
-`
+### Sample code
+
 ```
-_show all 20 lines_
+1
+  
 
-#### Returns
-`PublishFileMessageResponse`  
-* Timetoken – int64
+```
 
----
+### Returns
 
-Last updated **Jul 15 2025**
+PublishFileMessageResponse:
+- Timetoken: int64 (when the message was published)
+
+Last updated on Oct 29, 2025

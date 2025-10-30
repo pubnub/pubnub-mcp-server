@@ -1,160 +1,172 @@
-# Channel Groups API – PHP SDK (condensed)
+# Channel Groups API for PHP SDK
 
-Channel groups bundle many channels under a single name.  
-• Subscribe only – publishing must be done on individual channels.  
-• All operations below require the **Stream Controller** add-on to be enabled for your keys.
+[Channel groups](/docs/general/channels/subscribe#channel-groups) let you bundle many [channels](/docs/general/channels/overview) into a named group you can subscribe to. You can't publish to a channel group—publish to individual channels instead.
 
----
+## Add channels to a channel group
 
-## Add channels
+Requires Stream Controller add-on: Enable the Stream Controller add-on for your key in the PubNub [Admin Portal](https://admin.pubnub.com/). See [support instructions](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
 
-Maximum 200 channels per call.
+Maximum number of channels: You can add up to 200 channels per API call.
 
-### Method
+### Method(s)
+
 ```
-`$pubnub->addChannelToChannelGroup()  
-    ->channels(string|array)  
-    ->channelGroup(string)  
-    ->sync();  
+`1$pubnub->addChannelToChannelGroup()  
+2    ->channels(string|array)  
+3    ->channelGroup(string)  
+4    ->sync();  
 `
 ```
-Parameters  
-• `channels` String | Array – channels to add  
-• `channelGroup` String – target group
 
-### Sample
+Parameters:
+- channels (String|Array): Channels to add to the group.
+- channelGroup (String): Target channel group name.
+
+### Sample code
+
+#### Add channels
+
+##### Reference code
+This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
+
 ```
-`  
+1
   
-// Include Composer autoloader (adjust path if needed)  
-require_once 'vendor/autoload.php';  
-  
-use PubNub\PNConfiguration;  
-use PubNub\PubNub;  
-use PubNub\Exceptions\PubNubServerException;  
-  
-// Create configuration  
-$pnConfig = new PNConfiguration();  
-$pnConfig->setSubscribeKey("demo");  
-$pnConfig->setPublishKey("demo");  
-$pnConfig->setUserId("php-channel-group-demo");  
-  
+
+```
+
+### Rest response from server
+
+```
+`1{  
+2    "service" : "channel-registry",  
+3    "status"  : 200,  
+4    "error"   : false,  
+5    "message" : "OK"  
+6}  
 `
 ```
 
-### Server response
+## List channels in a channel group
+
+Requires Stream Controller add-on: Enable the Stream Controller add-on for your key in the [Admin Portal](https://admin.pubnub.com/). See [support instructions](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
+
+### Method(s)
+
 ```
-`{  
-    "service" : "channel-registry",  
-    "status"  : 200,  
-    "error"   : false,  
-    "message" : "OK"  
-}  
+`1$pubnub->listChannelsInChannelGroup()  
+2    ->channelGroup(string)  
+3    ->sync();  
 `
 ```
 
----
+Parameters:
+- channelGroup (String): The channel group to inspect.
 
-## List channels
+### Sample code
 
-### Method
-```
-`$pubnub->listChannelsInChannelGroup()  
-    ->channelGroup(string)  
-    ->sync();  
-`
-```
-Parameter  
-• `channelGroup` String – group to query
+#### List channels
 
-### Sample
 ```
-`$pubnub->listChannelsInChannelGroup()  
-    ->channelGroup("cg1")  
-    ->sync();  
+`1$pubnub->listChannelsInChannelGroup()  
+2    ->channelGroup("cg1")  
+3    ->sync();  
 `
 ```
 
-### Server response
+### Rest response from server
+
 ```
-`{  
-    "status" : 200,  
-    "payload" : {  
-        "channels" : ["hi"],  
-        "group" : "abcd"  
-    },  
-    "service" : "channel-registry",  
-    "error" : False  
-}  
+`1{  
+2    "status" : 200,  
+3    "payload" : {  
+4        "channels" : ["hi"],  
+5        "group" : "abcd"  
+6    },  
+7    "service" : "channel-registry",  
+8    "error" : False  
+9}  
 `
 ```
 
----
+## Remove channels from a channel group
 
-## Remove channels
+Requires Stream Controller add-on: Enable the Stream Controller add-on for your key in the [Admin Portal](https://admin.pubnub.com/). See [support instructions](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
 
-### Method
-```
-`$pubnub->removeChannelFromChannelGroup()  
-    ->channels(string|array)  
-    ->channelGroup(string)  
-    ->sync();  
-`
-```
-Parameters  
-• `channels` String | Array – channels to remove  
-• `channelGroup` String – target group
+### Method(s)
 
-### Sample
 ```
-`$pubnub->removeChannelFromChannelGroup()  
-    ->channels("son")  
-    ->channelGroup("family")  
-    ->sync();  
+`1$pubnub->removeChannelFromChannelGroup()  
+2    ->channels(string|array)  
+3    ->channelGroup(string)  
+4    ->sync();  
 `
 ```
 
-### Server response
+Parameters:
+- channels (String|Array): Channels to remove.
+- channelGroup (String): Channel group to remove from.
+
+### Sample code
+
+#### Remove channels
+
 ```
-`{  
-    "status" : 200,  
-    "message" : "OK",  
-    "service" : "channel-registry",  
-    "error" : False  
-}  
+`1$pubnub->removeChannelFromChannelGroup()  
+2    ->channels("son")  
+3    ->channelGroup("family")  
+4    ->sync();  
 `
 ```
 
----
+### Rest response from server
 
-## Delete channel group
-
-### Method
 ```
-`$pubnub->removeChannelGroup()  
-    ->channelGroup(string)  
-    ->sync();  
-`
-```
-Parameter  
-• `channelGroup` String – group to delete
-
-### Sample
-```
-`$pubnub->removeChannelGroup()  
-    ->channelGroup("family")  
-    ->sync();  
+`1{  
+2    "status" : 200,  
+3    "message" : "OK",  
+4    "service" : "channel-registry",  
+5    "error" : False  
+6}  
 `
 ```
 
-### Server response
+## Delete a channel group
+
+Requires Stream Controller add-on: Enable the Stream Controller add-on for your key in the [Admin Portal](https://admin.pubnub.com/). See [support instructions](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
+
+### Method(s)
+
 ```
-`{**    "status" : 200,  
-    "message" : "OK",  
-    "service" : "channel-registry",  
-    "error" : False  
-}  
+`1$pubnub->removeChannelGroup()  
+2    ->channelGroup(string)  
+3    ->sync();  
 `
 ```
 
-_Last updated: Jul 15 2025_
+Parameters:
+- channelGroup (String): The channel group to remove.
+
+### Sample code
+
+#### Delete channel group
+
+```
+`1$pubnub->removeChannelGroup()  
+2    ->channelGroup("family")  
+3    ->sync();  
+`
+```
+
+### Rest response from server
+
+```
+`1{**2    "status" : 200,  
+3    "message" : "OK",  
+4    "service" : "channel-registry",  
+5    "error" : False  
+6}  
+`
+```
+
+Last updated on Sep 3, 2025**

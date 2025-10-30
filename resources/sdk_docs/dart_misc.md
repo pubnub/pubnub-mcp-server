@@ -1,191 +1,105 @@
-# Utility Methods API – Dart SDK (Misc)
+# Utility Methods API for Dart SDK
 
-Concise reference to rarely-used helpers. All code, signatures, parameters, and return types are unchanged.
+Utility methods that don't fit other categories.
 
 ## Pause
 
-Force the SDK to stop all PubNub requests while subscriptions are active.
+Force the SDK to stop all requests to PubNub when there are active subscribe channels.
 
-### Method
+### Method(s)
 
 ```
-`pause()  
+`1pause()  
 `
 ```
 
-No arguments.
+This method doesn't take any arguments.
 
-### Example
+### Sample code
 
+##### Reference code
 ```
-`import 'package:pubnub/pubnub.dart';  
+1import 'package:pubnub/pubnub.dart';  
+2
   
-void main() async {  
-  // Create PubNub instance with default keyset.  
-  var pubnub = PubNub(  
-    defaultKeyset: Keyset(  
-      subscribeKey: 'demo',  
-      publishKey: 'demo',  
-      userId: UserId('myUniqueUserId'),  
-    ),  
-  );  
+3void main() async {  
+4  // Create PubNub instance with default keyset.  
+5  var pubnub = PubNub(  
+6    defaultKeyset: Keyset(  
+7      subscribeKey: 'demo',  
+8      publishKey: 'demo',  
+9      userId: UserId('myUniqueUserId'),  
+10    ),  
+11  );  
+12
   
-  // Subscribe to a channel  
-  var channel = "getting_started";  
-  var subscription = pubnub.subscribe(channels: {channel});  
-`
+13  // Subscribe to a channel  
+14  var channel = "getting_started";  
+15  var subscription = pubnub.subscribe(channels: {channel});  
+16
+  
+17  subscription.messages.listen((message) {  
+18    print('Received message: ${message.content}');  
+19  });  
+20
+  
+21  // Pause the subscription  
+22  subscription.pause();  
+23  print('Subscription paused.');  
+24}  
 ```
-
----
 
 ## Resume
 
-Resume all halted PubNub requests.
+Force the SDK to try and reach out to PubNub again.
 
-### Method
+### Method(s)
 
 ```
 `resume()  
 `
 ```
 
-No arguments.
-
-### Example
+### Sample code
 
 ```
-`subscribtion.resume()  
+`1subscription.resume()  
 `
 ```
 
----
-
-## Encrypt file
-
-Encrypt file content provided as a list of bytes.
-
-> Deprecated: `cipherKey` argument overrides the crypto module and falls back to legacy 128-bit encryption. Prefer configuring a separate crypto module instance.
-
-### Method
-
-```
-`pubnub.files.encryptFile(  
-  Listint> bytes,  
-  {CipherKey? cipherKey,  
-  Keyset? keyset,  
-  String? using}  
-)  
-`
-```
-
-Parameter | Type | Description
---- | --- | ---
-`bytes` | List`<int>` | File content in bytes (required).
-`cipherKey` | cipherKey | Overrides `Keyset.cipherKey`.
-`keyset` | Keyset | Alternate keyset.
-`using` | String | Keyset name from `keysetStore`.
-
-### Example
-
-```
-`// create cryptoModule  
-var cryptoModule = CryptoModule.aesCbcCryptoModule(CipherKey.fromUtf8('abcd'));  
-  
-// encrypt file data   NOTE: same method because it works at byte level  
-var encryptedFileData = cryptoModule.encrypt(fileData);  
-`
-```
-
-### Returns
-
-List`<int>` (encrypted bytes).
-
----
-
-## Decrypt file
-
-Decrypt file bytes.
-
-> Deprecated: same `cipherKey` caveat as above.
-
-### Method
-
-```
-`pubnub.files.decryptFile(  
-  Listint> bytes,  
-  {CipherKey? cipherKey,  
-  Keyset? keyset,  
-  String? using})  
-`
-```
-
-Parameter | Type | Description
---- | --- | ---
-`bytes` | List`<int>` | File content in bytes (required).
-`cipherKey` | cipherKey | Overrides `Keyset.cipherKey`.
-`keyset` | Keyset | Alternate keyset.
-`using` | String | Keyset name from `keysetStore`.
-
-### Example
-
-```
-`// create cryptoModule  
-var cryptoModule = CryptoModule.aesCbcCryptoModule(CipherKey.fromUtf8('abcd'));  
-  
-// encrypt file data   NOTE: same method because it works at byte level  
-var encryptedFileData = cryptoModule.encrypt(fileData);  
-  
-// decrypt file data   
-var decryptedFileData = cryptoModule.decrypt(encryptedFileData);  
-  
-// create file again from decrypted file bytes  
-File('decryptedFile.jpg').writeAsBytesSync(decryptedFileData);  
-`
-```
-
-### Returns
-
-List`<int>` (decrypted bytes).
-
----
+This method doesn't take any arguments.
 
 ## Time
 
-Retrieve the current network timetoken.
+Returns the current timetoken value from the PubNub network.
 
-Algorithm:  
-
+##### Algorithm constructing the timetoken
 ```
-`timetoken = (Unix epoch time in seconds) * 10000000  
+`1timetoken = (Unix epoch time in seconds) * 10000000  
 `
 ```
 
-Example:  
-
+Example of creating a timetoken for a specific time and date:
 ```
-`08/19/2013 @ 9:20pm in UTC = 1376961606  
-timetoken = 1376961606 * 10000000  
-timetoken = 13769616060000000  
+`108/19/2013 @ 9:20pm in UTC = 1376961606  
+2timetoken = 1376961606 * 10000000  
+3timetoken = 13769616060000000  
 `
 ```
 
-### Method
-
+### Method(s)
 ```
-`time()  
+`1time()  
 `
 ```
 
-### Example
-
+### Sample code
 ```
-`var response = await pubnub.time();  
+`1var response = await pubnub.time();  
 `
 ```
 
 ### Returns
 
-`Timetoken`  
-• `value` (int) – current timetoken.
-
-_Last updated Jul 15 2025_
+time() returns a Timetoken with:
+- value(): Type: int — current timetoken as an int.

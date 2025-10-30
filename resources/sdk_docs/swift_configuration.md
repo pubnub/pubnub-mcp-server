@@ -1,150 +1,292 @@
-# Configuration API – Swift SDK (condensed)
+# Configuration API for Swift Native SDK
 
-A `PubNubConfiguration` object controls every aspect of a `PubNub` client.  
-Required:  
+Use this configuration object to define how a PubNub instance behaves.
 
-* `subscribeKey` – PubNub Subscribe Key  
-* `userId` – unique UTF-8 ID (≤ 92 chars) for the user/device  
+## Initializer(s)
 
-`publishKey` is optional (set `nil` for read-only clients).
+Create a configuration with your Publish and Subscribe Keys.
 
----
+Privacy
 
-## Initializer
+MAU billing tracks users (Device and MAU) for analytics and billing. PubNub does not track customers using transactions with random UUIDs/UserIDs.
 
-```swift
-PubNubConfiguration(
-  publishKey: String?,
-  subscribeKey: String,
-  userId: String,
-  cryptoModule: CryptoModule? = nil,
-  authKey: String? = nil,
-  authToken: String? = nil,
-  useSecureConnections: Bool = true,
-  origin: String = "ps.pndsn.com",
-  useInstanceId: Bool = false,
-  useRequestId: Bool = false,
-  automaticRetry: AutomaticRetry? = .default,
-  durationUntilTimeout: UInt = 300,
-  heartbeatInterval: UInt = 0,
-  supressLeaveEvents: Bool = false,
-  requestMessageCountThreshold: UInt = 100,
-  filterExpression: String? = nil,
-  enableEventEngine: Bool = true,
-  maintainPresenceState: Bool = true,
-  cipherKey: Crypto? = nil,        // deprecated – use cryptoModule
-  uuid: String? = nil              // deprecated – use userId
-)
-```
+### Method(s)
 
----
-
-## Parameter summary
-
-* `publishKey` (String?) – key used for publishing.  
-* `subscribeKey` (String) – key used for subscribing.  
-* `userId` (String) – REQUIRED unique identifier.  
-* `cryptoModule` (CryptoModule?) – encryption/decryption provider (see below).  
-* `authKey` / `authToken` (String?) – Access-Manager credentials.  
-* `useSecureConnections` (Bool, default `true`) – HTTPS when `true`.  
-* `origin` (String, default `"ps.pndsn.com"`) – custom domain if needed.  
-* `useInstanceId` / `useRequestId` (Bool) – include IDs in requests.  
-* `automaticRetry` (AutomaticRetry?) – reconnection settings.  
-* `durationUntilTimeout` (UInt, default `300`) – presence timeout (min 20).  
-* `heartbeatInterval` (UInt) – heartbeat frequency (`0` = disabled, min 3).  
-* `supressLeaveEvents` (Bool) – skip leave requests when `true`.  
-* `requestMessageCountThreshold` (UInt) – emit event after N messages.  
-* `filterExpression` (String?) – PSV2 subscribe filter.  
-* `enableEventEngine` / `maintainPresenceState` (Bool) – event-engine opts.  
-* `cipherKey` (Crypto?) – DEPRECATED, use `cryptoModule`.  
-* `uuid` (String) – DEPRECATED, use `userId`.
-
----
-
-## cryptoModule
-
-Provides message/file encryption.
-
-* Legacy (128-bit) encryption is used automatically when only `cipherKey` is set.  
-* To use the recommended 256-bit AES-CBC encryption explicitly pass a `cryptoModule`.  
-* Clients prior to SDK 6.1.0 cannot decrypt AES-CBC data.
-
-Configuration examples (place-holders preserved):
+To initialize PubNub, use:
 
 ```
-`  
+`1PubNubConfiguration(  
+2  publishKey: String?,  
+3  subscribeKey: String,  
+4  userId: String,  
+5  cryptoModule: CryptoModule? = nil,  
+6  authKey: String? = nil,  
+7  authToken: String? = nil,  
+8  useSecureConnections: Bool = true,  
+9  origin: String = "ps.pndsn.com",  
+10  useInstanceId: Bool = false,  
+11  useRequestId: Bool = false,  
+12  automaticRetry: AutomaticRetry? = .default,  
+13  durationUntilTimeout: UInt = 300,  
+14  heartbeatInterval: UInt = 0,  
+15  supressLeaveEvents: Bool = false,  
+16  requestMessageCountThreshold: UInt = 100,  
+17  filterExpression: String? = nil,  
+18  enableEventEngine: Bool = true,  
+19  maintainPresenceState: Bool = true  
+20)  
 `
 ```
 
+Parameters
+
+- publishKey
+  - Type: String?
+  - Default: nil
+  - PubNub Publish Key used when publishing messages.
+- subscribeKey
+  - Type: String
+  - Default: nil
+  - PubNub Subscribe Key used when subscribing.
+- userId
+  - Type: String
+  - Required
+  - UTF-8 string up to 92 alphanumeric characters; required to connect.
+- cryptoModule
+  - Type: CryptoModule?
+  - Default: nil
+  - Module for message/file encryption/decryption. Pass cipherKey via cryptoModule. See cryptoModule section.
+- authKey
+  - Type: String?
+  - Default: nil
+  - Used on all requests if Access Manager is enabled.
+- authToken
+  - Type: String?
+  - Default: nil
+  - Used instead of authKey on all requests if Access Manager is enabled.
+- useSecureConnections
+  - Type: Bool
+  - Default: true
+  - HTTPS if true; HTTP otherwise. Disable ATS to allow HTTP in iOS/macOS.
+- origin
+  - Type: String
+  - Default: "ps.pndsn.com"
+  - Domain for requests. For custom domains, contact support and follow the request process.
+- useInstanceId
+  - Type: Bool
+  - Default: false
+  - Include PubNub object instanceId on requests.
+- useRequestId
+  - Type: Bool
+  - Default: false
+  - Include a request identifier on requests.
+- automaticRetry
+  - Type: AutomaticRetry?
+  - Default: ReconnectionPolicy.exponential (subscribe only)
+  - Custom reconnection behavior. See automaticRetry section.
+- durationUntilTimeout
+  - Type: UInt
+  - Default: 300
+  - Presence timeout window in seconds. Long-poll-like keepalive every 300s by default. Minimum 20s. Triggers timeout on presence channel when exceeded.
+- heartbeatInterval
+  - Type: UInt
+  - Default: 0
+  - Frequency of explicit heartbeat messages. Recommended: (durationUntilTimeout / 2) - 1. 0 disables explicit heartbeats. Do not set below 3 due to server constraints.
+- suppressLeaveEvents
+  - Type: Bool
+  - Default: false
+  - Whether to send leave requests.
+- requestMessageCountThreshold
+  - Type: UInt
+  - Default: 100
+  - Payload message count before emitting RequestMessageCountExceeded.
+- filterExpression
+  - Type: String?
+  - Default: nil
+  - PSV2 filter expression for subscriptions.
+- enableEventEngine
+  - Type: Bool
+  - Default: true
+  - Use standardized workflows for subscribe/presence and corresponding statuses.
+- maintainPresenceState
+  - Type: Bool
+  - Default: true
+  - Effective only when enableEventEngine is true. Sends custom presence state (set via pubnub.setPresence()) with subscribe calls.
+- cipherKey
+  - Type: Crypto?
+  - Default: nil
+  - Deprecated. Pass via cryptoModule instead. If set, encrypts all communication.
+- uuid
+  - Type: String
+  - Required previously; deprecated. Use userId instead.
+
+#### cryptoModule
+
+Encrypts and decrypts messages and files. From 6.1.0, you can choose algorithms.
+
+- Options: legacy 128-bit encryption and recommended 256-bit AES-CBC.
+- If cryptoModule is not set and cipherKey is set in config, the client uses legacy encryption.
+- For details and utilities, see Encryption.
+
+Legacy encryption with 128-bit cipher key entropy
+
+- Keep existing config to continue legacy encryption.
+- To use 256-bit AES-CBC, explicitly set cryptoModule.
+
+#### automaticRetry
+
+automaticRetry lets the client retry requests automatically. Parameters:
+
+- retryLimit
+  - Type: UInt
+  - Max retry attempts before failing.
+- policy
+  - Type: ReconnectionPolicy
+  - Values:
+    - ReconnectionPolicy.linear(delay)
+    - ReconnectionPolicy.exponential(minDelay, maxDelay)
+  - Default for subscribe connections: exponential.
+- retryableHTTPStatusCodes
+  - Type: Set<Int>
+  - HTTP status codes eligible for retry.
+- retryableURLErrorCode
+  - Type: Set<URLError.Code>
+  - URL error codes eligible for retry.
+- excluded
+  - Type: [AutomaticRetry.Endpoint]
+  - Endpoints excluded from retry policy.
+
+For more, see SDK connection lifecycle.
+
 ```
-`  
-`
-```
-
----
-
-## automaticRetry
-
-Automatic reconnection settings.
-
-Parameter | Type | Notes
----|---|---
-`retryLimit` | UInt | Max retry attempts
-`policy` | ReconnectionPolicy | `.linear(delay)` or `.exponential(min,max)` (default for subscribe)
-`retryableHTTPStatusCodes` | Set<Int> | HTTP codes that trigger retry
-`retryableURLErrorCode` | Set<URLError.Code> | URL errors that trigger retry
-`excluded` | [AutomaticRetry.Endpoint] | Endpoints that never retry
+1
+  
 
 ```
-`  
-`
+
+#### Request configuration
+
+Use PubNub.RequestConfiguration to customize a single request without changing global settings.
+
+- customSession
+  - Type: SessionReplaceable?
+  - Default: nil
+  - Custom network session implementing SessionReplaceable for routing, task execution, and session lifecycle.
+- customConfiguration
+  - Type: RouterConfiguration?
+  - Default: nil
+  - Endpoint configuration used by the request.
+- responseQueue
+  - Type: DispatchQueue
+  - Queue used to dispatch a response.
+
+##### SessionReplaceable
+
+Custom network session interface managing routing, tasks, and lifecycle.
+
+- sessionID
+  - Type: UUID
+  - Unique identifier for the session object.
+- session
+  - Type: URLSessionReplaceable
+  - Underlying URLSession used to execute network tasks.
+- sessionQueue
+  - Type: DispatchQueue
+  - Queue used to execute session operations.
+- defaultRequestOperator
+  - Type: RequestOperator?
+  - Default request operator attached to every request (settable).
+- sessionStream
+  - Type: SessionStream?
+  - Optional session stream for real-time communication (settable).
+
+##### RouterConfiguration
+
+Base settings for PubNub endpoints, including authentication, transport security, encryption, and request behavior.
+
+- publishKey: String?
+- subscribeKey: String
+- uuid: String (equivalent to userId in Configuration)
+- useSecureConnections: Bool
+- origin: String (custom domain supported via request process)
+- authKey: String?
+- authToken: String?
+- cryptoModule: CryptoModule?
+- useRequestId: Bool
+- consumerIdentifiers: [String: String] (key-value pairs for request tracking)
+- enableEventEngine: Bool
+- maintainPresenceState: Bool
+- urlScheme: String ("https" or "http" derived from useSecureConnections)
+- subscribeKeyExists: Bool (non-empty subscribeKey)
+- publishKeyExists: Bool (non-empty publishKey)
+
+##### DispatchQueue
+
+Specifies which queue handles response callbacks.
+
+- currentLabel
+  - Type: String
+  - Returns the label of the current DispatchQueue or "Unknown Queue" if unset.
+
+Official Apple Documentation
+
+For standard DispatchQueue properties and methods, see Apple's DispatchQueue documentation.
+
+### Sample code
+
+#### Initialize the PubNub client API
+
+Required User ID
+
+Always set userId to uniquely identify the user or device and persist it. Without userId, you cannot connect.
+
+Reference code
+
+```
+1
+  
+
 ```
 
----
+### Other examples
 
-## Per-request override – `PubNub.RequestConfiguration`
+#### Initialization for a read-only client
 
-Field | Type | Purpose
----|---|---
-`customSession` | SessionReplaceable? | Supply your own `URLSession`
-`customConfiguration` | RouterConfiguration? | Endpoint-specific config
-`responseQueue` | DispatchQueue | Queue for callbacks
+If the client only reads and never publishes, set publishKey to nil.
 
-`SessionReplaceable`, `RouterConfiguration`, and `DispatchQueue` follow the same signatures described in Apple/PubNub docs; only supply them when default behaviour is insufficient.
+Required User ID
 
----
-
-## Sample code
-
-Full runnable example:
+Always set userId and persist it. Without userId, you cannot connect.
 
 ```
-`  
-`
-```
-
-### Read-only client
+1
+  
 
 ```
-`  
-`
-```
 
----
+## Event listeners
 
-## Mutating configuration
+- PubNub client: updates from all subscriptions (channels, channel groups, channel metadata, users).
+- Subscription: updates for the specific entity it was created for.
+- SubscriptionsSet: updates across a list of subscription objects.
 
-Once a `PubNubConfiguration` is assigned to a `PubNub` instance it becomes immutable; change values by creating a new client.
+See Publish & Subscribe for details.
 
-```
-`  
-`
-```
+## Overriding PubNub configuration
 
-### Updating the filter expression without a new client
+You can change PubNubConfiguration properties until applied to a PubNub instance. After that, settings are locked; create a new PubNub instance to change them.
 
 ```
-`**`
+1
+  
+
 ```
 
-_Last updated: Jul 16 2025_
+### Filter
+
+Update the filter expression without creating a new instance:
+
+```
+1
+**
+```

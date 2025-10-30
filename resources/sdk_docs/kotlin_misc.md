@@ -1,310 +1,240 @@
-# Utility Methods – PubNub Kotlin SDK
+# Utility Methods API for Kotlin SDK
 
-> SDK v 9 unifies Java/Kotlin codebases, changes client instantiation, async callbacks, and status events. See the Java/Kotlin migration guide before upgrading from \< 9.0.0.
+##### Breaking changes in v9.0.0
+- Kotlin SDK v9.0.0 unifies Java/Kotlin codebases, changes client instantiation, async callbacks, and emitted status events.
+- May impact apps built with versions < 9.0.0.
+- See Java/Kotlin SDK migration guide and status events docs.
 
-## Request execution
-
-Most SDK calls return an `Endpoint`. Invoke **either** `.sync()` or `.async()`—otherwise nothing is executed.
+##### Request execution
+Most SDK methods return an Endpoint object. You must call .sync() or .async() to execute.
 
 ```
-`val channel = pubnub.channel("channelName")  
-  
-channel.publish("This SDK rules!").async { result ->  
-    result.onFailure { exception ->  
-        // Handle error  
-    }.onSuccess { value ->  
-        // Handle successful method result  
-    }  
-}  
-`
-```
+val channel = pubnub.channel("channelName")
 
----
+channel.publish("This SDK rules!").async { result ->
+    result.onFailure { exception ->
+        // Handle error
+    }.onSuccess { value ->
+        // Handle successful method result
+    }
+}
+```
 
 ## Create push payload
 
-Build a payload for `publish()`.
+Build a push payload for use with publish.
+
+### Method(s)
 
 ```
-`val pushPayloadHelper = PushPayloadHelper()  
-  
-val fcmPayload = FCMPayload()  
-val apnsPayload = APNSPayload()  
-  
-pushPayloadHelper.fcmPayload = fcmPayload  
-pushPayloadHelper.apnsPayload = apnsPayload  
-`
+val pushPayloadHelper = PushPayloadHelper()
+
+val fcmPayloadV2 = FCMPayloadV2()
+val apnsPayload = APNSPayload()
+
+pushPayloadHelper.fcmPayloadV2 = fcmPayloadV2
+pushPayloadHelper.apnsPayload = apnsPayload
 ```
 
-Parameters  
+Parameters:
+- apnsPayload (APNSPayload): Set APNS/APNS2 payload (under pn_apns).
+- fcmPayloadV2 (FCMPayloadV2): Set FCM V2 payload (under pn_fcm).
+- commonPayload (Map<String, Any>): Set fields delivered to native PubNub subscribers along with pn_apns and pn_fcm.
+- build(): Map<String, Any> — builds payload from set values.
 
-* `apnsPayload` `APNSPayload` – data placed under `pn_apns`.  
-* `fcmPayload` `FCMPayload` – data placed under `pn_gcm`.  
-* `commonPayload` `Map<String, Any>` – data delivered to native PubNub subscribers.  
-* `build()` → `Map<String, Any>` – final payload (pass directly to `publish()`).
-
-Sample:
-
-```
-`  
-`
-```
-
-Return: `Map<String, Any>`.
-
----
-
-## Encrypt
+### Sample code
 
 ```
-`pubnub.encrypt(  
-    inputString: String,  
-    cipherKey: String  
-)  
-`
-```
-
-* `inputString` `String` – data to encrypt.  
-* `cipherKey` `String` **(deprecated)** – overrides `cryptoModule`, uses legacy 128-bit key.
-
-Returns encrypted `String`.
-
-Sample:
 
 ```
-`  
-`
-```
 
----
-
-## Encrypt file input stream
-
-```
-`pubnub.encryptInputStream(inputStream: InputStream, cipherKey: String)  
-`
-```
-
-* `inputStream` `InputStream` – content to encrypt.  
-* `cipherKey` `String` **(deprecated)** – see Encrypt section.
-
-Returns encrypted `InputStream`.
-
-Sample:
-
-```
-`  
-`
-```
-
----
-
-## Decrypt
-
-```
-`pubnub.decrypt(  
-    inputString: String,  
-    cipherKey: String  
-)  
-`
-```
-
-* `inputString` `String` – data to decrypt.  
-* `cipherKey` `String` **(deprecated)**.
-
-Returns decrypted `String`.
-
-Sample:
-
-```
-`  
-`
-```
-
----
-
-## Decrypt file input stream
-
-```
-`pubnub.decryptInputStream(inputStream: InputStream, cipherKey: String)  
-`
-```
-
-* `inputStream` `InputStream` – encrypted content.  
-* `cipherKey` `String` **(deprecated)**.
-
-Returns decrypted `InputStream`.
-
-Sample:
-
-```
-`  
-`
-```
-
----
+### Response
+PushPayloadHelper.build() returns Map<String, Any> suitable for the message parameter of pubnub.publish().
 
 ## Destroy
 
-Stops SDK threads.
+Frees threads for a clean exit.
+
+### Method(s)
 
 ```
-`destroy()  
-`
+fun destroy()
 ```
 
-Sample:
+### Sample code
 
 ```
-`  
-`
-```
-
----
-
-## Get subscribed channel groups
 
 ```
-`fun getSubscribedChannelGroups(): ListString>  
-`
-```
 
-Returns `List<String>` of channel groups.
+### Returns
+None.
 
-Sample:
+## Get subscribed channels groups
 
-```
-`  
-`
-```
+Returns all subscribed channel groups.
 
-Example response:
+### Method(s)
 
 ```
-`["channel1", "channel2"]  
-`
+fun getSubscribedChannelGroups(): List<String>
 ```
 
----
+### Sample code
+
+```
+
+```
+
+### Response
+
+```
+["channel1", "channel2"]
+```
 
 ## Get subscribed channels
 
-```
-`fun getSubscribedChannels(): ListString>  
-`
-```
+Returns all subscribed channels.
 
-Returns `List<String>` of channels.
-
-Sample:
+### Method(s)
 
 ```
-`  
-`
+fun getSubscribedChannels(): List<String>
 ```
 
-Example response:
+### Sample code
 
-```
-`["channel1", "channel2"]  
-`
-```
-
----
-
-## Disconnect / Reconnect
-
-```
-`disconnect()  
-`
 ```
 
 ```
-`reconnect()  
-`
-```
 
-Stop or resume all PubNub network activity.
-
-Samples:
+### Response
 
 ```
-`  
-`
+["channel1", "channel2"]
+```
+
+## Disconnect
+
+Stops all requests to PubNub when there are active subscribe channels.
+
+### Method(s)
+
+```
+fun disconnect()
+```
+
+This method takes no arguments.
+
+### Sample code
+
 ```
 
 ```
-`  
-`
-```
 
----
+## Reconnect
 
-## Timetoken / date / Unix conversions (`TimetokenUtil`)
+Forces the SDK to try to reach PubNub.
 
-### Timetoken ➔ `Instant`
+### Method(s)
 
 ```
-`TimetokenUtil.timetokenToInstant(timetoken: Long): Instant  
-`
+fun reconnect(timeout: Long)
 ```
 
-* `timetoken` `Long` → returns `Instant`.
+Parameters:
+- timeout (Long): Timetoken to reconnect from.
 
-Sample:
-
-```
-`  
-`
-```
-
-### `Instant` ➔ Timetoken
+### Sample code
 
 ```
-`TimetokenUtil.instantToTimetoken(instant: Instant): Long  
-`
-```
-
-* `instant` `Instant` → returns `Long`.
-
-Sample:
 
 ```
-`  
-`
-```
 
-### Unix ➔ Timetoken
+## Timetoken to date
 
-```
-`TimetokenUtil.unixToTimetoken(unixTime: Long): Long   
-`
-```
+Convert a PubNub timetoken (100-ns intervals since 1970-01-01) to Instant.
 
-* `unixTime` `Long` → returns `Long`.
-
-Sample:
+### Method signature
 
 ```
-`  
-`
+fun TimetokenUtil.timetokenToInstant(timetoken: Long): Instant
 ```
 
-### Timetoken ➔ Unix
+Input:
+- timetoken (Long): PubNub timetoken.
+
+Output:
+- Instant: Date/time representation.
+
+### Sample code
 
 ```
-`TimetokenUtil.timetokenToUnix(timetoken: Long): Long   
-`
-```
-
-* `timetoken` `Long` → returns `Long`.
-
-Sample:
 
 ```
-`**`
+
+## Date to timetoken
+
+Convert Instant to a PubNub timetoken.
+
+### Method signature
+
+```
+fun TimetokenUtil.instantToTimetoken(instant: Instant): Long
 ```
 
----
+Input:
+- instant (Instant): Date/time to convert.
 
-_Last updated Jul 15 2025_
+Output:
+- Long: Timetoken.
+
+### Sample code
+
+```
+
+```
+
+## Unix timestamp to timetoken
+
+Convert a Unix timestamp (seconds since 1970-01-01) to a PubNub timetoken.
+
+### Method signature
+
+```
+fun TimetokenUtil.unixToTimetoken(unixTime: Long): Long
+```
+
+Input:
+- unixTime (Long): Unix timestamp.
+
+Output:
+- Long: Timetoken.
+
+### Sample code
+
+```
+
+```
+
+## Timetoken to Unix timestamp
+
+Convert a PubNub timetoken to a Unix timestamp (seconds since 1970-01-01).
+
+### Method signature
+
+```
+fun TimetokenUtil.timetokenToUnix(timetoken: Long): Long
+```
+
+Input:
+- timetoken (Long): PubNub timetoken.
+
+Output:
+- Long: Unix timestamp.
+
+### Sample code
+
+```
+
+```

@@ -1,108 +1,170 @@
-# Channel Groups API – Java SDK
+# Channel Groups API for Java SDK
 
-> PubNub Java SDK v9.0.0 merges Java & Kotlin codebases, introduces a new client constructor, and changes async callbacks/status events. Applications built with <9.0.0 **must** follow the migration guide.
+##### Breaking changes in v9.0.0
 
-Channel Groups bundle many channels under one name.  
-• You can **subscribe**, **not publish**, to a group.  
-• Every operation below requires the **Stream Controller** add-on.
+PubNub Java SDK v9.0.0 unifies Java and [Kotlin](/docs/sdks/kotlin) codebases, introduces a new client instantiation model, and changes async API callbacks and [status events](/docs/sdks/java/status-events). These changes may impact apps built with versions < 9.0.0. See the [Java/Kotlin SDK migration guide](/docs/general/resources/migration-guides/java-kotlin-sdk-migration-guide).
 
----
+[Channel groups](/docs/general/channels/subscribe#channel-groups) let you bundle many [channels](/docs/general/channels/overview) under a single name and subscribe to that group to receive messages from all channels it contains.
 
-## Add channels to a channel group
-Maximum 200 channels per call.
+##### Channel group operations
 
-```java
-this.pubnub.addChannelsToChannelGroup()
-    .channelGroup(String)
-    .channels(Array)
+- You can't publish to a channel group; you can only subscribe to it.
+- To publish within a group, publish to individual channels.
+
+## Add channels to a channel group[​](#add-channels-to-a-channel-group)
+
+##### Requires Stream Controller add-on
+
+Enable the Stream Controller add-on for your key in the [Admin Portal](https://admin.pubnub.com/). See the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
+
+Adds channels to a channel group.
+
+### Method(s)[​](#methods)
+
+Maximum number of channels: You can add up to 200 channels to a channel group per API call.
+
+Use the following method in the Java SDK:
+
 ```
-
-Parameter | Type | Description
---------- | ---- | -----------
-channelGroup | String | Target group
-channels | Array<String> | Channels to add
-async | Consumer<Result<PNChannelGroupsAddChannelResult>> | Completion callback
-
-Sample:
-
-```
-`  
+`1this.pubnub.addChannelsToChannelGroup()  
+2    .channelGroup(String)  
+3    .channels(Array)  
 `
 ```
 
-Response: no payload—use `result.isFailure()` or `result.onFailure(e -> { ... })`.
+Parameters:
+- channelGroup (Type: String) – The channel group to add the channels to.
+- channels (Type: Array) – The channels to add to the channel group.
+- async (Type: Consumer<Result>) – Consumer of a Result of type PNChannelGroupsAddChannelResult.
 
----
+### Sample code[​](#sample-code)
 
-## List channels in a channel group
+##### Reference code
 
-```java
-pubnub.listChannelsForChannelGroup()
-    .channelGroup(String)
-    .async(result -> { /* check result */ });
-```
+This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
 
-Parameter | Type | Description
---------- | ---- | -----------
-channelGroup | String | Group to query
-async | Consumer<Result<PNChannelGroupsAllChannelsResult>> | Completion callback
-
-Sample:
+#### Add channels[​](#add-channels)
 
 ```
-`  
+1
+  
+
+```
+
+### Response[​](#response)
+
+The addChannelsToChannelGroup() call doesn’t return actionable data. Check the result object for outcome using result.isFailure() or handle exceptions with result.onFailure(exception -> { }).
+
+## List channels in a channel group[​](#list-channels-in-a-channel-group)
+
+##### Requires Stream Controller add-on
+
+Enable the Stream Controller add-on for your key in the [Admin Portal](https://admin.pubnub.com/). See the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
+
+Lists all channels in a channel group.
+
+### Method(s)[​](#methods-1)
+
+Use the following method in the Java SDK:
+
+```
+`1pubnub.listChannelsForChannelGroup()  
+2    .channelGroup(String)  
+3    .async(result -> { /* check result */ });  
 `
 ```
 
-Return object: `PNChannelGroupsAllChannelsResult`  
-• `getChannels()` → `List<String>`
+Parameters:
+- channelGroup (Type: String) – The channel group for which to list channels.
+- async (Type: Consumer<Result>) – Consumer of a Result of type PNChannelGroupsAllChannelsResult.
 
----
+### Sample code[​](#sample-code-1)
 
-## Remove channels from a channel group
-
-```java
-pubnub.removeChannelsFromChannelGroup()
-    .channelGroup(String)
-    .channels(Array)
-```
-
-Parameter | Type | Description
---------- | ---- | -----------
-channels | Array<String> | Channels to remove
-channelGroup | String | Target group
-async | Consumer<Result<PNChannelGroupsRemoveChannelResult>> | Completion callback
-
-Sample:
+#### List channels[​](#list-channels)
 
 ```
-`  
+1
+  
+
+```
+
+### Returns[​](#returns)
+
+listChannelsForChannelGroup() returns PNChannelGroupsAllChannelsResult with:
+- getChannels() (Type: List<String>) – List of channels in the channel group.
+
+## Remove channels from a channel group[​](#remove-channels-from-a-channel-group)
+
+##### Requires Stream Controller add-on
+
+Enable the Stream Controller add-on for your key in the [Admin Portal](https://admin.pubnub.com/). See the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
+
+Removes channels from a channel group.
+
+### Method(s)[​](#methods-2)
+
+Use the following method in the Java SDK:
+
+```
+`1pubnub.removeChannelsFromChannelGroup()  
+2    .channelGroup(String)  
+3    .channels(Array)  
 `
 ```
 
-Response: no payload—check `result.isFailure()` / `onFailure`.
+Parameters:
+- channels (Type: Array) – The channels to remove from the channel group.
+- channelGroup (Type: String) – The channel group from which to remove the channels.
+- async (Type: Consumer<Result>) – Consumer of a Result of type PNChannelGroupsRemoveChannelResult.
 
----
+### Sample code[​](#sample-code-2)
 
-## Delete a channel group
-
-```java
-pubnub.deleteChannelGroup()
-    .channelGroup(String)
-```
-
-Parameter | Type | Description
---------- | ---- | -----------
-channelGroup | String | Group to delete
-async | Consumer<Result<PNChannelGroupsDeleteGroupResult>> | Completion callback
-
-Sample:
+#### Remove channels[​](#remove-channels)
 
 ```
-`  
+1
+  
+
+```
+
+### Response[​](#response-1)
+
+The removeChannelsFromChannelGroup() call doesn’t return actionable data. Check the result object using result.isFailure() or handle exceptions with result.onFailure(exception -> { }).
+
+## Delete a channel group[​](#delete-a-channel-group)
+
+##### Requires Stream Controller add-on
+
+Enable the Stream Controller add-on for your key in the [Admin Portal](https://admin.pubnub.com/). See the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
+
+Deletes a channel group.
+
+### Method(s)[​](#methods-3)
+
+Use the following method in the Java SDK:
+
+```
+`1pubnub.deleteChannelGroup()  
+2    .channelGroup(String)  
 `
 ```
 
-Response: no payload—check `result.isFailure()` / `onFailure`.
+Parameters:
+- channelGroup (Type: String) – The channel group to delete.
+- async (Type: Consumer<Result>) – Consumer of a Result of type PNChannelGroupsDeleteGroupResult.
 
-_Last updated: Jul 15 2025_
+### Sample code[​](#sample-code-3)
+
+#### Delete channel group[​](#delete-channel-group)
+
+```
+1
+  
+
+```
+
+### Response[​](#response-2)
+
+The deleteChannelGroup() call doesn’t return actionable data. Check the result object using result.isFailure() or handle exceptions with result.onFailure(exception -> { }).
+
+Last updated on Sep 3, 2025

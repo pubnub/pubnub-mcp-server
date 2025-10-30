@@ -1,248 +1,106 @@
-# Utility Methods API (Unity SDK)
+# Utility Methods API for Unity SDK
 
-All methods are static or instance calls on `Pubnub` unless otherwise noted. Code blocks, signatures, and responses are unchanged from the source for accuracy.  
+Utility methods for lifecycle, connectivity, subscriptions, and push payloads.
 
----
+## Cleanup
 
-## Cleanup <a name="cleanup"></a>
-
-Frees SDK threads for a clean exit.
+Frees up threads and allows a clean exit.
 
 ### Method(s)
-```
-`Pubnub.CleanUp()  
-`
-```
 
-### Sample code
 ```
-`  
-`
+Pubnub.CleanUp()
 ```
 
----
+### Returns
 
-## Encrypt <a name="encrypt"></a>
+None
 
-Encrypt arbitrary data.  
-**Deprecated:** Passing `cipherKey` overrides `CryptoModule` and uses legacy 128-bit encryption.
+## Disconnect
+
+Forces the SDK to stop all requests to PubNub when there are active subscribe channels.
 
 ### Method(s)
-```
-`pubnub.Encrypt(inputString, cipherKey)  
-`
-```
 
-* `inputString` (String) – Data to encrypt.  
-* `cipherKey`  (String) – Cipher key (deprecated).
-
-### Sample code
 ```
-`  
-`
+Disconnect<T>()
 ```
 
----
+This method doesn't take any arguments.
 
-## Encrypt file <a name="encrypt-file"></a>
+## Get subscribed channel groups
 
-Encrypt file content.  
-**Deprecated:** Same `cipherKey` note as above.
+Returns all subscribed channel groups as a List<string>.
 
 ### Method(s)
-```
-`pubnub.EncryptFile(sourceFile, destinationFile, cipherKey)  
-`
-```
-* `sourceFile` (String) – File to encrypt.  
-* `destinationFile` (String) – Output path.  
-* `cipherKey` (String) – Optional cipher key.
 
-Byte-array overload:
 ```
-`byte[] outputBytes = pubnub.EncryptFile(sourceBytes) byte[] outputBytes = pubnub.EncryptFile(sourceBytes, cipherKey)  
-`
-```
-* `sourceBytes` (byte[]) – File bytes.  
-* `cipherKey` (String) – Optional cipher key.
-
-### Sample code
-```
-`  
-`
-```
-```
-`  
-`
-```
-
----
-
-## Decrypt <a name="decrypt"></a>
-
-Decrypt arbitrary data.  
-**Deprecated:** Same `cipherKey` note as above.
-
-### Method(s)
-```
-`pubnub.Decrypt(inputString, cipherKey)  
-`
-```
-* `inputString` (String) – Data to decrypt.  
-* `cipherKey`  (String) – Cipher key.
-
-### Sample code
-```
-`  
-`
-```
-
----
-
-## Decrypt file <a name="decrypt-file"></a>
-
-Decrypt file content.  
-**Deprecated:** Same `cipherKey` note as above.
-
-### Method(s)
-```
-`pubnub.DecryptFile(sourceFile, destinationFile, cipherKey);  
-`
-```
-* `sourceFile` (String) – File to decrypt.  
-* `destinationFile` (String) – Output path.  
-* `cipherKey` (String) – Optional cipher key.
-
-Byte-array overload:
-```
-`byte[] outputBytes = pubnub.DecryptFile(sourceBytes) byte[] outputBytes = pubnub.DecryptFile(sourceBytes, cipherKey)  
-`
-```
-* `sourceBytes` (byte[]) – File bytes.  
-* `cipherKey`  (String) – Optional cipher key.
-
-### Sample code
-```
-`  
-`
-```
-```
-`  
-`
-```
-
----
-
-## Disconnect <a name="disconnect"></a>
-
-Force-stop all active subscribe requests.
-
-### Method(s)
-```
-`DisconnectT>()  
-`
-```
-
-### Sample code
-```
-`  
-`
-```
-
----
-
-## Get subscribed channel groups <a name="get-subscribed-channel-groups"></a>
-
-Returns a list of channel groups currently subscribed.
-
-### Method(s)
-```
-`Liststring> GetSubscribedChannelGroups()  
-`
-```
-
-### Sample code
-```
-`  
-`
+List<string> GetSubscribedChannelGroups()
 ```
 
 ### Response
-`List<String>`
+
+List<string>
+
 ```
-`["channelGroup1", "channelGroup2"]  
-`
+["channelGroup1", "channelGroup2"]
 ```
 
----
+## Get subscribed channels
 
-## Get subscribed channels <a name="get-subscribed-channels"></a>
-
-Returns a list of channels currently subscribed.
+Returns all subscribed channels as a List<string>.
 
 ### Method(s)
-```
-`Liststring> GetSubscribedChannels()  
-`
-```
 
-### Sample code
 ```
-`  
-`
+List<string> GetSubscribedChannels()
 ```
 
 ### Response
-`List<String>`
-```
-`["channel1", "channel2"]  
-`
-```
 
----
+List<string>
 
-## Reconnect <a name="reconnect"></a>
-
-Attempts to re-establish PubNub connectivity.
-
-### Method(s)
 ```
-`ReconnectT>(bool resetSubscribeToken)  
-`
-```
-* `resetSubscribeToken` (bool) – `true` sends a zero timetoken on reconnect.
-
-### Sample code
-```
-`  
-`
+["channel1", "channel2"]
 ```
 
----
+## Reconnect
 
-## Create push payload <a name="create-push-payload"></a>
-
-Builds a multi-platform push payload.
+Forces the SDK to attempt reconnection to PubNub.
 
 ### Method(s)
-```
-`CreatePushPayloadHelper()  
-    .SetAPNSPayload(PNAPSData, ListPNAPNS2Data>)  
-    .SetFCMPayload(PNFCMData)  
-    .SetCommonPayload(Dictionarystring, object>)  
-    .BuildPayload()  
-`
-```
-* `SetAPNSPayload` (PNAPSData / List<PNAPNS2Data>) – APNS / APNS2 data.  
-* `SetFCMPayload` (PNFCMData) – FCM data.  
-* `SetCommonPayload` (Dictionary<string, object>) – Common payload.  
-* `BuildPayload` – Returns `Dictionary<string, object>`.
 
-### Sample code
 ```
-`  
-`
+Reconnect<T>(bool resetSubscribeToken)
 ```
+
+- resetSubscribeToken (bool): Passing true sends zero timetoken upon reconnect.
+
+## Create push payload
+
+Creates a push payload for use with publish/endpoints.
+
+### Method(s)
+
+```
+CreatePushPayloadHelper()
+    .SetAPNSPayload(PNAPSData, List<PNAPNS2Data>)
+    .SetFCMPayload(PNFCMData)
+    .SetCommonPayload(Dictionary<string, object>)
+    .BuildPayload()
+```
+
+- SetAPNSPayload
+  - PNAPSData: Set APNS payload. APNS devices receive data within the pn_apns key.
+  - List<PNAPNS2Data>: Set APNS2 payload. APNS devices receive data within the pn_push key.
+- SetFCMPayload
+  - PNFCMData: Set FCM payload. FCM devices receive data within the pn_gcm key.
+- SetCommonPayload
+  - Dictionary<string, object>: Set common payload. Native PubNub subscribers receive the entire object including pn_apns, pn_gcm, and common payload.
+- BuildPayload: Builds and returns Dictionary<string, object>.
 
 ### Response
-Returns a `Dictionary<string, object>` suitable for the `Publish` method’s `Message` parameter.
+
+CreatePushPayloadHelper() returns a Dictionary<string, object> suitable for the Publish method's Message parameter.
+
+Last updated on Aug 6, 2025

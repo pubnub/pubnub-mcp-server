@@ -1,180 +1,245 @@
-# Mobile Push Notifications API – Dart SDK (condensed)
+# Mobile Push Notifications API for Dart SDK
 
-Mobile Push Notifications let PubNub publish directly to FCM (Android) and APNs (iOS).  
-Requires the *Mobile Push Notifications* add-on enabled for your key in the Admin Portal.
+Connect native PubNub publishing to third-party push services: Google Android FCM and Apple iOS APNs. Learn more: Mobile Push Notifications (/docs/general/push/send).
 
----
+## Add device to channel
 
-## Add device to channels
+Requires Mobile Push Notifications add-on (enable in Admin Portal: https://admin.pubnub.com/).
 
-```dart
-pubnub.addPushChannels(
-  String deviceId,
-  PushGateway gateway,
-  Set<String> channels, {
-  String? topic,           // APNs2 only
-  Environment? environment,// APNs2 only
-  Keyset? keyset,
-  String? using
-})
+Enable mobile push notifications for a device on specific channels.
+
+### Method(s)
+
+```
+`1pubnub.addPushChannels(  
+2  String deviceId,  
+3  PushGateway gateway,  
+4  SetString> channels,  
+5  {String? topic,  
+6  Environment? environment,  
+7  Keyset? keyset,  
+8  String? using}  
+9)   
+`
 ```
 
-Parameters  
-• `deviceId` String – Device token / FCM registration ID  
-• `gateway` PushGateway – `apns2`, `gcm`, `mpns`  
-• `channels` Set<String> – Channels to enable  
-• `topic` String – APNs bundle ID (APNs2 only)  
-• `environment` Environment – `production` | `development` (APNs2 only)  
-• `keyset`, `using` – Optional keyset overrides  
+Parameters:
+- deviceId (String): Device ID to enable push notifications.
+- gateway (PushGateway): Push back-end. Values: apns2 (APNs), gcm (FCM), mpns (MPNS).
+- channels (Set<String>): Channels to enable.
+- topic (String, optional): Required for apns2. Typically the iOS app bundle identifier.
+- environment (Environment, optional): apns2 only. APNs environment.
+- keyset (Keyset, optional): Override default keyset.
+- using (String, optional): Keyset name from keysetStore.
 
-Returns: void (throws on error)
+### Sample code
 
-Sample
+#### Add device to channel
 
-```dart
-import 'package:pubnub/pubnub.dart';
+```
+1import 'package:pubnub/pubnub.dart';  
+2
+  
+3void main() async {  
+4  // Create PubNub instance with default keyset.  
+5  var pubnub = PubNub(  
+6    defaultKeyset: Keyset(  
+7      subscribeKey: 'demo',  
+8      publishKey: 'demo',  
+9      userId: UserId('myUniqueUserId'),  
+10    ),  
+11  );  
+12
+  
+13  // Details for adding a device to push notifications  
+14  String deviceId = 'A332C23D';  
+15  SetString> channels = {'my_channel'};  
+16    
+17  // Adding device to channel using FCM  
+18  try {  
+19    await pubnub.addPushChannels(deviceId, PushGateway.gcm, channels);  
+20    print('Device added to channels for FCM.');  
+21  } catch (e) {  
+22    print('Failed to add device to channels: $e');  
+23  }  
+24}  
 
-void main() async {
-  final pubnub = PubNub(
-    defaultKeyset: Keyset(
-      subscribeKey: 'demo',
-      publishKey:  'demo',
-      userId:      UserId('myUniqueUserId'),
-    ),
-  );
-
-  await pubnub.addPushChannels(
-    'A332C23D',
-    PushGateway.gcm,
-    {'my_channel'},
-  );
-}
 ```
 
----
+### Returns
+
+No actionable data. Throws an exception on error.
 
 ## List channels for device
 
-```dart
-pubnub.listPushChannels(
-  String deviceId,
-  PushGateway gateway, {
-  String? topic,           // APNs2 only
-  Environment? environment,// APNs2 only
-  Keyset? keyset,
-  String? using,
-  String? start,           // pagination
-  int?    count            // max 1000, default 500
-})
+Requires Mobile Push Notifications add-on (enable in Admin Portal).
+
+List all channels where push notifications are enabled for a device.
+
+### Method(s)
+
+```
+`1pubnub.listPushChannels(  
+2  String deviceId,  
+3  PushGateway gateway,  
+4  {String? topic,  
+5  Environment? environment,  
+6  Keyset? keyset,  
+7  String? using,  
+8  String? start,  
+9  int? count  
+10  }  
+11)   
+`
 ```
 
-Returns: `ListPushChannelsResult`  
-• `channels` List<String>
+Parameters:
+- deviceId (String): Device ID.
+- gateway (PushGateway): apns2, gcm, or mpns.
+- topic (String, optional): Required for apns2.
+- environment (Environment, optional): apns2 only.
+- keyset (Keyset, optional): Override default keyset.
+- using (String, optional): Keyset name from keysetStore.
+- start (String, optional): Pagination start (use last channel from previous page).
+- count (int, optional): Page size (max 1000, default 500).
 
-Sample
+### Sample code
 
-```dart
-// FCM
-var res = await pubnub.listPushChannels('A332C23D', PushGateway.gcm);
+#### List channels for device
 
-// APNs2
-var res = await pubnub.listPushChannels(
-  'device-token',
-  PushGateway.apns2,
-  topic: 'MyAppTopic',
-  environment: Environment.development,
-);
+```
+1// for non apns2  
+2var result = await pubnub.listPushChannels('A332C23D', PushGateway.gcm);  
+3
+  
+4// for apns2  
+5var result = await pubnub.listPushChannels('device-token', PushGateway.apns2,  
+6  topic: 'MyAppTopic', environment: Environment.development);  
+
 ```
 
----
+### Returns
 
-## Remove device from channels
+ListPushChannelsResult:
+- channels (List): Channels associated with mobile push notifications.
 
-```dart
-pubnub.removePushChannels(
-  String deviceId,
-  PushGateway gateway,
-  Set<String> channels, {
-  String? topic,           // APNs2 only
-  Environment? environment,// APNs2 only
-  Keyset? keyset,
-  String? using
-})
+## Remove device from channel
+
+Requires Mobile Push Notifications add-on (enable in Admin Portal).
+
+Disable mobile push notifications for a device on specific channels.
+
+### Method(s)
+
+```
+`1pubnub.removePushChannels(  
+2  String deviceId,  
+3  PushGateway gateway,  
+4  SetString> channels,  
+5  {String? topic,  
+6  Environment? environment,  
+7  Keyset? keyset,  
+8  String? using}  
+9)   
+`
 ```
 
-Returns: void (throws on error)
+Parameters:
+- deviceId (String): Device ID to remove from channels.
+- gateway (PushGateway): apns2, gcm, or mpns.
+- channels (Set<String>): Channels to remove.
+- topic (String, optional): Required for apns2.
+- environment (Environment, optional): apns2 only.
+- keyset (Keyset, optional): Override default keyset.
+- using (String, optional): Keyset name from keysetStore.
 
-Sample
+### Sample code
 
-```dart
-// FCM
-await pubnub.removePushChannels(
-  'A332C23D',
-  PushGateway.gcm,
-  {'my_channel'},
-);
+#### Remove device from channel
 
-// APNs2
-await pubnub.removePushChannels(
-  'device-token',
-  PushGateway.apns2,
-  {'my_channel'},
-  topic: 'MyAppTopic',
-  environment: Environment.development,
-);
+```
+`1// for non apns2  
+2var result2 = await pubnub  
+3  .removePushChannels('A332C23D', PushGateway.gcm, {'my_channel'});  
+4      
+5// for apns2  
+6var result = await pubnub.removePushChannels(  
+7  'device-token', PushGateway.apns2, {'my_channel'},  
+8  topic: 'MyAppTopic', environment: Environment.development);  
+`
 ```
 
----
+### Returns
 
-## Remove all mobile push registrations for device
+No actionable data. Throws an exception on error.
 
-```dart
-pubnub.removeDevice(
-  String deviceId,
-  PushGateway gateway, {
-  String? topic,           // APNs2 only
-  Environment? environment,// APNs2 only
-  Keyset? keyset,
-  String? using
-})
+## Remove all mobile push notifications
+
+Requires Mobile Push Notifications add-on (enable in Admin Portal).
+
+Disable mobile push notifications for a device on all channels.
+
+### Method(s)
+
+```
+`1pubnub.removeDevice(  
+2  String deviceId,  
+3  PushGateway gateway,  
+4  {String? topic,  
+5  Environment? environment,  
+6  Keyset? keyset,  
+7  String? using}  
+8)   
+`
 ```
 
-Returns: void (throws on error)
+Parameters:
+- deviceId (String): Device ID to deregister.
+- gateway (PushGateway): apns2, gcm, or mpns.
+- topic (String, optional): Required for apns2.
+- environment (Environment, optional): apns2 only.
+- keyset (Keyset, optional): Override default keyset.
+- using (String, optional): Keyset name from keysetStore.
 
-Sample
+### Sample code
 
-```dart
-// FCM
-await pubnub.removeDevice('deviceId', PushGateway.gcm);
+#### Remove all mobile push notifications
 
-// APNs2
-await pubnub.removeDevice(
-  'device-token',
-  PushGateway.apns2,
-  topic: 'MyAppTopic',
-  environment: Environment.development,
-);
+```
+1// for non apns2  
+2var result = await pubnub.removeDevice('deviceId', PushGateway.gcm);  
+3
+  
+4// for apns2  
+5var result = await pubnub.removeDevice('device-token', PushGateway.apns2,  
+6  topic: 'MyAppTopic', environment: Environment.development);  
+
 ```
 
----
+### Returns
 
-## Alternative short syntax
+No actionable data. Throws an exception on error.
 
-```dart
-var device = pubnub.device('A332C23D');
+### Other examples
 
-// Register
-await device.registerToChannels({'my_channel'}, PushGateway.gcm);
+#### Short syntax
 
-// Deregister specific channels
-await device.deregisterFromChannels({'my_channel'}, PushGateway.gcm);
+```
+1var device = pubnub.device('A332C23D');  
+2
+  
+3// to register device for channels  
+4var result = await device.registerToChannels({'my_channel'}, PushGateway.gcm);  
+5
+  
+6// to remove device from channels  
+7var result =  
+8  await device.deregisterFromChannels({'my_channel'}, PushGateway.gcm);  
+9
+**10// to remove all registrations for a device  
+11var result = await device.remove(PushGateway.apns2,  
+12  topic: 'MyAppTopic', environment: Environment.production);  
 
-// Remove all registrations
-await device.remove(
-  PushGateway.apns2,
-  topic: 'MyAppTopic',
-  environment: Environment.production,
-);
 ```
 
-_Last updated: Jul 15 2025_
+Last updated on Oct 29, 2025

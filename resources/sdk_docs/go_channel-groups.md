@@ -1,193 +1,198 @@
-# Channel Groups API – Go SDK (Condensed)
+# Channel Groups API for Go SDK
 
-Channel Groups bundle up to thousands of channels under one name.  
-Note: Groups are subscribe-only; publish directly to individual channels.  
-All operations below require the **Stream Controller** add-on to be enabled for your keys.
+Channel groups bundle multiple channels under a single name. You can subscribe to channel groups but cannot publish to them. To publish, send messages to individual channels.
 
----
+## Add channels to a channel group
 
-## Add channels
+Requires Stream Controller add-on (enable in Admin Portal).
 
-Adds up to **200 channels** to a channel group.
+Adds channels to a channel group.
 
-### Method
+### Method(s)
 
-```go
-`pn.AddChannelToChannelGroup().  
-    Channels([]string).  
-    ChannelGroup(string).  
-    QueryParam(queryParam).  
-    Execute()  
-`
+Use the following method in the Go SDK:
+
 ```
-* Channels `[]string` – channels to add.  
-* ChannelGroup `string` – target group.  
-* QueryParam `map[string]string` – optional URL parameters.
-
-### Example
-
-```go
-`package main  
-  
-import (  
-    "fmt"  
-    "log"  
-  
-    pubnub "github.com/pubnub/go/v7"  
-)  
-  
-func main() {  
-    // Configuration for PubNub with demo keys  
-    config := pubnub.NewConfigWithUserId("myUniqueUserId")  
-    config.SubscribeKey = "demo"  
-    config.PublishKey = "demo"  
-  
-`
-```  
-(show all 37 lines)
-
-### Response
-
-```json
-`{  
-    "service" : "channel-registry",  
-    "status"  : 200,  
-    "error"   : false,  
-    "message" : "OK"  
-}  
+`1pn.AddChannelToChannelGroup().  
+2    Channels([]string).  
+3    ChannelGroup(string).  
+4    QueryParam(queryParam).  
+5    Execute()  
 `
 ```
 
----
+- Maximum number of channels per call: 200
+- Parameters:
+  - Channels (required) Type: []string — Channels to add.
+  - ChannelGroup (required) Type: string — Target channel group.
+  - QueryParam Type: map[string]string — Appended as URL query string.
 
-## List channels
+### Sample code
 
-Returns all channel names in a channel group.
+##### Add channels
 
-### Method
-
-```go
-`pn.ListChannelsInChannelGroup().  
-    ChannelGroup(string).  
-    QueryParam(queryParam).  
-    Execute()  
-`
 ```
-* ChannelGroup `string` – group to query.  
-* QueryParam `map[string]string` – optional.
+1
+  
 
-### Example
-
-```go
-`pn.ListChannelsInChannelGroup().  
-    ChannelGroup("cg").  
-    Execute()  
-`
 ```
 
 ### Response
 
-Method | Description
--------|------------
-Channels | `[]string`
-Group    | `string`
-
----
-
-## Remove channels
-
-Removes specific channels from a channel group.
-
-### Method
-
-```go
-`pn.RemoveChannelFromChannelGroup().  
-    ChannelGroup(string).  
-    Channels([]string).  
-    QueryParam(queryParam).  
-    Execute()  
-`
 ```
-* ChannelGroup `string` – group to update.  
-* Channels `[]string` – channels to remove.  
-* QueryParam `map[string]string` – optional.
-
-### Example
-
-```go
-`pn.RemoveChannelFromChannelGroup().  
-    ChannelGroup("cg").  
-    Channels([]string{"ch1", "ch2"}).  
-    Execute()  
+`1{  
+2    "service" : "channel-registry",  
+3    "status"  : 200,  
+4    "error"   : false,  
+5    "message" : "OK"  
+6}  
 `
 ```
 
-### Response
+## List channels in a channel group
 
-```json
-`{  
-    Error:nil>  
-    Category:Unknown  
-    Operation:Remove Channel From Channel Group  
-    StatusCode:200  
-    TLSEnabled:true  
-    UUID:d9713e5a-6bcb-439a-942e-5ba064f2e5dd  
-    AuthKey:  
-    Origin:ps.pndsn.com  
-    OriginalResponse: {  
-        "status": 200,  
-        "message": "OK",  
-        "service": "channel-registry",  
-        "error": false  
-    }  
+Requires Stream Controller add-on.
+
+Lists all channels in a channel group.
+
+### Method(s)
+
+Use the following method in the Go SDK:
+
+```
+`1pn.ListChannelsInChannelGroup().  
+2    ChannelGroup(string).  
+3    QueryParam(queryParam).  
+4    Execute()  
 `
 ```
 
----
+- Parameters:
+  - ChannelGroup (required) Type: string — Channel group to inspect.
+  - QueryParam Type: map[string]string — Appended as URL query string.
+- Response fields:
+  - Channels Type: []string — Channels in the group.
+  - Group Type: string — The channel group name.
 
-## Delete channel group
+### Sample code
 
-Removes the entire channel group.
+##### List channels
 
-### Method
+```
+1
+  
 
-```go
-`pn.DeleteChannelGroup().  
-    ChannelGroup(string).  
-    QueryParam(queryParam).  
-    Execute()  
+```
+
+## Remove channels from a channel group
+
+Requires Stream Controller add-on.
+
+Removes channels from a channel group.
+
+### Method(s)
+
+Use the following method in the Go SDK:
+
+```
+`1pn.RemoveChannelFromChannelGroup().  
+2    ChannelGroup(string).  
+3    Channels([]string).  
+4    QueryParam(queryParam).  
+5    Execute()  
 `
 ```
-* ChannelGroup `string` – group to delete.  
-* QueryParam `map[string]string` – optional.
 
-### Example
+- Parameters:
+  - ChannelGroup (required) Type: string — Channel group to modify.
+  - Channels (required) Type: []string — Channels to remove.
+  - QueryParam Type: map[string]string — Appended as URL query string.
 
-```go
-`pn.DeleteChannelGroup().  
-    ChannelGroup("remove-cg").  
-    Execute()  
-`
+### Sample code
+
+##### Remove channels
+
+```
+1
+  
+
 ```
 
 ### Response
 
-```json
-`{**    Error:nil>  
-    Category:Unknown  
-    Operation:Remove Channel Group  
-    StatusCode:200  
-    TLSEnabled:true  
-    UUID:650089a0-922c-4de6-b422-7a38a964bf45  
-    AuthKey:  
-    Origin:ps.pndsn.com  
-    OriginalResponse: {  
-        "status": 200,  
-        "message": "OK",  
-        "service": "channel-registry",  
-        "error": false  
-    }  
+```
+`1{  
+2    Error:nil>  
+3    Category:Unknown  
+4    Operation:Remove Channel From Channel Group  
+5    StatusCode:200  
+6    TLSEnabled:true  
+7    UUID:d9713e5a-6bcb-439a-942e-5ba064f2e5dd  
+8    AuthKey:  
+9    Origin:ps.pndsn.com  
+10    OriginalResponse: {  
+11        "status": 200,  
+12        "message": "OK",  
+13        "service": "channel-registry",  
+14        "error": false  
+15    }  
+16    AffectedChannels:[]  
+17    AffectedChannelGroups:[]  
+18}  
 `
 ```
 
-_Last updated Jul 15 2025_
+## Delete a channel group
+
+Requires Stream Controller add-on.
+
+Deletes a channel group.
+
+### Method(s)
+
+Use the following method in the Go SDK:
+
+```
+`1pn.DeleteChannelGroup().  
+2    ChannelGroup(string).  
+3    QueryParam(queryParam).  
+4    Execute()  
+`
+```
+
+- Parameters:
+  - ChannelGroup (required) Type: string — Channel group to delete.
+  - QueryParam Type: map[string]string — Appended as URL query string.
+
+### Sample code
+
+##### Delete channel group
+
+```
+1
+  
+
+```
+
+### Response
+
+```
+`1{**2    Error:nil>  
+3    Category:Unknown  
+4    Operation:Remove Channel Group  
+5    StatusCode:200  
+6    TLSEnabled:true  
+7    UUID:650089a0-922c-4de6-b422-7a38a964bf45  
+8    AuthKey:  
+9    Origin:ps.pndsn.com  
+10    OriginalResponse: {  
+11        "status": 200,  
+12        "message": "OK",  
+13        "service": "channel-registry",  
+14        "error": false  
+15    }  
+16    AffectedChannels:[]  
+17    AffectedChannelGroups:[]  
+18}  
+`
+```

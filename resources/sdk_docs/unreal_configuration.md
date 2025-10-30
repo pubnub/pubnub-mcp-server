@@ -1,319 +1,118 @@
-# PubNub Unreal SDK – Configuration & Essential Usage
+# Configuration API for Unreal SDK (Condensed)
 
-## 1. Plugin Settings (Edit → Project Settings → Plugins → PubNub SDK)
+Essential configuration, initialization, and setup details for PubNub Unreal SDK. All code blocks and critical technical details preserved.
 
-| Property | Type | Purpose |
-|----------|------|---------|
-| **Publish Key** | `string` | From Admin Portal; required for publish. |
-| **Subscribe Key** | `string` | From Admin Portal; required for all operations. |
-| **Secret Key** | `string` | From Admin Portal; only for Access Manager. |
-| **Initialize Automatically** | `bool` | Calls `Init Pubnub` at startup. |
-| **Set Secret Key Automatically** | `bool` | Calls `Set Secret Key` at startup. |
+## Configuration and initialization
 
-## 2. Required User ID
-Always set a unique, persistent User ID before any PubNub call; otherwise the client cannot connect.
+- Project settings
+- C++
 
-## 3. Sample Usage (Blueprint / C++)
+Configure in Unreal Editor:
+- Settings > Project Settings > Plugins > Pubnub SDK
+- Options:
+  - Publish Key
+    - Type: string
+    - Publish Key from Admin Portal (only required if publishing).
+  - Subscribe Key
+    - Type: string
+    - Subscribe Key from Admin Portal.
+  - Secret Key
+    - Type: string
+    - Secret Key from Admin Portal, only required for access control operations.
+  - Initialize Automatically
+    - Type: Boolean
+    - Whether to initialize the SDK without calling the Init Pubnub method. Disable this if you want to use the InitPubnubWithConfig() method.
+  - Set Secret Key Automatically
+    - Type: Boolean (Only in Project Settings)
+    - Whether to initialize the SDK with the provided secret key without calling the Set Secret Key method.
+    - If the Secret Key is set and you enable Set Secret Key Automatically, the user will have root permissions for Access Manager.
 
-Actor.h
+##### Must disable automatic initialization
+You can only use the InitPubnubWithConfig() method if Initialize Automatically is disabled in the project settings.
+
 ```
-// ...other code...  
+`1PubnubSubsystem->InitPubnubWithConfig(FPubnubConfig);  
+`
+```
+
+PropertyDescription
+- FPubnubConfig
+  - Type: FPubnubConfig
+  - Default: n/a
+  - Configuration struct for the PubNub SDK. Contains the following properties.
+  - PublishKey
+    - Type: FString
+    - Default: "demo"
+    - Publish Key from Admin Portal (only required if publishing).
+  - SubscribeKey
+    - Type: FString
+    - Default: "demo"
+    - Subscribe Key from Admin Portal.
+  - SecretKey
+    - Type: FString
+    - Default: ""
+    - Secret Key from Admin Portal, only required for access control operations. When set, it gives user root permissions for Access Manager. To use it, set SetSecretKeyAutomatically to true or call SetSecretKey function.
+  - UserID
+    - Type: FString
+    - Default: ""
+    - Identifies the user or device that connects to PubNub. Required for all operations. If left empty, use SetUserID before the first operation. Must be a UTF-8 encoded string up to 92 alphanumeric characters.
+  - SetSecretKeyAutomatically
+    - Type: bool
+    - Default: false
+    - If true, the SecretKey will be set during the initialization phase. Grants root permissions for Access Manager.
+
+### Sample code
+
+##### Reference code
+Use PubNub via Blueprints or directly in C++.
+
+In C++, add a dependency to PubnubLibrary in Source/_{YourProject}_/_{YourProject}_.Build.cs:
+
+```
+`PrivateDependencyModuleNames.AddRange(new string[] { "PubnubLibrary" });  
+`
+```
+
+In C++, use the PubNub SDK as any other Game Instance Subsystem:
+
+```
+#include "Kismet/GameplayStatics.h"  
+#include "PubnubSubsystem.h"  
+
   
-public:	  
-  // message and signal listener definition in header  
-  UFUNCTION(BlueprintCallable)  
-  void OnPubnubMessageReceived(FString MessageJson, FString Channel);  
+UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
+UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
+
+```
+
+Call SDK functions, for example:
+
+```
+`PubnubSubsystem->SubscribeToChannel("MyChannel");  
+`
+```
+
+### Usage in Blueprints and C++
+
+##### Required User ID
+Always set the User ID to uniquely identify the user or device that connects to PubNub. Persist it for the lifetime of the user/device. If not set, you cannot connect to PubNub.
+
+- C++
+- Project settings
+- Blueprint
+
+#### Actor.h
+
+```
+1
   
-  // error handler  
-  UFUNCTION(BlueprintCallable)  
-  void OnPubnubErrorReceived(FString ErrorMessage, EPubnubErrorType ErrorType);  
+
+```
+
+#### Actor.cpp
+
+```
+1
   
-// ...other code...  
-```
 
-Actor.cpp
 ```
-// ...other code...  
-void MyGameInstance::BeginPlay()  
-{  
-	Super::BeginPlay();  
-    UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
-    PubnubSubsystem = GameInstance->GetSubsystem<UPubnubSubsystem>();  
-    // set the user ID  
-    PubnubSubsystem->SetUserID("unreal_sdk");  
-    // bind the message and signal listener  
-    PubnubSubsystem->OnMessageReceived.AddDynamic(this, &MyGameInstance::OnPubnubMessageReceived);  
-    // bind the error handler  
-    PubnubSubsystem->OnPubnubError.AddDynamic(this, &MyGameInstance::OnPubnubErrorReceived);  
-}  
-```
-
-## 4. Subscription-Status Listener
-
-Actor.h
-```
-// ...other code...  
-void RegisterSubscriptionListener();  
-UFUNCTION()  
-void OnSubscriptionStatusChanged(EPubnubSubscriptionStatus Status, const FPubnubSubscriptionStatusData& StatusData);  
-// ...other code...  
-```
-
-Actor.cpp
-```
-// ...other code  
-void AMyActor::RegisterSubscriptionListener()  
-{  
-	UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
-	UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystem<UPubnubSubsystem>();  
-	PubnubSubsystem->OnSubscriptionStatusChanged.AddDynamic(this, &AMyActor::OnSubscriptionStatusChanged);  
-}  
-  
-void AMyActor::OnSubscriptionStatusChanged(EPubnubSubscriptionStatus Status, const FPubnubSubscriptionStatusData& StatusData)  
-{  
-	// Do something with status change  
-}  
-```
-
-## 5. Callback Pattern Example
-
-Actor.h
-```
-// ...other code...  
-  
-public:	  
-  void YourFunction();  
-  UFUNCTION()  
-  void OnResponse(FString JsonResponse);  
-  
-// ...other code...  
-```
-
-Actor.cpp
-```
-// ...other code...  
-void AMyActor::YourFunction()  
-{  
-  FOnListUsersFromChannelResponse OnListUsersFromChannelResponse;  
-  OnListUsersFromChannelResponse.BindDynamic(this, &AMyActor::OnResponse);  
-    
-  FPubnubListUsersFromChannelSettings ListUsersFromChannelSettings;  
-  ListUsersFromChannelSettings.DisableUserID = false;  
-  ListUsersFromChannelSettings.State = true;  
-  
-  PubnubSubsystem->ListUsersFromChannel(Channel, OnListUsersFromChannelResponse, ListUsersFromChannelSettings);  
-}  
-```
-
----
-
-## 6. Event Payload Samples
-
-### Objects API
-
-Set user metadata
-```
-{  
-  "source": "objects",  
-  "version": "2.0",  
-  "event": "set",  
-  "type": "uuid",  
-  "data": {  
-    "eTag": "dad3f3d77ec74a6458b34e0ee5172544",  
-    "id": "User1",  
-    "name": "new name",  
-    "updated": "2024-08-12T06:37:16.441347Z"  
-  }  
-}
-```
-
-Set channel metadata
-```
-{  
-  "source": "objects",  
-  "version": "2.0",  
-  "event": "set",  
-  "type": "channel",  
-  "data": {  
-    "eTag": "cdfd462ffc3a985470fd309810a05f0b",  
-    "id": "my_channel2",  
-    "name": "new channel name",  
-    "updated": "2024-08-12T06:39:50.16522Z"  
-  }  
-}
-```
-
-Set member
-```
-{  
-  "source": "objects",  
-  "version": "2.0",  
-  "event": "set",  
-  "type": "membership",  
-  "data": {  
-    "channel": {  
-      "id": "my_ue_channel"  
-    },  
-    "eTag": "Afah2qS199e74QE",  
-    "updated": "2024-08-12T13:15:47.057904689Z",  
-    "uuid": {  
-      "id": "User11"  
-    }  
-  }  
-}
-```
-
-Set membership
-```
-{  
-  "source": "objects",  
-  "version": "2.0",  
-  "event": "set",  
-  "type": "membership",  
-  "data": {  
-    "channel": {  
-      "id": "channel_from_ue"  
-    },  
-    "eTag": "Afah2qS199e74QE",  
-    "updated": "2024-08-12T13:17:22.756243015Z",  
-    "uuid": {  
-      "id": "User12"  
-    }  
-  }  
-}
-```
-
-### Presence Events
-
-Presence join
-```
-{  
-    "Event": "join",  
-    "Uuid": "175c2c67-b2a9-470d-8f4b-1db94f90e39e",  
-    "Timestamp": 1345546797,  
-    "Occupancy": 2,  
-    "State": null,  
-    "Channel":" my_channel",  
-    "Subscription": "",  
-    "Timetoken": 15034141109823424,  
-    "UserMetadata": null,  
-    "Join": null,  
-    "Timeout": null,  
-    "Leave": null,  
-    "HereNowRefresh": false  
-}
-```
-
-Presence leave
-```
-{  
-    "Event": "leave",  
-    "Uuid": "175c2c67-b2a9-470d-8f4b-1db94f90e39e",  
-    "Timestamp": 1345546797,  
-    "Occupancy": 1,  
-    "State": null,  
-    "Channel": "my_channel",  
-    "Subscription": "",  
-    "Timetoken": 15034141109823424,  
-    "UserMetadata": null,  
-    "Join": null,  
-    "Timeout": null,  
-    "Leave": null,  
-    "HereNowRefresh": false  
-}
-```
-
-Presence timeout
-```
-{  
-    "Event": "timeout",  
-    "Uuid": "175c2c67-b2a9-470d-8f4b-1db94f90e39e",  
-    "Timestamp": 1345546797,  
-    "Occupancy": 0,  
-    "State": null,  
-    "Channel": "my_channel",  
-    "Subscription": "",  
-    "Timetoken": 15034141109823424,  
-    "UserMetadata": null,  
-    "Join": null,  
-    "Timeout": null,  
-    "Leave": null,  
-    "HereNowRefresh": false  
-}
-```
-
-State change
-```
-{  
-    "Event": "state-change",  
-    "Uuid": "175c2c67-b2a9-470d-8f4b-1db94f90e39e",  
-    "Timestamp": 1345546797,  
-    "Occupancy": 1,  
-    "State": {  
-        "isTyping": true  
-    },  
-    "Channel": "my_channel",  
-    "Subscription": "",  
-    "Timetoken": 15034141109823424,  
-    "UserMetadata": null  
-}
-```
-
-Presence interval
-```
-{  
-    "Event": "interval",  
-    "Uuid": "175c2c67-b2a9-470d-8f4b-1db94f90e39e",  
-    "Timestamp": 1345546797,  
-    "Occupancy": 2,  
-    "State": null,  
-    "Channel": "my_channel",  
-    "Subscription": "",  
-    "Timetoken": 15034141109823424,  
-    "UserMetadata": null,  
-    "Join": null,  
-    "Timeout": null,  
-    "Leave": null,  
-    "HereNowRefresh": false  
-}
-```
-
-Interval with deltas
-```
-{  
-    "Event": "interval",  
-    "Uuid": "175c2c67-b2a9-470d-8f4b-1db94f90e39e",  
-    "Timestamp": ,  
-    "Occupancy": ,  
-    "State": null,  
-    "Channel": "my_channel",  
-    "Subscription": "",  
-    "Timetoken": 15034141109823424,  
-    "UserMetadata": null,  
-    "Join": ["uuid2", "uuid3"],  
-    "Timeout": ["uuid1"],  
-    "Leave": null,  
-    "HereNowRefresh": false  
-}
-```
-
-Large interval payload
-```
-{  
-    "Event": "interval",  
-    "Uuid": "175c2c67-b2a9-470d-8f4b-1db94f90e39e",  
-    "Timestamp": ,  
-    "Occupancy": ,  
-    "State": null,  
-    "Channel": "my_channel",  
-    "Subscription": "",  
-    "Timetoken": 15034141109823424,  
-    "UserMetadata": null,  
-    "Join": null,  
-    "Timeout": null,  
-    "Leave": null,  
-    "HereNowRefresh": true  
-}
-```
-
-_Last updated: Jul 15 2025_

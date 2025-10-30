@@ -1,374 +1,442 @@
 # File Sharing API for JavaScript SDK
 
-- Upload and share files up to 5 MB per file.
-- When a file is uploaded to a channel, subscribers receive a file event with file ID, filename, and optional description.
-- Asynchronous patterns: Callbacks, Promises, Async/Await (recommended). Use try...catch to capture errors.
+Upload and share files up to 5 MB on PubNub. When a file is uploaded to a channel, subscribers receive a file event with file ID, filename, and optional description.
 
-## Send file
+##### Supported and recommended asynchronous patterns
 
-Upload a file to a channel. Handles preparation, cloud upload, and publishing a file message (internally calls publishFile).
+Use Callbacks, Promises, or Async/Await (recommended). Add try...catch to handle errors.
 
-### Method(s)
+## Send file[​](#send-file)
+
+Uploads a file to a channel and publishes a file message. Internally calls publishFile to announce the upload.
+
+### Method(s)[​](#methods)
 
 ```
-`pubnub.sendFile(  
-  params: SendFileParameters  
-): PromiseSendFileResult>;  
+`1pubnub.sendFile(  
+2  params: SendFileParameters  
+3): PromiseSendFileResult>;  
 `
 ```
 
-- params: SendFileParameters (required)
+- params (required): Type: SendFileParameters
 
-#### SendFileParameters
+#### SendFileParameters[​](#sendfileparameters)
 
-- channel: string (required) — Channel to send the file to.
-- file: FileInput (required) — File to send.
-- message: any — Optional message to attach to the file.
-- storeInHistory: boolean (default: true) — Whether to store the message in channel history. If omitted, uses key configuration.
-- ttl: number (default: 0) — How long to store the message in history. Defaults to key set retention.
-- meta: any — Metadata for the message.
-- customMessageType: string — Case-sensitive 3–50 char alphanumeric label; dashes/underscores allowed. Cannot start with special chars or pn_/pn-. Examples: text, action, poll.
+- channel (required)
+  - Type: string
+  - Description: Channel to send the file to.
+- file (required)
+  - Type: FileInput
+  - Description: File to send.
+- message
+  - Type: any
+  - Description: Optional message to attach to the file.
+- storeInHistory
+  - Type: boolean
+  - Default: true
+  - Description: Store published file messages in channel history; if omitted, key’s history configuration is used.
+- ttl
+  - Type: number
+  - Default: 0
+  - Description: How long to store the message in history; defaults to key set’s retention.
+- meta
+  - Type: any
+  - Description: Metadata for the message.
+- customMessageType
+  - Type: string
+  - Description: Case-sensitive, 3–50 char alphanumeric label; dashes and underscores allowed; cannot start with special chars or pn_ / pn-. Examples: text, action, poll.
 
-Deprecated parameter:
-- cipherKey — Deprecated. Configure the crypto module instead. If provided, overrides crypto module and uses legacy 128-bit cipher.
+##### Deprecated parameter
 
-### Sample code
+cipherKey is deprecated. Configure the crypto module instead (/docs/sdks/javascript/api-reference/configuration#cryptomodule). Passing cipherKey overrides the crypto module and uses legacy 128-bit encryption.
+
+### Sample code[​](#sample-code)
 
 ##### Reference code
+
 ```
-`  
+1
+  
+
+```
+
+```
+1
+  
+
+```
+
+### Returns[​](#returns)
+
+```
+`1{  
+2  id: string,  
+3  name: string,  
+4  timetoken: string  
+5}  
 `
 ```
 
+### Other examples[​](#other-examples)
+
+#### Usage with a message and custom cipher key[​](#usage-with-a-message-and-custom-cipher-key)
+
 ```
-`  
+1
+  
+
+```
+
+## List channel files[​](#list-channel-files)
+
+Retrieve files uploaded to a channel.
+
+### Method(s)[​](#methods-1)
+
+```
+`1pubnub.listFiles(  
+2  params: ListFilesParameters  
+3): PromiseListFilesResult>;  
 `
 ```
 
-### Returns
+- params (required): Type: ListFilesParameters
+
+#### ListFilesParameters[​](#listfilesparameters)
+
+- channel (required)
+  - Type: string
+  - Description: Channel whose files to list.
+- limit
+  - Type: number
+  - Default: 100
+  - Description: Number of files to return.
+- next
+  - Type: string
+  - Description: Token for next page.
+
+### Sample code[​](#sample-code-1)
 
 ```
-`{  
-  id: string,  
-  name: string,  
-  timetoken: string  
-}  
+1
+  
+
+```
+
+### Returns[​](#returns-1)
+
+```
+`1{  
+2  status: number,  
+3  data: Array{  
+4    name: string,  
+5    id: string,  
+6    size: number,  
+7    created: string  
+8  }>,  
+9  next: string,  
+10  count: number,  
+11}  
 `
 ```
 
-### Other examples
+## Get file URL[​](#get-file-url)
 
-#### Usage with a message and custom cipher key
+Construct a file’s direct download URL. No network call; does not decrypt encrypted files.
+
+### Method(s)[​](#methods-2)
 
 ```
-`  
+`1pubnub.getFileUrl(  
+2  params: GetFileUrlParams  
+3): string;  
 `
 ```
 
-## List channel files
+- params (required): Type: GetFileUrlParams
 
-Retrieve a list of files uploaded to a channel.
+#### GetFileUrlParams[​](#getfileurlparams)
 
-### Method(s)
+- channel (required)
+  - Type: string
+- id (required)
+  - Type: string
+- name (required)
+  - Type: string
+
+### Sample code[​](#sample-code-2)
 
 ```
-`pubnub.listFiles(  
-  params: ListFilesParameters  
-): PromiseListFilesResult>;  
+1
+  
+
+```
+
+### Returns[​](#returns-2)
+
+```
+`1'https://ps.pndsn.com/v1/files/demo/channels/my_channel/files/12345678-1234-5678-123456789012/cat_picture.jpg'  
 `
 ```
 
-- params: ListFilesParameters (required)
-
-#### ListFilesParameters
-
-- channel: string (required) — Channel to list files for.
-- limit: number (default: 100) — Number of files to return.
-- next: string — Token for the next batch.
-
-### Sample code
-
-```
-`  
-`
-```
-
-### Returns
-
-```
-`{  
-  status: number,  
-  data: Array{  
-    name: string,  
-    id: string,  
-    size: number,  
-    created: string  
-  }>,  
-  next: string,  
-  count: number,  
-}  
-`
-```
-
-## Get file URL
-
-Construct a file's direct download URL. No API call. Does not decrypt files.
-
-### Method(s)
-
-```
-`pubnub.getFileUrl(  
-  params: GetFileUrlParams  
-): string;  
-`
-```
-
-- params: GetFileUrlParams (required)
-
-#### GetFileUrlParams
-
-- channel: string — Channel the file was sent to.
-- id: string — File identifier.
-- name: string — File name.
-
-### Sample code
-
-```
-`  
-`
-```
-
-### Returns
-
-```
-`'https://ps.pndsn.com/v1/files/demo/channels/my_channel/files/12345678-1234-5678-123456789012/cat_picture.jpg'  
-`
-```
-
-## Download file
+## Download file[​](#download-file)
 
 Download a file from a channel.
 
-### Method(s)
+### Method(s)[​](#methods-3)
 
 ```
-`pubnub.downloadFile(  
-  params: DownloadFileParams  
-): PromiseDownloadFileResult>;  
+`1pubnub.downloadFile(  
+2  params: DownloadFileParams  
+3): PromiseDownloadFileResult>;  
 `
 ```
 
-- params: DownloadFileParams (required)
+- params (required): Type: DownloadFileParams
 
-#### DownloadFileParams
+#### DownloadFileParams[​](#downloadfileparams)
 
-- channel: string (required) — Channel the file was sent to.
-- id: string (required) — File identifier.
-- name: string (required) — File name.
+- channel (required)
+  - Type: string
+  - Description: Channel that the file was sent to.
+- id (required)
+  - Type: string
+  - Description: File’s unique identifier.
+- name (required)
+  - Type: string
+  - Description: Name of the file.
 
-Deprecated parameter:
-- cipherKey — Deprecated. Configure the crypto module instead. If provided, overrides crypto module and uses legacy 128-bit cipher.
+##### Deprecated parameter
 
-### Sample code
+cipherKey is deprecated. Configure the crypto module instead (/docs/sdks/javascript/api-reference/configuration#cryptomodule). Passing cipherKey overrides the crypto module and uses legacy 128-bit encryption.
 
-```
-`  
-`
-```
-
-```
-`  
-`
-```
+### Sample code[​](#sample-code-3)
 
 ```
-`  
-`
+1
+  
+
 ```
 
-### Returns
+```
+1
+  
+
+```
+
+```
+1
+  
+
+```
+
+### Returns[​](#returns-3)
 
 Returns instance of PubNubFile.
 
-### Other examples
+### Other examples[​](#other-examples-1)
 
-#### Usage with custom cipher key
+#### Usage with custom cipher key[​](#usage-with-custom-cipher-key)
 
 ```
-`  
-`
+1
+  
+
 ```
 
-## Delete file
+## Delete file[​](#delete-file)
 
 Delete a file from a channel.
 
-### Method(s)
+### Method(s)[​](#methods-4)
 
 ```
-`pubnub.deleteFile(  
-  params: DeleteFileParams  
-): PromiseDeleteFileResult>;  
+`1pubnub.deleteFile(  
+2  params: DeleteFileParams  
+3): PromiseDeleteFileResult>;  
 `
 ```
 
-- params: DeleteFileParams (required)
+- params (required): Type: DeleteFileParams
 
-#### DeleteFileParams
+#### DeleteFileParams[​](#deletefileparams)
 
-- channel: string — Channel that the file was sent to.
-- id: string — File identifier.
-- name: string — File name.
+- channel (required)
+  - Type: string
+- id (required)
+  - Type: string
+- name (required)
+  - Type: string
 
-### Sample code
+### Sample code[​](#sample-code-4)
 
 ```
-`  
-`
+1
+  
+
 ```
 
-### Returns
+### Returns[​](#returns-4)
 
 Example of successful deletion:
+
 ```
-`{  
-  status: 200  
-}  
+`1{  
+2  status: 200  
+3}  
 `
 ```
 
-## Publish file message
+## Publish file message[​](#publish-file-message)
 
-Publish the uploaded file message to a channel. Called internally by sendFile. Can be used to resend the file message (e.g., when sendFile fails with status.operation === PNPublishFileMessageOperation).
+Publish the uploaded file message to a channel. Called internally by sendFile. If sendFile fails with status.operation === PNPublishFileMessageOperation, reuse data from status to call publishFile without re-uploading.
 
-### Method(s)
+### Method(s)[​](#methods-5)
 
 ```
-`pubnub.publishFile(  
-  params: PublishFileParams  
-): PromisePublishFileResult>;  
+`1pubnub.publishFile(  
+2  params: PublishFileParams  
+3): PromisePublishFileResult>;  
 `
 ```
 
-- params: PublishFileParams (required)
+- params (required): Type: PublishFileParams
 
-#### PublishFileParams
+#### PublishFileParams[​](#publishfileparams)
 
-- channel: string (required) — Channel to which the file was sent.
-- message: any — Optional message to attach to the file.
-- fileId: string (required) — File identifier.
-- fileName: string (required) — File name.
-- storeInHistory: boolean (default: true) — Whether to store the message in history. If omitted, uses key configuration.
-- ttl: number (default: 0) — How long to store the message. Defaults to key set retention.
-- meta: any — Metadata for the message.
-- customMessageType: string — Case-sensitive 3–50 char alphanumeric label; dashes/underscores allowed. Cannot start with special chars or pn_/pn-. Examples: text, action, poll.
+- channel (required)
+  - Type: string
+  - Description: Channel to which the file was sent.
+- message
+  - Type: any
+  - Description: Optional message to attach to the file.
+- fileId (required)
+  - Type: string
+- fileName (required)
+  - Type: string
+- storeInHistory
+  - Type: boolean
+  - Default: true
+  - Description: Store published file messages in channel history; if omitted, key’s history configuration is used.
+- ttl
+  - Type: number
+  - Default: 0
+  - Description: How long to store the message in history; defaults to key set’s retention.
+- meta
+  - Type: any
+  - Description: Metadata for the message.
+- customMessageType
+  - Type: string
+  - Description: Case-sensitive, 3–50 char alphanumeric label; dashes and underscores allowed; cannot start with special chars or pn_ / pn-. Examples: text, action, poll.
 
-### Sample code
+### Sample code[​](#sample-code-5)
 
 ```
-`  
+1
+  
+
+```
+
+### Returns[​](#returns-5)
+
+```
+`1{  
+2  timetoken: number  
+3}  
 `
 ```
 
-### Returns
+## FileInput[​](#fileinput)
+
+Represents possible file inputs across environments.
+
+#### Node.js[​](#nodejs)
+
+##### Using streams[​](#using-streams)
 
 ```
-`{  
-  timetoken: number  
-}  
+`1{  
+2    stream: Readable,  
+3    name: string,  
+4    mimeType?: string  
+5}  
 `
 ```
 
-## FileInput
-
-Represents file inputs across environments.
-
-### Node.js
-
-#### Using streams
+##### Using buffers[​](#using-buffers)
 
 ```
-`{  
-    stream: Readable,  
-    name: string,  
-    mimeType?: string  
-}  
+`1{  
+2    data: Buffer,  
+3    name: string,  
+4    mimeType?: string  
+5}  
 `
 ```
 
-#### Using buffers
+#### Browsers[​](#browsers)
+
+##### Using File API[​](#using-file-api)
 
 ```
-`{  
-    data: Buffer,  
-    name: string,  
-    mimeType?: string  
-}  
+`1File  
 `
 ```
 
-### Browsers
-
-#### Using File API
+##### Using strings[​](#using-strings)
 
 ```
-`File  
+`1{  
+2    data: string,  
+3    name: string,  
+4    mimeType?: string  
+5}  
 `
 ```
 
-#### Using strings
+##### Using ArrayBuffer[​](#using-arraybuffer)
 
 ```
-`{  
-    data: string,  
-    name: string,  
-    mimeType?: string  
-}  
+`1{  
+2    data: ArrayBuffer,  
+3    name: string,  
+4    mimeType?: string  
+5}  
 `
 ```
 
-#### Using ArrayBuffer
+#### React and React Native[​](#react-and-react-native)
+
+##### Using URI[​](#using-uri)
 
 ```
-`{  
-    data: ArrayBuffer,  
-    name: string,  
-    mimeType?: string  
-}  
+`1{  
+2    uri: string,  
+3    name: string,  
+4    mimeType?: string  
+5}  
 `
 ```
 
-### React and React Native
+## PubNub file[​](#pubnub-file)
 
-#### Using URI
+Internal file representation. Methods vary by environment.
 
-```
-`{  
-    uri: string,  
-    name: string,  
-    mimeType?: string  
-}  
-`
-```
-
-## PubNub file
-
-Internal representation of the file. Methods vary by environment.
-
-### Methods supported in Node.js
+##### Methods supported in Node.js[​](#methods-supported-in-nodejs)
 
 - file.toBuffer() returns Promise<Buffer>
 - file.toStream() returns Promise<Readable>
 - file.toString(encoding: string) returns a string (defaults to utf8)
 
-### Methods supported in a browser
+##### Methods supported in a browser[​](#methods-supported-in-a-browser)
 
 - file.toFile() returns Promise<File>
 - file.toBlob() returns Promise<Blob>
 - file.toArrayBuffer() returns Promise<ArrayBuffer>
 - file.toString(encoding: string) returns a string (defaults to utf8)
 
-### React and React Native
+##### React and React Native[​](#react-and-react-native-1)
 
 - file.toBlob() returns Promise<Blob>
 

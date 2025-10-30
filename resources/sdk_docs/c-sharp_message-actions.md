@@ -1,101 +1,191 @@
-# Message Actions API (C# SDK)
+# Message Actions API for C# SDK
 
-Add, remove, and fetch actions (reactions, receipts, custom metadata) attached to published messages.
+Use message actions to add or remove metadata on published messages (for example, receipts and reactions). Clients subscribe to a channel to receive message action events, and can fetch past message actions from Message Persistence, either on demand or when fetching original messages.
 
----
+##### Reactions
 
-## Usage Notes
-* Message Persistence **must be enabled** for all Message Action operations.  
-* Always wrap SDK calls in `try / catch`. Build-time parameter errors throw exceptions; runtime/server/network errors are in `status`.
+"Message Reactions" is a specific application of the Message Actions API for emoji or social reactions.
 
-```csharp
-try
-{
-    PNResult<PNPublishResult> publishResponse = await pubnub.Publish()
-        .Message("Why do Java developers wear glasses? Because they can't C#.")
-        .Channel("my_channel")
-        .ExecuteAsync();
+##### Message Actions vs. Message Reactions
 
-    PNStatus status = publishResponse.Status;
-    Console.WriteLine("Server status code : " + status.StatusCode);
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"Request can't be executed due to error: {ex.Message}");
-}
+Message Actions is a flexible, low-level API for adding metadata to messages (read receipts, delivery confirmations, custom data). Message Reactions refers to using Message Actions specifically for emoji/social reactions. In PubNub Core and Chat SDKs, it’s the same API with different terminology depending on use case.
+
+##### Request execution
+
+Use try/catch with the C# SDK. Invalid parameters throw exceptions. If the request reaches the server but fails (server or network error), details are available in the returned status.
+
+```
+1try  
+2{  
+3    PNResultPNPublishResult> publishResponse = await pubnub.Publish()  
+4        .Message("Why do Java developers wear glasses? Because they can't C#.")  
+5        .Channel("my_channel")  
+6        .ExecuteAsync();  
+7
+  
+8    PNStatus status = publishResponse.Status;  
+9
+  
+10    Console.WriteLine("Server status code : " + status.StatusCode.ToString());  
+11}  
+12catch (Exception ex)  
+13{  
+14    Console.WriteLine($"Request can't be executed due to error: {ex.Message}");  
+15}  
+
 ```
 
----
+## Add message action[​](#add-message-action)
 
-## Add Message Reaction
+##### Requires Message Persistence
 
-```csharp
-pubnub.AddMessageAction()
-      .Channel(string)              // target channel
-      .MessageTimetoken(long)       // timetoken of the original message
-      .Action(PNMessageAction)      // action payload
+Enable Message Persistence for your key in the Admin Portal as described in the support article.
+
+Add an action to a published message. The response includes the added action.
+
+### Method(s)[​](#methods)
+
+Use this C# method:
+
+```
+`1pubnub.AddMessageAction()  
+2        .Channel(string)  
+3        .MessageTimetoken(long)  
+4        .Action(PNMessageAction)  
+`
 ```
 
-### PNMessageAction
-* `Type`  (string) – action type, e.g. `"reaction"`.
-* `Value` (string) – action value, e.g. `"smiley_face"`.
+Parameters:
+- Channel (string): Channel name to add the message action to.
+- MessageTimetoken (long): Timetoken of the target message.
+- Action (PNMessageAction): Message action payload.
 
-### Return
-```json
-{
-  "MessageTimetoken": 15610547826969050,
-  "ActionTimetoken":  15610547826970050,
-  "Action": { "type": "reaction", "value": "smiley_face" },
-  "Uuid": "user-456"
-}
+#### PNMessageAction[​](#pnmessageaction)
+
+- Type (string): Message action type.
+- Value (string): Message action value.
+
+### Sample code[​](#sample-code)
+
+##### Reference code
+
+```
+1
+  
+
 ```
 
----
+### Returns[​](#returns)
 
-## Remove Message Reaction
-
-```csharp
-pubnub.RemoveMessageAction()
-      .Channel(string)             // channel of the original message
-      .MessageTimetoken(long)      // timetoken of the original message
-      .ActionTimetoken(long)       // timetoken of the action to remove
-      .Uuid(string)                // UUID that added the action
+```
+`1{  
+2    "MessageTimetoken":15610547826969050,  
+3    "ActionTimetoken":15610547826970050,  
+4    "Action":{  
+5        "type":"reaction",  
+6        "value":"smiley_face"  
+7    },  
+8    "Uuid":"user-456"  
+9}  
+`
 ```
 
-Return: no content (empty response).
+## Remove message action[​](#remove-message-action)
 
----
+##### Requires Message Persistence
 
-## Get Message Reactions
+Enable Message Persistence for your key in the Admin Portal as described in the support article.
 
-```csharp
-pubnub.GetMessageActions()
-      .Channel(string)             // channel to query
-      .Start(long)                 // (optional) fetch actions < this timetoken
-      .End(long)                   // (optional) fetch actions ≥ this timetoken
-      .Limit(int)                  // default/max 100
+Remove a previously added action from a published message. The response is empty.
+
+### Method(s)[​](#methods-1)
+
+Use this C# method:
+
+```
+`1pubnub.RemoveMessageAction()  
+2        .Channel(string)  
+3        .MessageTimetoken(long)  
+4        .ActionTimetoken(long)  
+5        .Uuid(string)  
+`
 ```
 
-Results are ordered by `ActionTimetoken` ascending.  
-If paging is required, the response includes a `More` object—pass its values to subsequent calls.
+Parameters:
+- Channel (string): Channel name to remove the message action from.
+- MessageTimetoken (long): Timetoken of the target message.
+- ActionTimetoken (long): Timetoken of the message action to remove.
+- Uuid (string): UUID of the message.
 
-### Return (truncated example)
-```json
-{
-  "MessageActions": [
-    {
-      "MessageTimetoken": 15610547826969050,
-      "Action": { "type": "reaction", "value": "smiley_face" },
-      "Uuid": "pn-5903a053-592c-4a1e-8bfd-81d92c962968",
-      "ActionTimetoken": 15717253483027900
-    }
-  ],
-  "More": {
-    "Start": 15610547826970050,
-    "End":   15645905639093361,
-    "Limit": 2
-  }
-}
+### Sample code[​](#sample-code-1)
+
+```
+1
+  
+
 ```
 
-_Last updated: Jul 15 2025_
+### Returns[​](#returns-1)
+
+The RemoveMessageAction() operation returns no actionable data.
+
+## Get message actions[​](#get-message-actions)
+
+##### Requires Message Persistence
+
+Enable Message Persistence for your key in the Admin Portal as described in the support article.
+
+Get a list of message actions in a channel, sorted by action timetoken (ascending).
+
+##### Truncated response
+
+If the response is truncated due to internal limits, a more property is returned with additional parameters. Send iterative calls, adjusting the parameters to fetch more actions.
+
+### Method(s)[​](#methods-2)
+
+Use this C# method:
+
+```
+`1pubnub.GetMessageActions()  
+2        .Channel(string)  
+3        .Start(long)  
+4        .End(long)  
+5        .Limit(int)  
+`
+```
+
+Parameters:
+- Channel (string): Channel name to list message actions for.
+- Start (long): Message action timetoken for the start of the range (exclusive).
+- End (long): Message action timetoken for the end of the range (inclusive).
+- Limit (int): Maximum number of actions to return. Default/Maximum is 100.
+
+### Sample code[​](#sample-code-2)
+
+```
+1
+  
+
+```
+
+### Returns[​](#returns-2)
+
+```
+`1{**2"MessageActions":  
+3    [{  
+4    "MessageTimetoken":15610547826969050,  
+5    "Action":{  
+6        "type":"reaction",  
+7        "value":"smiley_face"  
+8    },  
+9    "Uuid":"pn-5903a053-592c-4a1e-8bfd-81d92c962968",  
+10    "ActionTimetoken":15717253483027900  
+11    }],  
+12"More": {  
+13        "Start": 15610547826970050,  
+14        "End": 15645905639093361,  
+15        "Limit": 2  
+16    }  
+17}  
+`
+```

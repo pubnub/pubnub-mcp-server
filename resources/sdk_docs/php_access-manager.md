@@ -1,221 +1,334 @@
-# Access Manager v3 – PHP SDK (Access-Manager section)
+# Access Manager v3 API for PHP SDK
 
-Access Manager v3 issues time-limited tokens that embed fine-grained permissions for channels, channel groups and UUID metadata. All server-side operations (grant / revoke) require:  
-• Access Manager add-on enabled in the Admin Portal  
-• Secret Key configured in `PNConfiguration`.
+Access Manager v3 lets your server (initialized with a Secret Key) grant time-limited tokens with embedded permissions for PubNub resources:
+- Resources: Channels, ChannelGroups, Uuids (user metadata)
+- Scope: specific resources or RegEx patterns
+- Single request can mix permissions across multiple resources
+- Optional authorizedUuid locks token usage to a single UUID
+- Unauthorized or invalid token requests return 403
 
-----------------------------------------------------
-## Permissions
+For full concepts, see Manage Permissions with Access Manager v3.
 
-Resource → Valid rights  
-• Channels – `read`, `write`, `get`, `manage`, `update`, `join`, `delete`  
-• ChannelGroups – `read`, `manage`  
-• Uuids – `get`, `update`, `delete`
+## Grant token
 
-----------------------------------------------------
-## grantToken()
+Requires Access Manager add-on (enable in Admin Portal).
+Requires Secret Key authentication (initialize the SDK with a Secret Key).
 
-```
-$pubnub->grantToken()  
-    ->ttl($ttl)  
-    ->authorizedUuid($uuid)  
-    ->addChannelResources(Array[String => String])  
-    ->addChannelGroupResources(Array[String => String])  
-    ->addUuidResources(Array[String => String])  
-    ->addChannelPatterns(Array[String => String])  
-    ->addChannelGroupPatterns(Array[String => String])  
-    ->addUuidPatterns(Array[String => String])  
-    ->meta(Array[String => String])  
-    ->sync();  
-```
+The grantToken() method issues a token with:
+- ttl (minutes, required; min 1, max 43,200)
+- optional authorizedUuid (restrict token to a single client UUID)
+- permissions for Channels, ChannelGroups, Uuids (as explicit resources or RegEx patterns)
 
-Parameter (type)       | Notes  
------------------------|--------------------------------------------------  
-ttl (int) *required*   | Minutes, 1–43 200 (30 days).  
-authorizedUuid (string)| Bind token to one client UUID.  
-addChannelResources    | `['chan' => ['read'=>true, 'write'=>true]]`  
-addChannelGroupResources| Same shape for channel groups.  
-addUuidResources       | Same shape for UUID metadata.  
-add*Patterns           | Same shapes, keys are RegEx patterns.  
-meta (array)           | Scalars only.
+Permissions by resource type:
+- Channels: read, write, get, manage, update, join, delete
+- ChannelGroups: read, manage
+- Uuids: get, update, delete
 
-• You must specify at least one resource or pattern.  
-• Unlisted rights default to `false`.
+Use patterns for RegEx-based permissions. Meta accepts only scalar values.
 
-Example resource array:
+You must specify permissions for at least one of: Uuid, Channel, ChannelGroup (resources or patterns).
+
+### Method(s)
 
 ```
-[
-    'channel-1' => ['read' => true, 'write' => true],
-    'channel-2' => ['read' => true],
-    'channel-3' => ['read' => true]
-]
-```
-
-### Sample configuration
-
-```php
-// Include Composer autoloader (adjust path if needed)
-require_once 'vendor/autoload.php';
-
-use PubNub\PNConfiguration;
-use PubNub\PubNub;
-use PubNub\Exceptions\PubNubServerException;
-
-$pnConfig = new PNConfiguration();
-$pnConfig->setSubscribeKey("demo");
-$pnConfig->setPublishKey("demo");
-$pnConfig->setSecretKey("demo");          // Required
-$pnConfig->setUserId("php-token-granter");
-```
-
-### Return
+1$pubnub->grantToken()  
+2    ->ttl($ttl)  
+3    ->authorizedUuid($uuid)  
+4    ->addChannelResources(Array[String => String])  
+5    ->addChannelGroupResources(Array[String => String])  
+6    ->addUuidResources(Array[String => String])  
+7    ->addChannelPatterns(Array[String => String])  
+8    ->addChannelGroupPatterns(Array[String => String])  
+9    ->addUuidPatterns(Array[String => String])  
+10    ->meta(Array[String => String])  
+11    ->sync();  
+12
+  
 
 ```
-"p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI"
-```
 
-### Grant examples
+Parameters
+- ttl (Number, required): Minutes token is valid. Min 1; max 43,200.
+- authorizedUuid (String): Single UUID allowed to use the token.
+- addChannelResources (Array): Explicit channel permissions.
+- addChannelGroupResources (Array): Explicit channel group permissions.
+- addUuidResources (Array): Explicit UUID permissions.
+- addChannelPatterns (Array): Channel permissions via RegEx patterns.
+- addChannelGroupPatterns (Array): Channel group permissions via RegEx patterns.
+- addUuidPatterns (Array): UUID permissions via RegEx patterns.
+- meta (Array): Scalar-only metadata included with the request.
 
-Different rights on many resources:
-
-```php
-$pubnub->grantToken()
-    ->ttl(15)
-    ->authorizedUuid('my-authorized-uuid')
-    ->addChannelResources([
-        'channel-a' => ['read' => true],
-        'channel-b' => ['read' => true, 'write' => true],
-        'channel-c' => ['read' => true, 'write' => true],
-        'channel-d' => ['read' => true, 'write' => true],
-    ])
-    ->addChannelGroupResources([
-        'channel-group-b' => ['read' => true],
-    ])
-    ->addUuidResources([
-        'uuid-c' => ['get' => true],
-        'uuid-d' => ['get' => true, 'update' => true],
-    ]);
-```
-
-Grant read to channels via RegEx:
-
-```php
-$pubnub->grantToken()
-    ->ttl(15)
-    ->authorizedUuid('my-authorized-uuid')
-    ->addChannelPatterns([
-        '^channel-[A-Za-z0-9]$' => ['read' => true],
-    ])
-    ->sync();
-```
-
-Mixed explicit resources and RegEx:
-
-```php
-$pubnub->grantToken()
-    ->ttl(15)
-    ->authorizedUuid('my-authorized-uuid')
-    ->addChannelResources([
-        'channel-a' => ['read' => true],
-        'channel-b' => ['read' => true, 'write' => true],
-        'channel-c' => ['read' => true, 'write' => true],
-        'channel-d' => ['read' => true, 'write' => true],
-    ])
-    ->addChannelGroupResources([
-        'channel-group-b' => ['read' => true],
-    ])
-    ->addUuidResources([
-        'uuid-c' => ['get' => true],
-        'uuid-d' => ['get' => true, 'update' => true],
-    ]);
-```
-
-### Errors
-
-`PubNubServerException` (status 400) exposes:  
-`getStatusCode()`, `getBody()`, `getServerErrorMessage()`, `getServerErrorSource()`, `getServerErrorDetails()`.
-
-----------------------------------------------------
-## revokeToken()
-
-Token revoke must be enabled in the Admin Portal.
+Resource permissions array format (omit false rights; false is default):
 
 ```
-$pubnub->revokeToken($token)
-    ->sync();
+`1[  
+2    'channel-1' => ['read' => true, 'write' => true]  
+3    'channel-2' => ['read' => true, 'write' => false]  
+4    'channel-3' => ['read' => true]  
+5]  
+`
 ```
 
-Parameter | Description  
-----------|------------  
-token (string) *required* | Previously granted token (TTL ≤ 30 days).
-
-Sample:
-
-```php
-$pubnub->revokeToken("p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenV")
-    ->sync();
-```
-
-Return on success: `PNRequestResult` (`getStatus()`, `getMessage()`, etc.).  
-Possible errors: 400, 403, 503.
-
-----------------------------------------------------
-## parseToken()
+### Sample code
 
 ```
-parseToken(String token)
-```
-
-Sample:
-
-```php
-$pubnub->parseToken("p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI");
-```
-
-Returns a `PNToken` object:
-
-Method | Return | Purpose
--------|--------|--------
-getVersion()            | int    | Token version (current = 2)  
-getTimestamp()          | int    | Issue time (epoch sec)  
-getTtl()                | int    | Minutes to live  
-getResources() / getPatterns() | array | `type => name => permissions`  
-getChannelResource($ch) | Permissions|null | Rights for channel  
-getChannelGroupResource($cg) | Permissions|null | Rights for group  
-getUuidResource($uuid)  | Permissions|null | Rights for UUID  
-getChannelPattern($re) / getChannelGroupPattern($re) / getUuidPattern($re) | Permissions|null  
-getMetadata()           | array  | Custom metadata  
-getSignature()          | string | Server signature  
-getUuid()               | string | Authorized UUID  
-toArray()               | array  | Entire token decoded
-
-Permissions helper object:
-
-```php
-$pubnub->parseToken("token")
-    ->getChannelResource('my-channel')
-    ->hasRead();
-```
-
-Methods: `hasRead()`, `hasWrite()`, `hasManage()`, `hasDelete()`, `hasGet()`, `hasUpdate()`, `hasJoin()` (all boolean).
-
-----------------------------------------------------
-## setToken()
+1
+  
 
 ```
-setToken(String token)
+
+### Returns
+
+```
+`1"p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI"  
+`
 ```
 
-Sample:
+### Other examples
 
-```php
-$pubnub->setToken(
-"p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI"
-);
+Grant an authorized client different levels of access to various resources in a single call
+
 ```
+`1$pubnub->grantToken()  
+2    ->ttl(15)  
+3    ->authorizedUuid('my-authorized-uuid')  
+4    ->addChannelResources([  
+5        'channel-a' => ['read' => true],  
+6        'channel-b' => ['read' => true, 'write' => true],  
+7        'channel-c' => ['read' => true, 'write' => true],  
+8        'channel-d' => ['read' => true, 'write' => true],  
+9    ])  
+10    ->addChannelGroupResources([  
+11        'channel-group-b' => ['read' => true],  
+12    ])  
+13    ->addUuidResources([  
+14        'uuid-c' => ['get' => true],  
+15        'uuid-d' => ['get' => true, 'update' => true],  
+16    ])  
+17    ->sync();  
+`
+```
+
+Grant an authorized client read access to multiple channels using RegEx
+
+```
+`1$pubnub->grantToken()  
+2    ->ttl(15)  
+3    ->authorizedUuid('my-authorized-uuid')  
+4    ->addChannelPatterns([  
+5        '^channel-[A-Za-z0-9]$' => ['read' => true],  
+6    ])  
+7    ->sync();  
+`
+```
+
+Grant an authorized client different levels of access to various resources and read access to channels using RegEx in a single call
+
+```
+`1$pubnub->grantToken()  
+2    ->ttl(15)  
+3    ->authorizedUuid('my-authorized-uuid')  
+4    ->addChannelResources([  
+5        'channel-a' => ['read' => true],  
+6        'channel-b' => ['read' => true, 'write' => true],  
+7        'channel-c' => ['read' => true, 'write' => true],  
+8        'channel-d' => ['read' => true, 'write' => true],  
+9    ])  
+10    ->addChannelGroupResources([  
+11        'channel-group-b' => ['read' => true],  
+12    ])  
+13    ->addUuidResources([  
+14        'uuid-c' => ['get' => true],  
+15        'uuid-d' => ['get' => true, 'update' => true],  
+16    ])  
+17    ->addChannelPatterns([  
+18        '^channel-[A-Za-z0-9]$' => ['read' => true],  
+19    ])  
+`
+```
+
+### Error responses
+
+Invalid requests return HTTP 400 with details in PubNubServerException (e.g., invalid ttl, regex, timestamp).
+- getStatusCode() Int: Status code (400).
+- getBody() Object: Error body (message, source, details, service, status).
+- getServerErrorMessage() String: Descriptive message.
+- getServerErrorSource() String: Error source.
+- getServerErrorDetails() Object: First problem details (message, location, locationType).
+
+## Revoke token
+
+Requires Access Manager add-on. Enable “Revoke v3 Token” in Admin Portal (ACCESS MANAGER section).
+
+revokeToken() disables an existing token previously obtained via grantToken(). Use for tokens with ttl ≤ 30 days; contact support for longer.
+
+### Method(s)
+
+```
+`1$pubnub->revokeToken($token)  
+2    ->sync();  
+`
+```
+
+Parameter
+- token (String, required): Existing token to revoke.
+
+### Sample code
+
+```
+1
+  
+
+```
+
+### Returns
+
+Success returns PNRequestResult; failures return PubNubServerException.
+
+PNRequestResult
+- getStatus() Int: 200
+- getService() String: Access Manager
+- isError() Boolean
+- getError() Array
+- getMessage() String: Success
+
+### Error Responses
+
+May return: 400 Bad Request, 403 Forbidden, 503 Service Unavailable.
+
+## Parse token
+
+parseToken() decodes a token and exposes embedded permissions and ttl.
+
+### Method(s)
+
+```
+`1parseToken(String token)  
+`
+```
+
+Parameter
+- token (String, required): Token to decode.
+
+### Sample code
+
+```
+1
+  
+
+```
+
+### Returns
+
+```
+1$parsedToken = $pubnub->parseToken( "p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI")  
+2->toArray();  
+3
+  
+4array(7) {  
+5  ["version"]=>  
+6  int(2)  
+7  ["timestamp"]=>  
+8  int(1634592012)  
+9  ["ttl"]=>  
+10  int(15)  
+11  ["resources"]=>  
+12  array(1) {  
+13    ["chan"]=>  
+14    array(1) {  
+15      ["my-channel"]=>  
+16      array(8) {  
+17        ["read"]=>  
+18        bool(true)  
+19        ["write"]=>  
+20        bool(false)  
+21        ["manage"]=>  
+22        bool(false)  
+23        ["delete"]=>  
+24        bool(false)  
+25        ["create"]=>  
+26        bool(false)  
+27        ["get"]=>  
+28        bool(false)  
+29        ["update"]=>  
+30        bool(false)  
+31        ["join"]=>  
+32        bool(false)  
+33      }  
+34    }  
+35  }  
+36  ["patterns"]=>  
+37  array(0) {  
+38  }  
+39  ["signature"]=>  
+40  string(44) "IBrbsLkRUqxZkN0ZPw8-bV2KxzB1Py-vJ-CaynRUn4Q="  
+41  ["uuid"]=>  
+42  string(7) "my-uuid"  
+43}  
+```
+
+Token accessor methods
+- getVersion(): Int – Token version (current: 2)
+- getTimestamp(): Int – Issued timestamp
+- getTtl(): String – Minutes token is valid
+- getResources(): Array – resources as type => name => permissions
+- getPatterns(): Array – patterns as type => name => permissions
+- getChannelResource($channel): Object|null – Permissions for channel
+- getChannelGroupResource($channelGroup): Object|null – Permissions for channel group
+- getUuidResource($uuid): Object|null – Permissions for UUID
+- getChannelPattern($channel): Object|null – Pattern permissions for channel
+- getChannelGroupPattern($channelGroup): Object|null – Pattern permissions for channel group
+- getUuidPattern($uuid): Object|null – Pattern permissions for UUID
+- getMetadata(): Array – Metadata set in grant
+- getSignature(): String – Server signature
+- getUuid(): String – Authorized UUID
+- toArray(): Array – Entire token as array
+
+#### Permissions object
+
+```
+`1$pubnub->parseToken( "p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI")  
+2->getChannelResource('my-channel')  
+3->hasRead();  
+`
+```
+
+Permissions methods
+- hasRead(): boolean – read (Subscribe, History, Presence)
+- hasWrite(): boolean – write (Publish)
+- hasManage(): boolean – manage (Channel Groups, App Context)
+- hasDelete(): boolean – delete (History, App Context)
+- hasGet(): boolean – get (App Context)
+- hasUpdate(): boolean – update (App Context)
+- hasJoin(): boolean – join (App Context)
+
+Error Responses
+- If parsing fails, the token may be damaged; request a new one.
+
+## Set token
+
+setToken() updates the client’s active authentication token.
+
+### Method(s)
+
+```
+`1setToken(String token)  
+`
+```
+
+Parameter
+- token (String, required): Current token with embedded permissions.
+
+### Sample code
+
+```
+1
+  
+
+```
+
+### Returns
 
 No return value.
 
-----------------------------------------------------
-Last updated Jul 15, 2025
+Last updated on Sep 3, 2025

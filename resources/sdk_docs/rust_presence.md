@@ -1,95 +1,163 @@
-# Presence API – Rust SDK (condensed)
+# Presence API for Rust SDK
 
-Presence lets you query real-time occupancy information and manage per-user state.  
-Feature flag: **fullpresence** (must be enabled in the Admin Portal).
+Presence tracks online/offline status and custom state:
+- Join/leave events
+- Occupancy (user count) per channel
+- Channels a user/device is subscribed to
+- Presence state for users
 
----
+Learn more: Presence overview.
 
-## here_now()
+Add any of the following features to Cargo.toml:
 
-Real-time snapshot of channel occupancy.  
-Response is cached for 3 s.
+```
+[dependencies]
+# full
+pubnub = { version = "0.7.0", features = ["full"] }
+# Presence
+pubnub = { version = "0.7.0", features = ["presence"] }
+```
 
-```rust
+For all features, see Available features.
+
+### Available in features
+full, presence
+
+## Here now
+
+Requires Presence (enable in Admin Portal). See Presence Events to receive presence events.
+
+Returns the current state of channels: list of user IDs (UUIDs) and total occupancy.
+
+Cache: 3-second response cache time.
+
+### Method(s)
+
+```
 pubnub
     .here_now()
-    .channels(Vec<String>)        // required – channels to query
-    .channel_groups(Vec<String>)  // optional – channel groups to query
-    .include_state(bool)          // default false – include per-user state
-    .include_user_ids(bool)       // default true  – include UUID list
+    .channels(Vec<String>)
+    .channel_groups(Vec<String>)
+    .include_state(bool)
+    .include_user_ids(bool)
     .execute()
 ```
 
-Returns `HereNowResult`:
-* `total_channels: u32`
-* `total_occupancy: u32`
-* `channels: Vec<HereNowChannel>`
+Parameters:
+- channels() — Type: Vec<String>, Default: n/a. Channels to get details of.
+- channel_groups() — Type: Vec<String>, Default: n/a. Channel groups to get details of.
+- include_state() — Type: bool, Default: false. If true, include presence state for users.
+- include_user_ids() — Type: bool, Default: true. If true, include user IDs of connected clients.
 
-`HereNowChannel`  
-* `name: String`
-* `occupancy: u32`
-* `occupants: Vec<HereNowUser>`
+### Sample code
 
-`HereNowUser`  
-* `user_id: String`
-* `state: serde_json::Value` (or `Vec<u8>` without `serde`)
+```
 
----
+```
 
-## where_now()
+### Returns
 
-List channels to which a given user ID is currently subscribed.
+here_now() returns HereNowResult:
+- total_channels: u32 — Total number of channels.
+- total_occupancy: u32 — Number of all users in the provided channels.
+- channels: Vec<HereNowChannel> — Per-channel details.
 
-```rust
+HereNowChannel:
+- name: String — Channel name.
+- occupancy: u32 — Number of users in the channel.
+- occupants: Vec<HereNowUser> — Users in the channel.
+
+HereNowUser:
+- user_id: String — User ID.
+- state: serde_json::Value — User state. If not using default serde, this field is Vec<u8>.
+
+## Where now
+
+Requires Presence (enable in Admin Portal). See Presence Events to receive presence events.
+
+Get the list of channels a user ID is currently subscribed to.
+
+Timeout events: If the app restarts within the heartbeat window, no timeout event is generated.
+
+### Method(s)
+
+```
 pubnub
     .where_now()
-    .user_id(String)   // defaults to the UUID in PubNub config
+    .user_id(String)
     .execute()
 ```
 
-Returns `WhereNowResult`:
-* `channels: Vec<String>`
+Parameters:
+- user_id() — Type: String, Default: User ID provided in PubNub config. The user ID to query.
 
----
+### Sample code
 
-## Presence state (set / get)
+```
 
-Key-value metadata attached to a user on specific channels or channel groups.  
-State payload must be a JSON object.
+```
 
-### set_presence_state()
+### Returns
 
-```rust
+where_now() returns WhereNowResult:
+- channels: Vec<String> — Channels where the user ID is present.
+
+## User state
+
+Requires Presence (enable in Admin Portal). See Presence Events to receive presence events.
+
+Set/get key/value state pairs per user ID. State must be a JSON object.
+
+### Method(s)
+
+#### Set state
+
+```
 pubnub
-    .set_presence_state(T: Serialize) // required state JSON
-    .channels(Vec<String>)            // optional channels
-    .channel_groups(Vec<String>)      // optional channel groups
-    .user_id(String)                  // defaults to configured UUID
+    .set_presence_state(T: Serialize)
+    .channels(Vec<String>)
+    .channel_groups(Vec<String>)
+    .user_id(String)
     .execute()
 ```
 
-Returns `SetStateResult`:
-* `channel: String`
-* `state: serde_json::Value` (or `Vec<u8>`)
+Parameters:
+- set_presence_state() — Type: T: Serialize, Default: n/a. JSON object state to set.
+- channels() — Type: Vec<String>, Default: n/a. Channels to set state on.
+- channel_groups() — Type: Vec<String>, Default: n/a. Channel groups to set state on.
+- user_id() — Type: String, Default: User ID provided in PubNub config. The user ID to set state for.
 
-### get_presence_state()
+#### Get state
 
-```rust
+```
 pubnub
     .get_presence_state()
-    .channels(Vec<String>)            // optional channels
-    .channel_groups(Vec<String>)      // optional channel groups
-    .user_id(String)                  // defaults to configured UUID
+    .channels(Vec<String>)
+    .channel_groups(Vec<String>)
+    .user_id(String)
     .execute()
 ```
 
-Returns `GetStateResult`:
-* `state: Vec<GetStateInfo>`
+Parameters:
+- channels() — Type: Vec<String>, Default: n/a. Channels to get state of.
+- channel_groups() — Type: Vec<String>, Default: n/a. Channel groups to get state of.
+- user_id() — Type: String, Default: User ID provided in PubNub config. The user ID to get state for.
 
-`GetStateInfo`
-* `channel_name: String`
-* `state: serde_json::Value` (or `Vec<u8>`)
+### Sample code
 
----
+```
 
-Last updated: **Jul 15 2025**
+```
+
+### Returns
+
+set_presence_state() returns SetStateResult:
+- channel: String — Channel the state was set on.
+- state: serde_json::Value — User state. If not using default serde, this field is Vec<u8>.
+
+get_presence_state() returns GetStateResult:
+- state: Vec<GetStateInfo> — State entries.
+
+GetStateInfo:
+- channel_name: String — Channel name the state was set on.
+- state: serde_json::Value — User state. If not using default serde, this field is Vec<u8>.

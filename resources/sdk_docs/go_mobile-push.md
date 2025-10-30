@@ -1,186 +1,276 @@
-# Mobile Push Notifications – Go SDK
+# Mobile Push Notifications API for Go SDK
 
-Mobile Push API lets you manage FCM/GCM and APNS2 tokens directly from PubNub (requires the **Mobile Push Notifications** add-on enabled for your key).
+Connect native PubNub publishing to third-party push services: Google Android FCM (Firebase Cloud Messaging) and Apple iOS APNs (Apple Push Notification service).
 
----
+Requires Mobile Push Notifications add-on. Enable in the Admin Portal: https://admin.pubnub.com/. See: https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-.
 
-## Add device to channel
+## Add a device to a push notifications channel[​](#add-a-device-to-a-push-notifications-channel)
 
-Enable push on specific channels.
+Enable mobile push notifications on a set of channels.
 
-### Method
+### Method(s)[​](#methods)
 
-```go
-pn.AddPushNotificationsOnChannels().
-        Channels([]string).
-        DeviceIDForPush(string).
-        PushType(PNPushTypeGCM | PNPushTypeAPNS2 | PNPushTypeFCM).
-        Topic(string).                // APNS2 only
-        Environment(PNPushEnvironment) // APNS2 only
-        QueryParam(map[string]string).
-        Execute()
+```
+`1pn.AddPushNotificationsOnChannels().  
+2        Channels([]string).  
+3        DeviceIDForPush(string).  
+4        PushType(PNPushTypeFCM|PNPushTypeAPNS2).  
+5        Topic(string).  
+6        Environment(PNPushEnvironment).  
+7        QueryParam(map[string]string).  
+8        Execute()  
+`
 ```
 
-Parameter | Type | Default | Notes
---------- | ---- | ------- | -----
-Channels* | []string | — | Channels to enable.
-DeviceIDForPush* | string | — | Mobile device token.
-PushType | enum | — | PNPushTypeGCM, PNPushTypeAPNS2, PNPushTypeFCM.
-Topic | string | — | APNS2 bundle identifier.
-Environment | enum | PNPushEnvironmentDevelopment | APNS2: Development or Production.
-QueryParam | map[string]string | — | Extra query parameters.
+Parameters:
+- Channels (required)
+  - Type: []string
+  - Default: n/a
+  - Description: Channels to enable for push notifications.
+- DeviceIDForPush (required)
+  - Type: string
+  - Default: n/a
+  - Description: Device ID (push token).
+- PushType
+  - Type: PNPushTypeFCM | PNPushTypeAPNS2 | PNPushTypeGCM | PNPushTypeAPNS
+  - Default: Not set
+  - Description: Push notification service type.
+  - Available values:
+    - PNPushTypeFCM — Firebase Cloud Messaging (recommended for Android)
+    - PNPushTypeAPNS2 — Apple Push Notification service v2 (recommended for iOS)
+- Topic
+  - Type: string
+  - Default: Not set
+  - Description: APNs topic (bundle identifier).
+- Environment
+  - Type: PNPushEnvironment
+  - Default: PNPushEnvironmentDevelopment
+  - Accepted values: PNPushEnvironmentDevelopment, PNPushEnvironmentProduction.
+- QueryParam
+  - Type: map[string]string
+  - Default: n/a
+  - Description: Map of query parameters to append to the API request.
 
-### Sample
+### Sample code[​](#sample-code)
 
-```go
-package main
+#### Add device to channel (FCM)[​](#add-device-to-channel-fcm)
 
-import (
-	"fmt"
-	"log"
+```
+1
+  
 
-	pubnub "github.com/pubnub/go/v7"
-)
-
-func main() {
-	// Configure the PubNub instance with demo keys
-	config := pubnub.NewConfigWithUserId("myUniqueUserId")
-	config.SubscribeKey = "demo"
-	config.PublishKey   = "demo"
-	// ...
-}
 ```
 
-### Return
+#### Add device to channel (APNs2)[​](#add-device-to-channel-apns2)
 
-No data; check `status.Error`.
+```
+1
+  
 
----
-
-## List channels for device
-
-List channels currently enabled for a token.
-
-### Method
-
-```go
-pn.ListPushProvisions().
-        DeviceIDForPush(string).
-        PushType(PNPushTypeGCM | PNPushTypeAPNS2 | PNPushTypeFCM).
-        Topic(string).                // APNS2 only
-        Environment(PNPushEnvironment) // APNS2 only
-        QueryParam(map[string]string).
-        Execute()
 ```
 
-Same parameter rules as above (Topic / Environment for APNS2 only).
+### Returns[​](#returns)
 
-### Sample
+No payload is returned. Check status.Error on the status object.
 
-```go
-// GCM / FCM
-pn.ListPushProvisions().
-        DeviceIDForPush("device_id").
-        PushType(pubnub.PNPushTypeGCM).
-        Execute()
+## List push notifications channels for a device[​](#list-push-notifications-channels-for-a-device)
 
-// APNS2
-pn.ListPushProvisions().
-        DeviceIDForPush("device_id").
-        PushType(pubnub.PNPushTypeAPNS2).
-        Topic("com.example.bundle_id").
-        Environment(pubnub.PNPushEnvironmentProduction).
-        Execute()
+Get all channels with push notifications for the specified push token.
+
+### Method(s)[​](#methods-1)
+
+```
+`1pn.ListPushProvisions().  
+2        DeviceIDForPush(string).  
+3        PushType(PNPushTypeFCM|PNPushTypeAPNS2).  
+4        Topic(string).  
+5        Environment(PNPushEnvironment).  
+6        QueryParam(map[string]string).  
+7        Execute()  
+`
 ```
 
-### Return
+Parameters:
+- DeviceIDForPush (required)
+  - Type: string
+  - Default: n/a
+  - Description: Device ID (push token).
+- PushType
+  - Type: PNPushTypeFCM | PNPushTypeAPNS2 | PNPushTypeGCM | PNPushTypeAPNS
+  - Default: Not set
+  - Description: Push notification service type.
+  - Available values:
+    - PNPushTypeFCM — Firebase Cloud Messaging (recommended for Android)
+    - PNPushTypeAPNS2 — Apple Push Notification service v2 (recommended for iOS)
+- Topic
+  - Type: string
+  - Default: Not set
+  - Description: APNs topic (bundle identifier).
+- Environment
+  - Type: PNPushEnvironment
+  - Default: PNPushEnvironmentDevelopment
+  - Accepted values: PNPushEnvironmentDevelopment, PNPushEnvironmentProduction.
+- QueryParam
+  - Type: map[string]string
+  - Default: n/a
+  - Description: Map of query parameters to append to the API request.
 
-`ListPushProvisionsRequestResponse`  
-• `Channels []string` – enabled channels.
+### Sample code[​](#sample-code-1)
 
----
+#### List channels for device (FCM)[​](#list-channels-for-device-fcm)
 
-## Remove device from channel
+```
+1
+  
 
-Disable push on specific channels.
-
-### Method
-
-```go
-pn.RemovePushNotificationsFromChannels().
-        Channels([]string).
-        DeviceIDForPush(string).
-        PushType(PNPushTypeGCM | PNPushTypeAPNS2 | PNPushTypeFCM).
-        Topic(string).                // APNS2 only
-        Environment(PNPushEnvironment) // APNS2 only
-        QueryParam(map[string]string).
-        Execute()
 ```
 
-### Sample
+#### List channels for device (APNs2)[​](#list-channels-for-device-apns2)
 
-```go
-// FCM / GCM
-pn.RemovePushNotificationsFromChannels().
-        Channels([]string{"ch"}).
-        DeviceIDForPush("device_id").
-        PushType(pubnub.PNPushTypeGCM).
-        Execute()
+```
+1
+  
 
-// APNS2
-pn.RemovePushNotificationsFromChannels().
-        Channels([]string{"ch"}).
-        DeviceIDForPush("device_id").
-        PushType(pubnub.PNPushTypeAPNS2).
-        Topic("com.example.bundle_id").
-        Environment(pubnub.PNPushEnvironmentProduction).
-        Execute()
 ```
 
-### Return
+### Returns[​](#returns-1)
 
-No data; check `status.Error`.
+Returns ListPushProvisionsRequestResponse with:
+- Channels
+  - Type: []string
+  - Description: Channels associated with push notifications.
 
----
+## Remove a device from push notifications channels[​](#remove-a-device-from-push-notifications-channels)
 
-## Remove all mobile push notifications
+Disable push notifications on selected channels.
 
-Disable push on all channels for a token.
+### Method(s)[​](#methods-2)
 
-### Method
-
-```go
-pn.RemoveAllPushNotifications().
-        DeviceIDForPush(string).
-        PushType(PNPushTypeGCM | PNPushTypeAPNS2 | PNPushTypeFCM).
-        Topic(string).                // APNS2 only
-        Environment(PNPushEnvironment) // APNS2 only
-        QueryParam(map[string]string).
-        Execute()
+```
+`1pn.RemovePushNotificationsFromChannels().  
+2        Channels([]string).  
+3        DeviceIDForPush(string).  
+4        PushType(PNPushTypeFCM|PNPushTypeAPNS2).  
+5        Topic(string).  
+6        Environment(PNPushEnvironment).  
+7        QueryParam(map[string]string).  
+8        Execute()  
+`
 ```
 
-### Sample
+Parameters:
+- Channels (required)
+  - Type: []string
+  - Default: n/a
+  - Description: Channels to disable for push notifications.
+- DeviceIDForPush (required)
+  - Type: string
+  - Default: n/a
+  - Description: Device ID (push token).
+- PushType
+  - Type: PNPushTypeFCM | PNPushTypeAPNS2 | PNPushTypeGCM | PNPushTypeAPNS
+  - Default: Not set
+  - Description: Push notification service type.
+  - Available values:
+    - PNPushTypeFCM — Firebase Cloud Messaging (recommended for Android)
+    - PNPushTypeAPNS2 — Apple Push Notification service v2 (recommended for iOS)
+- Topic
+  - Type: string
+  - Default: Not set
+  - Description: APNs topic (bundle identifier).
+- Environment
+  - Type: PNPushEnvironment
+  - Default: PNPushEnvironmentDevelopment
+  - Accepted values: PNPushEnvironmentDevelopment, PNPushEnvironmentProduction.
+- QueryParam
+  - Type: map[string]string
+  - Default: n/a
+  - Description: Map of query parameters to append to the API request.
 
-```go
-// FCM / GCM
-pn.RemoveAllPushNotifications().
-        DeviceIDForPush("device_id").
-        PushType(pubnub.PNPushTypeGCM).
-        Execute()
+### Sample code[​](#sample-code-2)
 
-// APNS2
-pn.RemoveAllPushNotifications().
-        DeviceIDForPush("device_id").
-        PushType(pubnub.PNPushTypeAPNS2).
-        Topic("com.example.bundle_id").
-        Environment(pubnub.PNPushEnvironmentProduction).
-        Execute()
+#### Remove device from channel (FCM)[​](#remove-device-from-channel-fcm)
+
+```
+1
+  
+
 ```
 
-### Return
+#### Remove device from channel (APNs2)[​](#remove-device-from-channel-apns2)
 
-No data; check `status.Error`.
+```
+1
+  
 
----
+```
 
-Last updated: **Jul 15 2025**
+### Returns[​](#returns-2)
+
+No payload is returned. Check status.Error on the status object.
+
+## Remove a device from all push notifications channels[​](#remove-a-device-from-all-push-notifications-channels)
+
+Disable push notifications from all channels registered for the specified push token.
+
+### Method(s)[​](#methods-3)
+
+```
+`1pn.RemoveAllPushNotifications().  
+2        DeviceIDForPush(string).  
+3        PushType(PNPushTypeFCM|PNPushTypeAPNS2).  
+4        Topic(string).  
+5        Environment(PNPushEnvironment).  
+6        QueryParam(map[string]string).  
+7        Execute()  
+`
+```
+
+Parameters:
+- DeviceIDForPush (required)
+  - Type: string
+  - Default: n/a
+  - Description: Device ID (push token).
+- PushType
+  - Type: PNPushTypeFCM | PNPushTypeAPNS2 | PNPushTypeGCM | PNPushTypeAPNS
+  - Default: Not set
+  - Description: Push notification service type.
+  - Available values:
+    - PNPushTypeFCM — Firebase Cloud Messaging (recommended for Android)
+    - PNPushTypeAPNS2 — Apple Push Notification service v2 (recommended for iOS)
+- Topic
+  - Type: string
+  - Default: Not set
+  - Description: APNs topic (bundle identifier).
+- Environment
+  - Type: PNPushEnvironment
+  - Default: PNPushEnvironmentDevelopment
+  - Accepted values: PNPushEnvironmentDevelopment, PNPushEnvironmentProduction.
+- QueryParam
+  - Type: map[string]string
+  - Default: n/a
+  - Description: Map of query parameters to append to the API request.
+
+### Sample code[​](#sample-code-3)
+
+#### Remove all mobile push notifications (FCM)[​](#remove-all-mobile-push-notifications-fcm)
+
+```
+1
+  
+
+```
+
+#### Remove all mobile push notifications (APNs2)[​](#remove-all-mobile-push-notifications-apns2)
+
+```
+1
+  
+
+```
+
+### Returns[​](#returns-3)
+
+No payload is returned. Check status.Error on the status object.
+
+Last updated on Oct 29, 2025

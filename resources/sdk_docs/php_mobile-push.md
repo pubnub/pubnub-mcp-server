@@ -1,199 +1,185 @@
-# Mobile Push Notifications API – PHP SDK (mobile-push)
+# Mobile Push Notifications API for PHP SDK
 
-Prerequisite  
-• Mobile Push Notifications add-on must be enabled for your keys in the Admin Portal.
+Connects PubNub publishing to third-party push services: Google Android FCM (Firebase Cloud Messaging) and Apple iOS APNs (Apple Push Notification service).
 
-PNPushType values  
-• `PNPushType::GCM` (FCM)  
-• `PNPushType::APNS2`
+To learn more, read about Mobile Push Notifications: /docs/general/push/send
 
----
+## Add a device to a push notifications channel
 
-## Add device to channel
+Requires Mobile Push Notifications add-on. Enable in the Admin Portal: https://admin.pubnub.com/ (How to enable add-ons: https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-)
 
-Enables push notifications for a device on the specified channels.
+Enable mobile push notifications on a set of channels.
 
-```php
-$pubnub->addChannelsToPush()
-    ->pushType(PNPushType)
-    ->channels(array)
-    ->deviceId(string)
-    ->sync();
-```
-
-Parameters  
-• pushType (PNPushType) – required  
-• channels (array) – channels to enable  
-• deviceId (string) – device token/ID  
-• environment (string, default "development") – APNS2 only  
-• topic (string) – APNS2 only
-
-Reference snippet
+### Method(s)
 
 ```
-`  
-  
-// Include Composer autoloader (adjust path if needed)  
-require_once 'vendor/autoload.php';  
-  
-use PubNub\PNConfiguration;  
-use PubNub\PubNub;  
-use PubNub\Enums\PNPushType;  
-use PubNub\Exceptions\PubNubServerException;  
-  
-// Create configuration with demo keys  
-$pnConfig = new PNConfiguration();  
-$pnConfig->setSubscribeKey("demo");  
-$pnConfig->setPublishKey("demo");  
-$pnConfig->setUserId("php-push-demo-user");  
+`1$pubnub->addChannelsToPush()  
+2    ->pushType(PNPushType)  
+3    ->channels(array)  
+4    ->deviceId(string)  
+5    ->sync();  
 `
 ```
 
-APNS2 example
+Parameters:
+- pushType (Type: PNPushType, Default: Not set, Accepted: PNPushType.GCM, PNPushType.APNS2)
+- channels (Type: Array, Required) Channels to enable for push notifications
+- deviceId (Type: String, Required) Device identifier
+- environment (Type: String, Default: development) APNs environment; required for APNS2
+- topic (Type: String) APNs topic (bundle identifier); required for APNS2
+
+### Sample code
+
+#### Add device to channel (FCM)
+
+##### Reference code
 
 ```
-`use PubNub\Enums\PNPushType;  
+1
   
-$pubnub->addChannelsToPush()  
-    ->pushType(PNPushType::APNS2)  
-    ->channels(["ch1", "ch2", "ch3"])  
-    ->deviceId("deviceId")  
-    ->environment("production")  
-    ->topic("bundle-identifier")  
-    ->sync();  
-`
-```
-
----
-
-## List channels for device
-
-Returns all channels with push enabled for the specified device.
-
-```php
-$pubnub->listPushProvisions()
-    ->pushType(PNPushType)
-    ->deviceId(string)
-    ->sync();
-```
-
-Parameters  
-• pushType (PNPushType) – required  
-• deviceId (string) – required  
-• environment / topic – APNS2 only (same as above)
-
-Samples
 
 ```
-`$pubnub->arrayPushProvisions()  
-    ->pushType(PNPushType::FCM)  
-    ->deviceId("deviceId")  
-    ->sync();  
-`
-```
+
+#### Add device to channel (APNS2)
 
 ```
-`$pubnub->arrayPushProvisions()  
-    ->pushType(PNPushType::APNS2)  
-    ->deviceId("deviceId")  
-    ->topic("myapptopic")  
-    ->environment("production")  
-    ->sync();  
-`
-```
-
-Response method  
-• `getChannels(): array` – list of channels
-
----
-
-## Remove device from channel(s)
-
-Disables push notifications for the device on the specified channels (or all if no channel list supplied).
-
-```php
-$pubnub->removeChannelsFromPush()
-    ->pushType(PNPushType)
-    ->channels(string|array)   // optional
-    ->deviceId(string)
-    ->sync();
-```
-
-Parameters identical to “Add device”.
-
-FCM example
-
-```
-`use PubNub\Enums\PNPushType;  
+1
   
-$pubnub->removeChannelsFromPush()  
-    ->pushType(PNPushType::FCM)  
-    ->channels(["ch1", "ch2", "ch3"])  
-    ->deviceId("deviceId")  
-    ->sync();  
+
+```
+
+## List push notifications channels for a device
+
+Requires Mobile Push Notifications add-on. Enable in the Admin Portal: https://admin.pubnub.com/ (How to enable add-ons: https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-)
+
+List channels that have push notifications enabled for the specified device token.
+
+### Method(s)
+
+```
+`1$pubnub->listPushProvisions()  
+2    ->pushType(PNPushType)  
+3    ->deviceId(string)  
+4    ->sync();  
 `
 ```
 
-APNS2 example
+Parameters:
+- pushType (Type: PNPushType, Default: Not set, Accepted: PNPushType.GCM, PNPushType.APNS2)
+- deviceId (Type: String, Required) Device token
+- environment (Type: String, Default: development) APNs environment; required for APNS2
+- topic (Type: String) APNs topic (bundle identifier); required for APNS2
+
+### Sample code
+
+#### List channels for device
 
 ```
-`use PubNub\Enums\PNPushType;  
+1
   
-$pubnub->removeChannelsFromPush()  
-    ->pushType(PNPushType::APNS2)  
-    ->channels(["ch1", "ch2", "ch3"])  
-    ->deviceId("deviceId")  
-    ->topic("myapptopic")  
-    ->environment("production")  
-    ->sync();  
+
+```
+
+#### List channels for Device(APNS2)
+
+```
+1
+  
+
+```
+
+### Response
+
+- getChannels() (Type: Array) List of channels associated for mobile push notifications.
+
+## Remove a device from push notifications channels
+
+Requires Mobile Push Notifications add-on. Enable in the Admin Portal: https://admin.pubnub.com/ (How to enable add-ons: https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-)
+
+Disable mobile push notifications on a set of channels.
+
+### Method(s)
+
+```
+`1$pubnub->removeChannelsFromPush()  
+2    ->pushType(PNPushType)  
+3    ->channels(string|array)  
+4    ->deviceId(string)  
+5    ->sync();  
 `
 ```
 
----
+Parameters:
+- pushType (Type: PNPushType, Default: Not set, Accepted: PNPushType.GCM, PNPushType.APNS2)
+- channels (Type: String|Array, Required) Channels to disable for push notifications
+- deviceId (Type: String, Required) Device token
+- environment (Type: String, Default: development) APNs environment; required for APNS2
+- topic (Type: String) APNs topic (bundle identifier); required for APNS2
 
-## Remove all mobile push notifications
+### Sample code
 
-Removes the device from every push-enabled channel.
-
-```php
-$pubnub->removeAllPushChannelsForDevice()
-    ->pushType(PNPushType)
-    ->deviceId(string)
-    ->sync();
-```
-
-Sample
+#### Remove device from channel
 
 ```
-`use PubNub\Enums\PNPushType;  
+1
   
-// For APNs2  
-$pubnub->removeAllPushChannelsForDevice()  
-    ->pushType(PNPushType::APNS2)  
-    ->deviceId("yourDeviceId")  
-    ->sync();  
+
+```
+
+#### Remove device from Channel(APNS2)
+
+```
+1
   
-// For FCM  
-$pubnub->removeAllPushChannelsForDevice()  
-    ->pushType(PNPushType::FCM)  
-    ->deviceId("yourDeviceId")  
-    ->sync();  
+
+```
+
+## Remove a device from all push notifications channels
+
+Requires Mobile Push Notifications add-on. Enable in the Admin Portal: https://admin.pubnub.com/ (How to enable add-ons: https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-)
+
+Disable mobile push notifications from all channels registered with the specified device token.
+
+### Method(s)
+
+```
+`1$pubnub->removeAllPushChannelsForDevice()  
+2    ->pushType(PNPushType)  
+3    ->deviceId(string)  
+4    ->sync();  
 `
 ```
 
-Response example
+Parameters:
+- pushType (Type: PNPushType, Default: Not set, Accepted: PNPushType.GCM, PNPushType.APNS2)
+- deviceId (Type: String, Required) Device token
+
+### Sample code
+
+#### Remove all push channels from device (FCM)
 
 ```
-`$response = $pubnub->removeAllPushChannelsForDevice()**    ->pushType(PNPushType::APNS2)  
-    ->deviceId("yourDeviceId")  
-    ->sync();  
+1
   
-if ($response->isSuccessful()) {  
-    echo "Successfully removed all push channels from device.";  
-} else {  
-    echo "Failed to remove push channels. Error: " . $response->getError();  
-}  
-`
+
 ```
 
-_Last updated Jul 15 2025_
+### Response
+
+The sync() method returns a response indicating the success or failure of the operation.
+
+```
+1$response = $pubnub->removeAllPushChannelsForDevice()  
+2    ->pushType(PNPushType::APNS2)  
+3    ->deviceId("yourDeviceId")  
+4    ->sync();  
+5
+**6if ($response->isSuccessful()) {  
+7    echo "Successfully removed all push channels from device.";  
+8} else {  
+9    echo "Failed to remove push channels. Error: " . $response->getError();  
+10}  
+
+```
+
+Last updated on Oct 29, 2025**

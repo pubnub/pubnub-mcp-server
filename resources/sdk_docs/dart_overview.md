@@ -1,327 +1,626 @@
-# PubNub Dart SDK 5.2.1 – Quick Start
+# Dart API & SDK Docs 7.0.0
 
-This condensed guide shows the minimum you need to:
+This guide shows how to integrate PubNub real-time messaging in Dart using:
+- Flutter app development
+- Non-Flutter platforms (server-side, CLI, etc.)
 
-1. Obtain keys  
-2. Install the SDK  
-3. Initialize PubNub  
-4. Subscribe / listen  
-5. Publish  
-6. Run & test
+Core API usage is the same; UI/lifecycle differs.
 
-All code blocks are unchanged from the original documentation.
+## Overview
 
----
+- Initialize the SDK with publish/subscribe keys and a UserId.
+- Subscribe to channels and listen for messages and presence.
+- Publish JSON-serializable messages (< 32 KiB).
 
 ## Prerequisites
-• Dart or Flutter SDK installed  
-• PubNub account with publish & subscribe keys  
 
----
+- Basic Dart knowledge
+- Flutter SDK or Dart SDK installed
+- IDE (VS Code, Android Studio, etc.)
+- PubNub account and keyset
 
-## 1  Get PubNub keys
-Create an app in the Admin Portal and copy the generated **publish** and **subscribe** keys.
+## Setup
 
----
+### Get your PubNub keys
 
-## 2  Install the SDK
+- Sign in or create an account on the PubNub Admin Portal.
+- Create an app and get your publish and subscribe keys (use separate keysets for dev/prod recommended).
 
-### Flutter
-Add to `pubspec.yaml`:
+### Install the SDK
+
+Always use the latest SDK version.
+
+- Flutter app development
+- Non-Flutter platforms
+
+To integrate PubNub into your Flutter project, add this dependency to your pubspec.yaml file:
 
 ```
-`dependencies:  
-  pubnub: 5.2.1  
-  flutter:  
-    sdk: flutter  
+`1dependencies:  
+2  pubnub: 7.0.0  
+3  flutter:  
+4    sdk: flutter  
 `
 ```
 
-Then:
+Then run:
 
 ```
-`flutter pub get  
+`1flutter pub get  
 `
 ```
 
-Android requires:
+Don't forget to add internet permission:
+
+For Android, add to your AndroidManifest.xml:
 
 ```
-`uses-permission android:name="android.permission.INTERNET" />  
+`1uses-permission android:name="android.permission.INTERNET" />  
 `
 ```
 
-### Non-Flutter (pure Dart)
-Add to `pubspec.yaml`:
+For iOS, internet access is permitted by default.
+
+To integrate PubNub into your Dart project, add this dependency to your pubspec.yaml file:
 
 ```
-`dependencies:  
-  pubnub: 5.2.1  
+`1dependencies:  
+2  pubnub: 7.0.0  
 `
 ```
 
-Then:
+Then run:
 
 ```
-`dart pub get  
+`1dart pub get  
 `
 ```
 
-Source: <https://github.com/pubnub/dart>
+#### Source code
 
----
-
-## 3  Initialize PubNub
-
-### Flutter (excerpt)
+Clone the GitHub repository:
 
 ```
-`// Import required packages  
-import 'package:flutter/material.dart';  
-import 'package:pubnub/pubnub.dart';  
+`1git clone https://github.com/pubnub/dart  
+`
+```
+
+View the supported platforms for compatibility details.
+
+## Steps
+
+### Initialize PubNub
+
+- Flutter app development
+- Non-Flutter platforms
+
+Flutter (replace demo keys with your own):
+
+```
+1// Import required packages  
+2import 'package:flutter/material.dart';  
+3import 'package:pubnub/pubnub.dart';  
+4
   
-class PubNubApp extends StatefulWidget {  
-  @override  
-  _PubNubAppState createState() => _PubNubAppState();  
-}  
+5class PubNubApp extends StatefulWidget {  
+6  @override  
+7  _PubNubAppState createState() => _PubNubAppState();  
+8}  
+9
   
-class _PubNubAppState extends StatePubNubApp> {  
-  // PubNub instance  
-  late PubNub pubnub;  
-  // Subscription for messages  
-  late Subscription subscription;  
-  // Channel name  
-`
-```
-
-### Non-Flutter
-
-```
-`// Import required packages  
-import 'package:pubnub/pubnub.dart';  
+10class _PubNubAppState extends StatePubNubApp> {  
+11  // PubNub instance  
+12  late PubNub pubnub;  
+13  // Subscription for messages  
+14  late Subscription subscription;  
+15  // Channel name  
+16  final String channel = "my_channel";  
+17  // Messages list  
+18  ListString> messages = [];  
+19
   
-// Create PubNub instance with default keyset  
-var pubnub = PubNub(  
-  defaultKeyset: Keyset(  
-    subscribeKey: 'demo', // Replace with your subscribe key  
-    publishKey: 'demo',   // Replace with your publish key  
-    userId: UserId('myUniqueUserId'),  
-  ),  
-);  
+20  @override  
+21  void initState() {  
+22    super.initState();  
+23      
+24    // Initialize PubNub  
+25    pubnub = PubNub(  
+26      defaultKeyset: Keyset(  
+27        subscribeKey: 'demo', // Replace with your subscribe key  
+28        publishKey: 'demo',   // Replace with your publish key  
+29        userId: UserId('flutter_user'),  
+30      ),  
+31    );  
+32      
+33    // Setup PubNub functionality  
+34    setupPubNub();  
+35  }  
+36    
+37  void setupPubNub() {  
+38    // We'll add subscription code here  
+39  }  
+40    
+41  @override  
+42  void dispose() {  
+43    // Clean up resources  
+44    subscription.dispose();  
+45    super.dispose();  
+46  }  
+47
+  
+48  @override  
+49  Widget build(BuildContext context) {  
+50    // UI implementation will go here  
+51    return Scaffold(  
+52      appBar: AppBar(  
+53        title: Text('PubNub Flutter Example'),  
+54      ),  
+55      body: Center(  
+56        child: Text('PubNub initialized'),  
+57      ),  
+58    );  
+59  }  
+60}  
+```
+
+Non-Flutter:
+
+```
+1// Import required packages  
+2import 'package:pubnub/pubnub.dart';  
+3
+  
+4// Create PubNub instance with default keyset  
+5var pubnub = PubNub(  
+6  defaultKeyset: Keyset(  
+7    subscribeKey: 'demo', // Replace with your subscribe key  
+8    publishKey: 'demo',   // Replace with your publish key  
+9    userId: UserId('myUniqueUserId'),  
+10  ),  
+11);  
+```
+
+For more information, see Configuration.
+
+### Set up event listeners
+
+- Flutter app development
+- Non-Flutter platforms
+
+Flutter:
+
+```
+`1void setupPubNub() {  
+2  // Create a subscription to the channel  
+3  subscription = pubnub.subscribe(channels: {channel});  
+4    
+5  // Set up message listener  
+6  subscription.messages.listen((message) {  
+7    // Update UI with the received message  
+8    setState(() {  
+9      messages.add(message.content.toString());  
+10    });  
+11      
+12    print('Received message: ${message.content}');  
+13  });  
+14    
+15  // You can also listen for presence events  
+16  subscription.presence.listen((presence) {  
+17    print('Presence event: ${presence.event}');  
+18  });  
+19}  
 `
 ```
 
----
-
-## 4  Subscribe & listen
-
-### Flutter
+Update build to display messages:
 
 ```
-`void setupPubNub() {  
-  // Create a subscription to the channel  
-  subscription = pubnub.subscribe(channels: {channel});  
-    
-  // Set up message listener  
-  subscription.messages.listen((message) {  
-    // Update UI with the received message  
-    setState(() {  
-      messages.add(message.content.toString());  
-    });  
-      
-    print('Received message: ${message.content}');  
-  });  
-    
-  // You can also listen for presence events  
+`1@override  
+2Widget build(BuildContext context) {  
+3  return Scaffold(  
+4    appBar: AppBar(  
+5      title: Text('PubNub Flutter Example'),  
+6    ),  
+7    body: Column(  
+8      children: [  
+9        Expanded(  
+10          child: ListView.builder(  
+11            itemCount: messages.length,  
+12            itemBuilder: (context, index) {  
+13              return ListTile(  
+14                title: Text(messages[index]),  
+15              );  
+16            },  
+17          ),  
+18        ),  
+19        Padding(  
+20          padding: const EdgeInsets.all(8.0),  
+21          child: Row(  
+22            children: [  
+23              Expanded(  
+24                child: TextField(  
+25                  controller: _messageController,  
+26                  decoration: InputDecoration(  
+27                    hintText: 'Type a message',  
+28                  ),  
+29                ),  
+30              ),  
+31              IconButton(  
+32                icon: Icon(Icons.send),  
+33                onPressed: () {  
+34                  sendMessage(_messageController.text);  
+35                  _messageController.clear();  
+36                },  
+37              ),  
+38            ],  
+39          ),  
+40        ),  
+41      ],  
+42    ),  
+43  );  
+44}  
 `
 ```
 
-UI snippet:
-
-```
-`@override  
-Widget build(BuildContext context) {  
-  return Scaffold(  
-    appBar: AppBar(  
-      title: Text('PubNub Flutter Example'),  
-    ),  
-    body: Column(  
-      children: [  
-        Expanded(  
-          child: ListView.builder(  
-            itemCount: messages.length,  
-            itemBuilder: (context, index) {  
-              return ListTile(  
-                title: Text(messages[index]),  
-              );  
-`
-```
-
-Controller:
+Message input controller:
 
 ```
 `final TextEditingController _messageController = TextEditingController();  
 `
 ```
 
-### Non-Flutter
+Non-Flutter:
 
 ```
-`// Define the channel  
-final channel = "my_channel";  
+1// Define the channel  
+2final channel = "my_channel";  
+3
   
-// Create a subscription to the channel  
-final subscription = pubnub.subscribe(channels: {channel});  
+4// Create a subscription to the channel  
+5final subscription = pubnub.subscribe(channels: {channel});  
+6
   
-// Set up message listener  
-subscription.messages.listen((message) {  
-  print('Received message: ${message.content}');  
-});  
+7// Set up message listener  
+8subscription.messages.listen((message) {  
+9  print('Received message: ${message.content}');  
+10});  
+11
   
-// You can also listen for presence events  
-subscription.presence.listen((presence) {  
-  print('Presence event: ${presence.event}');  
-});  
+12// You can also listen for presence events  
+13subscription.presence.listen((presence) {  
+14  print('Presence event: ${presence.event}');  
+15});  
+```
+
+See Listeners in the SDK docs.
+
+### Publish messages
+
+- Messages are JSON-serializable and < 32 KiB.
+- Flutter app development
+- Non-Flutter platforms
+
+Flutter:
+
+```
+`1Futurevoid> sendMessage(String text) async {  
+2  if (text.isEmpty) return;  
+3    
+4  try {  
+5    // Publish the message to the channel  
+6    final result = await pubnub.publish(  
+7      channel,  
+8      {'text': text, 'sender': 'flutter_user'},  
+9    );  
+10      
+11    print('Published message with timetoken: ${result.timetoken}');  
+12  } catch (e) {  
+13    print('Failed to publish message: $e');  
+14      
+15    // Show error to user  
+16    ScaffoldMessenger.of(context).showSnackBar(  
+17      SnackBar(content: Text('Failed to send message: $e')),  
+18    );  
+19  }  
+20}  
 `
 ```
 
----
-
-## 5  Publish messages (≤ 32 KiB JSON)
-
-### Flutter
+Non-Flutter:
 
 ```
-`Futurevoid> sendMessage(String text) async {  
-  if (text.isEmpty) return;  
-    
-  try {  
-    // Publish the message to the channel  
-    final result = await pubnub.publish(  
-      channel,  
-      {'text': text, 'sender': 'flutter_user'},  
-    );  
-      
-    print('Published message with timetoken: ${result.timetoken}');  
-  } catch (e) {  
-    print('Failed to publish message: $e');  
-      
-    // Show error to user  
-`
-```
-
-### Non-Flutter
-
-```
-`Futurevoid> publishMessage() async {  
-  try {  
-    // Message to publish  
-    final message = {'text': 'Hello, world!', 'sender': 'dart_user'};  
-      
-    print('Message to send: $message');  
-      
-    // Publish the message to the channel  
-    final result = await pubnub.publish(channel, message);  
-    print('Message "${result.description}" with timetoken: ${result.timetoken}');  
-  } catch (e) {  
-    print('Error publishing message: $e');  
-  }  
-}  
+1Futurevoid> publishMessage() async {  
+2  try {  
+3    // Message to publish  
+4    final message = {'text': 'Hello, world!', 'sender': 'dart_user'};  
+5      
+6    print('Message to send: $message');  
+7      
+8    // Publish the message to the channel  
+9    final result = await pubnub.publish(channel, message);  
+10    print('Message "${result.description}" with timetoken: ${result.timetoken}');  
+11  } catch (e) {  
+12    print('Error publishing message: $e');  
+13  }  
+14}  
+15
   
-`
+16// Call the function  
+17await publishMessage();  
 ```
 
----
+### Run the app
 
-## 6  Run
+- Flutter app development
+- Non-Flutter platforms
 
-Pure Dart:
+Non-Flutter:
 
 ```
 `dart pubnub_example.dart  
 `
 ```
 
-Sample output:
+Expected output:
 
 ```
-`Message to send: {text: Hello, world!, sender: dart_user}  
-Received message: {text: Hello, world!, sender: dart_user}  
-Message "Sent" with timetoken: 16967543908123456  
+`1Message to send: {text: Hello, world!, sender: dart_user}  
+2Received message: {text: Hello, world!, sender: dart_user}  
+3Message "Sent" with timetoken: 16967543908123456  
 `
 ```
 
----
+## Complete example
 
-## Complete examples
+- Flutter app development
+- Non-Flutter platforms
 
-### Flutter (truncated for brevity)
+Flutter:
 
 ```
-`import 'package:flutter/material.dart';  
-import 'package:pubnub/pubnub.dart';  
+1import 'package:flutter/material.dart';  
+2import 'package:pubnub/pubnub.dart';  
+3
   
-void main() {  
-  runApp(MaterialApp(home: PubNubApp()));  
-}  
+4void main() {  
+5  runApp(MaterialApp(home: PubNubApp()));  
+6}  
+7
   
-class PubNubApp extends StatefulWidget {  
-  @override  
-  _PubNubAppState createState() => _PubNubAppState();  
-}  
+8class PubNubApp extends StatefulWidget {  
+9  @override  
+10  _PubNubAppState createState() => _PubNubAppState();  
+11}  
+12
   
-class _PubNubAppState extends StatePubNubApp> {  
-  // PubNub instance  
-  late PubNub pubnub;  
+13class _PubNubAppState extends StatePubNubApp> {  
+14  // PubNub instance  
+15  late PubNub pubnub;  
+16  // Subscription for messages  
+17  late Subscription subscription;  
+18  // Channel name  
+19  final String channel = "my_channel";  
+20  // Messages list  
+21  ListString> messages = [];  
+22  // Text controller  
+23  final TextEditingController _messageController = TextEditingController();  
+24
+  
+25  @override  
+26  void initState() {  
+27    super.initState();  
+28      
+29    // Step 1: Initialize PubNub  
+30    pubnub = PubNub(  
+31      defaultKeyset: Keyset(  
+32        subscribeKey: 'demo', // Replace with your subscribe key  
+33        publishKey: 'demo',   // Replace with your publish key  
+34        userId: UserId('flutter_user'),  
+35      ),  
+36    );  
+37      
+38    // Step 2: Setup PubNub functionality  
+39    setupPubNub();  
+40  }  
+41    
+42  void setupPubNub() {  
+43    // Step 3: Create a subscription to the channel  
+44    subscription = pubnub.subscribe(channels: {channel});  
+45      
+46    // Step 4: Set up message listener  
+47    subscription.messages.listen((message) {  
+48      // Update UI with the received message  
+49      setState(() {  
+50        if (message.content is Map) {  
+51          messages.add('${message.content['sender']}: ${message.content['text']}');  
+52        } else {  
+53          messages.add(message.content.toString());  
+54        }  
+55      });  
+56        
+57      print('Received message: ${message.content}');  
+58    });  
+59  }  
+60    
+61  Futurevoid> sendMessage(String text) async {  
+62    if (text.isEmpty) return;  
+63      
+64    try {  
+65      // Step 5: Publish the message to the channel  
+66      final result = await pubnub.publish(  
+67        channel,   
+68        {'text': text, 'sender': 'flutter_user'},  
+69      );  
+70        
+71      print('Published message with timetoken: ${result.timetoken}');  
+72    } catch (e) {  
+73      print('Failed to publish message: $e');  
+74        
+75      // Show error to user  
+76      ScaffoldMessenger.of(context).showSnackBar(  
+77        SnackBar(content: Text('Failed to send message: $e')),  
+78      );  
+79    }  
+80  }  
+81    
+82  @override  
+83  void dispose() {  
+84    // Step 6: Clean up resources  
+85    subscription.dispose();  
+86    _messageController.dispose();  
+87    super.dispose();  
+88  }  
+89
+  
+90  @override  
+91  Widget build(BuildContext context) {  
+92    return Scaffold(  
+93      appBar: AppBar(  
+94        title: Text('PubNub Flutter Example'),  
+95      ),  
+96      body: Column(  
+97        children: [  
+98          Expanded(  
+99            child: messages.isEmpty   
+100                ? Center(child: Text('No messages yet'))  
+101                : ListView.builder(  
+102                    itemCount: messages.length,  
+103                    itemBuilder: (context, index) {  
+104                      return ListTile(  
+105                        title: Text(messages[index]),  
+106                      );  
+107                    },  
+108                  ),  
+109          ),  
+110          Padding(  
+111            padding: const EdgeInsets.all(8.0),  
+112            child: Row(  
+113              children: [  
+114                Expanded(  
+115                  child: TextField(  
+116                    controller: _messageController,  
+117                    decoration: InputDecoration(  
+118                      hintText: 'Type a message',  
+119                      border: OutlineInputBorder(),  
+120                    ),  
+121                  ),  
+122                ),  
+123                SizedBox(width: 8),  
+124                ElevatedButton(  
+125                  onPressed: () {  
+126                    sendMessage(_messageController.text);  
+127                    _messageController.clear();  
+128                  },  
+129                  child: Text('Send'),  
+130                ),  
+131              ],  
+132            ),  
+133          ),  
+134        ],  
+135      ),  
+136    );  
+137  }  
+138}  
+```
+
+Non-Flutter:
+
+```
+1import 'package:pubnub/pubnub.dart';  
+2
+  
+3Futurevoid> main() async {  
+4  // Step 1: Initialize PubNub with configuration  
+5  final pubnub = PubNub(  
+6    defaultKeyset: Keyset(  
+7      subscribeKey: 'demo', // Replace with your subscribe key  
+8      publishKey: 'demo',   // Replace with your publish key  
+9      userId: UserId('myUniqueUserId'),  
+10    ),  
+11  );  
+12
+  
+13  // Step 2: Define the channel  
+14  final channel = "my_channel";  
+15    
+16  // Step 3: Create a subscription for the channel  
+17  final subscription = pubnub.subscribe(channels: {channel});  
+18
+  
+19  // Step 4: Set up message listener  
+20  subscription.messages.listen((message) {  
+21    print('Received message: ${message.content}');  
+22  });  
+23
+  
+24  // Wait for connection to establish before publishing  
+25  await Future.delayed(Duration(seconds: 1));  
+26    
+27  try {  
+28    // Step 5: Create and publish a message  
+29    final message = {'text': 'Hello, world!', 'sender': 'dart_user'};  
+30    print('Message to send: $message');  
+31      
+32    // Publish the message to the channel  
+33    final result = await pubnub.publish(channel, message);  
+34    print('Message "${result.description}" with timetoken: ${result.timetoken}');  
+35  } catch (e) {  
+36    print('Error publishing message: $e');  
+37  }  
+38
+  
+39  // Keep the program running to receive the published message  
+40  await Future.delayed(Duration(seconds: 2));  
+41
+  
+42  // Step 6: Clean up before exiting  
+43  await subscription.dispose();  
+44  print('Cleanup complete.');  
+45}  
+```
+
+### Run the app
+
+- Flutter app development
+- Non-Flutter platforms
+
+Expected output:
+
+```
+`1Message to send: {text: Hello, world!, sender: dart_user}  
+2Received message: {text: Hello, world!, sender: dart_user}  
+3Message "Sent" with timetoken: 16967543908123456  
+4Cleanup complete.  
 `
 ```
 
-### Non-Flutter (truncated for brevity)
+Congratulations! You've subscribed to a channel and sent your first message.
 
-```
-`import 'package:pubnub/pubnub.dart';  
-  
-Futurevoid> main() async {  
-  // Step 1: Initialize PubNub with configuration  
-  final pubnub = PubNub(  
-    defaultKeyset: Keyset(  
-      subscribeKey: 'demo', // Replace with your subscribe key  
-      publishKey: 'demo',   // Replace with your publish key  
-      userId: UserId('myUniqueUserId'),  
-    ),  
-  );  
-  
-  // Step 2: Define the channel  
-  final channel = "my_channel";  
-    
-`
-```
+### Troubleshooting
 
-Output:
+No connection
+- Check internet connectivity.
+- Verify publish/subscribe keys.
+- Ensure no firewall blocks PubNub.
 
-```
-`Message to send: {text: Hello, world!, sender: dart_user}  
-Received message: {text: Hello, world!, sender: dart_user}  
-Message "Sent" with timetoken: 16967543908123456  
-Cleanup complete.  
-`
-```
+Message not received
+- Verify correct channel.
+- Check for publish errors.
+- Allow time for delivery.
 
----
-
-## Troubleshooting (quick list)
-
-• No connection → check keys, network, firewall  
-• No message → verify channel name & publish result  
-• Build errors → run `dart pub get` / `flutter pub get`, confirm imports  
-
----
+Build errors
+- Confirm pubnub dependency in pubspec.yaml.
+- Run dart pub get or flutter pub get.
+- Check imports.
 
 ## Next steps
 
-• Presence, Storage, Access Manager  
-• Sample apps: <https://github.com/pubnub/flutter-ref-app-simple-chat>  
-• API reference: links throughout this doc  
-• Community & support: Discord, support portal, AI assistant  
+- Build chat with typing indicators/read receipts.
+- Presence to track online/offline.
+- Message Persistence for storage/retrieval.
+- Access Manager to secure channels.
+- Explore the GitHub repo and Flutter Simple Chat sample app.
+- See SDK reference documentation for detailed APIs.
+- Visit the support portal or use the AI assistant.
 
-_Last updated: May 7 2025_
+Last updated on Sep 3, 2025

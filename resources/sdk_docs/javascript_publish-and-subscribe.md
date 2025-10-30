@@ -1,85 +1,95 @@
 # Publish/Subscribe API for JavaScript SDK
 
-PubNub delivers messages globally in under 30 ms. Use publish/subscribe for one-to-one or one-to-many messaging.
+PubNub delivers messages worldwide in less than 30 ms. Send a message to one recipient or broadcast to thousands of subscribers.
 
-For conceptual details, see Connection Management and Publish Messages.
+For higher-level conceptual details on publishing and subscribing, refer to Connection Management and to Publish Messages.
 
-##### Supported asynchronous patterns
-- Supports Callbacks, Promises, and Async/Await.
-- Recommended: Async/Await. Handle errors with try...catch.
+##### Supported and recommended asynchronous patterns
+
+- Supports Callbacks, Promises, and Async/Await. Recommended: Async/Await.
+- Use try...catch to receive status errors.
 
 ## Publish
 
-`publish()` sends a message to all subscribers of a channel.
+`publish()` sends a message to all channel subscribers.
 
-Key points:
-- Initialize with publishKey.
-- You don't need to subscribe to publish.
-- You can't publish to multiple channels simultaneously.
-- Secure transport with TLS/SSL (`ssl: true`) and optional message encryption.
-- Message data: any JSON-serializable data (objects, arrays, numbers, strings). Avoid functions/special classes.
-- Don't JSON serialize the message or meta parameters; the SDK handles serialization.
-- Size limit: max 32 KiB per message (including escaped chars and channel). Aim for < 1,800 bytes.
-- Throughput: publish as fast as bandwidth allows, but subscribers have a soft limit (in-memory queue ~100 messages). Throttle to avoid drops.
-- Optional customMessageType for business-specific categorization (e.g., text, action, poll).
-
-Best practices:
-- Publish to a channel serially.
-- Verify success response before sending the next message (e.g., [1,"Sent","136074940..."]).
-- Retry on failure (e.g., [0,"blah","<timetoken>"]).
-- Keep queue under 100 messages.
-- Throttle bursts (e.g., <= 5 msgs/sec).
+- Prerequisites and limitations
+  - Initialize PubNub with the publishKey.
+  - You don't have to be subscribed to a channel to publish to it.
+  - You cannot publish to multiple channels simultaneously.
+- Security
+  - Enable TLS/SSL by setting ssl to true during initialization. Encryption is supported.
+- Message data
+  - Any JSON-serializable data (objects, arrays, integers, strings). Avoid special classes or functions. Strings may include UTF‑8.
+  - Don't JSON serialize: Pass objects directly for message and meta; SDK handles serialization.
+- Size
+  - Max 32 KiB including escaped characters and channel name. Aim under 1,800 bytes.
+  - Exceeding limit returns Message Too Large. See Message size limits.
+- Publish rate
+  - Publish as fast as bandwidth allows; soft throughput limit applies. In-memory queue stores 100 messages; excess may drop.
+- Custom message type
+  - Optional customMessageType to label/category messages, e.g., text, action, poll.
+- Best practices
+  - Publish serially (not concurrently).
+  - Verify success return code (e.g., [1,"Sent","136074940..."]); publish next only on success.
+  - On failure ([0,"blah","<timetoken>"]), retry.
+  - Keep in-memory queue under 100 messages; throttle bursts (e.g., ≤5 msg/s).
 
 ### Method(s)
 
-```ts
-pubnub.publish({
-  message: any,
-  channel: string,
-  meta?: any,
-  storeInHistory?: boolean,
-  sendByPost?: boolean,
-  ttl?: number,
-  customMessageType?: string
-}): Promise<PublishResponse>;
+To Publish a message:
+
+```
+`1pubnub.publish({  
+2    message: any,  
+3    channel: string,  
+4    meta: any,  
+5    storeInHistory: boolean,  
+6    sendByPost: boolean,  
+7    ttl: number,  
+8    customMessageType: string  
+9}): PromisePublishResponse>;  
+`
 ```
 
 Parameters:
-- message (required, any): Any JSON type.
-- channel (required, string): Target channel ID.
-- storeInHistory (boolean, default true): Store message in history; if omitted, key’s history config applies.
-- sendByPost (boolean, default false): Use HTTP POST (body, compressed) vs GET.
-- meta (any): Extra metadata sent with request.
-- ttl (number): Per-message time to live for Message Persistence.
-- customMessageType (string): 3–50 chars; case-sensitive alphanumeric; dashes/underscores allowed; cannot start with special chars or pn_ / pn- (examples: text, action, poll).
+- message (required, any): Any valid JSON type.
+- channel (required, string): Channel ID to publish to.
+- storeInHistory (boolean, default true): If true, messages are stored in history. If omitted, key-level history configuration is used.
+- sendByPost (boolean, default false): If true, uses HTTP POST with compressed body; adheres to REST best practices.
+- meta (any): Extra meta payload for the request.
+- ttl (number): Per-message TTL for Message Persistence.
+- customMessageType (string): 3–50 chars, case-sensitive alphanumeric; dashes and underscores allowed. Cannot start with special characters or pn_/pn-. Examples: text, action, poll.
 
 ### Sample code
 
 ##### Reference code
 
 ```
+1
   
+
 ```
 
 #### Publish a message to a channel
 
 ```
+1
   
-```
 
-```
-  
 ```
 
 ##### Subscribe to the channel
-Before publishing, subscribe to the same channel (using the Debug Console or another script) to observe messages.
+
+Before running the above publish example, either using the Debug Console or in a separate script, subscribe to the same channel that is being published to.
 
 ### Response
 
-```ts
-type PublishResponse = {
-  timetoken: number
-}
+```
+`1type PublishResponse = {  
+2    timetoken: number  
+3}  
+`
 ```
 
 ### Other examples
@@ -87,349 +97,412 @@ type PublishResponse = {
 #### Publish a JSON-serialized message
 
 ```
+1
   
+
 ```
 
 #### Store the published message for 10 hours
 
 ```
+1
   
+
 ```
 
 #### Publish successful
 
 ```
+1
   
+
 ```
 
 #### Publish unsuccessful by network down
 
 ```
+1
   
+
 ```
 
 #### Publish unsuccessful by initialization without a publish key
 
 ```
+1
   
+
 ```
 
 ## Fire
 
-Sends a message to Functions event handlers and Illuminate. Messages sent via fire():
-- Go directly to handlers on the target channel.
-- Aren’t replicated to subscribers.
-- Aren’t stored in history.
+Sends a message to Functions event handlers and Illuminate. Messages sent via fire() aren’t replicated to subscribers or stored in history.
 
 ### Method(s)
 
-```ts
-pubnub.fire({
-  message: Object,
-  channel: String,
-  sendByPost?: Boolean,
-  meta?: Object
-});
+To Fire a message:
+
+```
+`1fire({  
+2    Object message,  
+3    String channel,  
+4    Boolean sendByPost,  
+5    Object meta  
+6})  
+`
 ```
 
 Parameters:
-- message (Object): Any JSON type.
-- channel (String): Target channel ID.
-- sendByPost (Boolean, default false): Use POST.
-- meta (Object): Extra metadata.
+- message (required, Object): Any valid JSON type.
+- channel (required, String): Channel ID.
+- sendByPost (Boolean, default false): If true, send via POST.
+- meta (Object): Extra meta payload.
 
 ### Sample code
 
 #### Fire a message to a channel
 
 ```
+1
   
+
 ```
 
 ## Signal
 
-Sends lightweight signals to subscribers.
+The signal() function sends a signal to all subscribers of a channel.
 
-- Default payload size limit: 64 bytes (payload only; not URI/headers). Contact support for higher limits.
+- Default payload size limit: 64 bytes (payload only). Contact support for higher limits.
 
 ### Method(s)
 
-```ts
-pubnub.signal({
-  message: string,
-  channel: string,
-  customMessageType?: string,
-}): Promise<SignalResponse>;
+To Signal a message:
+
+```
+`1pubnub.signal({  
+2    message: string,  
+3    channel: string,  
+4    customMessageType: string,  
+5}): PromiseSignalResponse>;  
+`
 ```
 
 Parameters:
-- message (string): Signal payload.
-- channel (string): Target channel ID.
-- customMessageType (string): 3–50 chars; rules as in publish (examples: text, action, poll).
+- message (required, string): Signal payload.
+- channel (required, string): Channel ID.
+- customMessageType (string): 3–50 chars, case-sensitive alphanumeric; dashes/underscores allowed. Cannot start with special characters or pn_/pn-. Examples: text, action, poll.
 
 ### Sample code
 
 #### Signal a message to a channel
 
 ```
+1
   
+
 ```
 
 ### Response
 
-```ts
-type SignalResponse = {
-  timetoken: number
-}
+```
+`1type SignalResponse = {  
+2    timetoken: number  
+3}  
+`
 ```
 
 ## Subscribe
 
-Opens a persistent connection and listens for messages/events on specified entities. Requires subscribeKey at initialization.
+Creates an open TCP socket and listens for messages/events on specified entities. Requires subscribeKey at initialization.
 
-- subscribe() only opens the connection; add event listeners to receive data.
-- The received message object includes the sender’s ID in the publisher field.
-- retryConfiguration can auto-reconnect and attempt to catch up on available cached messages.
+- Add event listeners to receive messages; subscribe() only opens the connection.
+- Message objects received include sender ID in publisher.
+- retryConfiguration can auto-reconnect and retrieve available messages (best-effort).
 
-### Subscription scope
+##### Subscription scope
 
-- subscription: entity-scoped (e.g., a specific channel).
-- subscriptionSet: client-scoped; manages one or more subscriptions on a single PubNub client.
-
-Adding subscriptions to a subscribed subscriptionSet auto-subscribes them.
+- subscription: entity-scoped (e.g., specific channel).
+- subscriptionSet: client-scoped; includes one or more subscriptions created on the same pubnub instance.
+- Adding subscriptions to an existing set auto-subscribes them.
 
 ### Create a subscription
 
-Entity-level subscription for a single entity.
+Entity-level subscription for a specific entity:
 
-```ts
-// entity-based, local-scoped
-const channel = pubnub.channel('channel_1');
-channel.subscription(subscriptionOptions)
+```
+`1// entity-based, local-scoped  
+2const channel = pubnub.channel('channel_1');  
+3channel.subscription(subscriptionOptions)  
+`
 ```
 
-- subscriptionOptions (subscriptionOptions): Behavior configuration.
+Parameters:
+- subscriptionOptions (subscriptionOptions): Subscription behavior configuration.
 
 ### Create a subscription set
 
-Client-level set covering multiple entities.
+Client-level subscriptionSet for multiple entities:
 
-```ts
-// client-based, general-scoped
-pubnub.subscriptionSet({
-  channels?: string[],
-  channelGroups?: string[],
-  subscriptionOptions?: subscriptionOptions
-})
+```
+`1// client-based, general-scoped  
+2pubnub.subscriptionSet({  
+3    channels: string[],  
+4    channelGroups: string[],  
+5    subscriptionOptions: subscriptionOptions  
+6}))  
+`
 ```
 
-- channels (string[]): Channels to subscribe. Either channels or channelGroups is required.
-- channelGroups (string[]): Channel groups to subscribe. Either channels or channelGroups is required.
-- subscriptionOptions (subscriptionOptions): Behavior configuration.
+Parameters:
+- channels (string[]): Channels to subscribe to. Either channels or channelGroups is mandatory.
+- channelGroups (string[]): Channel groups to subscribe to. Either channels or channelGroups is mandatory.
+- subscriptionOptions (subscriptionOptions): Subscription behavior configuration.
 
 #### subscriptionOptions
 
-- receivePresenceEvents (boolean): Deliver presence updates via listeners.
-- cursor (object): Best-effort retrieval cursor { timetoken?: string; region?: number }. Non-17-digit or non-numeric strings are ignored.
+- receivePresenceEvents (boolean): Deliver presence updates through listener streams.
+- cursor (object): Best-effort retrieval from a cursor: cursor?: { timetoken?: string; region?: number }. Non-17-digit numbers or non-numeric strings are ignored.
 
 #### Modify a subscription set
-Add or remove subscriptions to/from an existing set. Newly added ones auto-subscribe if the set is subscribed.
+
+You can add/remove subscriptions in an existing set; added ones are auto-subscribed. See Other examples.
 
 ### Method(s)
 
-subscription and subscriptionSet use the same subscribe().
+subscription and subscriptionSet use the same subscribe() method.
 
 #### Subscribe
 
-```ts
-subscription.subscribe()
-subscriptionSet.subscribe()
+```
+`1subscription.subscribe()  
+2subscriptionSet.subscribe()  
+`
 ```
 
 ##### Sample code
 
 ```
+1
   
+
 ```
 
 ##### Wildcard subscribe and message objects
-Subscribing to wildcards (e.g., sports.*) works like regular subscribe; add listeners to receive messages. Message objects include:
-- publisher: sender’s ID
-- channel: actual channel name
-- subscription: wildcard used
+
+Wildcard subscriptions (e.g., sports.*) require listeners. Message objects include publisher (sender ID), channel (actual channel), and subscription (wildcard match).
 
 ##### Other examples
 
 ###### Create a subscription set from 2 individual subscriptions
 
 ```
+1
   
+
 ```
 
 ###### Create a subscription set from 2 sets
 
 ```
+1
   
+
 ```
 
 ###### Add subscriptions to an existing set
 
 ```
+1
   
+
 ```
 
 ##### Returns
+
 No return value.
 
 ## Entities
 
-Subscribable entity types:
-- channel
-- channelGroup
-- userMetadata
-- channelMetadata
+Subscribable objects: channel, channelGroup, userMetadata, channelMetadata.
 
 ### Create channels
 
 Returns a local channel entity.
 
-```ts
-pubnub.channel(string)
+```
+`1pubnub.channel(string)  
+`
 ```
 
+Parameters:
 - channel (string): Channel ID.
 
 #### Sample code
 
 ```
+1
   
+
 ```
 
 ### Create channel groups
 
 Returns a local channelGroup entity.
 
-```ts
-pubnub.channelGroup(string)
+```
+`1pubnub.channelGroup(string)  
+`
 ```
 
+Parameters:
 - channel_group (string): Channel group name.
 
 #### Sample code
 
 ```
+1
   
+
 ```
 
 ### Create channel metadata
 
 Returns a local channelMetadata entity.
 
-```ts
-pubnub.channelMetadata(string)
+```
+`1pubnub.channelMetadata(string)  
+`
 ```
 
+Parameters:
 - channelMetadata (string): Channel metadata identifier.
 
 #### Sample code
 
 ```
+1
   
+
 ```
 
 ### Create user metadata
 
 Returns a local userMetadata entity.
 
-```ts
-pubnub.userMetadata(string)
+```
+`1pubnub.userMetadata(string)  
+`
 ```
 
+Parameters:
 - userMetadata (string): User metadata identifier.
 
 #### Sample code
 
 ```
+1
   
+
 ```
 
 ## Event listeners
 
-Receive messages and events using listeners. You can attach listeners to subscription, subscriptionSet, and (for connection status only) the PubNub client.
+Receive all messages, signals, and events via listeners. Attach to subscription, subscriptionSet, and (for connection status) the PubNub client.
 
 ### Add listeners
 
-Implement multiple listeners with addListener() or event-specific listeners (e.g., message, file).
+Implement multiple listeners with addListener(), or event-specific listeners (e.g., message, file).
 
 #### Method(s)
 
 ```
+1
   
+
 ```
 
 #### Sample code
 
 ```
+1
   
+
 ```
 
-Message objects include publisher (sender’s ID), message content, channel name, timetoken, and metadata.
+Note: Message object includes publisher (sender ID), message content, channel name, timetoken, and metadata.
 
 ### Add connection status listener
 
-Client-scoped listener for connection status updates (available on the PubNub object).
+Client-scoped listener for connection status updates.
 
 #### Method(s)
 
 ```
+1
   
+
 ```
 
 #### Sample code
 
 ```
+1
   
+
 ```
 
 #### Returns
+
 Subscription status. See SDK statuses.
 
 ## Unsubscribe
 
-Stop receiving updates from a subscription or a subscriptionSet.
+Stop receiving updates from a subscription or subscriptionSet.
 
 ### Method(s)
 
-```ts
-subscription.unsubscribe()
-
-subscriptionSet.unsubscribe()
+```
+1subscription.unsubscribe()  
+2
+  
+3subscriptionSet.unsubscribe()  
 ```
 
 ### Sample code
 
 ```
+1
   
+
 ```
 
 ### Returns
+
 None
 
 ## Unsubscribe all
 
-Stop receiving updates from all streams and remove associated entities. Client scope (PubNub object only).
+Stop receiving updates from all streams and remove associated entities.
+
+##### Client scope
+
+Only available on the PubNub object.
 
 ### Method(s)
 
-```ts
-pubnub.unsubscribeAll()
+```
+`1pubnub.unsubscribeAll()  
+`
 ```
 
 ### Sample code
 
 ```
+1
   
+
 ```
 
 ### Returns
+
 None

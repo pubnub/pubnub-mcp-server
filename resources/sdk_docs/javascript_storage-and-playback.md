@@ -1,165 +1,192 @@
 # Message Persistence API for JavaScript SDK
 
-Message Persistence provides real-time access to stored messages (timestamped to 10ns, replicated across zones/regions). Messages can be encrypted with AES-256. You control retention (1 day, 7 days, 30 days, 3 months, 6 months, 1 year, or Unlimited). You can retrieve:
-- Messages
-- Message reactions
-- Files (via File Sharing API)
+Message Persistence provides access to stored, timestamped messages across multiple regions with optional AES-256 encryption. Configure message retention per key: 1 day, 7 days, 30 days, 3 months, 6 months, 1 year, or Unlimited. You can retrieve messages, message reactions, and files (via File Sharing API).
 
-Supported async patterns: Callbacks, Promises, Async/Await (recommended). Async/Await returns status only on error; use try...catch.
+Supported async patterns: Callbacks, Promises, Async/Await. Recommended: Async/Await with try...catch for error statuses.
 
 ## Fetch history
 
-Requires Message Persistence (enable in Admin Portal).
+Requires Message Persistence enabled in the Admin Portal.
 
-Fetch historical messages from one or more channels. Use includeMessageActions to include message actions. Order and range:
-- start only: messages older than start.
-- end only: messages from end and newer.
-- start and end: messages between them (end inclusive).
-Limits:
-- Single channel: up to 100 messages.
-- Multiple channels (up to 500): up to 25 messages per channel.
-- With includeMessageActions: limit is 25 and only one channel allowed.
-Page by making iterative calls and adjusting start.
+Fetch historical messages from one or more channels, optionally including message actions. Ordering and slicing:
+- start only: messages older than start (start is exclusive).
+- end only: messages from end and newer (end is inclusive).
+- start and end: between start and end (end is inclusive).
+- Limits: up to 100 per single channel; up to 25 per channel for multiple channels (up to 500 channels) or when includeMessageActions is used. Page with iterative calls by adjusting start.
 
 ### Method(s)
 
 ```
-`pubnub.fetchMessages({  
-    channels: Arraystring>,  
-    count: number,  
-    includeMessageType: boolean,  
-    includeCustomMessageType: boolean,  
-    includeUUID: boolean,  
-    includeMeta: boolean,  
-    includeMessageActions: boolean,  
-    start: string,  
-    end: string  
-})  
+`1pubnub.fetchMessages({  
+2    channels: Arraystring>,  
+3    count: number,  
+4    includeMessageType: boolean,  
+5    includeCustomMessageType: boolean,  
+6    includeUUID: boolean,  
+7    includeMeta: boolean,  
+8    includeMessageActions: boolean,  
+9    start: string,  
+10    end: string  
+11})  
 `
 ```
 
 Parameters:
 - channels (Array<string>, required): Channels to fetch from (up to 500).
-- count (number, default: 100 for single channel, 25 for multi-channel or when includeMessageActions): Number per channel.
-- includeMessageType (boolean, default: true): Include message type.
-- includeCustomMessageType (boolean): Retrieve messages with the custom message type.
-- includeUUID (boolean, default: true): Include publisher uuid.
-- includeMeta (boolean): Include meta object from publish time.
-- includeMessageActions (boolean): Retrieve messages with actions. If used, limit is 25; only one channel allowed. Response may be truncated; more link provided.
-- start (string): Timetoken start (exclusive).
-- end (string): Timetoken end (inclusive).
+- count (number): Messages per channel. Default 100 (single channel) and 25 (multi-channel) or 25 when includeMessageActions is true.
+- includeMessageType (boolean, default true): Include message type.
+- includeCustomMessageType (boolean): Retrieve messages with custom message type.
+- includeUUID (boolean, default true): Include publisher uuid.
+- includeMeta (boolean): Include meta object if published with message.
+- includeMessageActions (boolean): Include message actions. When used: single channel only; limit 25; response may be truncated with a more link.
+- start (string): Start timetoken (exclusive).
+- end (string): End timetoken (inclusive).
 
-Truncated response: When including message actions, response may include more for pagination. Make iterative calls using returned parameters.
+Truncated response: When including message actions, response may include more with parameters to continue pagination.
 
 ### Sample code
-
-Reference code (self-contained):
 
 Retrieve a message from a channel:
 
 ```
-`  
-`
+1
+  
+
 ```
 
 ```
-`  
-`
+1
+  
+
 ```
 
 ### Response
 
 ```
-`//Example of status  
-{  
-    error: false,  
-    operation: 'PNFetchMessagesOperation',  
-    statusCode: 200  
-}  
+1//Example of status  
+2{  
+3    error: false,  
+4    operation: 'PNFetchMessagesOperation',  
+5    statusCode: 200  
+6}  
+7
   
-//Example of response  
-{  
-    "channels":{  
-        "my-channel":[  
-            {  
-                "message":"message_1",  
-                "timetoken":"15483367794816642",  
-                "uuid":"my-uuid",  
-`
+8//Example of response  
+9{  
+10    "channels":{  
+11        "my-channel":[  
+12            {  
+13                "message":"message_1",  
+14                "timetoken":"15483367794816642",  
+15                "uuid":"my-uuid",  
+16                "message_type":null,  
+17                // the value depends on the custom message type  
+18                // that the message was sent with  
+19                "custom_message_type":"text-message"  
+20            }  
+21        ]  
+22    }  
+23}  
+
 ```
-show all 23 lines
 
 ### Other examples
 
 #### Fetch messages with metadata and actions
 
 ```
-`  
-`
+1
+  
+
 ```
 
 #### Fetch messages with metadata and actions response
 
-Return information on message actions using actions (deprecated: data).
+Return information on message actions using the actions object (data is deprecated).
 
 ```
-`// Example of status  
-{  
-    "error": false,  
-    "operation": "PNFetchMessagesOperation",  
-    "statusCode": 200  
-}  
+1// Example of status  
+2{  
+3    "error": false,  
+4    "operation": "PNFetchMessagesOperation",  
+5    "statusCode": 200  
+6}  
+7
   
-// Example of response  
-{  
-    "channels":{  
-        "my_channel":[  
-            {  
-                "channel : "my_channel",  
-                "timetoken":"15741125155552287",  
-                "message":{  
-`
+8// Example of response  
+9{  
+10    "channels":{  
+11        "my_channel":[  
+12            {  
+13                "channel : "my_channel",  
+14                "timetoken":"15741125155552287",  
+15                "message":{  
+16                    "text":"Hello world!",  
+17                },  
+18                "messageType": 1,  
+19                "customMessageType": "your custom type",  
+20                "uuid": "someUserId",  
+21                "meta":""  
+22                "actions":{  
+23                    "reaction":{  
+24                        "smiley_face":[  
+25                            {  
+26                                "uuid":"my-uuid",  
+27                                "actionTimetoken":"15741125155943280"  
+28                            }  
+29                        ]  
+30                    }  
+31                }  
+32            }  
+33        ]  
+34    },  
+35"more": {  
+36    "url": "/v3/history-with-actions/sub-key/subscribeKey/channel/myChannel?start=15610547826970000&max=98",  
+37    "start": "15610547826970000",  
+38    "max": 98  
+39}  
+40}  
+
 ```
-show all 40 lines
 
 ## Delete messages from history
 
-Requires Message Persistence (enable in Admin Portal). Also enable Delete-From-History and initialize SDK with a secret key.
+Requires Message Persistence enabled. Also enable Delete-From-History in Admin Portal and initialize the SDK with a secret key.
 
-Remove messages from a channel’s history.
-- start is exclusive; end is inclusive.
+Removes messages from a channel’s history. Behavior: start is exclusive; end is inclusive.
 
 ### Method(s)
 
 ```
-`pubnub.deleteMessages({  
-    channel: string,  
-    start: string,  
-    end: string  
-})  
+`1pubnub.deleteMessages({  
+2    channel: string,  
+3    start: string,  
+4    end: string  
+5})  
 `
 ```
 
 Parameters:
 - channel (string, required): Channel to delete from.
-- start (string): Timetoken start (exclusive).
-- end (string): Timetoken end (inclusive).
+- start (string): Start timetoken (exclusive).
+- end (string): End timetoken (inclusive).
 
 ### Sample code
 
 ```
-`  
-`
+1
+  
+
 ```
 
 ### Response
 
 ```
-`{  
-    error: false,  
-    operation: 'PNDeleteMessagesOperation',  
-    statusCode: 200  
-}  
+`1{  
+2    error: false,  
+3    operation: 'PNDeleteMessagesOperation',  
+4    statusCode: 200  
+5}  
 `
 ```
 
@@ -167,64 +194,63 @@ Parameters:
 
 #### Delete specific message from a Message Persistence
 
-To delete a specific message, pass publish timetoken in End and timetoken-1 in Start (e.g., Start=15526611838554309, End=15526611838554310).
+To delete a specific message, pass the publish timetoken in End and timetoken +/- 1 in Start. Example: Start 15526611838554309, End 15526611838554310.
 
 ```
-`  
-`
+1
+  
+
 ```
 
 ## Message counts
 
-Requires Message Persistence (enable in Admin Portal).
+Requires Message Persistence enabled.
 
-Returns the number of messages published since the given time (timetoken >= channelTimetokens).
-- Unlimited retention: only last 30 days are counted.
-- Channels without messages: 0.
-- Channels with 10,000+ messages: 10000.
+Returns the number of messages published since the given timetoken(s). Count includes messages with timetoken >= channelTimetokens. For Unlimited message retention keys, only the last 30 days are counted.
 
 ### Method(s)
 
 ```
-`pubnub.messageCounts({  
-    channels: Arraystring>,  
-    channelTimetokens: Arraystring>  
-})  
+`1pubnub.messageCounts({  
+2    channels: Arraystring>,  
+3    channelTimetokens: Arraystring>  
+4})  
 `
 ```
 
 Parameters:
-- channels (Array<string>, required): Channels to fetch the count for.
-- channelTimetokens (Array<string>, required): Same order as channels. A single timetoken applies to all channels; otherwise lengths must match or PNStatus error returned.
+- channels (Array<string>, required): Channels to count.
+- channelTimetokens (Array<string>, required): Timetokens in same order as channels. A single value applies to all channels; otherwise, array lengths must match or a PNStatus error is returned.
 
 ### Sample code
 
 ```
-`  
-`
+1
+  
+
 ```
 
 ### Returns
 
-Message count:
+Message count: Channels without messages have 0. Channels with 10,000+ messages report 10000.
 
 ```
-`{  
-    channels: {  
-        ch1: 49  
-    }  
-}  
+`1{  
+2    channels: {  
+3        ch1: 49  
+4    }  
+5}  
 `
 ```
 
 ### Status response
 
 ```
-`{  
-    error: false,  
-    operation: 'PNMessageCountsOperation',  
-    statusCode: 200  
-}  
+`1{  
+2    error: false,  
+3    operation: 'PNMessageCountsOperation',  
+4    statusCode: 200  
+5}  
 `
 ```
 
@@ -233,140 +259,138 @@ Message count:
 #### Retrieve count of messages using different timetokens for each channel
 
 ```
-`  
-`
+1
+  
+
 ```
 
 ## History (deprecated)
 
-Requires Message Persistence (enable in Admin Portal).
+Requires Message Persistence enabled. Deprecated: use fetch history instead.
 
-Deprecated. Use fetch history instead.
-
-Fetches historical messages of a channel. Control order and retrieval:
-- Default newest-first window (reverse=false).
-- Oldest-first by setting reverse=true.
-- Page by providing start OR end.
-- Retrieve slice by providing both start AND end.
-- Limit via count (max 100).
-
-Start & End clarity:
-- start only: messages older than up to start.
-- end only: messages matching end and newer.
-- both: messages between them (end inclusive).
-- Max 100 per call; page by adjusting start.
+Fetches historical messages for a single channel with ordering, slicing, and paging:
+- reverse=false (default): newest end of timeline; reverse=true: oldest end first.
+- Page with start OR end; slice with both start AND end.
+- count limits to max 100.
+- start only: older than start; end only: end and newer; both: between (end inclusive). Iteratively adjust start to page beyond 100.
 
 ### Method(s)
 
 ```
-`pubnub.history({  
-    channel: string,  
-    reverse: boolean,  
-    count: number,  
-    stringifiedTimeToken: boolean,  
-    includeMeta: boolean,  
-    start: string,  
-    end: string  
-})  
+`1pubnub.history({  
+2    channel: string,  
+3    reverse: boolean,  
+4    count: number,  
+5    stringifiedTimeToken: boolean,  
+6    includeMeta: boolean,  
+7    start: string,  
+8    end: string  
+9})  
 `
 ```
 
 Parameters:
-- channel (string, required): Channel to fetch from.
-- reverse (boolean, default: false): Traverse from oldest to newest. If both start and end are provided, reverse is ignored; results start from newest within range.
-- count (number, default/max: 100): Number to return.
-- stringifiedTimeToken (boolean, default: false): Return timetokens as strings.
+- channel (string, required): Channel to fetch.
+- reverse (boolean, default false): Oldest-to-newest traversal when interval exceeds count. Ignored if both start and end provided.
+- count (number, default/max 100): Number of messages.
+- stringifiedTimeToken (boolean, default false): Return timetokens as strings.
 - includeMeta (boolean): Include meta object.
-- start (string): Timetoken start (exclusive).
-- end (string): Timetoken end (inclusive).
+- start (string): Start timetoken (exclusive).
+- end (string): End timetoken (inclusive).
 
-Reverse behavior: Messages are returned in ascending time order. reverse affects which end of the interval retrieval starts from when more than count messages exist.
+Using reverse: Messages are returned in ascending time. reverse controls which end to start from when more than count messages exist in the interval.
 
 ### Sample code
 
 Retrieve the last 100 messages on a channel:
 
 ```
-`try {  
-    const result = await pubnub.history({  
-        channel: "history_channel",  
-        count: 100, // how many items to fetch  
-        stringifiedTimeToken: true, // false is the default  
-    });  
-} catch (status) {  
-    console.log(status);  
-}  
+`1try {  
+2    const result = await pubnub.history({  
+3        channel: "history_channel",  
+4        count: 100, // how many items to fetch  
+5        stringifiedTimeToken: true, // false is the default  
+6    });  
+7} catch (status) {  
+8    console.log(status);  
+9}  
 `
 ```
 
 ### Response
 
 ```
-`// Example of Status  
-{  
-    error: false,  
-    operation: "PNHistoryOperation",  
-    statusCode: 200  
-}  
+1// Example of Status  
+2{  
+3    error: false,  
+4    operation: "PNHistoryOperation",  
+5    statusCode: 200  
+6}  
+7
   
-// Example of Response  
-{  
-    endTimeToken: "14867650866860159",  
-    messages: [  
-        {  
-            timetoken: "14867650866860159",  
-            entry: "[User 636] hello World"  
-        },  
-`
+8// Example of Response  
+9{  
+10    endTimeToken: "14867650866860159",  
+11    messages: [  
+12        {  
+13            timetoken: "14867650866860159",  
+14            entry: "[User 636] hello World"  
+15        },  
+16        {...},  
+17        {...},  
+18        {...}  
+19    ],  
+20    startTimeToken: "14867650866860159"  
+21}  
+
 ```
-show all 21 lines
 
 ### Other examples
 
 #### Use history() to retrieve the three oldest messages by retrieving from the time line in reverse
 
 ```
-`try {  
-    const result = await pubnub.history({  
-        channel: "my_channel",  
-        reverse: true, // Setting to true will traverse the time line in reverse starting with the oldest message first.  
-        count: 3, // how many items to fetch  
-        stringifiedTimeToken: true, // false is the default  
-    });  
-} catch (status) {  
-    console.log(status);  
-}  
+`1try {  
+2    const result = await pubnub.history({  
+3        channel: "my_channel",  
+4        reverse: true, // Setting to true will traverse the time line in reverse starting with the oldest message first.  
+5        count: 3, // how many items to fetch  
+6        stringifiedTimeToken: true, // false is the default  
+7    });  
+8} catch (status) {  
+9    console.log(status);  
+10}  
 `
 ```
 
 #### Use history() to retrieve messages newer than a given timetoken by paging from oldest message to newest message starting at a single point in time (exclusive)
 
 ```
-`try {  
-    const result = await pubnub.history({  
-        channel: "my_channel",  
-        reverse: true, // Setting to true will traverse the time line in reverse starting with the oldest message first.  
-        stringifiedTimeToken: true, // false is the default  
-        start: "13406746780720711", // start timetoken to fetch  
-    });  
-} catch (status) {  
-    console.log(status);  
-}  
+`1try {  
+2    const result = await pubnub.history({  
+3        channel: "my_channel",  
+4        reverse: true, // Setting to true will traverse the time line in reverse starting with the oldest message first.  
+5        stringifiedTimeToken: true, // false is the default  
+6        start: "13406746780720711", // start timetoken to fetch  
+7    });  
+8} catch (status) {  
+9    console.log(status);  
+10}  
 `
 ```
 
 #### Use history() to retrieve messages until a given timetoken by paging from newest message to oldest message until a specific end point in time (inclusive)
 
 ```
-`try {  
-    const result = await pubnub.history({  
-        channel: "my_channel",  
-        stringifiedTimeToken: true, // false is the default  
-        end: "13406746780720711", // start timetoken to fetch  
-    });  
-} catch (status) {  
-    console.log(status);  
-}  
+`1try {  
+2    const result = await pubnub.history({  
+3        channel: "my_channel",  
+4        stringifiedTimeToken: true, // false is the default  
+5        end: "13406746780720711", // start timetoken to fetch  
+6    });  
+7} catch (status) {  
+8    console.log(status);  
+9}  
 `
 ```
 
@@ -375,55 +399,70 @@ show all 21 lines
 Usage: Call with nothing or a valid timetoken.
 
 ```
-`async function getAllMessages(initialTimetoken = 0) {  
-    const allMessages = [];  
-    let latestCount = 100;  
-    let timetoken = initialTimetoken;  
+1async function getAllMessages(initialTimetoken = 0) {  
+2    const allMessages = [];  
+3    let latestCount = 100;  
+4    let timetoken = initialTimetoken;  
+5
   
-    while (latestCount === 100) {  
-        const { messages, startTimeToken, endTimeToken } = await pubnub.history(  
-            {  
-                channel: "history_test",  
-                stringifiedTimeToken: true, // false is the default  
-                start: timetoken, // start timetoken to fetch  
-            }  
-        );  
+6    while (latestCount === 100) {  
+7        const { messages, startTimeToken, endTimeToken } = await pubnub.history(  
+8            {  
+9                channel: "history_test",  
+10                stringifiedTimeToken: true, // false is the default  
+11                start: timetoken, // start timetoken to fetch  
+12            }  
+13        );  
+14
   
-        latestCount = messages.length;  
-`
+15        latestCount = messages.length;  
+16        timetoken = startTimeToken;  
+17
+  
+18        if (messages && messages.length > 0) {  
+19            allMessages.push(...messages);  
+20        }  
+21    }  
+22
+  
+23    return allMessages;  
+24}  
+25
+  
+26// Usage examples:  
+27// await getAllMessages();  
+28// await getAllMessages("12345678901234");  
+
 ```
-show all 28 lines
 
 #### Fetch messages with metadata
 
 ```
-`try {  
-    const result = await pubnub.history({  
-        channel: "my_channel",  
-        stringifiedTimeToken: true,  
-        includeMeta: true,  
-    });  
-} catch (status) {  
-    console.log(status);  
-}  
+`1try {  
+2    const result = await pubnub.history({  
+3        channel: "my_channel",  
+4        stringifiedTimeToken: true,  
+5        includeMeta: true,  
+6    });  
+7} catch (status) {  
+8    console.log(status);  
+9}  
 `
 ```
 
 #### Sample code with promises
 
 ```
-`pubnub.history({**    channel: 'history_channel',  
-    reverse: true, // Setting to true will traverse the time line in reverse starting with the oldest message first.  
-    count: 100, // how many items to fetch  
-    stringifiedTimeToken: true, // false is the default  
-    start: '123123123123', // start timetoken to fetch  
-    end: '123123123133', // end timetoken to fetch  
-}).then((response) => {  
-    console.log(response);  
-}).catch((error) => {  
-    console.log(error);  
-});  
+`1pubnub.history({**2    channel: 'history_channel',  
+3    reverse: true, // Setting to true will traverse the time line in reverse starting with the oldest message first.  
+4    count: 100, // how many items to fetch  
+5    stringifiedTimeToken: true, // false is the default  
+6    start: '123123123123', // start timetoken to fetch  
+7    end: '123123123133', // end timetoken to fetch  
+8}).then((response) => {  
+9    console.log(response);  
+10}).catch((error) => {  
+11    console.log(error);  
+12});  
 `
 ```
-
-Last updated on Sep 3, 2025**

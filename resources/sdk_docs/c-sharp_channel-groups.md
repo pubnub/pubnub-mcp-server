@@ -1,93 +1,212 @@
-# Channel Groups · C# SDK
+# Channel Groups API for C# SDK
 
-Channel groups bundle up to thousands of channels under one name.  
-• Subscribe to a group; publish to individual channels.  
-• All operations require the **Stream Controller** add-on (enable in the Admin Portal).  
-• Wrap calls in `try/catch`; SDK throws on invalid arguments, network/server issues are returned in `status`.
+[Channel groups](/docs/general/channels/subscribe#channel-groups) bundle thousands of [channels](/docs/general/channels/overview) into a named group. Subscribe to a channel group to receive data from all channels it contains.
 
-```csharp
-try
-{
-    PNResult<PNPublishResult> res = await pubnub.Publish()
-        .Channel("my_channel")
-        .Message("Why do Java developers wear glasses? Because they can't C#.")
-        .ExecuteAsync();
+- You can't publish to a channel group. Publish to individual channels instead.
 
-    Console.WriteLine($"Server status code: {res.Status.StatusCode}");
-}
-catch (Exception ex)
-{
-    Console.WriteLine($"Request failed: {ex.Message}");
-}
+##### Request execution
+
+Use try/catch with the C# SDK. Invalid parameters throw exceptions. If the request reaches the server but fails (server/network), error details are in the returned status.
+
+```
+1try  
+2{  
+3    PNResultPNPublishResult> publishResponse = await pubnub.Publish()  
+4        .Message("Why do Java developers wear glasses? Because they can't C#.")  
+5        .Channel("my_channel")  
+6        .ExecuteAsync();  
+7
+  
+8    PNStatus status = publishResponse.Status;  
+9
+  
+10    Console.WriteLine("Server status code : " + status.StatusCode.ToString());  
+11}  
+12catch (Exception ex)  
+13{  
+14    Console.WriteLine($"Request can't be executed due to error: {ex.Message}");  
+15}  
 ```
 
----
+## Add channels to a channel group
 
-## 1. Add Channels to a Group
+##### Requires Stream Controller add-on
 
-```csharp
-pubnub.AddChannelsToChannelGroup()
-      .ChannelGroup(string)              // REQUIRED
-      .Channels(string[])                // REQUIRED (≤ 200 per call)
-      .QueryParam(Dictionary<string,object>)
-      .ExecuteAsync();                   // returns PNResult<PNChannelGroupsAddChannelResult>
+Enable Stream Controller for your key in the PubNub [Admin Portal](https://admin.pubnub.com/). See the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
+
+Adds channels to a channel group.
+
+### Method(s)
+
+Maximum number of channels: up to 200 channels per API call.
+
+```
+`1pubnub.AddChannelsToChannelGroup()  
+2        .ChannelGroup(string)  
+3        .Channels(Array)  
+4        .QueryParam(Dictionarystring,object>)  
+`
 ```
 
-Return object:  
-• `Result` → `PNChannelGroupsAddChannelResult` (empty)  
-• `Status` → `PNStatus`
+Parameters:
+- ChannelGroup (required) — Type: string. The channel group to add the channels to.
+- Channels (required) — Type: Array. The channels to add to the channel group.
+- QueryParam — Type: Dictionary<string, object>. Name/value query params for debugging.
+- Async — Type: PNCallback of type PNChannelGroupsAddChannelResult. Deprecated; use ExecuteAsync instead.
+- Execute — Type: PNCallback of type PNChannelGroupsAddChannelResult.
+- ExecuteAsync — Returns PNResult<PNChannelGroupsAddChannelResult>.
 
----
+### Sample code
 
-## 2. List Channels in a Group
+#### Add channels
 
-```csharp
-pubnub.ListChannelsForChannelGroup()
-      .ChannelGroup(string)              // REQUIRED
-      .QueryParam(Dictionary<string,object>)
-      .ExecuteAsync();                   // returns PNResult<PNChannelGroupsAllChannelsResult>
+```
+1
+  
+
 ```
 
-Return object:  
-• `Result.Channels` → `List<string>`  
-• `Status` → `PNStatus`
+### Returns
 
----
+AddChannelsToChannelGroup() returns PNResult<PNChannelGroupsAddChannelResult> with:
+- Result — PNChannelGroupsAddChannelResult.
+- Status — PNStatus.
 
-## 3. Remove Channels from a Group
+PNChannelGroupsAddChannelResult contains:
+- PNChannelGroupsAddChannelResult — Object. Empty object.
+- PNStatus — Object. Status of request if error occurred or not.
 
-```csharp
-pubnub.RemoveChannelsFromChannelGroup()
-      .ChannelGroup(string)              // REQUIRED
-      .Channels(string[])                // REQUIRED
-      .QueryParam(Dictionary<string,object>)
-      .ExecuteAsync();                   // returns PNResult<PNChannelGroupsRemoveChannelResult>
+## List channels in a channel group
+
+##### Requires Stream Controller add-on
+
+Enable Stream Controller for your key in the [Admin Portal](https://admin.pubnub.com/). See the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
+
+Lists all channels in a channel group.
+
+### Method(s)
+
+```
+`1pubnub.ListChannelsForChannelGroup()  
+2        .ChannelGroup(string)  
+3        .QueryParam(Dictionarystring,object>)  
+`
 ```
 
-Return object:  
-• `Result` → `PNChannelGroupsRemoveChannelResult` (empty)  
-• `Status` → `PNStatus`
+Parameters:
+- ChannelGroup (required) — Type: string. The channel group for which to list channels.
+- QueryParam — Type: Dictionary<string, object>. Name/value query params for debugging.
+- Async — Type: PNCallback of type PNChannelGroupsAllChannelsResult. Deprecated; use ExecuteAsync instead.
+- Execute — Type: PNCallback of type PNChannelGroupsAllChannelsResult.
+- ExecuteAsync — Returns PNResult<PNChannelGroupsAllChannelsResult>.
 
----
+### Sample code
 
-## 4. Delete a Channel Group
+#### List channels
 
-```csharp
-pubnub.DeleteChannelGroup()
-      .ChannelGroup(string)              // REQUIRED
-      .QueryParam(Dictionary<string,object>)
-      .ExecuteAsync();                   // returns PNResult<PNChannelGroupsAllChannelsResult>
+```
+1
+  
+
 ```
 
-Sample response:
+### Returns
 
-```json
-{
-  "status": 200,
-  "message": "OK",
-  "service": "channel-registry",
-  "error": false
-}
+ListChannelsForChannelGroup() returns PNChannelGroupsAllChannelsResult with:
+- Result — PNChannelGroupsAllChannelsResult.
+- Status — PNStatus.
+
+PNChannelGroupsAllChannelsResult contains:
+- Channels — List<string>. Channels of the channel group.
+
+## Remove channels from a channel group
+
+##### Requires Stream Controller add-on
+
+Enable Stream Controller for your key in the [Admin Portal](https://admin.pubnub.com/). See the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
+
+Removes channels from a channel group.
+
+### Method(s)
+
+```
+`1pubnub.RemoveChannelsFromChannelGroup()  
+2        .ChannelGroup(string)  
+3        .Channels(Array)  
+4        .QueryParam(Dictionarystring,object>)  
+`
 ```
 
-_Last updated: Jul 15 2025_
+Parameters:
+- ChannelGroup (required) — Type: string. The channel group from which to remove the channels.
+- Channels (required) — Type: Array. The channels to remove.
+- QueryParam — Type: Dictionary<string, object>. Name/value query params for debugging.
+- Async — Type: PNCallback of type PNChannelGroupsRemoveChannelResult. Deprecated; use ExecuteAsync instead.
+- Execute — Type: PNCallback of type PNChannelGroupsRemoveChannelResult.
+- ExecuteAsync — Returns PNResult<PNChannelGroupsRemoveChannelResult>.
+
+### Sample code
+
+#### Remove channels
+
+```
+1
+  
+
+```
+
+### Returns
+
+RemoveChannelsFromChannelGroup() returns a PNChannelGroupsAddChannelResult with:
+- Result — PNChannelGroupsRemoveChannelResult.
+- Status — PNStatus.
+
+PNChannelGroupsRemoveChannelResult contains:
+- PNChannelGroupsRemoveChannelResult — Object. Empty object.
+
+## Delete a channel group
+
+##### Requires Stream Controller add-on
+
+Enable Stream Controller for your key in the [Admin Portal](https://admin.pubnub.com/). See the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
+
+Deletes a channel group.
+
+### Method(s)
+
+```
+`1pubnub.DeleteChannelGroup()  
+2        .ChannelGroup(string)  
+3        .QueryParam(Dictionarystring,object>)  
+`
+```
+
+Parameters:
+- ChannelGroup (required) — Type: string. The channel group to delete.
+- QueryParam — Type: Dictionary<string, object>. Name/value query params for debugging.
+- Async — Type: PNCallback of type PNChannelGroupsDeleteGroupResult. Deprecated; use ExecuteAsync instead.
+- Execute — Type: PNCallback of type PNChannelGroupsDeleteGroupResult.
+- ExecuteAsync — Returns PNResult<PNChannelGroupsAllChannelsResult>.
+
+### Sample code
+
+#### Delete channel group
+
+```
+1
+  
+
+```
+
+### Response
+
+```
+`1{**2    "status" : 200,  
+3    "message" : "OK",  
+4    "service" : "channel-registry",  
+5    "error" : False  
+6}  
+`
+```
+
+Last updated on Sep 3, 2025**

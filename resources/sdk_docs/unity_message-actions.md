@@ -1,140 +1,186 @@
-# Message Actions API – PubNub Unity SDK  
-Add, remove, and fetch metadata (reactions, receipts, etc.) attached to published messages.  
-Message Persistence must be enabled for all Message-Action operations.
+# Message Actions API for Unity SDK
 
----
+Use message actions to add/remove metadata on published messages (reactions, receipts, custom data). Subscribe to channels to receive action events. Fetch past actions via Message Persistence, independently or alongside messages.
 
-## Add Message Reaction (Add Message Action)
+Reactions
+- “Message Reactions” are emoji/social reactions built on the Message Actions API.
 
-```  
-`pubnub.AddMessageAction()  
-    .Channel(string)  
-    .MessageTimetoken(long)  
-    .Action(PNMessageAction)  
-    .Execute(System.ActionPNAddMessageActionResult, PNStatus>)  
-`  
+Message Actions vs. Message Reactions
+- Message Actions: low-level API for arbitrary metadata (receipts, confirmations, custom data).
+- Message Reactions: using Message Actions specifically for emoji/social reactions (same underlying API).
+
+## Add message action
+
+Requires Message Persistence enabled for your key in the Admin Portal.
+
+Add an action to a published message. Response includes the added action.
+
+### Method(s)
+
+Use this Unity method:
+```
+`1pubnub.AddMessageAction()  
+2    .Channel(string)  
+3    .MessageTimetoken(long)  
+4    .Action(PNMessageAction)  
+5    .Execute(System.ActionPNAddMessageActionResult, PNStatus>)  
+`
 ```
 
-Parameters  
-• Channel (string) – destination channel.  
-• MessageTimetoken (long) – timetoken of the target message.  
-• Action (PNMessageAction) – metadata to attach.  
-• Execute / ExecuteAsync – callback / Task<PNResult<PNAddMessageActionResult>>.
+Parameters:
+- Channel (string): Channel name to add the message action to.
+- MessageTimetoken (long): Timetoken of the target message.
+- Action (PNMessageAction): Message action payload (see PNMessageAction below).
+- Execute (System.Action): System.Action of type PNAddMessageActionResult.
+- ExecuteAsync: Returns Task<PNResult<PNAddMessageActionResult>>.
 
-### PNMessageAction  
-• Type (string) – action type.  
-• Value (string) – action value.
+#### PNMessageAction
 
-### Returns → PNAddMessageActionResult  
-• MessageTimetoken (long) – original message.  
-• ActionTimetoken (long) – new action.  
-• Action (PNMessageAction) – payload.  
-• Uuid (string) – sender UUID.
+- Type (string): Message action type.
+- Value (string): Message action value.
 
-```  
-`{  
-    "MessageTimetoken":15610547826969050,  
-    "ActionTimetoken":15610547826970050,  
-    "Action":{  
-        "type":"reaction",  
-        "value":"smiley_face"  
-    },  
-    "Uuid":"user-456"  
-}`  
+### Sample code
+
+Reference code
+```
+1
+  
+
 ```
 
-Sample code  
+### Returns
 
-```  
-`  
-`  
+Returns PNAddMessageActionResult:
+- MessageTimetoken (long): Timetoken of the message associated with the action.
+- ActionTimetoken (long): Timetoken of the message action.
+- Action (PNMessageAction):
+  - Type (string)
+  - Value (string)
+- Uuid (string): UUID associated with the message action.
+
+```
+`1{  
+2    "MessageTimetoken":15610547826969050,  
+3    "ActionTimetoken":15610547826970050,  
+4    "Action":{  
+5        "type":"reaction",  
+6        "value":"smiley_face"  
+7    },  
+8    "Uuid":"user-456"  
+9}  
+`
 ```
 
----
+## Remove message action
 
-## Remove Message Reaction (Remove Message Action)
+Requires Message Persistence enabled for your key in the Admin Portal.
 
-```  
-`pubnub.RemoveMessageAction()  
-    .Channel(string)  
-    .MessageTimetoken(long)  
-    .ActionTimetoken(long)  
-    .Uuid(string)  
-    .Execute(System.ActionPNRemoveMessageActionResult, PNStatus>)  
-`  
+Remove a previously added action from a published message. Response is empty.
+
+### Method(s)
+
+Use this Unity method:
+```
+`1pubnub.RemoveMessageAction()  
+2    .Channel(string)  
+3    .MessageTimetoken(long)  
+4    .ActionTimetoken(long)  
+5    .Uuid(string)  
+6    .Execute(System.ActionPNRemoveMessageActionResult, PNStatus>)  
+`
 ```
 
-Parameters  
-• Channel (string) – channel to publish removal.  
-• MessageTimetoken (long) – timetoken of original message.  
-• ActionTimetoken (long) – timetoken of action to remove.  
-• Uuid (string) – UUID that added the action.  
-• Execute / ExecuteAsync – callback / Task<PNResult<PNRemoveMessageActionResult>>.
+Parameters:
+- Channel (string): Channel name to remove the message action from.
+- MessageTimetoken (long): Publish timetoken of the original message.
+- ActionTimetoken (long): Publish timetoken of the message action to be removed.
+- Uuid (string): UUID of the message.
+- Execute (System.Action): System.Action of type PNRemoveMessageActionResult.
+- ExecuteAsync: Returns Task<PNResult<PNRemoveMessageActionResult>>.
 
-Returns: empty payload.
+### Sample code
+```
+1
+  
 
-Sample code  
-
-```  
-`  
-`  
 ```
 
----
+### Returns
 
-## Get Message Reactions (Get Message Actions)
+RemoveMessageAction returns no actionable data.
 
-```  
-`pubnub.GetMessageActions()  
-    .Channel(string)  
-    .Start(long)  
-    .End(long)  
-    .Limit(int)  
-    .Execute(System.ActionPNGetMessageActionsResult, PNStatus>)  
-`  
+## Get message actions
+
+Requires Message Persistence enabled for your key in the Admin Portal.
+
+Get a list of message actions in a channel, sorted by action timetoken ascending.
+
+Truncated response
+- If truncated, a more object is returned with pagination parameters for iterative fetches.
+
+### Method(s)
+
+Use this Unity method:
+```
+`1pubnub.GetMessageActions()  
+2    .Channel(string)  
+3    .Start(long)  
+4    .End(long)  
+5    .Limit(int)  
+6    .Execute(System.ActionPNGetMessageActionsResult, PNStatus>)  
+`
 ```
 
-Parameters  
-• Channel (string) – target channel.  
-• Start (long) – inclusive range start.  
-• End (long) – exclusive range end.  
-• Limit (int, ≤100, default 100) – max items.  
-• Execute / ExecuteAsync – callback / Task<PNResult<PNGetMessageActionsResult>>.
+Parameters:
+- Channel (string): The channel name.
+- Start (long): Action timetoken denoting the start of the range (inclusive).
+- End (long): Action timetoken denoting the end of the range (exclusive).
+- Limit (int): Number of actions to return. Default/Maximum: 100.
+- Execute (System.Action): System.Action of type PNGetMessageActionsResult.
+- ExecuteAsync: Returns Task<PNResult<PNGetMessageActionsResult>>.
 
-### Returns → PNGetMessageActionsResult  
-• MessageActions (List<PNMessageActionItem>)  
-   – MessageTimetoken (long)  
-   – Action (PNMessageAction)  
-   – Uuid (string)  
-   – ActionTimetoken (long)  
-• More (pagination)  
-   – Start (long)  
-   – End (long)  
-   – Limit (int)
+### Sample code
+```
+1
+  
 
-```  
-`{**    "MessageActions":  
-    [{  
-        "MessageTimetoken":15610547826969050,  
-    "Action":{  
-        "type":"reaction",  
-        "value":"smiley_face"  
-    },  
-    "Uuid":"pn-5903a053-592c-4a1e-8bfd-81d92c962968",  
-    "ActionTimetoken":15717253483027900  
-    }],  
-    "More": {  
-        "Start": 15610547826970050,  
-        "End": 15645905639093361,  
-        "Limit": 2  
-`  
 ```
 
-Sample code  
+### Returns
 
-```  
-`  
-`  
+Returns PNGetMessageActionsResult:
+- Message Actions (List<PNMessageActionItem>): List of message actions.
+- More (MoreInfo): Pagination info.
+
+PNMessageActionItem:
+- MessageTimetoken (long): Timetoken of the message.
+- Action (PNMessageAction):
+  - Type (string)
+  - Value (string)
+- Uuid (string): UUID associated with the action.
+- ActionTimetoken (long): Timetoken of the action.
+
+More:
+- Start (long): Start timetoken of the requested range.
+- End (long): End timetoken of the requested range.
+- Limit (int): Number of actions returned.
+
 ```
-
-_Last updated: Jul 15 2025_
+`1{**2    "MessageActions":  
+3    [{  
+4        "MessageTimetoken":15610547826969050,  
+5    "Action":{  
+6        "type":"reaction",  
+7        "value":"smiley_face"  
+8    },  
+9    "Uuid":"pn-5903a053-592c-4a1e-8bfd-81d92c962968",  
+10    "ActionTimetoken":15717253483027900  
+11    }],  
+12    "More": {  
+13        "Start": 15610547826970050,  
+14        "End": 15645905639093361,  
+15        "Limit": 2  
+16    }  
+17}  
+`
+```

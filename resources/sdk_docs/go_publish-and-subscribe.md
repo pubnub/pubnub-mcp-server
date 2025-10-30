@@ -1,402 +1,577 @@
-# Publish / Subscribe – Go SDK (condensed)
+# Publish/Subscribe API for Go SDK
 
-This section lists only the essential API signatures, parameters, configuration requirements, and complete example code blocks for Go.  
-All original code blocks are included verbatim.
+PubNub delivers messages in under 30 ms to one or many subscribers.
 
----
+For conceptual guidance, see Connection Management and Publish Messages.
 
 ## Publish
 
-You must initialise PubNub with a `publishKey`.  
-Max message size: 32 KiB (optimal < 1800 bytes).  
-Publish serially and wait for a success response before sending the next message.
+Sends a message to all subscribers of a channel. Messages are replicated globally.
 
-### Method
+- Prerequisites and limitations
+  - Initialize PubNub with publishKey.
+  - You can publish without being subscribed.
+  - You cannot publish to multiple channels simultaneously.
+- Security
+  - Enable TLS/SSL by setting ssl=true at initialization. Optional message encryption available.
+- Message data
+  - Any JSON-serializable data (objects, arrays, integers, strings, UTF‑8 strings).
+  - Don’t JSON serialize message or meta yourself; SDK handles it.
+- Size
+  - Max message size: 32 KiB (includes escapes and channel). Aim under ~1,800 bytes.
+- Publish rate
+  - Publish as fast as bandwidth allows; soft throughput limits apply. In-memory queue holds 100 messages; excess may drop.
+- Custom message type
+  - Optional CustomMessageType to label messages (for example, text, action, poll).
+- Best practices
+  - Publish serially, verify success ([1,"Sent","<timetoken>"]) before next publish.
+  - On failure ([0,"...",<timetoken>]), retry.
+  - Keep in-memory queue < 100.
+  - Throttle bursts (for example, ≤5 msgs/sec) as needed.
 
-```
-`pn.Publish().  
-    Message(interface{}).  
-    Channel(string).  
-    ShouldStore(bool).  
-    UsePost(bool).  
-    Meta(interface{}).  
-    QueryParam(queryParam).  
-    CustomMessageType(string).  
-    Execute()`  
-```
+### Method(s)
 
-Parameter | Type | Default | Notes
----|---|---|---
-Message* | interface | — | Payload (JSON-serialisable, do **not** pre-serialise).
-Channel* | string | — | Target channel.
-ShouldStore | bool | account default | Persist in History.
-UsePost | bool | false | Force HTTP POST.
-Meta | interface | null | Metadata for filter.
-TTL | int | — | Per-message TTL (History).
-QueryParam | map[string]string | nil | Extra query string parameters.
-CustomMessageType | string | — | 3–50 chars, e.g. `text`, `action`, `poll`.
-
-### Reference code – publish to a channel
+To Publish a message:
 
 ```
-`package main
-
-import (
-    "fmt"
-    pubnub "github.com/pubnub/go/v7"
-)
-
-func main() {
-    config := pubnub.NewConfigWithUserId("myUniqueUserId")
-    config.SubscribeKey = "demo"
-    config.PublishKey  = "demo"
-    pn := pubnub.NewPubNub(config)
-
-    message := []string{"Hello", "there"}
-    // …
-}`  
+`1pn.Publish().  
+2    Message(interface{}).  
+3    Channel(string).  
+4    ShouldStore(bool).  
+5    UsePost(bool).  
+6    Meta(interface{}).  
+7    QueryParam(queryParam).  
+8    CustomMessageType(string).  
+9    Execute()  
+`
 ```
-show all 31 lines
 
-Subscribe to the same channel (console or separate script) before running the publish example.
+Parameters:
+- Message (required)
+  - Type: interface
+  - Default: n/a
+  - The payload
+- Channel (required)
+  - Type: string
+  - Default: n/a
+  - Destination channel ID
+- ShouldStore
+  - Type: bool
+  - Default: account default
+  - Store in history
+- UsePost
+  - Type: bool
+  - Default: false
+  - Use POST to Publish
+- Meta
+  - Type: interface
+  - Default: null
+  - Metadata for message filtering
+- TTL
+  - Type: int
+  - Default: n/a
+  - Per-message TTL in Message Persistence
+- QueryParam
+  - Type: map[string]string
+  - Default: nil
+  - Additional URL query parameters
+- CustomMessageType
+  - Type: string
+  - Default: n/a
+  - Case-sensitive, alphanumeric, 3–50 chars; dashes and underscores allowed; cannot start with special chars or pn_/pn-. Examples: text, action, poll.
+
+### Sample code
+
+##### Reference code
+
+#### Publish a message to a channel
+
+```
+1
+  
+```
+
+##### Subscribe to the channel
+
+Before running the publish example, subscribe to the same channel in another terminal or Debug Console.
 
 ### Response
 
-`Timestamp` (int) – timetoken of the published message.
+- Timestamp
+  - Type: int
+  - Timetoken when the message was published
 
-### Other publish examples
+### Other examples
 
-#### With metadata
+#### Publish with metadata
 
 ```
-`res, status, err := pn.Publish().  
-    Channel("my-channel").  
-    Message([]string{"Hello", "there"}).  
-    Meta(map[string]interface{}{"name":"Alex"}).  
-    CustomMessageType("text-message").  
-    Execute()`  
+1
+  
 ```
 
 #### Publish array
 
 ```
-`res, status, err := pn.Publish().  
-    Channel("my-channel").  
-    Message([]string{"Hello", "there"}).  
-    Meta([]string{"1a","2b","3c"}).  
-    CustomMessageType("text-message").  
-    Execute()`  
+1
+  
 ```
 
-#### Store for 10 h
+#### Store the published message for 24 hours
 
 ```
-`res, status, err := pn.Publish().  
-    Channel("my-channel").  
-    Message("test").  
-    ShouldStore(true).  
-    TTL(10).  
-    CustomMessageType("text-message").  
-    Execute()`  
+1
+  
 ```
 
 #### Push payload helper
 
-```
-`aps := pubnub.PNAPSData{
-    Alert: "apns alert",
-    Badge: 1,
-    Sound: "ding",
-    Custom: map[string]interface{}{
-        "aps_key1": "aps_value1",
-        "aps_key2": "aps_value2",
-    },
-}
+Use helper to format payloads for Push messages (Create Push Payload Helper Section).
 
-apns := pubnub.PNAPNSData{
-    APS: aps,
-    Custom: map[string]interface{}{
-        "apns_key1": "apns_value1",
-        "apns_key2": "apns_value2",
-`  
 ```
-show all 82 lines
-
----
+1
+  
+```
 
 ## Fire
 
-Sends a message only to server-side Functions & Illuminate; not delivered to subscribers nor stored in History.
+Sends a message to Functions event handlers and Illuminate. Delivered only to handlers on the target channel; not replicated to subscribers and not stored in history.
 
-### Method
+### Method(s)
 
-```
-`pn.Fire().  
-    Message(interface{}).  
-    Channel(string).  
-    UsePost(bool).  
-    Meta(interface{}).  
-    QueryParam(queryParam).  
-    Execute()`  
-```
-
-(Same param rules as Publish, but no `ShouldStore`, `TTL`, or replication.)
-
-### Example
+To Fire a message:
 
 ```
-`res, status, err := pn.Fire().  
-    Channel("my-channel").  
-    Message("test").  
-    Execute()`  
+`1pn.Fire().  
+2    Message(interface{}).  
+3    Channel(string).  
+4    UsePost(bool).  
+5    Meta(interface{}).  
+6    QueryParam(queryParam).  
+7    Execute()  
+`
 ```
 
----
+Parameters:
+- Message (required): Type interface; payload
+- Channel (required): Type string; destination channel ID
+- UsePost: Type bool; Default false; use POST
+- Meta: Type interface; Default null; metadata for filtering
+- TTL: Type int; per-message TTL in Message Persistence
+- QueryParam: Type map[string]string; Default nil; extra query params
+
+### Sample code
+
+#### Fire a message to a channel
+
+```
+1
+  
+```
+
+#### Fire with metadata
+
+```
+1
+  
+```
 
 ## Signal
 
-Lightweight, non-persisted 64-byte messages to subscribers.
+Sends a lightweight signal to all subscribers of a channel.
 
-### Method
+- Payload size limit: 64 bytes (payload only). Contact support for higher limits.
 
-```
-`pubnub.Signal().  
-    Message(interface{}).  
-    Channel(string).  
-    CustomMessageType(string).  
-    Execute()`  
-```
+### Method(s)
 
-### Example
+To Signal a message:
 
 ```
-`result, status, err := pubnub.Signal().  
-    Message([]string{"Hello","Signals"}).  
-    Channel("foo").  
-    CustomMessageType("text-message").  
-    Execute();`  
+`1pubnub.Signal().  
+2    Message(interface{}).  
+3    Channel(string).  
+4    CustomMessageType(string).  
+5    Execute()  
+`
+```
+
+Parameters:
+- Message (required): Type interface; payload
+- Channel (required): Type string; destination channel ID
+- CustomMessageType: Type string; same constraints as in Publish (3–50 chars, alphanumeric, dashes/underscores allowed, not starting with special chars or pn_/pn-). Examples: text, action, poll.
+
+### Sample code
+
+#### Signal a message to a channel
+
+```
+1
+  
 ```
 
 ### Response
 
-`Timestamp` (int) – timetoken of the signal.
-
----
+- Timestamp
+  - Type: int
+  - Timetoken when Signal was sent
 
 ## Subscribe
 
-Creates/maintains a TCP socket to receive messages, signals, presence, Objects & Message Action events.
+### Receive messages
 
-### Method
+Use event listeners to receive messages, signals, and events on subscribed channels. See Event Listeners.
 
-```
-`pn.Subscribe().  
-    Channels([]string).  
-    ChannelGroups([]string).  
-    Timetoken(int64).  
-    WithPresence(bool).  
-    QueryParam(queryParam).  
-    Execute()`  
-```
+### Description
 
-Parameter | Type | Notes
----|---|---
-Channels | []string | Channels to subscribe (required unless ChannelGroups given).
-ChannelGroups | []string | Channel groups to subscribe.
-Timetoken | int64 | Resume from specific timetoken.
-WithPresence | bool | Also receive presence (`-pnpres`) events.
-QueryParam | map[string]string | Extra query parameters.
+Opens a TCP socket and listens for messages on specified channels. Requires SubscribeKey at initialization. By default, you receive only messages published after Subscribe() completes.
 
-### Basic subscribe
+- Connectivity notification: wait for envelope.status before publishing to avoid race conditions.
+- Automatic reconnect and catch-up: set restore=true; default reconnect after 320 seconds timeout.
+- Unsubscribing from all channels resets last-received timetoken and may cause message gaps.
+
+### Method(s)
+
+To Subscribe to a channel:
 
 ```
-`pn.Subscribe().  
-    Channels([]string{"my-channel"}).  
-    Execute()`  
+`1pn.Subscribe().  
+2    Channels([]string).  
+3    ChannelGroups([]string).  
+4    Timetoken(int64).  
+5    WithPresence(bool).  
+6    QueryParam(queryParam).  
+7    Execute()  
+`
 ```
 
-### Responses (handled via Listener)
+Parameters:
+- Channels: Type []string; subscribe to channels; either channel or channel group is required
+- ChannelGroups: Type []string; subscribe to channel groups; either channel or channel group is required
+- Timetoken: Type int64; start from specific timetoken
+- WithPresence: Type bool; also subscribe to presence
+- QueryParam: Type map[string]string; extra query params
 
-• `PNStatus` (connection state & errors)  
-• `PNMessage` (Publish & Signal)  
-• `PNPresence`  
-• `PNUUIDEvent`  
-• `PNChannelEvent`  
-• `PNMembershipEvent`  
-• `PNMessageActionsEvent`
+### Sample code
 
-(Fields preserved as in original docs.)
-
-### Other subscribe examples
-
-#### With logging
+Subscribe to a channel:
 
 ```
-`import (  
-    pubnub "github.com/pubnub/go"  
-)
-
-config := pubnub.NewConfig()
-config.PublishKey  = "demo"
-config.SubscribeKey = "demo"
-
-pn := pubnub.NewPubNub(config)
-
-pn.Subscribe().
-    Channels([]string{"my-channel"}).
-    Execute()`  
+1
+  
 ```
 
-#### Multiple channels (multiplexing)
+### Response
+
+PNMessage is delivered via Listeners.
+
+Subscribe() returns PNStatus:
+- Category: StatusCategory (see Go SDK listener categories)
+- Error: bool
+- ErrorData: error
+- StatusCode: int
+- Operation: OperationType
+
+Subscribe() message payloads:
+- PNMessage
+  - Message: interface
+  - Channel: string
+  - Subscription: string
+  - Timetoken: int64
+  - UserMetadata: interface
+  - SubscribedChannel: string
+  - Publisher: string
+- PNPresence
+  - Event: string (join, leave, timeout, state-change)
+  - UUID: string
+  - Timestamp: int64
+  - Occupancy: int
+  - Subscription: string
+  - Timetoken: int64
+  - State: interface
+  - UserMetadata: map[string]interface
+  - SubscribedChannel: string
+  - Channel: string
+- PNUUIDEvent
+  - Event: PNObjectsEvent (PNObjectsEventRemove, PNObjectsEventSet)
+  - Timestamp: string
+  - Subscription: string
+  - SubscribedChannel: string
+  - Channel: string
+  - UUID: string
+  - Name: string
+  - ExternalID: string
+  - ProfileURL: string
+  - Email: string
+  - Custom: map[string]interface
+  - Updated: string
+  - ETag: string
+- PNChannelEvent
+  - Event: PNObjectsEvent (PNObjectsEventRemove, PNObjectsEventSet)
+  - Timestamp: string
+  - Subscription: string
+  - SubscribedChannel: string
+  - Channel: string
+  - ChannelID: string
+  - Name: string
+  - Description: string
+  - Custom: map[string]interface
+  - Updated: string
+  - ETag: string
+- PNMembershipEvent
+  - Event: PNObjectsEvent (PNObjectsEventRemove, PNObjectsEventSet)
+  - Timestamp: string
+  - Subscription: string
+  - SubscribedChannel: string
+  - Channel: string
+  - ChannelID: string
+  - UUID: string
+  - Custom: map[string]interface
+- PNMessageActionsEvent
+  - Event: PNMessageActionsEventType (PNMessageActionsAdded, PNMessageActionsRemoved)
+  - Data: PNMessageActionsResponse (Message Actions)
+  - Subscription: string
+  - SubscribedChannel: string
+  - Channel: string
+
+### Other examples
+
+#### Basic subscribe with logging
 
 ```
-`pn.Subscribe().  
-    Channels([]string{"my-channel1","my-channel2"}).  
-    Execute()`  
+1
+  
 ```
 
-#### Presence
+#### Subscribing to multiple channels
+
+Use channel multiplexing. Wildcard Subscribe and Channel Groups also supported (requires Stream Controller enabled).
 
 ```
-`pn.Subscribe().  
-    Channels([]string{"my-channel"}).  
-    WithPresence(true).  
-    Execute()`  
+1
+  
 ```
 
-Sample presence responses (join/leave/timeout/interval etc.):
+#### Subscribing to a Presence channel
+
+Requires Presence add-on enabled. To subscribe to a channel’s Presence, append -pnpres (for example, my_channel-pnpres).
 
 ```
-`if presence.Event == "join"    { … }  
- if presence.Event == "leave"   { … }  
- if presence.Event == "timeout" { … }  
- if presence.Event == "state-change" { … }  
- if presence.Event == "interval" { … }`  
+1
+  
 ```
 
-Interval with deltas:
+#### Sample Responses
+
+##### Join event
 
 ```
-`if presence.Event == "interval" {  
-    presence.Occupancy  
-    presence.Join      // []string  
-    presence.Timeout   // []string  
-    presence.Timestamp  
-}`  
+`1if presence.Event == "join" {  
+2    presence.UUID // 175c2c67-b2a9-470d-8f4b-1db94f90e39e  
+3    presence.Timestamp // 1345546797  
+4    presence.Occupancy // 2  
+5}  
+`
 ```
 
-If > 30 KB, field `here_now_refresh: true` is included instead.
-
-#### Wildcard subscribe
-
-```
-`pn.Subscribe().  
-    Channels([]string{"foo.*"}).  
-    Execute()`  
-```
-
-#### Subscribe with state (Presence)
-
-```
-`config := pubnub.NewConfig()
-config.SubscribeKey = "demo"
-config.PublishKey   = "demo"
-pn := pubnub.NewPubNub(config)
-listener := pubnub.NewListener()
-done := make(chan bool)
-
-go func() {
-    for {
-        // …
-    }
-}()`  
-```
-show all 45 lines
-
-#### Channel groups
-
-```
-`pn.Subscribe().  
-    Channels([]string{"ch1","ch2"}).  
-    ChannelGroups([]string{"cg1","cg2"}).  
-    Timetoken(int64(1337)).  
-    WithPresence(true).  
-    Execute()`  
-```
-
-Presence on channel groups:
-
-```
-`pn.Subscribe().  
-    ChannelGroups([]string{"cg1","cg2"}).  
-    Timetoken(int64(1337)).  
-    WithPresence(true).  
-    Execute()`  
-```
-
----
-
-## Unsubscribe
-
-Removes channels/groups from an open subscription.  
-Unsubscribing **all** channels resets last timetoken (possible message gaps).
-
-### Method
-
-```
-`pn.Unsubscribe().  
-    Channels([]string).  
-    ChannelGroups([]string).  
-    QueryParam(queryParam).  
-    Execute()`  
-```
-
-### Example – single channel
-
-```
-`pn.Unsubscribe().  
-    Channels([]string{"my-channel"}).  
-    Execute()`  
-```
-
-Presence leave event example:
+##### Leave event
 
 ```
 `if presence.Event == "leave" {  
-    presence.UUID  
+    presence.UUID // 175c2c67-b2a9-470d-8f4b-1db94f90e39e  
+    presence.Timestamp // 1345546797  
+    presence.Occupancy // 2  
+}  
+`
+```
+
+##### Timeout event
+
+```
+`if presence.Event == "timeout" {  
+    presence.UUID // 175c2c67-b2a9-470d-8f4b-1db94f90e39e  
+    presence.Timestamp // 1345546797  
+    presence.Occupancy // 2  
+}  
+`
+```
+
+##### State change event
+
+```
+`if presence.Event == "state-change" {  
     presence.Timestamp  
     presence.Occupancy  
-}`  
+}  
+`
 ```
 
-### Other unsubscribe examples
-
-Multiple channels:
+##### Interval event
 
 ```
-`pn.Unsubscribe().  
-    Channels([]string{"my-channel","my-channel2"}).  
-    Execute()`  
+`if presence.Event == "interval" {  
+    presence.UUID // 175c2c67-b2a9-470d-8f4b-1db94f90e39e  
+    presence.Timestamp // 1345546797  
+    presence.Occupancy // 2  
+}  
+`
 ```
 
-Channel groups:
+When presence_deltas is enabled, interval messages may include:
+- joined
+- left
+- timedout
+
+Example:
 
 ```
-`pn.Unsubscribe().  
-    ChannelGroups([]string{"cg1","cg2"}).  
-    Execute()`  
+`if presence.Event == "interval" {  
+    presence.Occupancy // # users in channel  
+    presence.Join // [uuid1 uuid2]  
+    presence.Timeout //[uuid3]  
+    presence.Timestamp // unix timestamp  
+}  
+`
 ```
 
----
+If the interval message exceeds ~30 KB, extra fields are omitted and here_now_refresh=true is set. Perform hereNow to fetch users.
 
-## Unsubscribe All
+#### Wildcard subscribe to channels
+
+Requires Stream Controller add-on (Enable Wildcard Subscribe). Only one level wildcard (a.*) is supported.
 
 ```
-`pn.UnsubscribeAll()`  
+1
+  
 ```
 
-Returns: none.
+#### Subscribing with state
 
----
+Requires Presence. Always set and persist a unique UUID for the user/device.
 
-_Last updated: Jul 15 2025_
+```
+1
+  
+```
+
+#### Subscribe to a channel group
+
+Requires Stream Controller add-on.
+
+```
+1
+  
+```
+
+#### Subscribe to the Presence channel of a channel group
+
+Requires Stream Controller and Presence add-ons.
+
+```
+1
+  
+```
+
+## Unsubscribe
+
+Unsubscribe from one or more channels. For multiplexed subscriptions, the socket closes only when no channels remain.
+
+Unsubscribing from all channels resets the last-received timetoken and can cause message gaps if you immediately subscribe elsewhere.
+
+### Method(s)
+
+To Unsubscribe from a channel:
+
+```
+`1pn.Unsubscribe().  
+2    Channels([]string).  
+3    ChannelGroups([]string).  
+4    QueryParam(queryParam).  
+5    Execute()  
+`
+```
+
+Parameters:
+- Channels: Type []string; Default false; unsubscribe from channels; channel or channelGroup required
+- ChannelGroups: Type []string; Default false; unsubscribe from channel groups; channel or channelGroup required
+- QueryParam: Type map[string]string; Default nil; extra query params
+
+### Sample code
+
+Unsubscribe from a channel:
+
+```
+1
+  
+```
+
+##### Event listeners
+
+Subscription responses are handled by Listener (see Event Listeners).
+
+### Rest response from server
+
+Successful leave example:
+
+```
+`1if presence.Event == "leave" {  
+2    presence.UUID // left-uuid  
+3    presence.Timestamp // 1345546797  
+4    presence.Occupancy // 2  
+5}  
+`
+```
+
+### Other examples
+
+#### Unsubscribing from multiple channels
+
+Requires Stream Controller add-on.
+
+```
+1
+  
+```
+
+##### Example response
+
+```
+`1if presence.Event == "leave" {  
+2    presence.UUID // left-uuid  
+3    presence.Timestamp // 1345546797  
+4    presence.Occupancy // 2  
+5}  
+`
+```
+
+#### Unsubscribe from a channel group
+
+Requires Stream Controller add-on.
+
+```
+1
+  
+```
+
+## Unsubscribe all
+
+Unsubscribe from all channels and all channel groups.
+
+### Method(s)
+
+```
+`1UnsubscribeAll()  
+`
+```
+
+### Sample code
+
+```
+1
+  
+```
+
+### Returns
+
+None
+
+Last updated on Oct 29, 2025
