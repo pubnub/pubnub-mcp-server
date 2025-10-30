@@ -1,6 +1,6 @@
 {
   "name": "@pubnub/mcp",
-  "version": "1.0.117",
+  "version": "1.0.118",
   "type": "module",
   "description": "PubNub Model Context Protocol MCP Server for Cursor and Claude",
   "main": "index.js",
@@ -14,7 +14,6 @@
     "lib",
     "chat_sdk_urls.txt",
     "package.json",
-    "server.json",
     "resources"
   ],
   "repository": {
