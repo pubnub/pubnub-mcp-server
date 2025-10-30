@@ -1,8 +1,8 @@
 {
-  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-09-29/server.schema.json",
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
   "name": "io.github.pubnub/mcp-server",
   "description": "PubNub MCP for Real-time messaging. API Access and SDK documentation.",
-  "version": "1.0.118",
+  "version": "1.0.119",
   "repository": {
     "url": "https://github.com/pubnub/pubnub-mcp-server",
     "source": "github"
@@ -11,7 +11,7 @@
   "packages": [{
     "registryType": "npm",
     "identifier": "@pubnub/mcp",
-    "version": "1.0.118",
+    "version": "1.0.119",
     "transport": {"type": "stdio"}
   }]
 }
