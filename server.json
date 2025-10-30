@@ -3,14 +3,13 @@
   "name": "io.github.pubnub/mcp-server",
   "description": "PubNub MCP for Real-time messaging. API Access and SDK documentation.",
   "version": "1.0.111",
-  "status": "active",
   "repository": {
     "url": "https://github.com/pubnub/pubnub-mcp-server",
     "source": "github"
   },
   "website_url": "https://github.com/pubnub/pubnub-mcp-server",
   "packages": [{
-    "registry_type": "npm",
+    "registryType": "npm",
     "identifier": "@pubnub/mcp",
     "version": "1.0.111",
     "transport": {
