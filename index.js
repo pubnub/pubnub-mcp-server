@@ -186,26 +186,21 @@ toolHandlers['read_pubnub_sdk_docs'] = async ({ language, apiReference }) => {
     }
 
     // Regular processing for other languages
-    // Try to load from cached files first (with version checking), fallback to API calls if not available or outdated
-    let sdkResponse = loadCachedSDKDoc(language, 'overview');
+    // Load from local cached files only
+    let sdkResponse = loadCachedSDKDoc(language, 'overview', true);
     if (!sdkResponse) {
-      const sdkURL = `https://www.pubnub.com/docs/sdks/${language}`;
-      sdkResponse = await loadArticle(sdkURL);
+      return {
+        content: [{ type: 'text', text: `Local SDK documentation not available for ${language}` }],
+        isError: true
+      };
     }
 
-    let apiRefResponse = loadCachedSDKDoc(language, apiRefKey);
+    let apiRefResponse = loadCachedSDKDoc(language, apiRefKey, true);
     if (!apiRefResponse) {
-      const apiRefURL = `https://www.pubnub.com/docs/sdks/${language}/api-reference/${apiRefKey}`;
-      apiRefResponse = await loadArticle(apiRefURL);
-
-      // Apply "(old)" section removal logic for dynamically loaded content
-      if (apiRefResponse && !apiRefResponse.startsWith('Error fetching')) {
-        const lines = apiRefResponse.split('\n');
-        const oldIndex = lines.findIndex((line) => /^##\s.*\(old\)/i.test(line));
-        if (oldIndex !== -1) {
-          apiRefResponse = lines.slice(0, oldIndex).join('\n');
-        }
-      }
+      return {
+        content: [{ type: 'text', text: `Local SDK documentation not available for ${language}/${apiRefKey}` }],
+        isError: true
+      };
     }
 
     const context7Response = loadLanguageFile(language);
