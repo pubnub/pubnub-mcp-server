@@ -1,19 +1,18 @@
 # Channel Groups API for JavaScript SDK
 
-Channel groups allow bundling thousands of channels under a single name. You can subscribe to a channel group to receive messages from all channels it contains.
+Channel groups bundle thousands of channels under a single name. You can only subscribe to a channel group; publishing must be done to individual channels.
 
-- You can't publish to a channel group. Publish to individual channels.
-- Async patterns: Callbacks, Promises, Async/Await. Recommended: Async/Await with try...catch to handle errors.
+Supported async patterns: Callbacks, Promises, Async/Await (recommended). Use try...catch with Async/Await to handle errors.
 
 ## Add channels to a channel group
 
-Requires Stream Controller add-on (enable in Admin Portal: https://admin.pubnub.com/).
+Requires Stream Controller add-on (enable in Admin Portal).
 
 Adds channels to a channel group.
 
-### Method(s)
+- Maximum number of channels per call: 200.
 
-Maximum number of channels: 200 per API call.
+### Method(s)
 
 ```
 `1pubnub.channelGroups.addChannels({  
@@ -29,7 +28,7 @@ Parameters:
 
 ### Sample code
 
-Reference code: self-contained snippet with imports, execution, and logging.
+Reference code
 
 #### Add channels
 
@@ -58,7 +57,7 @@ Reference code: self-contained snippet with imports, execution, and logging.
 
 ## List channels in a channel group
 
-Requires Stream Controller add-on (enable in Admin Portal).
+Requires Stream Controller add-on.
 
 Lists all channels in a channel group.
 
@@ -87,22 +86,24 @@ Parameters:
 ### Response
 
 ```
-// Example of Status  
-{  
-    error: false,  
-    operation: "PNChannelsForGroupOperation",  
-    statusCode: 200  
-}  
+1// Example of Status  
+2{  
+3    error: false,  
+4    operation: "PNChannelsForGroupOperation",  
+5    statusCode: 200  
+6}  
+7
+  
+8// Example of Response  
+9{  
+10    channels: ["ch1", "ch2"]  
+11}  
 
-// Example of Response  
-{  
-    channels: ["ch1", "ch2"]  
-}  
 ```
 
 ## Remove channels from a channel group
 
-Requires Stream Controller add-on (enable in Admin Portal).
+Requires Stream Controller add-on.
 
 Removes channels from a channel group.
 
@@ -118,7 +119,7 @@ Removes channels from a channel group.
 
 Parameters:
 - channels (Array<string>): Channels to remove.
-- channelGroup (string): Channel group to remove from.
+- channelGroup (string): Source channel group.
 
 ### Sample code
 
@@ -143,7 +144,7 @@ Parameters:
 
 ## Delete a channel group
 
-Requires Stream Controller add-on (enable in Admin Portal).
+Requires Stream Controller add-on.
 
 Deletes a channel group.
 

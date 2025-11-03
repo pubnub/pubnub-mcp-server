@@ -1,9 +1,8 @@
 # App Context API for JavaScript SDK
 
-App Context (formerly Objects v2) provides serverless storage for user and channel metadata, and membership associations. PubNub triggers events on metadata set, update, or removal. Setting the same data again doesn't trigger an event.
+App Context (formerly Objects v2) provides serverless storage for user and channel metadata and their membership associations. PubNub triggers events on set, update, or removal (re-setting the same data doesn't trigger events). Clients can receive these events in real time.
 
-##### Supported and recommended asynchronous patterns
-PubNub supports Callbacks, Promises, and Async/Await. Recommended: Async/Await with try...catch to handle errors.
+Supported async patterns: Callbacks, Promises, and Async/Await (recommended). Use try...catch to receive error status.
 
 ## User
 
@@ -24,28 +23,28 @@ Returns a paginated list of UUID metadata. Optionally includes Custom.
 `
 ```
 
-- include (any): Whether to include additional fields.
-  - totalCount (Boolean, default false): Include total count in the paginated response.
-  - customFields (Boolean, default false): Include the Custom object in the response.
-- filter (string): Filter expression. See filtering (/docs/general/metadata/filtering).
-- sort (any): Sort by id, name, updated with asc/desc (for example, {name: 'asc'}).
-- limit (number, default 100): Number of objects to return. Default/Max: 100.
-- page (any): Cursor-based pagination.
-  - next (String): Cursor.
-  - prev (String): Cursor. Ignored if next is supplied.
+- include Type: any Default: n/a Whether to include additional fields.
+  - totalCount Type: Boolean Default: false Whether to include the total count in the paginated response.
+  - customFields Type: Boolean Default: false Whether to include the Custom object in the response.
+- filter Type: string Default: n/a Filter expression. Only matching objects are returned. See filtering (/docs/general/metadata/filtering).
+- sort Type: any Default: n/a Sort by id, name, updated with asc/desc (for example, {name: 'asc'}).
+- limit Type: number Default: 100 Number of objects to return. Default/Max: 100.
+- page Type: any Default: n/a Cursor-based pagination.
+  - next Type: String Default: n/a Cursor-based pagination.
+  - prev Type: String Default: n/a Cursor-based pagination. Ignored if next is supplied.
 
 #### Sample code
 
-```
-1
-  
-
-```
+##### Reference code
 
 ```
 1
   
+```
 
+```
+1
+  
 ```
 
 #### Response
@@ -83,7 +82,7 @@ Returns a paginated list of UUID metadata. Optionally includes Custom.
 
 ### Get user metadata
 
-Returns metadata for the specified UUID, optionally including the custom data object.
+Returns metadata for the specified UUID. Optionally includes Custom.
 
 #### Method(s)
 
@@ -95,16 +94,15 @@ Returns metadata for the specified UUID, optionally including the custom data ob
 `
 ```
 
-- uuid (string, default current uuid): UUID. If not supplied, uses current user's UUID.
-- include (any): Whether to include additional fields.
-  - customFields (Boolean, default true): Include the Custom object.
+- uuid Type: string Default: current uuid UUID. If not supplied, the current user's UUID is used.
+- include Type: any Default: n/a Whether to include additional fields.
+  - customFields Type: Boolean Default: true Whether to include the Custom object in the response.
 
 #### Sample code
 
 ```
 1
   
-
 ```
 
 #### Response
@@ -127,7 +125,7 @@ Returns metadata for the specified UUID, optionally including the custom data ob
 
 ### Set user metadata
 
-Set metadata for a UUID in the database, optionally including the custom data object. Note: Partial updates of custom are unsupported; the provided custom object overwrites existing custom data.
+Custom metadata updates overwrite the stored value.
 
 #### Method(s)
 
@@ -141,26 +139,24 @@ Set metadata for a UUID in the database, optionally including the custom data ob
 `
 ```
 
-- uuid (string, default current uuid): Unique user identifier. Defaults to current user's uuid.
-- data (any, required): JSON object with UUID metadata to set.
-  - name (string): Display name.
-  - externalId (string): User's identifier in an external system.
-  - profileUrl (string): URL of profile picture.
-  - email (string): Email address.
-  - custom (any): Custom JSON values (strings, numbers, booleans). Filtering by Custom isn’t supported.
-- include (any): Whether to include additional fields.
-  - customFields (boolean, default true): Include the Custom object in the response.
-- ifMatchesEtag (string): Use eTag from a get call to ensure conditional update. Mismatch returns HTTP 412.
+- uuid Type: string Default: current uuid Unique user identifier. If not supplied then current user's uuid is used.
+- data Type: any Default: n/a JSON object with UUID metadata to set.
+  - name Type: string Default: n/a Display name for the user.
+  - externalId Type: string Default: n/a User's identifier in an external system
+  - profileUrl Type: string Default: n/a The URL of the user's profile picture
+  - email Type: string Default: n/a The user's email address.
+  - custom Type: any Default: n/a Custom JSON values (strings, numbers, booleans). Filtering by Custom isn’t supported.
+- include Type: any Default: n/a Whether to include additional fields.
+  - customFields Type: boolean Default: true Whether to include the Custom object in the response.
+- ifMatchesEtag Type: string Default: n/a Use the eTag from a get call to ensure conditional updates. If eTags differ, server returns HTTP 412.
 
-##### API limits
-See REST API docs (/docs/sdks/rest-api/set-user-metadata) for parameter length limits.
+API limits: See REST API docs (/docs/sdks/rest-api/set-user-metadata).
 
 #### Sample code
 
 ```
 1
   
-
 ```
 
 #### Response
@@ -183,7 +179,7 @@ See REST API docs (/docs/sdks/rest-api/set-user-metadata) for parameter length l
 
 ### Remove user metadata
 
-Removes metadata for a specified UUID.
+Removes metadata for a UUID.
 
 #### Method(s)
 
@@ -194,14 +190,13 @@ Removes metadata for a specified UUID.
 `
 ```
 
-- uuid (string, default current uuid): Unique user identifier. Defaults to current user's uuid.
+- uuid Type: string Default: current uuid Unique user identifier. If not supplied then current user's uuid is used.
 
 #### Sample code
 
 ```
 1
   
-
 ```
 
 #### Response
@@ -233,22 +228,21 @@ Returns a paginated list of channel metadata. Optionally includes Custom.
 `
 ```
 
-- include (any): Whether to include additional fields.
-  - totalCount (Boolean, default false): Include total count in the paginated response.
-  - customFields (Boolean, default false): Include the Custom object.
-- filter (string): Filter expression. See filtering (/docs/general/metadata/filtering).
-- sort (any): Sort by id, name, updated with asc/desc (for example, {name: 'asc'}).
-- limit (number, default 100): Number of objects to return. Default/Max: 100.
-- page (any): Cursor-based pagination.
-  - next (string): Cursor.
-  - prev (string): Cursor. Ignored if next is supplied.
+- include Type: any Default: n/a Whether to include additional fields.
+  - totalCount Type: Boolean Default: false Whether to include the total count in the paginated response.
+  - customFields Type: Boolean Default: false Whether to include the Custom object in the response.
+- filter Type: string Default: n/a Filter expression. See filtering (/docs/general/metadata/filtering).
+- sort Type: any Default: n/a Sort by id, name, updated with asc/desc (for example, {name: 'asc'}).
+- limit Type: number Default: 100 Number of objects to return. Default/Max: 100.
+- page Type: any Default: n/a Cursor-based pagination.
+  - next Type: string Default: n/a
+  - prev Type: string Default: n/a Ignored if next is supplied.
 
 #### Sample code
 
 ```
 1
   
-
 ```
 
 #### Response
@@ -294,7 +288,7 @@ Returns a paginated list of channel metadata. Optionally includes Custom.
 
 ### Get channel metadata
 
-Returns metadata for the specified Channel, optionally including the custom data object.
+Returns metadata for the specified Channel. Optionally includes Custom.
 
 #### Method(s)
 
@@ -306,16 +300,15 @@ Returns metadata for the specified Channel, optionally including the custom data
 `
 ```
 
-- channel (string, required): Channel name.
-- include (any): Whether to include additional fields.
-  - customFields (Boolean, default true): Include the Custom object.
+- channel Type: string Default: n/a Channel name.
+- include Type: any Default: n/a Whether to include additional fields.
+  - customFields Type: Boolean Default: true Whether to include the Custom object in the response.
 
 #### Sample code
 
 ```
 1
   
-
 ```
 
 #### Response
@@ -336,7 +329,7 @@ Returns metadata for the specified Channel, optionally including the custom data
 
 ### Set channel metadata
 
-Set metadata for a Channel in the database, optionally including the custom data object. Note: Partial updates of custom are unsupported; the provided custom object overwrites existing custom data.
+Custom metadata updates overwrite the stored value.
 
 #### Method(s)
 
@@ -350,24 +343,22 @@ Set metadata for a Channel in the database, optionally including the custom data
 `
 ```
 
-- channel (string, required): Channel name.
-- data (any, required): JSON object with channel metadata to set.
-  - name (string): Channel name.
-  - description (string): Channel description.
-  - custom (any): Custom JSON values (strings, numbers, booleans). Filtering by Custom isn’t supported.
-- include (any): Whether to include additional fields.
-  - customFields (boolean, default true): Include the Custom object in the response.
-- ifMatchesEtag (string): Use eTag from a get call to ensure conditional update. Mismatch returns HTTP 412.
+- channel Type: string Default: n/a Channel name.
+- data Type: any Default: n/a JSON object with channel metadata to set.
+  - name Type: string Default: n/a Name of a channel.
+  - description Type: string Default: n/a Description of a channel.
+  - custom Type: any Default: n/a Custom JSON values (strings, numbers, booleans). Filtering by Custom isn’t supported.
+- include Type: any Default: n/a Whether to include additional fields.
+  - customFields Type: boolean Default: true Whether to include the Custom object in the response.
+- ifMatchesEtag Type: string Default: n/a Conditional update using eTag; returns HTTP 412 on mismatch.
 
-##### API limits
-See REST API docs (/docs/sdks/rest-api/set-channel-metadata) for parameter length limits.
+API limits: See REST API docs (/docs/sdks/rest-api/set-channel-metadata).
 
 #### Sample code
 
 ```
 1
   
-
 ```
 
 #### Response
@@ -393,12 +384,11 @@ See REST API docs (/docs/sdks/rest-api/set-channel-metadata) for parameter lengt
 ```
 1
   
-
 ```
 
 ### Remove channel metadata
 
-Removes the metadata from a specified channel.
+Removes metadata for a channel.
 
 #### Method(s)
 
@@ -409,14 +399,13 @@ Removes the metadata from a specified channel.
 `
 ```
 
-- channel (String, required): Channel name.
+- channel Type: String Default: n/a Channel name.
 
 #### Sample code
 
 ```
 1
   
-
 ```
 
 #### Response
@@ -433,7 +422,7 @@ Removes the metadata from a specified channel.
 
 ### Get channel memberships
 
-Returns a list of channel memberships for a user. Does not include subscriptions.
+Returns a list of channel memberships for a user (not subscriptions).
 
 #### Method(s)
 
@@ -449,28 +438,27 @@ Returns a list of channel memberships for a user. Does not include subscriptions
 `
 ```
 
-- uuid (string, default current uuid): Unique user identifier. Defaults to current user's uuid.
-- include (any): Whether to include additional fields.
-  - totalCount (boolean, default false)
-  - customFields (boolean, default false): Include membership custom fields.
-  - channelFields (boolean, default false): Include channel metadata fields.
-  - customChannelFields (boolean, default false): Include custom fields for channel metadata.
-  - statusField (boolean, default false): Include membership status.
-  - channelStatusField (boolean, default false): Include channel status.
-  - channelTypeField (boolean, default false): Include channel type.
-- filter (string): Filter expression. See filtering (/docs/general/metadata/filtering).
-- sort (any): Sort by updated, status, type, channel.id, channel.name, channel.updated, channel.status, channel.type with asc/desc (for example, {channel.name: 'asc'}).
-- limit (number, default 100): Number of objects to return. Default/Max: 100.
-- page (any): Cursor-based pagination.
-  - next (string)
-  - prev (string, ignored if next is supplied)
+- uuid Type: string Default: current uuid Unique user identifier. If not supplied then current user's uuid is used.
+- include Type: any Default: n/a Whether to include additional fields.
+  - totalCount Type: boolean Default: false
+  - customFields Type: boolean Default: false Include custom fields.
+  - channelFields Type: boolean Default: false Include channel metadata fields.
+  - customChannelFields Type: boolean Default: false Include custom fields for channel metadata.
+  - statusField Type: boolean Default: false Include membership status field.
+  - channelStatusField Type: boolean Default: false Include channel status field.
+  - channelTypeField Type: boolean Default: false Include channel type fields.
+- filter Type: string Default: n/a See filtering (/docs/general/metadata/filtering).
+- sort Type: any Default: n/a Sort by updated, status, type, channel.id, channel.name, channel.updated, channel.status, channel.type (asc/desc).
+- limit Type: number Default: 100
+- page Type: any Default: n/a
+  - next Type: string Default: n/a
+  - prev Type: string Default: n/a Ignored if next is supplied.
 
 #### Sample code
 
 ```
 1
   
-
 ```
 
 #### Response
@@ -519,7 +507,7 @@ Returns a list of channel memberships for a user. Does not include subscriptions
 
 ### Set channel memberships
 
-Set channel memberships for a UUID.
+Sets channel memberships for a UUID.
 
 #### Method(s)
 
@@ -536,35 +524,31 @@ Set channel memberships for a UUID.
 `
 ```
 
-- uuid (string, default current uuid): Unique user identifier. Defaults to current user's uuid.
-- channels (Array<string>, required): Channels to add. May be:
-  - String channel IDs, or
-  - Objects with id and optional custom, status, type (e.g., { id: "my-channel-3", custom: { owner: "PubNubUser" }, type: "regular_membership", status: "active" }).
-- include (any): Whether to include additional fields.
-  - totalCount (boolean, default false)
-  - customFields (boolean, default false)
-  - statusField (boolean, default false)
-  - typeField (boolean, default false)
-  - channelFields (boolean, default false)
-  - customChannelFields (boolean, default false)
-  - channelStatusField (boolean, default false)
-  - channelTypeField (boolean, default false)
-- filter (String): Filter expression. See filtering (/docs/general/metadata/filtering).
-- sort (any): Sort by updated, status, type, channel.id, channel.name, channel.updated, channel.status, channel.type with asc/desc.
-- limit (Number, default 100): Number of objects to return. Default/Max: 100.
-- page (any): Cursor-based pagination.
-  - next (string)
-  - prev (string, ignored if next is supplied)
+- uuid Type: string Default: current uuid Unique user identifier. If not supplied then current user's uuid is used.
+- channels Type: Array<string> Default: n/a Channels to add to membership. May be strings (channel id) or objects with custom, status, type (for example: { id: "my-channel-3", custom: { owner: "PubNubUser" }, type: "regular_membership", status: "active" }).
+- include Type: any Default: n/a Whether to include additional fields.
+  - totalCount Type: boolean Default: false
+  - customFields Type: boolean Default: false Include membership custom fields.
+  - statusField Type: boolean Default: false Include membership status field.
+  - typeField Type: boolean Default: false Include membership type field.
+  - channelFields Type: boolean Default: false Include channel metadata fields.
+  - customChannelFields Type: boolean Default: false Include custom fields for channel metadata.
+  - channelStatusField Type: boolean Default: false Include channel status field.
+  - channelTypeField Type: boolean Default: false Include channel type fields.
+- filter Type: String Default: n/a See filtering (/docs/general/metadata/filtering).
+- sort Type: any Default: n/a Sort by updated, status, type, channel.id, channel.name, channel.updated, channel.status, channel.type (asc/desc).
+- limit Type: Number Default: 100
+- page Type: any Default: n/a
+  - next Type: string Default: n/a
+  - prev Type: string Default: n/a Ignored if next is supplied.
 
-##### API limits
-See REST API docs (/docs/sdks/rest-api/set-membership-metadata) for parameter length limits.
+API limits: See REST API docs (/docs/sdks/rest-api/set-membership-metadata).
 
 #### Sample code
 
 ```
 1
   
-
 ```
 
 #### Response
@@ -613,7 +597,7 @@ See REST API docs (/docs/sdks/rest-api/set-membership-metadata) for parameter le
 
 ### Remove channel memberships
 
-Remove channel memberships for a UUID.
+Removes channel memberships for a UUID.
 
 #### Method(s)
 
@@ -630,26 +614,25 @@ Remove channel memberships for a UUID.
 `
 ```
 
-- uuid (string, default current uuid): Unique user identifier. Defaults to current user's uuid.
-- channels (Array<string>, required): Channels to remove from membership.
-- include (any): Whether to include additional fields.
-  - totalCount (boolean, default false)
-  - customFields (boolean, default false)
-  - channelFields (boolean, default false)
-  - customChannelFields (boolean, default false)
-- filter (string): Filter expression. See filtering (/docs/general/metadata/filtering).
-- sort (any): Sort by updated, channel.id, channel.name, channel.updated with asc/desc.
-- limit (Number, default 100): Number of objects to return. Default/Max: 100.
-- page (any): Cursor-based pagination.
-  - next (string)
-  - prev (string, ignored if next is supplied)
+- uuid Type: string Default: current uuid Unique user identifier. If not supplied then current user's uuid is used.
+- channels Type: Array<string> Default: n/a Channels to remove from membership.
+- include Type: any Default: n/a Whether to include additional fields.
+  - totalCount Type: boolean Default: false
+  - customFields Type: boolean Default: false Include Custom.
+  - channelFields Type: boolean Default: false Include channel metadata fields.
+  - customChannelFields Type: boolean Default: false Include custom fields for channel metadata.
+- filter Type: string Default: n/a See filtering (/docs/general/metadata/filtering).
+- sort Type: any Default: n/a Sort by updated, channel.id, channel.name, channel.updated (asc/desc).
+- limit Type: Number Default: 100
+- page Type: any Default: n/a
+  - next Type: string Default: n/a
+  - prev Type: string Default: n/a Ignored if next is supplied.
 
 #### Sample code
 
 ```
 1
   
-
 ```
 
 #### Response
@@ -716,28 +699,27 @@ Returns a list of channel members. Includes user metadata when available.
 `
 ```
 
-- channel (string, required): Channel name.
-- include (any): Whether to include additional fields.
-  - totalCount (boolean, default false)
-  - customFields (boolean, default false)
-  - UUIDFields (boolean, default false): Include UUID metadata fields.
-  - customUUIDFields (boolean, default false): Include custom fields for UUID metadata.
-  - statusField (boolean, default false): Include member status.
-  - UUIDStatusField (boolean, default false): Include member status.
-  - UUIDTypeField (boolean, default false): Include member type.
-- filter (String): Filter expression. See filtering (/docs/general/metadata/filtering).
-- sort (any): Sort by updated, status, type, uuid.id, uuid.name, uuid.updated, uuid.status, uuid.type with asc/desc (for example, {uuid.name: 'asc'}).
-- limit (number, default 100): Number of objects to return. Default/Max: 100.
-- page (any): Cursor-based pagination.
-  - next (string)
-  - prev (string, ignored if next is supplied)
+- channel Type: string Default: n/a Channel name.
+- include Type: any Default: n/a Whether to include additional fields.
+  - totalCount Type: boolean Default: false
+  - customFields Type: boolean Default: false Include Custom.
+  - UUIDFields Type: boolean Default: false Include UUID metadata fields.
+  - customUUIDFields Type: boolean Default: false Include custom fields for UUID metadata.
+  - statusField Type: boolean Default: false Include the member's status field.
+  - UUIDStatusField Type: boolean Default: false Include the member's status field.
+  - UUIDTypeField Type: boolean Default: false Include member's type fields.
+- filter Type: String Default: n/a See filtering (/docs/general/metadata/filtering).
+- sort Type: any Default: n/a Sort by updated, status, type, uuid.id, uuid.name, uuid.updated, uuid.status, uuid.type (asc/desc).
+- limit Type: number Default: 100
+- page Type: any Default: n/a
+  - next Type: string Default: n/a
+  - prev Type: string Default: n/a Ignored if next is supplied.
 
 #### Sample code
 
 ```
 1
   
-
 ```
 
 #### Response
@@ -806,35 +788,31 @@ Sets members in a channel.
 `
 ```
 
-- channel (string, required): Channel name.
-- uuids (Array, required): Members to add. May be:
-  - String UUIDs, or
-  - Objects with id and optional custom (e.g., { id: "uuid-3", custom: { role: "Super Admin" } }).
-- include (any): Whether to include additional fields.
-  - totalCount (boolean, default false)
-  - customFields (boolean, default false)
-  - statusField (boolean, default false)
-  - typeField (boolean, default false)
-  - UUIDFields (boolean, default false)
-  - customUUIDFields (boolean, default false)
-  - UUIDStatusField (boolean, default false)
-  - UUIDTypeField (boolean, default false)
-- filter (string): Filter expression. See filtering (/docs/general/metadata/filtering).
-- sort (any): Sort by updated, status, type, uuid.id, uuid.name, uuid.updated, uuid.status, uuid.type with asc/desc.
-- limit (number, default 100): Number of objects to return. Default/Max: 100.
-- page (any): Cursor-based pagination.
-  - next (string)
-  - prev (string, ignored if next is supplied)
+- channel Type: string Default: n/a Channel name.
+- uuids Type: Array Default: n/a Members to add. May be strings (uuid) or objects with custom (for example: { id: "uuid-3", custom: { role: "Super Admin" } }).
+- include Type: any Default: n/a Whether to include additional fields.
+  - totalCount Type: boolean Default: false
+  - customFields Type: boolean Default: false Include Custom.
+  - statusField Type: boolean Default: false Include member's custom status field.
+  - typeField Type: boolean Default: false Include member's custom type field.
+  - UUIDFields Type: boolean Default: false Include UUID metadata fields.
+  - customUUIDFields Type: boolean Default: false Include custom fields for UUIDs metadata.
+  - UUIDStatusField Type: boolean Default: false Include the member's status field.
+  - UUIDTypeField Type: boolean Default: false Include the member's type field.
+- filter Type: string Default: n/a See filtering (/docs/general/metadata/filtering).
+- sort Type: any Default: n/a Sort by updated, status, type, uuid.id, uuid.name, uuid.updated, uuid.status, uuid.type (asc/desc).
+- limit Type: number Default: 100
+- page Type: any Default: n/a
+  - next Type: string Default: n/a
+  - prev Type: string Default: n/a Ignored if next is supplied.
 
-##### API limits
-See REST API docs (/docs/sdks/rest-api/set-channel-members-metadata) for parameter length limits.
+API limits: See REST API docs (/docs/sdks/rest-api/set-channel-members-metadata).
 
 #### Sample code
 
 ```
 1
   
-
 ```
 
 #### Response
@@ -886,7 +864,7 @@ See REST API docs (/docs/sdks/rest-api/set-channel-members-metadata) for paramet
 
 ### Remove channel members
 
-Remove members from a Channel.
+Removes members from a channel.
 
 #### Method(s)
 
@@ -903,26 +881,25 @@ Remove members from a Channel.
 `
 ```
 
-- channel (string, required): Channel name.
-- uuids (String[], required): Members to remove.
-- include (any): Whether to include additional fields.
-  - totalCount (boolean, default false)
-  - customFields (boolean, default false)
-  - UUIDFields (boolean, default false)
-  - customUUIDFields (boolean, default false)
-- filter (string): Filter expression. See filtering (/docs/general/metadata/filtering).
-- sort (any): Sort by updated, uuid.id, uuid.name, uuid.updated with asc/desc.
-- limit (number, default 100): Number of objects to return. Default/Max: 100.
-- page (any): Cursor-based pagination.
-  - next (string)
-  - prev (string, ignored if next is supplied)
+- channel Type: string Default: n/a Channel name.
+- uuids Type: String[] Default: n/a Members to remove.
+- include Type: any Default: n/a Whether to include additional fields.
+  - totalCount Type: boolean Default: false
+  - customFields Type: boolean Default: false Include Custom.
+  - UUIDFields Type: boolean Default: false Include UUID metadata fields.
+  - customUUIDFields Type: boolean Default: false Include custom fields for UUID metadata.
+- filter Type: string Default: n/a See filtering (/docs/general/metadata/filtering).
+- sort Type: any Default: n/a Sort by updated, uuid.id, uuid.name, uuid.updated (asc/desc).
+- limit Type: number Default: 100
+- page Type: any Default: n/a
+  - next Type: string Default: n/a
+  - prev Type: string Default: n/a Ignored if next is supplied.
 
 #### Sample code
 
 ```
 1
   
-
 ```
 
 #### Response

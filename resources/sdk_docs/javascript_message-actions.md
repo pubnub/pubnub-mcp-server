@@ -1,20 +1,28 @@
 # Message Actions API for JavaScript SDK
 
-Use message actions to add or remove metadata on published messages (for example, receipts and reactions). Subscribe to channels to receive message action events. You can also fetch past actions from Message Persistence (on demand or when fetching original messages).
+Use message actions to add/remove metadata on published messages (for example, receipts and reactions). Clients subscribe to channels to receive message action events and can fetch past message actions from Message Persistence (on demand or with original messages).
 
-- Supported async patterns: Callbacks, Promises, and Async/Await (recommended). Use try...catch to handle errors.
-- Message Actions is the low-level API for arbitrary metadata; Message Reactions is the same API used for emoji/social reactions.
+##### Supported and recommended asynchronous patterns
+- Supports Callbacks, Promises, and Async/Await.
+- Recommended: Async/Await. Add try...catch to receive error status.
+
+##### Reactions
+“Message Reactions” are message actions used specifically for emoji/social reactions.
+
+##### Message Actions vs. Message Reactions
+- Message Actions: general-purpose metadata on messages (receipts, delivery confirmations, custom data).
+- Message Reactions: the same API used for emoji reactions; terminology varies in Core/Chat SDKs.
 
 ## Add message action
 
-Requires Message Persistence. Enable it in the Admin Portal: https://admin.pubnub.com/ (see: https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
+##### Requires Message Persistence
+Enable Message Persistence for your key in the Admin Portal.
 
 Add an action to a published message. The response includes the added action.
 
 ### Method(s)
 
 Use this JavaScript method:
-
 ```
 `1addMessageAction({  
 2    channel: string,  
@@ -34,21 +42,18 @@ Parameters:
 ### Sample code
 
 ##### Reference code
+This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
+```
+1
+  
+```
 
 ```
 1
   
-
-```
-
-```
-1
-  
-
 ```
 
 ### Returns
-
 ```
 1// Example of status  
 2{  
@@ -68,19 +73,18 @@ Parameters:
 15        "messageTimetoken": "15610547826969050"  
 16    }  
 17}  
-
 ```
 
 ## Remove message action
 
-Requires Message Persistence. Enable it in the Admin Portal: https://admin.pubnub.com/ (see: https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
+##### Requires Message Persistence
+Enable Message Persistence for your key in the Admin Portal.
 
 Remove a previously added action from a published message. The response is empty.
 
 ### Method(s)
 
 Use this JavaScript method:
-
 ```
 `1removeMessageAction({  
 2    channel: string,  
@@ -96,15 +100,12 @@ Parameters:
 - actionTimetoken (string): Timetoken of the message action to remove.
 
 ### Sample code
-
 ```
 1
   
-
 ```
 
 ### Returns
-
 ```
 1// Example of status  
 2{  
@@ -118,21 +119,21 @@ Parameters:
 9{  
 10    "data": {}  
 11}  
-
 ```
 
 ## Get message actions
 
-Requires Message Persistence. Enable it in the Admin Portal: https://admin.pubnub.com/ (see: https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
+##### Requires Message Persistence
+Enable Message Persistence for your key in the Admin Portal.
 
-Get a list of message actions in a channel. Results are sorted by action timetoken in ascending order.
+Get a list of message actions in a channel. The response sorts actions by the action timetoken in ascending order.
 
-Truncated response: If limits are hit, the response includes a more property with parameters for pagination. Make iterative calls, adjusting parameters to fetch additional actions.
+##### Truncated response
+If the response is truncated, a more property is returned with additional parameters. Send iterative calls, adjusting parameters to fetch more actions.
 
 ### Method(s)
 
 Use this JavaScript method:
-
 ```
 `1getMessageActions({  
 2    channel: string,  
@@ -150,15 +151,12 @@ Parameters:
 - limit (number): Number of message actions to return.
 
 ### Sample code
-
 ```
 1
   
-
 ```
 
 ### Returns
-
 ```
 1// Example of status  
 2{  
@@ -181,5 +179,4 @@ Parameters:
 19    "start": "15646822873784630",  
 20    "end": "15645905639093361",  
 21}  
-
 ```
