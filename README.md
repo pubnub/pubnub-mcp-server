@@ -612,6 +612,23 @@ When you push a version tag (e.g., `v1.0.98`), the GitHub Actions workflow autom
 3. **Publishes to MCP Registry** - Updates the MCP Registry entry using GitHub OIDC authentication
 4. **Syncs Versions** - Ensures version consistency between `package.json` and `server.json`
 
+
+### Benchmarking Boot Speed
+
+> Note that ZSH and BASH are required.
+
+Run this command usinsg `zsh` to benchmark the boot speed of the MCP server:
+
+```shell
+./test_boot_speed.sh
+```
+
+Or run command directly from zsh.
+
+```shell
+time coproc npx -y @pubnub/mcp 2>&1; pid=$!; print -r -p -- '{"jsonrpc":"2.0","id":1,"method":"tools/list","params":{}}'; IFS= read -r -p _; kill -KILL $pid | grep total
+```
+
 ### Manual Publishing (Alternative)
 
 If you need to publish manually:
