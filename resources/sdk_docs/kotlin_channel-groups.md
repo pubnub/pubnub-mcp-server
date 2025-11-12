@@ -1,12 +1,15 @@
 # Channel Groups API for Kotlin SDK
 
 ##### Breaking changes in v9.0.0
-Kotlin SDK v9.0.0 unifies Kotlin and Java SDKs, changes client instantiation, async API callbacks, and status events. Review the Java/Kotlin SDK migration guide.
+- Kotlin and Java SDKs share a unified codebase.
+- New PubNub client instantiation.
+- Asynchronous API callbacks and emitted status events changed.
+- Migration guide: https://www.pubnub.com/docs/general/resources/migration-guides/java-kotlin-sdk-migration-guide
 
-Channel groups let you bundle many channels and subscribe to the group. You can’t publish to a channel group; publish to individual channels.
+Channel groups let you subscribe to many channels at once. You cannot publish to a channel group; publish to individual channels instead.
 
 ##### Request execution
-Most SDK methods return an Endpoint. You must call .sync() or .async() to execute.
+Most methods return an Endpoint you must execute. Call .sync() or .async() or the operation won't run.
 
 ```
 1val channel = pubnub.channel("channelName")  
@@ -24,13 +27,12 @@ Most SDK methods return an Endpoint. You must call .sync() or .async() to execut
 ## Add channels to a channel group
 
 ##### Requires Stream Controller add-on
-Enable Stream Controller for your key in the Admin Portal. See the support page for enabling add-ons.
+Enable Stream Controller for your key in the Admin Portal: https://admin.pubnub.com/ (How-to: https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-)
 
 Adds channels to a channel group.
 
 ### Method(s)
-
-Maximum number of channels: 200 per API call.
+Maximum number of channels per call: 200.
 
 ```
 `1pubnub.addChannelsToChannelGroup(  
@@ -49,16 +51,15 @@ Parameters:
 ```
 1
   
-
 ```
 
 ### Response
-No actionable data; check result.isFailure or handle result.onFailure { }.
+No actionable data is returned. Check result.isFailure or handle via result.onFailure { exception -> }.
 
 ## List channels in a channel group
 
 ##### Requires Stream Controller add-on
-Enable Stream Controller for your key in the Admin Portal. See the support page for enabling add-ons.
+Enable Stream Controller for your key in the Admin Portal: https://admin.pubnub.com/ (How-to: https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-)
 
 Lists all channels in a channel group.
 
@@ -79,17 +80,16 @@ Parameters:
 ```
 1
   
-
 ```
 
 ### Returns
 PNChannelGroupsAllChannelsResult:
-- channels (List<String>): Channels in the group.
+- channels: List<String> — channels in the group.
 
 ## Remove channels from a channel group
 
 ##### Requires Stream Controller add-on
-Enable Stream Controller for your key in the Admin Portal. See the support page for enabling add-ons.
+Enable Stream Controller for your key in the Admin Portal: https://admin.pubnub.com/ (How-to: https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-)
 
 Removes channels from a channel group.
 
@@ -105,23 +105,22 @@ Removes channels from a channel group.
 
 Parameters:
 - channels (List<String>): Channels to remove.
-- channelGroup (String): Group to remove from.
+- channelGroup (String): Channel group to remove from.
 
 ### Sample code
 
 ```
 1
   
-
 ```
 
 ### Returns
-No actionable data; check result.isFailure or handle result.onFailure { }.
+No actionable data is returned. Check result.isFailure or handle via result.onFailure { exception -> }.
 
 ## Delete a channel group
 
 ##### Requires Stream Controller add-on
-Enable Stream Controller for your key in the Admin Portal. See the support page for enabling add-ons.
+Enable Stream Controller for your key in the Admin Portal: https://admin.pubnub.com/ (How-to: https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-)
 
 Deletes a channel group.
 
@@ -135,17 +134,16 @@ Deletes a channel group.
 ```
 
 Parameters:
-- channelGroup (String): Group to delete.
+- channelGroup (String): Channel group to delete.
 
 ### Sample code
 
 ```
 1
   
-
 ```
 
 ### Returns
-No actionable data; check result.isFailure or handle result.onFailure { }.
+No actionable data is returned. Check result.isFailure or handle via result.onFailure { exception -> }.
 
 Last updated on Sep 3, 2025

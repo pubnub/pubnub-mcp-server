@@ -1,24 +1,20 @@
 # Presence API for PHP SDK
 
-Presence tracks online/offline users, occupancy, subscriptions, and presence state.
+Presence tracks who is online/offline and stores custom state information:
+- Join/leave events per channel
+- Channel occupancy (user count)
+- Channels a user/UUID is subscribed to
+- Presence state per user
 
-Requires Presence: Enable the Presence add-on for your key in the Admin Portal. See Presence Events to receive events.
+Requires Presence add-on enabled for your key in the Admin Portal. For events, see Presence Events. Learn more in Presence overview.
 
 ## Here now
 
-Returns current channel state: UUIDs subscribed and total occupancy.
+Returns current state of channels: subscribed UUIDs and occupancy count.
 
-##### Requires Presence
-
-Requires Presence add-on enabled. See Presence Events.
-
-##### Cache
-
-Response cache time: 3 seconds.
+- Cache: 3 seconds
 
 ### Method(s)
-
-To call Here Now:
 
 ```
 `1$pubnub->hereNow()  
@@ -26,21 +22,25 @@ To call Here Now:
 3    ->channelGroups(string|array)  
 4    ->includeState(boolean)  
 5    ->includeUuids(boolean)  
-6    ->sync();  
+6    ->limit(int)  
+7    ->offset(int)  
+8    ->sync();  
 `
 ```
 
 Parameters:
-- channels (String|Array): Channels to query.
+- channels (String|Array, required): Channels to query.
 - channelGroups (String|Array): Channel groups to query. Wildcards not supported.
-- includeState (Boolean, default: false): Include user presence state.
+- includeState (Boolean, default: false): Include presence states of users.
 - includeUuids (Boolean, default: true): Include UUIDs of connected clients.
+- limit (Integer, default: 1000): Max occupants per channel, 0–1000. Use 0 for occupancy-only.
+- offset (Integer): Zero-based start index for pagination. Must be >= 0. Requires limit > 0.
 
 ### Sample code
 
 #### Get a list of UUIDs subscribed to channel
 
-##### Reference code
+Reference code:
 
 ```
 1
@@ -53,16 +53,14 @@ Parameters:
 hereNow() returns PNHereNowResult:
 - getTotalChannels() (Integer): Total channels.
 - getTotalOccupancy() (Integer): Total occupancy.
-- getChannels() (Array): Array of PNHereNowChannelData.
+- getChannels() (Array): Array of PNHereNowChannelData per channel.
 
-#### PNHereNowChannelData
-
+PNHereNowChannelData:
 - getChannelName() (String): Channel name.
 - getOccupancy() (Integer): Channel occupancy.
 - getOccupants() (Array): Array of PNHereNowOccupantData.
 
-#### PNHereNowOccupantData
-
+PNHereNowOccupantData:
 - getUuid() (String): User UUID.
 - getState() (Array): User state.
 
@@ -70,20 +68,13 @@ hereNow() returns PNHereNowResult:
 
 #### Returning state
 
-##### Requires Presence
-
-Requires Presence add-on enabled. See Presence Events.
+```
+1
+  
 
 ```
-`1$result = $pubnub->hereNow()  
-2                ->channels("my_channel")  
-3                ->includeUuids(true)  
-4                ->includeState(true)  
-5                ->sync();  
-`
-```
 
-##### Example response
+Example response
 
 ```
 `1PubNub\Models\Consumer\Presence\PNHereNowResult Object(  
@@ -121,22 +112,15 @@ Requires Presence add-on enabled. See Presence Events.
 
 #### Return occupancy only
 
-##### Requires Presence
-
-Requires Presence add-on enabled. See Presence Events.
-
-Return only occupancy by disabling UUIDs and state:
+Return only occupancy for a channel by setting includeUuids to false.
 
 ```
-`1$result = $pubnub->hereNow()  
-2                ->channels("my_channel")  
-3                ->includeUuids(false)  
-4                ->includeState(false)  
-5                ->sync();  
-`
+1
+  
+
 ```
 
-##### Example response
+Example response
 
 ```
 `1PubNub\Models\Consumer\Presence\PNHereNowResult Object(  
@@ -175,15 +159,12 @@ Return only occupancy by disabling UUIDs and state:
 #### Here now for channel groups
 
 ```
-`1$pubnub->hereNow()  
-2    ->channelGroups(["cg1", "cg2", "cg3"])  
-3    ->includeUuids(true)  
-4    ->includeState(true)  
-5    ->sync();  
-`
+1
+  
+
 ```
 
-##### Example response
+Example response
 
 ```
 `1(  
@@ -219,15 +200,9 @@ Return only occupancy by disabling UUIDs and state:
 
 ## Where now
 
-Returns the list of channels a UUID is subscribed to.
+Returns list of channels a UUID is subscribed to.
 
-##### Requires Presence
-
-Requires Presence add-on enabled. See Presence Events.
-
-##### Timeout events
-
-If the app restarts (or the page refreshes) within the heartbeat window, no timeout event is generated.
+- Timeout events: If the app restarts (or page refreshes) within the heartbeat window, no timeout event is generated.
 
 ### Method(s)
 
@@ -239,22 +214,22 @@ If the app restarts (or the page refreshes) within the heartbeat window, no time
 ```
 
 Parameters:
-- uuid (String): UUID to query.
+- uuid (String, required): UUID to inspect.
 
 ### Sample code
 
 ```
-`1$result = $pubnub->whereNow()  
-2              ->sync();  
-`
+1
+  
+
 ```
 
 ### Rest response from server
 
-Returns list of channels for the UUID:
-- channels: ["String", ...]
+Returns channels array for the uuid:
+- channels: ["String", ...] — List of channels the uuid is subscribed to.
 
-#### Example response
+Example response
 
 ```
 `1{  
@@ -270,19 +245,14 @@ Returns list of channels for the UUID:
 ### Other examples
 
 ```
-`1$result = $pubnub->whereNow()  
-2                ->uuid("his-uuid")  
-3                ->sync();  
-`
+1
+  
+
 ```
 
 ## User state
 
-Clients can set dynamic custom state (for example, score, game state, location) on channels while subscribed. State isn’t persisted; it’s lost on disconnect. See Presence State.
-
-##### Requires Presence
-
-Requires Presence add-on enabled. See Presence Events.
+Clients can set dynamic custom state (for example, score or location) per channel while subscribed. State is not persisted and is lost on disconnect. See Presence State.
 
 ### Method(s)
 
@@ -300,7 +270,7 @@ Set State:
 Parameters:
 - channels (String|Array): Channels to set state.
 - channelGroups (String|Array): Channel groups to set state.
-- state (Array): State to set.
+- state (Array): State map to set.
 
 Get state:
 
@@ -316,27 +286,24 @@ Get state:
 Parameters:
 - channels (String|Array): Channels to get state.
 - channelGroups (String|Array): Channel groups to get state.
-- uuid (String): UUID to get state for.
+- uuid (String): UUID to fetch state for.
 
 ### Sample code
 
 #### Set state
 
 ```
-`1$pubnub->setState()  
-2    ->channels(["ch1", "ch2", "ch3"])  
-3    ->state(["age" => 30])  
-4    ->sync();  
-`
+1
+  
+
 ```
 
 #### Get state
 
 ```
-`1$pubnub->getState()  
-2    ->channels(["ch1", "ch2", "ch3"])  
-3    ->sync();  
-`
+1
+  
+
 ```
 
 ### Response
@@ -352,10 +319,6 @@ getState() returns PNGetStateResult:
 #### Set state for channels in a channel group
 
 ```
-`1$pubnub->setState()**2    ->channelGroups(["gr1", "gr2", "gr3"])  
-3    ->state(["age" => 30])  
-4    ->sync();  
-`
+1
+**
 ```
-
-Last updated on Sep 3, 2025**

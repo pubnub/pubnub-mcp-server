@@ -1,24 +1,19 @@
 # Message Actions API for Swift Native SDK
 
-Use message actions to add/remove metadata on published messages (for example, receipts and reactions). Subscribe to a channel to receive message action events in real time, or fetch past message actions from Message Persistence, independently or alongside original messages.
+Use message actions to add/remove metadata on published messages (for example, receipts or reactions). Subscribe to a channel to receive message action events in real time, or fetch past message actions from Message Persistence.
 
-##### Reactions
-“Message Reactions” is the use of Message Actions for emoji/social reactions.
-
-##### Message Actions vs. Message Reactions
-- Message Actions: Low-level API to attach metadata (read receipts, delivery confirmations, custom data).
-- Message Reactions: The same API used for emoji/social reactions in PubNub Core and Chat SDKs.
+- Message Actions: low-level API to attach metadata (read receipts, delivery confirmations, custom data).
+- Message Reactions: use of Message Actions specifically for emoji/social reactions. Same underlying API.
 
 ## Add message action
 
-##### Requires Message Persistence
-Requires Message Persistence to be enabled for your key in the Admin Portal.
+Requires Message Persistence: enable in the Admin Portal for your key.
 
 Add an action to a published message. The response includes the added action.
 
 ### Method(s)
-Use this Swift method:
 
+Use this Swift method:
 ```
 `1func addMessageAction(  
 2    channel: String,  
@@ -35,33 +30,31 @@ Parameters:
 - channel
   - Type: String
   - Default: n/a
-  - Description: Channel name to add the message action to.
+  - Channel name to add the message action to.
 - type
   - Type: String
   - Default: n/a
-  - Description: Message action type.
+  - Message action type.
 - value
   - Type: String
   - Default: n/a
-  - Description: Message action value.
+  - Message action value.
 - messageTimetoken
   - Type: Timetoken
   - Default: n/a
-  - Description: Timetoken of the target message.
+  - Timetoken of the target message.
 - custom
   - Type: PubNub.RequestConfiguration
   - Default: PubNub.RequestConfiguration()
-  - Description: Per-request configuration. See Request Configuration.
+  - Per-request configuration.
 - completion
   - Type: ((Result<PubNubMessageAction, Error>) -> Void)?
   - Default: nil
-  - Description: Async result of the call.
+  - Async result of the call.
 
 ### Completion handler result
 
-#### Success
-The PubNubMessageAction that was added.
-
+Success: The PubNubMessageAction that was added.
 ```
 1public protocol PubNubMessageAction {  
 2
@@ -92,14 +85,11 @@ The PubNubMessageAction that was added.
 
 ```
 
-#### Failure
-An Error describing the failure.
+Failure: An Error describing the failure.
 
 ### Sample code
 
-##### Reference code
-This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
-
+Reference code
 ```
 1
   
@@ -108,14 +98,13 @@ This example is a self-contained code snippet ready to be run. It includes neces
 
 ## Remove message action
 
-##### Requires Message Persistence
-Requires Message Persistence to be enabled for your key in the Admin Portal.
+Requires Message Persistence: enable in the Admin Portal for your key.
 
 Remove a previously added action from a published message.
 
 ### Method(s)
-Use this Swift method:
 
+Use this Swift method:
 ```
 `1func removeMessageActions(  
 2    channel: String,  
@@ -131,34 +120,31 @@ Parameters:
 - channel
   - Type: String
   - Default: n/a
-  - Description: Channel name to remove the message action from.
+  - Channel name to remove the message action from.
 - message
   - Type: Timetoken
   - Default: n/a
-  - Description: Timetoken of the target message.
+  - Timetoken of the target message.
 - action
   - Type: Timetoken
   - Default: n/a
-  - Description: Timetoken of the message action to remove.
+  - Timetoken of the message action to remove.
 - custom
   - Type: RequestConfiguration
   - Default: RequestConfiguration()
-  - Description: Per-request configuration.
+  - Per-request configuration.
 - completion
   - Type: ((Result<(channel: String, message: Timetoken, action: Timetoken), Error>) -> Void)?
   - Default: nil
-  - Description: Async result of the call.
+  - Async result of the call.
 
-#### Completion handler result
+### Completion handler result
 
-#### Success
-A Tuple containing the channel, message Timetoken, and action Timetoken of the action that was removed.
+Success: A Tuple containing the channel, message Timetoken, and action Timetoken of the action that was removed.
 
-#### Failure
-An Error describing the failure.
+Failure: An Error describing the failure.
 
 ### Sample code
-
 ```
 1
   
@@ -167,17 +153,15 @@ An Error describing the failure.
 
 ## Get message actions
 
-##### Requires Message Persistence
-Requires Message Persistence to be enabled for your key in the Admin Portal.
+Requires Message Persistence: enable in the Admin Portal for your key.
 
-Get a list of message actions in a channel. Actions are sorted by action timetoken in ascending order.
+Get a list of message actions in a channel, sorted by action timetoken (ascending).
 
-##### Truncated response
-When internal limits are hit, the response may be truncated and include a more property with additional parameters. Send iterative calls (adjusting parameters) to fetch more actions.
+Truncated response: When internal limits are hit, a more object is returned. Make iterative calls adjusting parameters to fetch more actions.
 
 ### Method(s)
-Use this Swift method:
 
+Use this Swift method:
 ```
 `1func fetchMessageActions(  
 2    channel: String,  
@@ -192,25 +176,23 @@ Parameters:
 - channel
   - Type: String
   - Default: n/a
-  - Description: Channel name to list message actions for.
+  - Channel name to list message actions for.
 - page
   - Type: PubNubBoundedPage?
   - Default: PubNubBoundedPageBase()
-  - Description: Paging object to specify time bounds; provides start, end, and limit.
+  - Paging object to specify time bounds; provides start, end, and limit.
 - custom
   - Type: PubNub.RequestConfiguration
   - Default: PubNub.RequestConfiguration()
-  - Description: Per-request configuration.
+  - Per-request configuration.
 - completion
-  - Type: ((Result<(channel: String, message: Timetoken, action: Timetoken), Error>) -> Void)?
+  - Type: ((Result<(actions: [PubNubMessageAction], next: PubNubBoundedPage?), Error>) -> Void)?
   - Default: nil
-  - Description: Async result of the call.
+  - Async result of the call.
 
-#### Completion handler result
+### Completion handler result
 
-#### Success
-An Array of PubNubMessageAction for the request channel, and the next request PubNubBoundedPage (if one exists).
-
+Success: An Array of PubNubMessageAction for the request channel, and the next request PubNubBoundedPage (if one exists).
 ```
 1public protocol PubNubMessageAction {  
 2
@@ -259,11 +241,9 @@ An Array of PubNubMessageAction for the request channel, and the next request Pu
 
 ```
 
-#### Failure
-An Error describing the failure.
+Failure: An Error describing the failure.
 
 ### Sample code
-
 ```
 1
 **

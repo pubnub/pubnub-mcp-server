@@ -1,15 +1,14 @@
 # Message Actions API for Objective-C SDK
 
-Use Message Actions to add/remove metadata (for example, receipts and reactions) on published messages. Clients can subscribe to receive message action events and fetch past actions from Message Persistence.
+Use Message Actions to add or remove metadata on published messages (reactions, receipts). Subscribe to channels to receive message action events. You can also fetch past actions from Message Persistence.
 
-Reactions
-- "Message Reactions" is a specific use of Message Actions for emoji/social reactions. Same API, different terminology.
+Reactions: Using Message Actions specifically for emoji/social reactions.
 
 ## Add message action
 
 Requires Message Persistence (enable in Admin Portal).
 
-Add an action to a published message. The response includes the added action.
+Add an action to a published message. Response includes the added action.
 
 ### Method(s)
 
@@ -22,14 +21,15 @@ Use this Objective-C method:
 ```
 
 Parameters:
-- request (PNAddMessageActionRequest): message action details.
-- block (PNAddMessageActionCompletionBlock): completion block.
+- request (PNAddMessageActionRequest): Message action details.
+- block (PNAddMessageActionCompletionBlock): Completion block.
 
-PNAddMessageActionRequest:
-- type (NSString, required): Action type (max 15 chars).
-- value (NSString, required): Action value.
-- channel (NSString, required): Channel name of the target message.
-- messageTimetoken (NSNumber, required): Timetoken of the target message.
+#### PNAddMessageActionRequest
+
+- type (NSString): Message action type. Max 15 characters.
+- value (NSString): Message action value.
+- channel (NSString): Channel name of the target message.
+- messageTimetoken (NSNumber): Timetoken of the target message.
 
 ### Sample code
 
@@ -97,7 +97,6 @@ PNAddMessageActionRequest:
 53    NSLog(@"📢 Received message action event!");  
 54    NSLog(@"Action type: %@, value: %@", action.data.action.type, action.data.action.value);  
 55}  
-
 ```
 
 ### Response
@@ -114,21 +113,17 @@ PNAddMessageActionRequest:
 7
   
 8@interface PNAddMessageActionStatus : PNAcknowledgmentStatus  
-9
-  
+9  
 10// Add message action request processed information.  
 11@property (nonatomic, readonly, strong) PNAddMessageActionData *data;  
 12
   
 13@end  
-
 ```
 
 ## Add message action (builder pattern)
 
-Requires Message Persistence.
-
-Add an action to a published message. The response includes the added action.
+Requires Message Persistence (enable in Admin Portal).
 
 ### Method(s)
 
@@ -145,10 +140,10 @@ Use this Objective-C method:
 ```
 
 Parameters:
-- channel (NSString, required): Target message channel.
-- messageTimetoken (NSNumber, required): Timetoken of the target message.
-- type (NSString, required): Action type.
-- value (NSString, required): Action value.
+- channel (NSString): Channel name of the target message.
+- messageTimetoken (NSNumber): Timetoken of the target message.
+- type (NSString): Message action type.
+- value (NSString): Message action value.
 - block (PNAddMessageActionCompletionBlock): Completion block.
 
 ### Sample code
@@ -195,21 +190,19 @@ Parameters:
 7
   
 8@interface PNAddMessageActionStatus : PNAcknowledgmentStatus  
-9
-  
+9  
 10// Add message action request processed information.  
 11@property (nonatomic, readonly, strong) PNAddMessageActionData *data;  
 12
   
 13@end  
-
 ```
 
 ## Remove message action
 
-Requires Message Persistence.
+Requires Message Persistence (enable in Admin Portal).
 
-Remove a previously added action from a published message. The response is empty.
+Remove a previously added action from a published message. Response is empty.
 
 ### Method(s)
 
@@ -222,13 +215,14 @@ Use this Objective-C method:
 ```
 
 Parameters:
-- request (PNRemoveMessageActionRequest): message action to remove.
-- block (PNRemoveMessageActionCompletionBlock): completion block.
+- request (PNRemoveMessageActionRequest): Message action to remove.
+- block (PNRemoveMessageActionCompletionBlock): Completion block.
 
-PNRemoveMessageActionRequest:
-- actionTimetoken (NSNumber, required): Timetoken of the message action to remove.
-- channel (NSString, required): Target message channel.
-- messageTimetoken (NSNumber, required): Timetoken of the target message.
+#### PNRemoveMessageActionRequest
+
+- actionTimetoken (NSNumber): Timetoken of the message action to remove.
+- channel (NSString): Channel name of the target message.
+- messageTimetoken (NSNumber): Timetoken of the target message.
 
 ### Sample code
 
@@ -253,7 +247,6 @@ PNRemoveMessageActionRequest:
 16         */  
 17    }  
 18}];  
-
 ```
 
 ### Response
@@ -281,14 +274,11 @@ PNRemoveMessageActionRequest:
 15
   
 16@end  
-
 ```
 
 ## Remove message action (builder pattern)
 
-Requires Message Persistence.
-
-Remove a previously added action from a published message. The response is empty.
+Requires Message Persistence (enable in Admin Portal).
 
 ### Method(s)
 
@@ -302,9 +292,9 @@ Remove a previously added action from a published message. The response is empty
 ```
 
 Parameters:
-- channel (NSString, required): Target message channel.
-- messageTimetoken (NSNumber, required): Timetoken of the target message.
-- actionTimetoken (NSNumber, required): Timetoken of the action to remove.
+- channel (NSString): Channel name of the target message.
+- messageTimetoken (NSNumber): Timetoken of the target message.
+- actionTimetoken (NSNumber): Timetoken of the message action to remove.
 - block (PNRemoveMessageActionCompletionBlock): Completion block.
 
 ### Sample code
@@ -354,14 +344,13 @@ Parameters:
 15
   
 16@end  
-
 ```
 
 ## Get message actions
 
-Requires Message Persistence.
+Requires Message Persistence (enable in Admin Portal).
 
-Get a list of message actions in a channel. Response is sorted by action timetoken (ascending).
+Get a list of message actions in a channel. Actions are sorted by action timetoken in ascending order.
 
 ### Method(s)
 
@@ -374,14 +363,15 @@ Use this Objective-C method:
 ```
 
 Parameters:
-- request (PNFetchMessageActionsRequest): parameters to fetch message actions.
-- block (PNFetchMessageActionsCompletionBlock): completion block.
+- request (PNFetchMessageActionsRequest): Parameters to fetch message actions.
+- block (PNFetchMessageActionsCompletionBlock): Completion block.
 
-PNFetchMessageActionsRequest:
-- start (NSNumber, optional): Action timetoken for the start of the range (exclusive).
-- end (NSNumber, optional): Action timetoken for the end of the range (inclusive).
-- limit (NSUInteger, optional): Number of actions to return.
-- channel (NSString, required): Channel to list actions for.
+#### PNFetchMessageActionsRequest
+
+- start (NSNumber): Action timetoken for start of range (exclusive).
+- end (NSNumber): Action timetoken for end of range (inclusive).
+- limit (NSUInteger): Number of actions to return.
+- channel (NSString): Channel name to list message actions for.
 
 ### Sample code
 
@@ -414,7 +404,6 @@ PNFetchMessageActionsRequest:
 24         */  
 25    }  
 26}];  
-
 ```
 
 ### Response
@@ -437,23 +426,18 @@ PNFetchMessageActionsRequest:
   
 13// Fetched messages actions time range end (newest action timetoken).  
 14@property (nonatomic, readonly, strong) NSNumber *end;  
-15
-  
+15  
 16@end  
-17
-  
+17  
 18@interface PNFetchMessageActionsResult : PNResult  
-19
-  
+19  
 20// Fetch message actions request processed information.  
 21@property (nonatomic, readonly, strong) PNFetchMessageActionsData *data;  
-22
-  
+22  
 23@end  
-
 ```
 
-Error response used in case of failure:
+Error response used in case of Message Action API call failure:
 
 ```
 1@interface PNErrorData : PNServiceData  
@@ -478,18 +462,17 @@ Error response used in case of failure:
 15
   
 16@end  
-
 ```
 
 ## Get Message Reactions (builder pattern)
 
-Requires Message Persistence.
+Requires Message Persistence (enable in Admin Portal).
 
-Get a list of message actions in a channel. Returns actions sorted by action timetoken (ascending).
+Get a list of message actions in a channel. Returns actions sorted by action timetoken in ascending order.
 
 ### Method(s)
 
-To get Message Actions you can use the following method(s) in the Objective-C SDK:
+To get Message Actions:
 
 ```
 `1fetchMessageActions()  
@@ -502,10 +485,10 @@ To get Message Actions you can use the following method(s) in the Objective-C SD
 ```
 
 Parameters:
-- channel (NSString, required): Channel to retrieve actions from.
-- start (NSNumber, optional): Start timetoken; return values will be less than start.
-- end (NSNumber, optional): End timetoken; return values will be greater than or equal to end.
-- limit (NSUInteger, optional): Number of actions to return.
+- channel (NSString): Channel to retrieve actions from.
+- start (NSNumber): Start timetoken; return values will be less than start.
+- end (NSNumber): End timetoken; return values will be greater than or equal to end.
+- limit (NSUInteger): Number of actions to return.
 - block (PNFetchMessageActionsCompletionBlock): Completion block.
 
 ### Sample code
@@ -537,12 +520,11 @@ Parameters:
 23             */  
 24        }  
 25    });  
-
 ```
 
 ### Response
 
-Response objects returned by client when fetch message actions is used:
+Response objects returned for fetch message actions:
 
 ```
 1@interface PNFetchMessageActionsData : PNServiceData  
@@ -562,23 +544,18 @@ Response objects returned by client when fetch message actions is used:
   
 13// Fetched messages actions time range end (newest action timetoken).  
 14@property (nonatomic, readonly, strong) NSNumber *end;  
-15
-  
+15  
 16@end  
-17
-  
+17  
 18@interface PNFetchMessageActionsResult : PNResult  
-19
-  
+19  
 20// Fetch message actions request processed information.  
 21@property (nonatomic, readonly, strong) PNFetchMessageActionsData *data;  
-22
-  
+22  
 23@end  
-
 ```
 
-Error response used in case of failure:
+Error response used in case of Message Action API call failure:
 
 ```
 1@interface PNErrorData : PNServiceData  
@@ -602,5 +579,4 @@ Error response used in case of failure:
 14@property (nonatomic, readonly, strong) PNErrorData *errorData;  
 15
 **16@end  
-
 ```

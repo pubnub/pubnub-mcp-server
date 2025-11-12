@@ -1,18 +1,21 @@
 # Presence API for Go SDK
 
-Presence tracks who is online/offline and stores presence state:
-- Join/leave events per channel
-- Occupancy (user count) per channel
+Presence lets you track who is online/offline and store custom state. It shows:
+- Join/leave events
+- Channel occupancy
 - Channels a UUID is subscribed to
 - Presence state per user
 
-Requires Presence add-on enabled for your key in the Admin Portal. See Presence overview and Presence Events.
+Learn more in the Presence overview.
 
 ## Here now
 
-Returns current state of channels: list of UUIDs subscribed and total occupancy.
+##### Requires Presence
 
-- Cache: 3-second response cache time.
+Returns current state of channels: list of UUIDs and total occupancy.
+
+##### Cache
+3-second response cache time.
 
 ### Method(s)
 
@@ -22,21 +25,26 @@ Returns current state of channels: list of UUIDs subscribed and total occupancy.
 3    ChannelGroups([]string).  
 4    IncludeState(bool).  
 5    IncludeUUIDs(bool).  
-6    QueryParam(queryParam).  
-7    Execute()  
+6    Limit(int).  
+7    Offset(int).  
+8    QueryParam(queryParam).  
+9    Execute()  
 `
 ```
 
 Parameters:
-- Channels (Type: []string): Channels to query.
+- Channels (Type: []string, required): Channels to query.
 - ChannelGroups (Type: []string): Channel groups to query. Wildcards not supported.
-- IncludeState (Type: bool, Default: false): Include users’ presence state.
-- IncludeUUIDs (Type: bool, Default: true): Include UUIDs of connected clients.
-- QueryParam (Type: map[string]string, Default: nil): Extra query string parameters.
+- IncludeState (Type: bool, default: false): Include presence states of users.
+- IncludeUUIDs (Type: bool, default: true): Include UUIDs of connected clients.
+- Limit (Type: int, default: 1000): 0–1000. 0 returns occupancy counts only (no user details).
+- Offset (Type: int, default: 0): Zero-based starting index. Requires Limit > 0. Only included when Offset > 0. Use with Limit to paginate.
+- QueryParam (Type: map[string]string, default: nil): Custom query string parameters.
 
 ### Sample code
 
-Reference code
+##### Reference code
+Use as a template when working with examples below.
 
 #### Get a list of UUIDs subscribed to channel
 
@@ -48,7 +56,7 @@ Reference code
 
 ### Rest response from server
 
-HereNow() returns PNHereNowResult:
+PNHereNowResult:
 - TotalChannels (Type: int): Total channels.
 - TotalOccupancy (Type: int): Total occupancy.
 - Channels (Type: []HereNowChannelData)
@@ -66,6 +74,8 @@ HereNowOccupantsData:
 
 #### Returning state
 
+##### Requires Presence
+
 ```
 1
   
@@ -74,7 +84,9 @@ HereNowOccupantsData:
 
 #### Return occupancy only
 
-You can return only occupancy for a single channel by specifying the channel and setting UUIDs to false:
+##### Requires Presence
+
+You can return only occupancy for a single channel by setting UUIDs to false.
 
 ```
 1
@@ -92,9 +104,12 @@ You can return only occupancy for a single channel by specifying the channel and
 
 ## Where now
 
-Returns list of channels a UUID is subscribed to.
+##### Requires Presence
 
-- Timeout events: If the app restarts (or page refreshes) within the heartbeat window, no timeout event is generated.
+Returns the list of channels a UUID is subscribed to.
+
+##### Timeout events
+If the app restarts (or page refreshes) within the heartbeat window, no timeout event is generated.
 
 ### Method(s)
 
@@ -107,12 +122,10 @@ Returns list of channels a UUID is subscribed to.
 ```
 
 Parameters:
-- UUID (Type: string): UUID to query.
-- QueryParam (Type: map[string]string, Default: nil): Extra query string parameters.
+- UUID (Type: string, required): UUID to query. If omitted, uses the current PubNub instance UUID.
+- QueryParam (Type: map[string]string, default: nil): Custom query string parameters.
 
 ### Sample code
-
-You simply need to define the UUID.
 
 #### Get a list of channels a UUID is subscribed to
 
@@ -128,7 +141,7 @@ You simply need to define the UUID.
 
 ### Other examples
 
-If UUID is omitted, the current PubNub instance’s UUID is used.
+If UUID is omitted, the current instance UUID is used.
 
 ```
 1
@@ -138,7 +151,9 @@ If UUID is omitted, the current PubNub instance’s UUID is used.
 
 ## User state
 
-Clients can set dynamic custom state (for example, score, game state, location) per channel while subscribed. State is not persisted and is lost when the client disconnects. See Presence State.
+##### Requires Presence
+
+Clients can set dynamic custom state (for example, score or location) for users per channel while subscribed. State is not persisted and is lost on disconnect. See Presence State.
 
 ### Method(s)
 
@@ -156,11 +171,11 @@ Clients can set dynamic custom state (for example, score, game state, location) 
 ```
 
 Parameters:
-- Channels (Type: []string): Channels to set state.
-- ChannelGroups (Type: []string): Channel groups to set state.
+- Channels (Type: []string): Channels to set state on.
+- ChannelGroups (Type: []string): Channel groups to set state on.
 - State (Type: map[string]interface): State to set.
-- UUID (Type: string): UUID to set presence state for.
-- QueryParam (Type: map[string]string): Extra query string parameters.
+- UUID (Type: string): Set state for this UUID.
+- QueryParam (Type: map[string]string): Custom query string parameters.
 
 #### Get state
 
@@ -175,10 +190,10 @@ Parameters:
 ```
 
 Parameters:
-- Channels (Type: []string): Channels to get state.
-- ChannelGroups (Type: []string): Channel groups to get state.
-- UUID (Type: string): UUID to retrieve presence state for.
-- QueryParam (Type: map[string]string): Extra query string parameters.
+- Channels (Type: []string): Channels to get state from.
+- ChannelGroups (Type: []string): Channel groups to get state from.
+- UUID (Type: string): Get state for this UUID.
+- QueryParam (Type: map[string]string): Custom query string parameters.
 
 ### Sample code
 
@@ -200,10 +215,10 @@ Parameters:
 
 ### Response
 
-SetState() returns PNSetStateResult:
+SetState() → PNSetStateResult:
 - State (Type: interface): Map of UUIDs and user states.
 
-GetState() returns PNGetStateResult:
+GetState() → PNGetStateResult:
 - State (Type: map[string]interface): Map of UUIDs and user states.
 
 ### Other examples
@@ -226,7 +241,9 @@ GetState() returns PNGetStateResult:
 
 ## Heartbeat without subscription
 
-Send presence heartbeat notifications without subscribing. Configure presence timeout and interval in Configuration.
+##### Requires Presence
+
+Send presence heartbeat notifications without subscribing. Configure presence timeout and interval during Configuration.
 
 ### Method(s)
 
@@ -240,9 +257,9 @@ Send presence heartbeat notifications without subscribing. Configure presence ti
 ```
 
 Parameters:
-- Connected (Type: bool): true to join (online), false to leave (offline).
-- Channels (Type: []string): Channels whose presence state to change.
-- ChannelGroups (Type: []string): Channel groups whose presence state to change.
+- Connected (Type: bool): true to mark as connected (join), false to mark as offline (leave).
+- Channels (Type: []string): Channels whose presence state should change.
+- ChannelGroups (Type: []string): Channel groups whose presence state should change.
 
 ### Sample code
 
@@ -261,4 +278,4 @@ Parameters:
 **
 ```
 
-Last updated on Oct 29, 2025
+Last updated on Nov 10, 2025**

@@ -1,12 +1,12 @@
 # File Sharing API for Objective-C SDK
 
-Upload and share files up to 5 MB on a channel. Uploaded files are stored with your key; channel subscribers receive a file event containing file ID, filename, and optional description.
+Upload and share files up to 5 MB. Uploading to a channel stores the file and publishes a file event containing file ID, filename, and optional description. sendFileWithRequest handles upload and then internally calls publishFileMessageWithRequest to publish the file message.
 
-## Send file[​](#send-file)
+## Send file
 
-Uploads the file and publishes a file message on the channel (internally calls publishFileMessageWithRequest).
+Uploads the file to a specified channel and publishes a file message about it.
 
-### Method(s)[​](#methods)
+### Method(s)
 
 ```
 `1- (void)sendFileWithRequest:(PNSendFileRequest *)request   
@@ -14,22 +14,21 @@ Uploads the file and publishes a file message on the channel (internally calls p
 `
 ```
 
-- request Type: PNSendFileRequest — Send file request with all information about file and where it should be uploaded.
-- block Type: PNSendFileCompletionBlock — Send file request completion block.
+- request (PNSendFileRequest): Upload details and destination channel.
+- block (PNSendFileCompletionBlock): Completion block.
 
-#### PNSendFileRequest[​](#pnsendfilerequest)
+#### PNSendFileRequest
 
-- fileMessageMetadata Type: NSDictionary — Values for PubNub message filtering.
-- fileMessageTTL Type: NSUInteger Default: 0 — TTL for the file message. 0 uses key retention policy.
-- fileMessageStore Type: BOOL Default: YES — Whether to store file messages in history.
-- message Type: id — Message sent with the file.
-- filename Type: NSString — Storage name for uploaded data. Set by default only when created with requestWithChannel:fileURL:.
+- fileMessageMetadata (NSDictionary, default: n/a): Metadata for filtering file messages.
+- fileMessageTTL (NSUInteger, default: 0): Storage duration of the file message; 0 uses key retention policy.
+- fileMessageStore (BOOL, default: YES): Whether to store file messages in history.
+- message (id, default: n/a): Message to send with the file.
+- filename (NSString, default: n/a): Storage name for uploaded data; auto-set if created with requestWithChannel:fileURL:.
 
-##### Deprecated parameter
+Deprecated parameter:
+- cipherKey is deprecated. Configure the crypto module instead. Passing cipherKey overrides the crypto module and uses legacy 128-bit encryption.
 
-The cipherKey parameter is deprecated. Configure the crypto module instead. If cipherKey is passed, it overrides the crypto module and uses legacy 128-bit encryption.
-
-### Sample code[​](#sample-code)
+### Sample code
 
 ```
 1#import Foundation/Foundation.h>  
@@ -118,10 +117,9 @@ The cipherKey parameter is deprecated. Configure the crypto module instead. If c
 72- (void)client:(PubNub *)client didReceiveMessage:(PNMessageResult *)message {  
 73    NSLog(@"Received message: %@ on channel: %@", message.data.message, message.data.channel);  
 74}  
-
 ```
 
-### Response[​](#response)
+### Response
 
 ```
 1@interface PNSendFileData : PNServiceData  
@@ -153,19 +151,17 @@ The cipherKey parameter is deprecated. Configure the crypto module instead. If c
 22
   
 23@interface PNSendFileStatus : PNAcknowledgmentStatus  
-24
-  
+24  
 25// Send file request processed information.  
 26@property (nonatomic, readonly, strong) PNSendFileData *data;  
 27
   
 28@end  
-
 ```
 
-### Other examples[​](#other-examples)
+### Other examples
 
-#### Upload binary data[​](#upload-binary-data)
+#### Upload binary data
 
 ```
 1NSData *data = [[NSUUID UUID].UUIDString dataUsingEncoding:NSUTF8StringEncoding];  
@@ -192,10 +188,9 @@ The cipherKey parameter is deprecated. Configure the crypto module instead. If c
 21         */  
 22    }  
 23}];  
-
 ```
 
-#### Upload using stream[​](#upload-using-stream)
+#### Upload using stream
 
 ```
 1NSInputStream *stream = ...;  
@@ -224,18 +219,17 @@ The cipherKey parameter is deprecated. Configure the crypto module instead. If c
 23         */  
 24    }  
 25}];  
-
 ```
 
-### Returns[​](#returns)
+### Returns
 
 Same as from basic usage.
 
-## List channel files[​](#list-channel-files)
+## List channel files
 
-Retrieve files uploaded to a channel.
+Retrieve list of files uploaded to a channel.
 
-### Method(s)[​](#methods-1)
+### Method(s)
 
 ```
 `1- (void)listFilesWithRequest:(PNListFilesRequest *)request   
@@ -243,15 +237,15 @@ Retrieve files uploaded to a channel.
 `
 ```
 
-- request Type: PNListFilesRequest — Fetch channel files list.
-- block Type: PNListFilesCompletionBlock — Completion block.
+- request (PNListFilesRequest): Parameters for fetching the channel's files list.
+- block (PNListFilesCompletionBlock): Completion block.
 
-#### PNListFilesRequest[​](#pnlistfilesrequest)
+#### PNListFilesRequest
 
-- next Type: NSString — Server-provided cursor for forward pagination.
-- limit Type: NSUInteger Default: 100 — Number of files to return.
+- next (NSString, default: n/a): Server-provided cursor for forward pagination.
+- limit (NSUInteger, default: 100): Number of files to return.
 
-### Sample code[​](#sample-code-1)
+### Sample code
 
 ```
 1PNListFilesRequest *request = [PNListFilesRequest requestWithChannel:@"channel"];  
@@ -277,10 +271,9 @@ Retrieve files uploaded to a channel.
 20         */  
 21    }  
 22}];  
-
 ```
 
-### Response[​](#response-1)
+### Response
 
 ```
 1@interface PNListFilesData : PNServiceData  
@@ -308,14 +301,13 @@ Retrieve files uploaded to a channel.
 18
   
 19@end  
-
 ```
 
-## Get file URL[​](#get-file-url)
+## Get file URL
 
-Generate a download URL for a file in a channel.
+Generate a URL to download a file from the target channel.
 
-### Method(s)[​](#methods-2)
+### Method(s)
 
 ```
 `1- (nullable NSURL *)downloadURLForFileWithName:(NSString *)name   
@@ -324,11 +316,11 @@ Generate a download URL for a file in a channel.
 `
 ```
 
-- name Type: NSString — Stored file name.
-- identifier Type: NSString — Unique file identifier assigned during upload.
-- channel Type: NSString — Channel name.
+- name (NSString): Stored file name.
+- identifier (NSString): Unique file identifier from upload.
+- channel (NSString): Channel where the file was uploaded.
 
-### Sample code[​](#sample-code-2)
+### Sample code
 
 ```
 `1NSURL *url = [self.client downloadURLForFileWithName:@"user_profile.png"  
@@ -337,15 +329,15 @@ Generate a download URL for a file in a channel.
 `
 ```
 
-### Returns[​](#returns-1)
+### Returns
 
-URL to download the file with specified name and identifier.
+URL to download the file with the specified name and identifier.
 
-## Download file[​](#download-file)
+## Download file
 
-Download a file from a channel.
+Download a file from the specified channel.
 
-### Method(s)[​](#methods-3)
+### Method(s)
 
 ```
 `1- (void)downloadFileWithRequest:(PNDownloadFileRequest *)request   
@@ -353,18 +345,17 @@ Download a file from a channel.
 `
 ```
 
-- request Type: PNDownloadFileRequest — Information about the file to download.
-- block Type: PNDownloadFileCompletionBlock — Completion block.
+- request (PNDownloadFileRequest): File identification and download options.
+- block (PNDownloadFileCompletionBlock): Completion block.
 
-#### PNDownloadFileRequest[​](#pndownloadfilerequest)
+#### PNDownloadFileRequest
 
-- targetURL Type: NSURL Default: Temporary location — Local URL to store the downloaded file. Files in a temporary location are removed after the completion block returns.
+- targetURL (NSURL, default: Temporary location): Local destination URL. Files in a temporary location are removed after the completion block returns.
 
-##### Deprecated parameter
+Deprecated parameter:
+- cipherKey is deprecated. Configure the crypto module instead. Passing cipherKey overrides the crypto module and uses legacy 128-bit encryption.
 
-The cipherKey parameter is deprecated. Configure the crypto module instead. If cipherKey is passed, it overrides the crypto module and uses legacy 128-bit encryption.
-
-### Sample code[​](#sample-code-3)
+### Sample code
 
 ```
 1PNDownloadFileRequest *request = [PNDownloadFileRequest requestWithChannel:@"lobby"  
@@ -393,10 +384,9 @@ The cipherKey parameter is deprecated. Configure the crypto module instead. If c
 22         */  
 23    }  
 24}];  
-
 ```
 
-### Response[​](#response-2)
+### Response
 
 ```
 1@interface PNDownloadFileData : PNServiceData  
@@ -420,21 +410,18 @@ The cipherKey parameter is deprecated. Configure the crypto module instead. If c
 16
   
 17@interface PNDownloadFileResult : PNResult  
-18
-  
+18  
 19// Download file request processed information.  
 20@property (nonatomic, readonly, strong) PNDownloadFileData *data;  
-21
-  
+21  
 22@end  
-
 ```
 
-## Delete file[​](#delete-file)
+## Delete file
 
-Remove a file from a channel.
+Delete a file from the specified channel.
 
-### Method(s)[​](#methods-4)
+### Method(s)
 
 ```
 `1- (void)deleteFileWithRequest:(PNDeleteFileRequest *)request   
@@ -442,10 +429,10 @@ Remove a file from a channel.
 `
 ```
 
-- request Type: PNDeleteFileRequest — File removal request data.
-- block Type: PNDeleteFileCompletionBlock — Completion block.
+- request (PNDeleteFileRequest): File identification for removal.
+- block (PNDeleteFileCompletionBlock): Completion block.
 
-### Sample code[​](#sample-code-4)
+### Sample code
 
 ```
 1PNDeleteFileRequest *request = [PNDeleteFileRequest requestWithChannel:@"channel"  
@@ -465,10 +452,9 @@ Remove a file from a channel.
 14         */  
 15    }  
 16}];  
-
 ```
 
-### Response[​](#response-3)
+### Response
 
 ```
 1@interface PNErrorData : PNServiceData  
@@ -493,14 +479,13 @@ Remove a file from a channel.
 15
   
 16@end  
-
 ```
 
-## Publish file message[​](#publish-file-message)
+## Publish file message
 
-Publish the uploaded file message to a channel. Called internally by sendFileWithRequest. Use directly if sendFileWithRequest fails at PNPublishFileMessageOperation to resend the file message without re-uploading.
+Publishes the uploaded file message to a channel. Called internally by sendFileWithRequest after upload. If sendFileWithRequest fails with PNPublishFileMessageOperation, reuse status data and call publishFileMessageWithRequest to resend only the message.
 
-### Method(s)[​](#methods-5)
+### Method(s)
 
 ```
 `1- (void)publishFileMessageWithRequest:(PNPublishFileMessageRequest *)request   
@@ -508,27 +493,27 @@ Publish the uploaded file message to a channel. Called internally by sendFileWit
 `
 ```
 
-- request Type: PNPublishFileMessageRequest — Publish request with uploaded file info.
-- block Type: PNPublishCompletionBlock — Completion block.
+- request (PNPublishFileMessageRequest): Uploaded file info for message publishing.
+- block (PNPublishCompletionBlock): Completion block.
 
-#### PNPublishFileMessageRequest[​](#pnpublishfilemessagerequest)
+#### PNPublishFileMessageRequest
 
-- identifier Type: NSString — Unique identifier provided during file upload.
-- filename Type: NSString — Stored file name.
-- customMessageType Type: NSString — Case-sensitive, 3–50 chars, alphanumeric, dashes and underscores allowed; cannot start with special characters or pn_/pn-. Examples: text, action, poll.
+- identifier (NSString, required): Unique identifier from file upload.
+- filename (NSString, required): Stored file name.
+- customMessageType (NSString, required): Case-sensitive, 3–50 chars, alphanumeric with dashes/underscores allowed; cannot start with special chars or pn_/pn- (examples: text, action, poll).
 
 Also supports PNBasePublishRequest parameters:
-- arbitraryQueryParameters Type: NSDictionary — Additional percent-encoded query params.
-- preparedMetadata Type: NSString — Serialized NSDictionary for message filtering.
-- replicate Type: BOOL — Replicate across the PubNub network.
-- store Type: BOOL — Store message in history.
-- metadata Type: NSDictionary — Values for message filtering.
-- channel Type: NSString — Target channel.
-- message Type: id — JSON-serializable object; encrypted if crypto module configured.
-- ttl Type: NSUInteger — Storage duration; 0 uses retention policy.
-- retried Type: BOOL — Indicates retry after failure.
+- arbitraryQueryParameters (NSDictionary)
+- preparedMetadata (NSString)
+- replicate (BOOL)
+- store (BOOL)
+- metadata (NSDictionary)
+- channel (NSString)
+- message (id; JSON-serializable; encrypted if crypto module configured)
+- ttl (NSUInteger; 0 = retention policy)
+- retried (BOOL)
 
-### Sample code[​](#sample-code-5)
+### Sample code
 
 ```
 1PNPublishFileMessageRequest *request = [PNPublishFileMessageRequest requestWithChannel:@"channel"  
@@ -547,10 +532,9 @@ Also supports PNBasePublishRequest parameters:
 13        // Request can be resent using: [status retry];  
 14    }  
 15}];  
-
 ```
 
-### Response[​](#response-4)
+### Response
 
 ```
 1@interface PNPublishData : PNServiceData  
@@ -571,11 +555,9 @@ Also supports PNBasePublishRequest parameters:
 13
   
 14@interface PNPublishStatus : PNAcknowledgmentStatus  
-15
-  
+15  
 16// Stores reference on publish request processing status information.  
 17@property (nonatomic, readonly, strong) PNPublishData *data;  
 18
 **19@end  
-
 ```

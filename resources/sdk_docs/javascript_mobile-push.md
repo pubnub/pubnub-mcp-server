@@ -1,21 +1,13 @@
 # Mobile Push Notifications API for JavaScript SDK
 
-Connect PubNub publishing to push services:
-- APNs (Apple Push Notification service)
-- FCM (Firebase Cloud Messaging)
-
-Learn more: [Mobile Push Notifications](/docs/general/push/send)
+Connect native PubNub publishing to FCM (Android) and APNs (iOS). Enable the Mobile Push Notifications add-on for your key in the Admin Portal. Use Async/Await with try...catch to handle errors.
 
 ##### Supported and recommended asynchronous patterns
-- PubNub supports Callbacks, Promises, and Async/Await (recommended).
-- Use try...catch with Async/Await to handle errors.
+PubNub supports Callbacks, Promises, and Async/Await. Recommended: Async/Await; add try...catch to receive error status.
 
 ## Add a device to a push notifications channel
 
-##### Requires Mobile Push Notifications add-on
-Enable in the [Admin Portal](https://admin.pubnub.com/). See how to [enable add-on features](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
-
-Enable push notifications on a set of channels.
+Enable mobile push notifications on a set of channels.
 
 ### Method(s)
 
@@ -31,26 +23,29 @@ Enable push notifications on a set of channels.
 ```
 
 Parameters:
-- channels (required) — Type: Array<string> — Channels to enable.
-- device (required) — Type: string — Device token.
-- pushGateway (required) — Type: string — Accepted: apns2, gcm.
-- environment — Type: string — Default: development — Accepted: development, production. Required if pushGateway = apns2.
-- topic — Type: string — APNs topic (bundle identifier). Required if pushGateway = apns2.
+- channels (required). Type: Array<string>. Channels to enable for push notifications.
+- device (required). Type: string. Device token.
+- pushGateway (required). Type: string. Accepted: apns2, gcm.
+- environment. Type: string. Default: development. Accepted: development, production. Required if pushGateway is apns2.
+- topic. Type: string. APNs topic (bundle identifier). Required if pushGateway is apns2.
 
 ### Sample code
 
 ##### Reference code
+Use as a runnable template with imports and console logging.
 
 #### Add device to channel
 
 ```
 1
   
+
 ```
 
 ```
 1
   
+
 ```
 
 ### Response
@@ -66,10 +61,7 @@ Parameters:
 
 ## List push notifications channels for a device
 
-##### Requires Mobile Push Notifications add-on
-Enable in the [Admin Portal](https://admin.pubnub.com/). See how to [enable add-on features](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
-
-Get all channels with push notifications for a given push token.
+Get all channels with push notifications for the specified push token.
 
 ### Method(s)
 
@@ -84,12 +76,12 @@ Get all channels with push notifications for a given push token.
 ```
 
 Parameters:
-- device (required) — Type: string — Device token.
-- pushGateway (required) — Type: string — Accepted: apns2, gcm.
-- environment — Type: string — Default: development — Accepted: development, production. Required if pushGateway = apns2.
-- topic — Type: string — APNs topic (bundle identifier). Required if pushGateway = apns2.
-- start — Type: string — Start channel for pagination (use last channel from previous page).
-- count — Type: number — Number of channels to return. Max 1000; default 500.
+- device (required). Type: string. Device token.
+- pushGateway (required). Type: string. Accepted: apns2, gcm.
+- environment. Type: string. Default: development. Accepted: development, production. Required if pushGateway is apns2.
+- topic. Type: string. APNs topic (bundle identifier). Required if pushGateway is apns2.
+- start. Type: string. Start channel for pagination; use the last channel from the previous page.
+- count. Type: number. Number of channels to return. Max 1000; default 500.
 
 ### Sample code
 
@@ -98,28 +90,28 @@ Parameters:
 ```
 1
   
+
 ```
 
 ### Response
 
 ```
-// Example of status  
-{  
-    error: false,  
-    operation: 'PNPushNotificationEnabledChannelsOperation',  
-    statusCode: 200  
-}  
+1// Example of status  
+2{  
+3    error: false,  
+4    operation: 'PNPushNotificationEnabledChannelsOperation',  
+5    statusCode: 200  
+6}  
+7
+  
+8// Example of response  
+9{  
+10    channels: [ 'a', 'b' ]  
+11}  
 
-// Example of response  
-{  
-    channels: [ 'a', 'b' ]  
-}  
 ```
 
 ## Remove a device from push notifications channels
-
-##### Requires Mobile Push Notifications add-on
-Enable in the [Admin Portal](https://admin.pubnub.com/). See how to [enable add-on features](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
 
 Disable push notifications on selected channels.
 
@@ -137,11 +129,11 @@ Disable push notifications on selected channels.
 ```
 
 Parameters:
-- channels (required) — Type: Array<string> — Channels to disable.
-- device (required) — Type: string — Device token.
-- pushGateway (required) — Type: string — Accepted: apns2, gcm.
-- environment — Type: string — Default: development — Accepted: development, production. Required if pushGateway = apns2.
-- topic — Type: string — APNs topic (bundle identifier). Required if pushGateway = apns2.
+- channels (required). Type: Array<string>. Channels to disable for push notifications.
+- device (required). Type: string. Device token.
+- pushGateway (required). Type: string. Accepted: apns2, gcm.
+- environment. Type: string. Default: development. Accepted: development, production. Required if pushGateway is apns2.
+- topic. Type: string. APNs topic (bundle identifier). Required if pushGateway is apns2.
 
 ### Sample code
 
@@ -150,6 +142,7 @@ Parameters:
 ```
 1
   
+
 ```
 
 ### Response
@@ -165,10 +158,7 @@ Parameters:
 
 ## Remove a device from all push notifications channels
 
-##### Requires Mobile Push Notifications add-on
-Enable in the [Admin Portal](https://admin.pubnub.com/). See how to [enable add-on features](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
-
-Disable push notifications from all channels registered for the specified push token.
+Disable push notifications from all channels for the specified push token.
 
 ### Method(s)
 
@@ -183,10 +173,10 @@ Disable push notifications from all channels registered for the specified push t
 ```
 
 Parameters:
-- device (required) — Type: string — Device token.
-- pushGateway (required) — Type: string — Accepted: apns2, gcm.
-- environment — Type: string — Default: development — Accepted: development, production. Required if pushGateway = apns2.
-- topic — Type: string — APNs topic (bundle identifier). Required if pushGateway = apns2.
+- device (required). Type: string. Device token.
+- pushGateway (required). Type: string. Accepted: apns2, gcm.
+- environment. Type: string. Default: development. Accepted: development, production. Required if pushGateway is apns2.
+- topic. Type: string. APNs topic (bundle identifier). Required if pushGateway is apns2.
 
 ### Sample code
 
@@ -195,6 +185,7 @@ Parameters:
 ```
 1
   
+
 ```
 
 ### Response
@@ -210,7 +201,7 @@ Parameters:
 
 ## Push notification format configuration
 
-Configure message formats for APNs and FCM.
+Use these types to configure APNs and FCM payloads.
 
 ### APNS2Configuration
 
@@ -228,19 +219,20 @@ APNS2 configuration type.
 ```
 
 Parameters:
-- collapseId — Type: string — Collapse identifier (apns-collapse-id).
-- expirationDate — Type: Date — Expiration (apns-expiration).
-- targets (required) — Type: Array<APNS2Target> — Delivery targets.
+- collapseId. Type: string. APNs collapse identifier (apns-collapse-id).
+- expirationDate. Type: Date. APNs expiration (apns-expiration).
+- targets (required). Type: Array<APNS2Target>. Delivery targets.
 
 ### APNSNotificationPayload
 
 APNs-only options.
 
 #### Properties
-- configurations — Type: Array<APNSNotificationConfiguration> — HTTP/2 APNs delivery configurations.
-- notification — Type: Hash — User-visible key-value pairs.
-- payload — Type: Hash — Platform-specific payload for additional data.
-- silent — Type: Boolean — If true, omits alert, sound, and badge.
+
+- configurations. Type: Array<APNSNotificationConfiguration>. HTTP/2 APNs delivery configurations.
+- notification. Type: Hash. User-visible key-value pairs.
+- payload. Type: Hash. Platform-specific payload for additional data.
+- silent. Type: Boolean. If true, omits alert, sound, and badge.
 
 ### APNS2Target
 
@@ -258,35 +250,35 @@ APNS2 configuration target type.
 ```
 
 Parameters:
-- topic (required) — Type: string — APNs topic (bundle identifier).
-- environment — Type: string — Default: development — Accepted: development, production.
-- excludedDevices — Type: Array<string> — Push tokens to exclude.
+- topic (required). Type: string. APNs topic (bundle identifier).
+- environment. Type: string. Default: development. Accepted: development, production.
+- excludedDevices (required). Type: Array<string>. Push tokens to exclude.
 
 ### FCMNotificationPayload
 
 FCM-only options.
 
 #### Properties
-- notification — Type: Hash — User-visible key-value pairs.
-- data — Type: Hash — Additional key-value data (stringify values). Must not include reserved keys (for example, from, message_type, keys starting with google or gcm).
-- silent — Type: Boolean — If true, moves notification under data.
-- icon — Type: String — Icon shown with the notification title.
-- tag — Type: String — Identifier to update/replace a prior notification.
-- payload — Type: Hash — Platform-specific payload for additional data.
+
+- notification. Type: Hash. User-visible key-value pairs.
+- data. Type: Hash. Additional key-value data (stringify values). Must not include reserved keys (for example, from, message_type, keys starting with google or gcm).
+- silent. Type: Boolean. If true, moves notification under data.
+- icon. Type: String. Icon shown with the notification title.
+- tag. Type: String. Identifier used to update/replace a prior notification.
+- payload. Type: Hash. Platform-specific payload for additional data.
 
 ### Cross-platform notifications payload
 
-NotificationsPayload builds multi-platform payloads and platform-specific builders.
+NotificationsPayload helps build multi-platform payloads and access platform-specific builders.
 
 #### Method(s)
 
-Parameters:
-- subtitle — Type: string — Additional context.
-- badge — Type: number — Badge count.
-- sound — Type: string — Sound name or file path.
-- debugging — Type: boolean — Include device delivery debug info.
-- apns — Type: APNSNotificationPayload — APNs-specific builder.
-- fcm — Type: FCMNotificationPayload — FCM-specific builder.
+- subtitle. Type: string. Additional context for the notification.
+- badge. Type: number. Badge count for supported platforms.
+- sound. Type: string. Sound name or file path to play.
+- debugging. Type: boolean. Include device delivery debug info.
+- apns. Type: APNSNotificationPayload. APNs-specific builder.
+- fcm. Type: FCMNotificationPayload. FCM-specific builder.
 
 ```
 `1PubNub.notificationPayload(  
@@ -297,8 +289,8 @@ Parameters:
 ```
 
 Parameters:
-- title — Type: string — Notification title.
-- body — Type: string — Body text.
+- title. Type: string. Notification title.
+- body. Type: string. Body text.
 
 ```
 `1buildPayload(  
@@ -308,18 +300,16 @@ Parameters:
 ```
 
 Parameters:
-- platforms (required) — Type: Array<string> — Add payload for:
-  - apns
-  - apns2
-  - fcm
+- platforms (required). Type: Array<string>. Platforms to include in final payload. Available: apns, apns2, fcm.
 
 #### Sample code
 
-Create notification payload builder with pre-defined title and body:
+Create notification payload builder with pre-defined notification title and body:
 
 ```
 1
   
+
 ```
 
 ```
@@ -329,7 +319,8 @@ Create notification payload builder with pre-defined title and body:
 ```
 
 #### Response
-Hash suitable for publish, triggering remote notifications for specified platforms.
+
+Hash with data, which can be sent with publish and trigger remote notifications for specified platforms.
 
 #### Other examples
 
@@ -338,6 +329,7 @@ Hash suitable for publish, triggering remote notifications for specified platfor
 ```
 1
   
+
 ```
 
 ##### Generate simple notification payload for FCM and HTTP/2-based APNs (default configuration)
@@ -345,6 +337,7 @@ Hash suitable for publish, triggering remote notifications for specified platfor
 ```
 1
   
+
 ```
 
 ##### Generate simple notification payload for FCM and HTTP/2-based APNs (custom configuration)
@@ -352,6 +345,7 @@ Hash suitable for publish, triggering remote notifications for specified platfor
 ```
 1
   
+
 ```
 
 ##### Output
@@ -389,9 +383,10 @@ Hash suitable for publish, triggering remote notifications for specified platfor
 `
 ```
 
-APNs will try redelivery for inactive devices and give up after 10 seconds (per expiration). Notifications with the same collapse_id are grouped.
+APNs will attempt redelivery for inactive devices and give up after 10 seconds from scheduling. Invitation notifications will be grouped by collapse_id.
 
 #### Returns
+
 Configured and ready to use NotificationsPayload instance.
 
 Last updated on Sep 3, 2025

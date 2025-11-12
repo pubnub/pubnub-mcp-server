@@ -1,15 +1,24 @@
 # Utility Methods API for Unity SDK
 
-Utility methods for lifecycle, connectivity, subscriptions, and push payloads.
+Utility methods for cleanup, connectivity, subscription inspection, and push payload creation.
 
 ## Cleanup
 
-Frees up threads and allows a clean exit.
+Frees threads and allows clean exit.
 
 ### Method(s)
 
 ```
-Pubnub.CleanUp()
+`1Pubnub.CleanUp()  
+`
+```
+
+### Sample code
+
+##### Reference code
+```
+1
+  
 ```
 
 ### Returns
@@ -23,10 +32,18 @@ Forces the SDK to stop all requests to PubNub when there are active subscribe ch
 ### Method(s)
 
 ```
-Disconnect<T>()
+`1DisconnectT>()  
+`
 ```
 
 This method doesn't take any arguments.
+
+### Sample code
+
+```
+1
+  
+```
 
 ## Get subscribed channel groups
 
@@ -35,15 +52,25 @@ Returns all subscribed channel groups as a List<string>.
 ### Method(s)
 
 ```
-List<string> GetSubscribedChannelGroups()
+`1Liststring> GetSubscribedChannelGroups()  
+`
+```
+
+### Sample code
+
+#### Get subscribed channel groups
+```
+1
+  
 ```
 
 ### Response
 
-List<string>
+`List<String>`
 
 ```
-["channelGroup1", "channelGroup2"]
+`1["channelGroup1", "channelGroup2"]  
+`
 ```
 
 ## Get subscribed channels
@@ -53,54 +80,82 @@ Returns all subscribed channels as a List<string>.
 ### Method(s)
 
 ```
-List<string> GetSubscribedChannels()
+`1Liststring> GetSubscribedChannels()  
+`
+```
+
+### Sample code
+
+#### Get subscribed channels
+```
+1
+  
 ```
 
 ### Response
 
-List<string>
+`List<String>`
 
 ```
-["channel1", "channel2"]
+`1["channel1", "channel2"]  
+`
 ```
 
 ## Reconnect
 
-Forces the SDK to attempt reconnection to PubNub.
+Forces the SDK to try to reach PubNub again.
 
 ### Method(s)
 
 ```
-Reconnect<T>(bool resetSubscribeToken)
+`1ReconnectT>(bool resetSubscribeToken)  
+`
 ```
 
-- resetSubscribeToken (bool): Passing true sends zero timetoken upon reconnect.
+- resetSubscribeToken: bool. Passing true sends a zero timetoken upon reconnect.
+
+### Sample code
+
+```
+1
+  
+```
 
 ## Create push payload
 
-Creates a push payload for use with publish/endpoints.
+Creates a push payload for use in publish or push-related endpoints.
 
 ### Method(s)
 
 ```
-CreatePushPayloadHelper()
-    .SetAPNSPayload(PNAPSData, List<PNAPNS2Data>)
-    .SetFCMPayload(PNFCMData)
-    .SetCommonPayload(Dictionary<string, object>)
-    .BuildPayload()
+`1CreatePushPayloadHelper()  
+2    .SetAPNSPayload(PNAPSData, ListPNAPNS2Data>)  
+3    .SetFCMPayload(PNFCMData)  
+4    .SetCommonPayload(Dictionarystring, object>)  
+5    .BuildPayload()  
+`
 ```
 
 - SetAPNSPayload
-  - PNAPSData: Set APNS payload. APNS devices receive data within the pn_apns key.
-  - List<PNAPNS2Data>: Set APNS2 payload. APNS devices receive data within the pn_push key.
+  - PNAPSData: Set APNS payload; delivered under pn_apns.
+  - List<PNAPNS2Data>: Set APNS2 payload; delivered under pn_push.
 - SetFCMPayload
-  - PNFCMData: Set FCM payload. FCM devices receive data within the pn_gcm key.
+  - PNFCMData: Set FCM payload; delivered under pn_fcm.
 - SetCommonPayload
-  - Dictionary<string, object>: Set common payload. Native PubNub subscribers receive the entire object including pn_apns, pn_gcm, and common payload.
-- BuildPayload: Builds and returns Dictionary<string, object>.
+  - Dictionary<string, object>: Common payload; native PubNub subscribers receive the entire object including pn_apns, pn_fcm, and common payload.
+- BuildPayload
+  - Builds and returns Dictionary<string, object>.
+
+### Sample code
+
+#### Create push payload
+```
+1
+  
+```
 
 ### Response
 
-CreatePushPayloadHelper() returns a Dictionary<string, object> suitable for the Publish method's Message parameter.
+CreatePushPayloadHelper() returns a Dictionary<string, object> that can be passed directly to the Publish method's Message parameter.
 
-Last updated on Aug 6, 2025
+Last updated on Nov 6, 2025

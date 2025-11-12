@@ -1,35 +1,31 @@
 # Access Manager v3 API for Dart SDK
 
-Access Manager lets servers (using a PubNub instance initialized with a Secret Key) grant clients time-limited tokens with embedded permissions to specific resources, via explicit lists or RegEx patterns, and optionally restricted to a single client identity.
+Access Manager issues time-limited tokens with embedded permissions for PubNub resources. Tokens can target specific resources or RegEx patterns and be restricted to a single client via authorized UUID/User ID.
 
-- Permissions are embedded per resource.
-- TTL is required (1–43,200 minutes).
-- Resources can be listed or matched with RegEx patterns.
-- Tokens can be restricted to an authorized identity.
-
-Add the authorizedUuid parameter to restrict a token to one client UUID. Only this authorizedUUID can use the token to make requests.
+- Resource types: channels, channel groups, UUIDs; or spaces and users (App Context)
+- Permissions by resource (channels/uuid/groups):
+  - channel: read, write, get, manage, update, join, delete
+  - channelGroup: read, manage
+  - uuid: get, update, delete
+- Permissions by resource (spaces/users):
+  - space: read, write, get, manage, update, join, delete
+  - user: get, update, delete
+- TTL: required; minutes until expiration, min 1, max 43,200 (30 days)
+- Patterns: use RegEx patterns for permissions
+- Authorized client: restrict tokens via authorizedUUID or authorizedUserId
 
 ##### User ID / UUID
-User ID is also referred to as UUID/uuid in some APIs and responses but holds the value of the userId parameter set during initialization.
+User ID is also referred to as UUID/uuid in some APIs and responses, but holds the value of the userId you set during initialization.
 
 ## Grant token
 
-Requirements:
-- Access Manager add-on enabled for your keyset.
-- Server-side usage with Secret Key authentication.
+##### Requires Access Manager add-on
+Enable the Access Manager add-on in the Admin Portal.
 
-Generates a time-limited authorization token defining ttl, authorizedUUID, and permissions on resources.
+##### Requires Secret Key authentication
+Granting must be done by a server SDK instance initialized with a Secret Key.
 
-Resource permissions:
-- channel: read, write, get, manage, update, join, delete
-- channelGroup: read, manage
-- uuid: get, update, delete
-
-TTL: Required; 1–43,200 minutes (no default). Clients need new tokens before expiration.
-
-RegEx patterns: Use patterns to grant by pattern instead of listing resources.
-
-Authorized UUID: Set authorizedUUID to restrict token usage to a single uuid; otherwise any uuid can use it.
+The `grantToken()` method generates a token defining TTL, optional authorizedUUID, and permissions for channels, channel groups, and UUIDs. If authorizedUUID is omitted, any client UUID can use the token.
 
 ### Method(s)
 
@@ -38,7 +34,7 @@ Authorized UUID: Set authorizedUUID to restrict token usage to a single uuid; ot
 `
 ```
 
-To create TokenRequest:
+To create `TokenRequest`:
 
 ```
 `1pubnub.requestToken({  
@@ -52,16 +48,16 @@ To create TokenRequest:
 ```
 
 TokenRequest parameters:
-- ttl Number (required): Minutes token is valid (1–43,200).
-- meta Map<String, dynamic>: Scalar-only metadata.
-- authorizedUUID String: Single uuid authorized to use the token.
-- using String: Keyset name from keysetStore.
-- keyset Keyset: Override default keyset.
+- ttl (Number, required): minutes token is valid; min 1, max 43,200.
+- meta (Map<String, dynamic>): scalar-only metadata sent with request.
+- authorizedUUID (String): single uuid authorized to use the token.
+- using (String): keyset name from keysetStore for this call.
+- keyset (Keyset): override default keyset.
 
-Required key/value mappings:
-- Specify permissions for at least one uuid, channel, or channelGroup (by name or pattern).
+##### Required key/value mappings
+Specify permissions for at least one uuid, channel, or channelGroup (by name or pattern).
 
-Use add() on TokenRequest to add resource or pattern permissions:
+Use `add()` on `TokenRequest`:
 
 ```
 `1add(ResourceType type,  
@@ -78,13 +74,14 @@ Use add() on TokenRequest to add resource or pattern permissions:
 `
 ```
 
-add() parameters:
-- type ResourceType: uuid, channel, or channelGroup.
-- name String: Resource name (provide either name or pattern).
-- pattern String: Resource pattern (provide either name or pattern).
-- write, read, create, manage, delete, get, update, join: Boolean, default false.
+- type (ResourceType): uuid, channel, or channelGroup.
+- name (String): resource name (provide either name or pattern).
+- pattern (String): RegEx pattern (provide either name or pattern).
+- Permissions (Boolean; default false): write, read, create, manage, delete, get, update, join.
 
 ### Sample code
+
+##### Reference code
 
 ```
 1import 'package:pubnub/pubnub.dart';  
@@ -123,6 +120,7 @@ add() parameters:
 30}  
 
 ```
+show all 30 lines
 
 ### Returns
 
@@ -141,8 +139,6 @@ add() parameters:
 ### Other examples
 
 #### Grant an authorized client different levels of access to various resources in a single call
-
-- Grants my-authorized-uuid read to channel-a, channel-group-b, get to uuid-c; read/write to channel-b/c/d; get/update to uuid-d.
 
 ```
 1var request = pubnub.requestToken(  
@@ -195,29 +191,14 @@ add() parameters:
 ```
 
 ### Error responses
-
-HTTP 400 for invalid requests (e.g., RegEx issues, invalid timestamp, incorrect permissions). Error details under PubNubException.
+HTTP 400 on invalid requests (e.g., RegEx issues, invalid timestamp, incorrect permissions). Error details under PubNubException.
 
 ## Grant token - spaces & users
 
-Requirements:
-- Access Manager add-on enabled.
+##### Requires Access Manager add-on
+Enable the Access Manager add-on in the Admin Portal.
 
-Generates a time-limited token with ttl, authorizedUserId, and permissions on:
-- spaces
-- users
-
-Only authorizedUserId can use the token. Unauthorized or invalid tokens return 403.
-
-Resource permissions:
-- space: read, write, get, manage, update, join, delete
-- user: get, update, delete
-
-TTL: Required; 1–43,200 minutes.
-
-RegEx patterns: Set as patterns before granting.
-
-Authorized user ID: Set authorizedUserId to restrict token usage to a single userId.
+`grantToken()` generates a token defining TTL, optional authorizedUserId, and permissions for spaces and users. If authorizedUserId is omitted, any client userId can use the token.
 
 ### Method(s)
 
@@ -226,7 +207,7 @@ Authorized user ID: Set authorizedUserId to restrict token usage to a single use
 `
 ```
 
-To create TokenRequest:
+To create `TokenRequest`:
 
 ```
 `1pubnub.requestToken({  
@@ -240,16 +221,16 @@ To create TokenRequest:
 ```
 
 TokenRequest parameters:
-- ttl Number (required): Minutes token is valid (1–43,200).
-- meta Map<String, dynamic>: Scalar-only metadata.
-- authorizedUserId String: Single userId authorized to use the token.
-- using String: Keyset name from keysetStore.
-- keyset Keyset: Override default keyset.
+- ttl (Number, required): minutes token is valid; min 1, max 43,200.
+- meta (Map<String, dynamic>): scalar-only metadata sent with request.
+- authorizedUserId (String): single userId authorized to use the token.
+- using (String): keyset name from keysetStore for this call.
+- keyset (Keyset): override default keyset.
 
-Required key/value mappings:
-- Specify permissions for at least one User or Space (by name or pattern).
+##### Required key/value mappings
+Specify permissions for at least one User or Space (by name or pattern).
 
-Use add() on TokenRequest to add resource or pattern permissions:
+Use `add()` on `TokenRequest`:
 
 ```
 `1add(ResourceType type,  
@@ -266,10 +247,9 @@ Use add() on TokenRequest to add resource or pattern permissions:
 `
 ```
 
-add() parameters:
-- type ResourceType: user or space.
-- name or pattern: Provide one.
-- Permissions flags: Default false.
+- type (ResourceType): user or space.
+- name (String) or pattern (String): specify resource or RegEx.
+- Permissions (Boolean; default false): write, read, create, manage, delete, get, update, join.
 
 ### Sample code
 
@@ -352,16 +332,17 @@ add() parameters:
 ```
 
 ### Error responses
-
-HTTP 400 for invalid requests (e.g., RegEx issues, invalid timestamp, incorrect permissions). Error details under PubNubException.
+HTTP 400 on invalid requests (e.g., RegEx issues, invalid timestamp, incorrect permissions). Error details under PubNubException.
 
 ## Revoke token
 
-Requirements:
-- Access Manager add-on enabled.
-- Enable token revoke in Admin Portal (Revoke v3 Token).
-- Only valid tokens previously obtained via grantToken().
-- Use for tokens with ttl ≤ 30 days; contact support for longer.
+##### Requires Access Manager add-on
+Enable in Admin Portal.
+
+##### Enable token revoke
+In your app’s keyset, check “Revoke v3 Token” in the ACCESS MANAGER section.
+
+Revokes an existing token previously obtained with grantToken(). Use for tokens with ttl ≤ 30 days.
 
 ### Method(s)
 
@@ -370,7 +351,7 @@ Requirements:
 `
 ```
 
-- token String (required): Existing token.
+- token (String, required): existing token to revoke.
 
 ### Sample code
 
@@ -380,14 +361,14 @@ Requirements:
 ```
 
 ### Returns
-Empty PamRevokeTokenResult on success.
+Returns an empty PamRevokeTokenResult on success.
 
 ### Error Responses
-May return 400 Bad Request, 403 Forbidden, or 503 Service Unavailable.
+May return: 400 Bad Request, 403 Forbidden, 503 Service Unavailable.
 
 ## Parse token
 
-Decodes a token and returns its embedded permissions and details (for debugging).
+Decodes a token to inspect embedded permissions and TTL.
 
 ### Method(s)
 
@@ -396,7 +377,7 @@ Decodes a token and returns its embedded permissions and details (for debugging)
 `
 ```
 
-- token String (required): Current token.
+- token (String, required): token to decode.
 
 ### Sample code
 
@@ -490,11 +471,11 @@ Decodes a token and returns its embedded permissions and details (for debugging)
 ```
 
 ### Error Responses
-Token parse errors may indicate a damaged token; request a new one.
+Parsing errors may indicate a damaged token; request a new one.
 
 ## Set token
 
-Clients use setToken() to update their current authentication token.
+Client method to update the current authentication token.
 
 ### Method(s)
 
@@ -503,9 +484,9 @@ Clients use setToken() to update their current authentication token.
 `
 ```
 
-- token String (required): Current token.
-- using String: Keyset name from keysetStore.
-- keyset Keyset: Override default keyset.
+- token (String, required): token with permissions.
+- using (String): keyset name from keysetStore for this call.
+- keyset (Keyset): override default keyset.
 
 ### Sample code
 
@@ -516,5 +497,3 @@ Clients use setToken() to update their current authentication token.
 
 ### Returns
 No return value.
-
-Last updated on Sep 3, 2025

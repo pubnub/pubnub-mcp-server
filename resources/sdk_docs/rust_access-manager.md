@@ -1,16 +1,18 @@
 # Access Manager v3 API for Rust SDK
 
-Access Manager enforces client access to PubNub resources using time-limited tokens with embedded permissions. Tokens can target:
-- Specific resources or RegEx patterns.
-- Multiple resources with different permission levels in one request.
-- A single authorized client via authorized_user_id.
+Access Manager enforces security controls with tokens that embed permissions for PubNub resources, optionally scoped to a single authorized_user_id.
+
+- Time-limited tokens (ttl).
+- Resource lists or regex patterns.
+- Multiple resource types and permissions in one request.
+- Optional authorized_user_id to bind a token to a single client.
 
 User ID / UUID
-- User ID is also referred to as UUID/uuid in some APIs and responses but holds the value of the userId parameter set during initialization.
+- UUID in APIs equals the userId set during SDK initialization.
 
-For details, see Manage Permissions with Access Manager v3.
+For more info: Manage Permissions with Access Manager v3.
 
-Add any of the following features to Cargo.toml to use this API:
+Add any of the following features to Cargo.toml:
 
 ```
 `[dependencies]  
@@ -29,37 +31,32 @@ fullaccess
 ## Grant token
 
 Requires Access Manager add-on
-- Enable Access Manager for your key in the Admin Portal.
+- Enable the Access Manager add-on in the Admin Portal.
 
 Requires Secret Key authentication
-- Use a server-side SDK instance initialized with a Secret Key.
+- Initialize the server-side SDK with a Secret Key.
 
-grant_token() generates a time-limited authorization token defining ttl, authorized_user_id, and permissions on resources:
-- channel
-- channel_group
-- user_id (other users’ object metadata)
+grant_token() issues a time-limited authorization token with:
+- ttl (required; minutes; min 1, max 43,200/30 days).
+- optional authorized_user_id to restrict token usage to one client (user_id).
+- permissions for resources: channel, channel_group, user_id.
 
-Unauthorized or invalid token usage returns 403.
+Clients use the token on each request until ttl expires. Unauthorized/invalid token -> 403.
 
-Key capabilities:
-- Permissions
-- TTL (time to live)
-- RegEx patterns
-- Authorized UUID
-
-Permissions per resource:
+Permissions and Resources
 - channel: read, write, get, manage, update, join, delete
 - channel_group: read, manage
 - user_id: get, update, delete
 
 TTL
-- Pass ttl as the required argument to grant_token(); minutes; min 1, max 43,200 (30 days); no default.
+- Required positional argument to grant_token(usize) in Rust.
+- No default; range 1–43,200 minutes.
 
-Patterns
-- Use RegEx via patterns() to grant by pattern.
+Patterns (RegEx)
+- Use patterns() to assign permissions via regex.
 
 Authorized UUID
-- Set authorized_user_id to bind token to a single user_id; otherwise any user_id can use it.
+- Set authorized_user_id to bind token to a single user_id. If omitted, any user_id can use the token.
 
 ### Method(s)
 
@@ -74,15 +71,16 @@ Authorized UUID
 `
 ```
 
+Parameters
 - grant_token (required)
   - Type: usize
-  - Token time-to-live in minutes. Min 1; max 43,200.
+  - Token TTL in minutes (1–43,200).
 - resources
   - Type: Option<[Box<dyn permissions::Permission>]>
-  - List of permissions for specific resources.
+  - Individual resource permissions.
 - patterns
   - Type: Option<[Box<dyn permissions::Permission>]>
-  - List of permissions defined by RegEx patterns.
+  - Pattern-based permissions (regex).
 - authorized_user_id
   - Type: Option<String>
   - Single user_id authorized to use the token.
@@ -91,24 +89,24 @@ Authorized UUID
   - Extra scalar-only metadata.
 
 Required key/value mappings
-- You must specify permissions for at least one uuid, channel, or channel_group (via resources or patterns).
+- Grant must include permissions for at least one uuid, channel, or channel_group (either in resources or patterns).
 
 #### permissions Object
 
-Assign permissions with resources() (specific items) or patterns() (RegEx). Template:
+Assign via resources() for concrete IDs or patterns() for regex. Template:
 - permissions::{objectToApplyPermissionsFor}.{permissionType()}
 
-Targets:
+objectToApplyPermissionsFor examples:
 - channel("channel_name") or channel("^onetoone-[a-zA-Z0-9]*$")
 - channel_group("channel_group_name") or channel("^room-[a-zA-Z0-9]*$")
 - user_id("user_id") or channel("^user-[a-zA-Z0-9]*$")
 
-Permission types:
+permissionType() by entity:
 - channel: read(), write(), get(), manage(), update(), join(), delete()
 - channel_groups: read(), manage()
 - user_id: get(), update(), delete()
 
-The following code creates two permission objects. The first creates a read permission to a channel group with the ID of channel-group, while the second creates an update and delete permissions to a User with the ID of admin.
+Example: assign read to channel group channel-group and update/delete to user admin:
 
 ```
 1
@@ -116,7 +114,7 @@ The following code creates two permission objects. The first creates a read perm
 
 ```
 
-You can also use a RegEx pattern. The following code creates a join, read, and write permissions to all channels whose IDs match the of ^room-[a-zA-Z0-9]*$ RegEx.
+Example: regex permissions for join/read/write to channels matching ^room-[a-zA-Z0-9]*$:
 
 ```
 1
@@ -134,15 +132,11 @@ You can also use a RegEx pattern. The following code creates a join, read, and w
 
 ### Returns
 
-Returns GrantTokenResult. Access the token string via GrantTokenResult.token.
+- GrantTokenResult with token string at GrantTokenResult.token.
 
 ### Other examples
 
-#### Grant an authorized client different levels of access to various resources in a single call
-
-The code below grants my-authorized-user_id:
-- Read access to channel-a, channel-group-b, and get to uuid-c.
-- Read/write access to channel-b, channel-c, channel-d, and get/update to uuid-d.
+Grant an authorized client different levels of access to various resources in a single call:
 
 ```
 1
@@ -150,9 +144,7 @@ The code below grants my-authorized-user_id:
 
 ```
 
-#### Grant an authorized client read access to multiple channels using RegEx
-
-The code below grants my-authorized-user_id read access to all channels that match the channel-[A-Za-z0-9] RegEx pattern.
+Grant an authorized client read access to multiple channels using RegEx:
 
 ```
 1
@@ -160,12 +152,7 @@ The code below grants my-authorized-user_id read access to all channels that mat
 
 ```
 
-#### Grant an authorized client different levels of access to various resources and read access to channels using RegEx in a single call
-
-The code below grants the my-authorized-user_id:
-- Read access to channel-a, channel-group-b, and get to uuid-c.
-- Read/write access to channel-b, channel-c, channel-d, and get/update to uuid-d.
-- Read access to all channels that match the channel-[A-Za-z0-9] RegEx pattern.
+Grant an authorized client various resource permissions and regex read in a single call:
 
 ```
 1
@@ -175,17 +162,19 @@ The code below grants the my-authorized-user_id:
 
 ### Error responses
 
-Invalid requests return HTTP 400 with details (e.g., RegEx issues, invalid timestamp, incorrect permissions) under PubNubException.
+- HTTP 400 for invalid requests (e.g., regex issues, invalid timestamp, incorrect permissions). Error details under PubNubException.
 
 ## Revoke token
 
 Requires Access Manager add-on
-- Enable Access Manager for your key in the Admin Portal.
+- Enable the add-on in the Admin Portal.
 
 Enable token revoke
-- In Admin Portal, enable Revoke v3 Token in the ACCESS MANAGER section.
+- In Admin Portal, enable “Revoke v3 Token” in ACCESS MANAGER.
 
-revoke_token() disables an existing token granted via grant_token(). Use for ttl ≤ 30 days; for longer ttl, contact support.
+revoke_token() disables a previously granted, valid token (ttl ≤ 30 days). For longer ttl, contact support.
+
+For more information: Revoke permissions.
 
 ### Method(s)
 
@@ -195,9 +184,10 @@ revoke_token() disables an existing token granted via grant_token(). Use for ttl
 `
 ```
 
+Parameters
 - token (required)
   - Type: Into<String>
-  - Existing token with embedded permissions.
+  - Existing token to revoke.
 
 ### Sample code
 
@@ -209,20 +199,19 @@ revoke_token() disables an existing token granted via grant_token(). Use for ttl
 
 ### Returns
 
-Returns a success response with a token from the PAMv3 service or an error.
+- Success response from PAMv3 or error with details.
 
 ### Error Responses
 
-May return:
 - 400 Bad Request
 - 403 Forbidden
 - 503 Service Unavailable
 
 ## Parse token
 
-parse_token() decodes an existing token and returns its embedded permissions and ttl. Useful for debugging.
+parse_token() decodes a token and returns its embedded permissions and ttl. Useful for debugging.
 
-Add any of the following features to Cargo.toml to use this API:
+Add any of the following features to Cargo.toml:
 
 ```
 `[dependencies]  
@@ -246,9 +235,10 @@ fullparse_token
 `
 ```
 
+Parameters
 - token (required)
   - Type: &str
-  - Current token with embedded permissions.
+  - Token string to decode.
 
 ### Sample code
 
@@ -342,11 +332,11 @@ fullparse_token
 
 ### Error Responses
 
-If parsing fails, the token may be damaged; request a new token from the server.
+- Parsing errors suggest a damaged token; request a new token.
 
 ## Set token
 
-set_token() is used by clients to update the authentication token granted by the server.
+set_token() is used by clients to update the authentication token provided by the server.
 
 ### Method(s)
 
@@ -356,9 +346,10 @@ set_token() is used by clients to update the authentication token granted by the
 `
 ```
 
+Parameters
 - token (required)
   - Type: Into<String>
-  - Current token with embedded permissions.
+  - Current token string.
 
 ### Sample code
 
@@ -370,6 +361,4 @@ set_token() is used by clients to update the authentication token granted by the
 
 ### Returns
 
-This method doesn't return any response value.
-
-Last updated on Sep 3, 2025
+- No return value.

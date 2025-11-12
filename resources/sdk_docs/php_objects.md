@@ -1,14 +1,14 @@
 # App Context API for PHP SDK
 
-App Context (Objects v2) provides storage for user and channel metadata and their memberships. Events are triggered when data is set, updated, or removed.
+App Context (formerly Objects v2) provides serverless storage for user and channel metadata, and their membership relationships. PubNub emits events when object data is set, updated, or removed. Setting the same data doesn't trigger events.
 
 ## User
 
-Manage UUID metadata: list, fetch, set, and remove.
+Manage UUID metadata.
 
 ### Get metadata for all users
 
-Get a paginated list of UUID metadata with optional filters, sorting, and includes.
+Get a paginated list of UUID metadata with filtering and sorting.
 
 #### Method(s)
 
@@ -23,15 +23,17 @@ Get a paginated list of UUID metadata with optional filters, sorting, and includ
 `
 ```
 
-`includeFields()` Type: Array[String => Boolean] Default: n/a Whether to include additional fields. Set `customFields` to include the Custom object. Set `totalCount` to include the total count in the paginated response (default is false).
-`filter()` Type: String Default: n/a Filter expression. See filtering.
-`sort()` Type: String or Array[String] Default: n/a Sort by `id`, `name`, `updated` with `asc`/`desc` (for example, `name:asc`).
-`limit()` Type: integer Default: `100` Number of objects to return. Default/Max: 100.
-`page()` Type: Array[String => String] Default: n/a Cursor-based pagination. Use `prev` and `next` tokens returned by the server.
+Parameters:
+- includeFields() (Array[String => Boolean]): Include additional fields.
+  - customFields: Include the Custom object.
+  - totalCount: Include total count (default false).
+- filter() (String): Filter expression. See filtering.
+- sort() (String | Array[String]): Sort by id, name, updated with asc/desc (for example, name:asc).
+- limit() (Integer, default 100, max 100): Number of objects to return.
+- page() (Array[String => String]): Cursor-based pagination using prev/next tokens.
 
 #### Sample code
 
-##### Reference code
 ```
 1
   
@@ -40,21 +42,19 @@ Get a paginated list of UUID metadata with optional filters, sorting, and includ
 
 #### Response
 
-Returns `PNGetAllUUIDMetadataResult`:
+Returns PNGetAllUUIDMetadataResult:
+- getData() (Array[PNGetUUIDMetadataResult]): List of UUID metadata.
+- getTotalCount() (Integer): Total items in data.
+- getPrev() (String): Token for previous page.
+- getNext() (String): Token for next page.
 
-- `getData()` Type: Array[PNGetUUIDMetadataResult] List of uuid metadata results
-- `getTotalCount()` Type: Integer Number of items returned
-- `getPrev()` Type: String Backward pagination token
-- `getNext()` Type: String Forward pagination token
-
-Each `PNGetUUIDMetadataResult`:
-
-- `getId()` Type: String Unique user identifier
-- `getName()` Type: String Display name
-- `getExternalId()` Type: String External system ID
-- `getProfileUrl()` Type: String Profile picture URL
-- `getEmail()` Type: String Email address
-- `getCustom()` Type: stdClass Custom fields
+Each PNGetUUIDMetadataResult:
+- getId() (String): Unique user identifier.
+- getName() (String): Display name.
+- getExternalId() (String): External system ID.
+- getProfileUrl() (String): Profile image URL.
+- getEmail() (String): Email address.
+- getCustom() (stdClass): Custom fields.
 
 ### Get user metadata
 
@@ -69,7 +69,8 @@ Fetch metadata for a single UUID.
 `
 ```
 
-`uuid()` Type: String Default: n/a UUID
+Parameters:
+- uuid() (String, required): UUID.
 
 #### Sample code
 
@@ -81,20 +82,14 @@ Fetch metadata for a single UUID.
 
 #### Response
 
-Returns `PNGetUUIDMetadataResult`:
-
-- `getId()` String
-- `getName()` String
-- `getExternalId()` String
-- `getProfileUrl()` String
-- `getEmail()` String
-- `getCustom()` stdClass
+Returns PNGetUUIDMetadataResult:
+- getId(), getName(), getExternalId(), getProfileUrl(), getEmail(), getCustom() (stdClass).
 
 ### Set user metadata
 
-Create or update metadata for a UUID. Use `ifMatchesEtag` to avoid overwriting concurrent updates.
+Create or update metadata for a UUID. Use eTag to prevent overwriting concurrent updates.
 
-Unsupported partial updates of custom metadata: The `custom` value overwrites the stored value. To add to existing custom data: fetch current, merge locally, then set.
+Note: Custom metadata is fully replaced on set; partial updates are not supported.
 
 #### Method(s)
 
@@ -107,16 +102,17 @@ Unsupported partial updates of custom metadata: The `custom` value overwrites th
 `
 ```
 
-`uuid()` Type: String Default: n/a UUID  
-`meta()` Type: Array or StdClass Default: n/a UUID metadata to set.  
-`ifMatchesEtag` Type: String Default: n/a Use eTag from a get call; if mismatched, server returns HTTP 412.
+Parameters:
+- uuid() (String, required): UUID.
+- meta() (Array | StdClass, required): UUID metadata to set.
+- ifMatchesEtag (String): Conditional update using eTag; returns HTTP 412 on mismatch.
 
 UUID metadata fields:
-- `name` String Optional
-- `externalId` String Optional
-- `profileUrl` String Optional
-- `email` String Optional
-- `custom` Array or StdClass Optional (strings, numbers, booleans; filtering by Custom not supported)
+- name (String): Display name.
+- externalId (String): External system ID.
+- profileUrl (String): Profile image URL.
+- email (String): Email address.
+- custom (Array | StdClass): JSON values (strings, numbers, booleans). Filtering by Custom isn’t supported.
 
 API limits: See REST API docs.
 
@@ -130,14 +126,8 @@ API limits: See REST API docs.
 
 #### Response
 
-Returns `PNSetUUIDMetadataResult`:
-
-- `getId()` String
-- `getName()` String
-- `getExternalId()` String
-- `getProfileUrl()` String
-- `getEmail()` String
-- `getCustom()` stdClass
+Returns PNSetUUIDMetadataResult:
+- getId(), getName(), getExternalId(), getProfileUrl(), getEmail(), getCustom() (stdClass).
 
 ### Remove user metadata
 
@@ -152,7 +142,8 @@ Delete metadata for a UUID.
 `
 ```
 
-`uuid()` Type: String Default: n/a UUID
+Parameters:
+- uuid() (String, required): UUID.
 
 #### Sample code
 
@@ -164,15 +155,15 @@ Delete metadata for a UUID.
 
 #### Response
 
-Returns boolean: `true` on success, otherwise `false`.
+Returns boolean true on success; otherwise false.
 
 ## Channel
 
-Manage channel metadata: list, fetch, set, and remove.
+Manage channel metadata.
 
 ### Get metadata for all channels
 
-Get a paginated list of channel metadata with optional filters, sorting, and includes.
+Get a paginated list of channel metadata.
 
 #### Method(s)
 
@@ -187,11 +178,14 @@ Get a paginated list of channel metadata with optional filters, sorting, and inc
 `
 ```
 
-`includeFields()` Type: Array[String => Boolean] Default: n/a Set `customFields` to include Custom; set `totalCount` to include item count.
-`filter()` Type: String Default: n/a Filter expression. See filtering.
-`sort()` Type: String or Array[String] Default: n/a Sort by `id`, `name`, `updated` with `asc`/`desc`.
-`limit()` Type: integer Default: `100` Default/Max: 100.
-`page()` Type: Array[String => String] Default: n/a Use `prev`/`next` tokens.
+Parameters:
+- includeFields() (Array[String => Boolean]): Include additional fields.
+  - customFields: Include the Custom object.
+  - totalCount: Include total count (default false).
+- filter() (String): Filter expression. See filtering.
+- sort() (String | Array[String]): Sort by id, name, updated with asc/desc (for example, name:asc).
+- limit() (Integer, default 100, max 100): Number of objects to return.
+- page() (Array[String => String]): Cursor-based pagination using prev/next tokens.
 
 #### Sample code
 
@@ -203,19 +197,17 @@ Get a paginated list of channel metadata with optional filters, sorting, and inc
 
 #### Response
 
-Returns `PNGetAllChannelMetadataResult`:
+Returns PNGetAllChannelMetadataResult:
+- getData() (Array[PNGetChannelMetadataResult]).
+- getTotalCount() (Integer).
+- getPrev() (String).
+- getNext() (String).
 
-- `getData()` Type: Array[PNGetChannelMetadataResult]
-- `getTotalCount()` Type: Integer
-- `getPrev()` Type: String
-- `getNext()` Type: String
-
-Each `PNGetChannelMetadataResult`:
-
-- `getId()` String Unique channel identifier
-- `getName()` String Display name
-- `getDescription()` String Description
-- `getCustom()` stdClass Custom fields
+Each PNGetChannelMetadataResult:
+- getId() (String): Channel ID.
+- getName() (String): Display name.
+- getDescription() (String): Description.
+- getCustom() (stdClass): Custom fields.
 
 ### Get channel metadata
 
@@ -230,7 +222,8 @@ Fetch metadata for a single channel.
 `
 ```
 
-`channel()` Type: String Default: n/a Unique channel identifier
+Parameters:
+- channel() (String, required): Channel ID.
 
 #### Sample code
 
@@ -242,18 +235,14 @@ Fetch metadata for a single channel.
 
 #### Response
 
-Returns `PNGetChannelMetadataResult`:
-
-- `getId()` String
-- `getName()` String
-- `getDescription()` String
-- `getCustom()` stdClass
+Returns PNGetChannelMetadataResult:
+- getId(), getName(), getDescription(), getCustom() (stdClass).
 
 ### Set channel metadata
 
-Create or update metadata for a channel. Use `ifMatchesEtag` to avoid overwriting concurrent updates.
+Create or update metadata for a channel. Use eTag to prevent overwriting concurrent updates.
 
-Unsupported partial updates of custom metadata: `custom` value fully overwrites stored value.
+Note: Custom metadata is fully replaced on set; partial updates are not supported.
 
 #### Method(s)
 
@@ -266,14 +255,15 @@ Unsupported partial updates of custom metadata: `custom` value fully overwrites 
 `
 ```
 
-`channel()` Type: String Default: n/a Unique channel identifier  
-`meta()` Type: Array or StdClass Default: n/a Channel metadata to set.  
-`ifMatchesEtag` Type: String Default: n/a Use eTag from a get call; on mismatch server returns HTTP 412.
+Parameters:
+- channel() (String, required): Channel ID.
+- meta() (Array | StdClass, required): Channel metadata to set.
+- ifMatchesEtag (String): Conditional update using eTag; returns HTTP 412 on mismatch.
 
 Channel metadata fields:
-- `name` String Optional
-- `description` String Optional
-- `custom` Array or StdClass Optional (strings, numbers, booleans; filtering by Custom not supported)
+- name (String): Display name.
+- description (String): Description.
+- custom (Array | StdClass): JSON values (strings, numbers, booleans). Filtering by Custom isn’t supported.
 
 API limits: See REST API docs.
 
@@ -287,27 +277,15 @@ API limits: See REST API docs.
 
 #### Response
 
-Returns `PNSetChannelMetadataResult`:
-
-- `getId()` String
-- `getName()` String
-- `getDescription()` String
-- `getCustom()` stdClass
+Returns PNSetChannelMetadataResult:
+- getId() (String), getName() (String), getDescription() (String), getCustom() (stdClass).
 
 #### Other examples
 
 ```
-`1    // Writing the updated object back to the server  
-2    $pubnub->setChannelMetadata()  
-3        ->channel($channel)  
-4        ->meta([  
-5            "name" => $response->getName(),  
-6            "description" => $response->getDescription(),  
-7            "custom" => $custom,  
-8        ])  
-9        ->sync();  
-10    print("Object has been updated.\n");  
-`
+1
+  
+
 ```
 
 ##### Update existing channel metadata
@@ -331,7 +309,8 @@ Delete metadata for a channel.
 `
 ```
 
-`channel()` Type: String Default: n/a Unique channel identifier
+Parameters:
+- channel() (String, required): Channel ID.
 
 #### Sample code
 
@@ -343,11 +322,11 @@ Delete metadata for a channel.
 
 #### Response
 
-Returns boolean: `true` on success, otherwise `false`.
+Returns boolean true on success; otherwise false.
 
 ## Channel memberships
 
-Manage the channels a UUID belongs to: list, set, remove, and manage in bulk.
+Manage channels a UUID belongs to.
 
 ### Get channel memberships
 
@@ -367,20 +346,21 @@ List channel memberships for a UUID.
 `
 ```
 
-`uuid()` Type: String Default: n/a UUID  
-`include()` Type: `PNMembershipIncludes` Default: n/a  
-→ `custom` Boolean Default: `False` Include Custom object  
-→ `status` Boolean Default: `False` Include status  
-→ `type` Boolean Default: `False` Include type  
-→ `total_count` Boolean Default: `False` Include total count  
-→ `channel` Boolean Default: `False` Include channel fields  
-→ `channelCustom` Boolean Default: `False` Include channel Custom  
-→ `channelType` Boolean Default: `False` Include channel type  
-→ `channelStatus` Boolean Default: `False` Include channel status  
-`filter()` Type: String Default: n/a Filter expression  
-`sort()` Type: String or Array[String] Default: n/a Sort by `id`, `name`, `updated` with `asc`/`desc`  
-`limit()` Type: integer Default: `100` Default/Max: 100  
-`page()` Type: Array[String => String] Default: n/a Use `prev`/`next` tokens
+Parameters:
+- uuid() (String, required): UUID.
+- include() (PNMembershipIncludes): Include additional fields:
+  - custom (Boolean, default False): Include Custom object.
+  - status (Boolean, default False): Include status.
+  - type (Boolean, default False): Include type.
+  - total_count (Boolean, default False): Include total count.
+  - channel (Boolean, default False): Include channel fields.
+  - channelCustom (Boolean, default False): Include channel Custom.
+  - channelType (Boolean, default False): Include channel type.
+  - channelStatus (Boolean, default False): Include channel status.
+- filter() (String): Filter expression. See filtering.
+- sort() (String | Array[String]): Sort by id, name, updated with asc/desc.
+- limit() (Integer, default 100, max 100).
+- page() (Array[String => String]): Cursor-based pagination using prev/next tokens.
 
 #### Sample code
 
@@ -392,28 +372,20 @@ List channel memberships for a UUID.
 
 #### Response
 
-Returns `PNMembershipsResult`:
+Returns PNMembershipsResult:
+- getData() (Array[PNMembershipsResultItem]).
+- getTotalCount() (Integer).
+- getPrev() (String).
+- getNext() (String).
 
-- `getData()` Type: Array[PNMembershipsResultItem]
-- `getTotalCount()` Type: Integer
-- `getPrev()` Type: String
-- `getNext()` Type: String
+PNMembershipsResultItem:
+- getChannel() (PNMembership): Channel metadata.
+- getCustom() (String | stdClass): Custom fields.
+- getUpdated() (String): Last updated timestamp.
+- getETag() (String): ETag.
 
-Each `PNMembershipsResultItem`:
-
-- `getChannel()` Type: PNMembership Channel metadata
-- `getCustom()` Type: String stdClass with custom fields
-- `getUpdated()` Type: String Last updated timestamp
-- `getETag()` Type: String Entity tag
-
-`PNMembership` (channel):
-
-- `getId()` String
-- `getName()` String
-- `getDescription()` String
-- `getCustom()` stdClass
-- `getUpdated()` String
-- `getETag()` String
+PNMembership:
+- getId() (String), getName() (String), getDescription() (String), getCustom() (stdClass), getUpdated() (String), getETag() (String).
 
 ### Set channel memberships
 
@@ -435,15 +407,13 @@ Replace or add memberships for a UUID.
 `
 ```
 
-`uuid()` Type: String Default: n/a UUID  
-`memberships()` Type: Array[PNChannelMembership] Default: n/a Memberships to set  
-`custom()` Type: Array or StdClass Default: n/a Custom JSON values (strings, numbers, booleans)  
-`include()` Type: `PNMembershipIncludes` Default: n/a (same include options as above)  
-`filter()` Type: String Default: n/a  
-`sort()` Type: String or Array[String] Default: n/a  
-`limit()` Type: integer Default: `100`  
-`page()` Type: Array[String => String] Default: n/a  
-`channels()` Type: Array[String or Array] Default: n/a Channels to add (string channel ID or object with custom data)
+Parameters:
+- uuid() (String, required): UUID.
+- memberships() (Array[PNChannelMembership], required): Memberships to set.
+- custom() (Array | StdClass): JSON values (strings, numbers, booleans).
+- include() (PNMembershipIncludes): Same include options as Get channel memberships.
+- filter(), sort(), limit(), page(): Same as above.
+- channels() (Array[String or Array], required): Channels to add; items can be channel ID strings or objects with custom data.
 
 API limits: See REST API docs.
 
@@ -457,7 +427,7 @@ API limits: See REST API docs.
 
 #### Response
 
-Returns `PNMembershipsResult` (same structure as Get channel memberships).
+Returns PNMembershipsResult (fields as in Get channel memberships).
 
 ### Remove channel memberships
 
@@ -478,14 +448,12 @@ Remove memberships for a UUID.
 `
 ```
 
-`uuid()` Type: String Default: n/a UUID  
-`memberships()` Type: Array[PNChannelMembership] Default: n/a Memberships to remove  
-`include()` Type: `PNMembershipIncludes` Default: n/a (same include options as above)  
-`filter()` Type: String Default: n/a  
-`sort()` Type: String or Array[String] Default: n/a  
-`limit()` Type: integer Default: `100`  
-`page()` Type: Array[String => String] Default: n/a  
-`channels()` Type: Array[String] Default: n/a Channels to remove
+Parameters:
+- uuid() (String, required): UUID.
+- memberships() (Array[PNChannelMembership], required): Memberships to remove.
+- include() (PNMembershipIncludes): Same include options as above.
+- filter(), sort(), limit(), page(): Same as above.
+- channels() (Array[String], required): Channels to remove.
 
 #### Sample code
 
@@ -497,7 +465,7 @@ Remove memberships for a UUID.
 
 #### Response
 
-Returns `PNMembershipsResult` (same structure as Get channel memberships).
+Returns PNMembershipsResult (fields as in Get channel memberships).
 
 ### Manage channel memberships
 
@@ -519,14 +487,12 @@ Add and remove memberships for a UUID in one request.
 `
 ```
 
-`uuid()` Type: String Default: n/a Unique user identifier  
-`setMemberships()` Type: Array[PNChannelMembership] Default: n/a Memberships to add  
-`removeMemberships()` Type: Array[PNChannelMembership] Default: n/a Memberships to remove  
-`include()` Type: `PNMembershipIncludes` Default: n/a (same include options as above)  
-`filter()` Type: String Default: n/a  
-`sort()` Type: String or Array[String] Default: n/a  
-`limit()` Type: integer Default: `100`  
-`page()` Type: Array[String => String] Default: n/a
+Parameters:
+- uuid() (String, required): User identifier whose memberships to manage.
+- setMemberships() (Array[PNChannelMembership]): Memberships to add.
+- removeMemberships() (Array[PNChannelMembership]): Memberships to remove.
+- include() (PNMembershipIncludes): Same include options as above.
+- filter(), sort(), limit(), page(): Same as above.
 
 #### Sample code
 
@@ -538,11 +504,11 @@ Add and remove memberships for a UUID in one request.
 
 #### Response
 
-Returns `PNMembershipsResult` (same structure as Get channel memberships).
+Returns PNMembershipsResult (fields as in Get channel memberships).
 
 ## Channel members
 
-Manage the users in a channel: list, set, remove, and manage in bulk.
+Manage users in a channel.
 
 ### Get channel members
 
@@ -562,20 +528,15 @@ List users in a channel.
 `
 ```
 
-`channel()` Type: String Default: n/a Unique channel identifier  
-`include()` Type: `PNMemberIncludes` Default: n/a  
-→ `custom` Boolean Default: `False`  
-→ `status` Boolean Default: `False`  
-→ `type` Boolean Default: `False`  
-→ `total_count` Boolean Default: `False`  
-→ `user` Boolean Default: `False`  
-→ `userCustom` Boolean Default: `False`  
-→ `userType` Boolean Default: `False`  
-→ `userStatus` Boolean Default: `False`  
-`filter()` Type: String Default: n/a  
-`sort()` Type: String or Array[String] Default: n/a  
-`limit()` Type: integer Default: `100`  
-`page()` Type: Array[String => String] Default: n/a
+Parameters:
+- channel() (String, required): Channel ID.
+- include() (PNMemberIncludes): Include additional fields:
+  - custom (Boolean, default False), status (Boolean, default False), type (Boolean, default False), total_count (Boolean, default False),
+  - user (Boolean, default False), userCustom (Boolean, default False), userType (Boolean, default False), userStatus (Boolean, default False).
+- filter() (String): See filtering.
+- sort() (String | Array[String]): Sort by id, name, updated with asc/desc.
+- limit() (Integer, default 100, max 100).
+- page() (Array[String => String]): Cursor-based pagination using prev/next tokens.
 
 #### Sample code
 
@@ -587,30 +548,20 @@ List users in a channel.
 
 #### Response
 
-Returns `PNMembersResult`:
+Returns PNMembersResult:
+- getData() (Array[PNMembersResultItem]).
+- getTotalCount() (Integer).
+- getPrev() (String).
+- getNext() (String).
 
-- `getData()` Type: Array[PNMembersResultItem]
-- `getTotalCount()` Type: Integer
-- `getPrev()` Type: String
-- `getNext()` Type: String
+PNMembersResultItem:
+- getUUID() (PNMember): User metadata.
+- getCustom() (String | stdClass): Custom fields.
+- getUpdated() (String): Last updated timestamp.
+- getETag() (String): ETag.
 
-Each `PNMembersResultItem`:
-
-- `getUUID()` Type: PNMember UUID metadata
-- `getCustom()` Type: String stdClass with custom fields
-- `getUpdated()` Type: String
-- `getETag()` Type: String
-
-`PNMember` (user):
-
-- `getId()` String
-- `getName()` String
-- `getExternalId()` String
-- `getProfileUrl()` String
-- `getEmail()` String
-- `getCustom()` stdClass
-- `getUpdated()` String
-- `getETag()` String
+PNMember (user):
+- getId() (String), getName() (String), getExternalId() (String), getProfileUrl() (String), getEmail() (String), getCustom() (stdClass), getUpdated() (String), getETag() (String).
 
 ### Set channel members
 
@@ -632,14 +583,12 @@ Set users in a channel.
 `
 ```
 
-`channel()` Type: String Default: n/a  
-`uuids()` Type: Array[String or Array] Default: n/a Members to add (string UUID or object with custom)  
-`custom()` Type: Array or StdClass Default: n/a Key-value pairs  
-`include()` Type: `PNMemberIncludes` Default: n/a (same include options as above)  
-`filter()` Type: String Default: n/a  
-`sort()` Type: String or Array[String] Default: n/a  
-`limit()` Type: integer Default: `100`  
-`page()` Type: Array[String => String] Default: n/a
+Parameters:
+- channel() (String, required): Channel ID.
+- uuids() (Array[String | Array], required): Members to add; items can be UUID strings or objects with custom.
+- custom() (Array | StdClass): Key-value pairs.
+- include() (PNMemberIncludes): Same include options as Get channel members.
+- filter(), sort(), limit(), page(): Same as above.
 
 API limits: See REST API docs.
 
@@ -653,7 +602,7 @@ API limits: See REST API docs.
 
 #### Response
 
-Returns `PNMembersResult` (same structure as Get channel members).
+Returns PNMembersResult (fields as in Get channel members).
 
 ### Remove channel members
 
@@ -674,13 +623,11 @@ Remove users from a channel.
 `
 ```
 
-`channel()` Type: String Default: n/a  
-`members()` Type: PNChannelMember[] Default: n/a Members to remove  
-`include()` Type: `PNMemberIncludes` Default: n/a (same include options as above)  
-`filter()` Type: String Default: n/a  
-`sort()` Type: String or Array[String] Default: n/a  
-`limit()` Type: integer Default: `100`  
-`page()` Type: Array[String => String] Default: n/a
+Parameters:
+- channel() (String, required): Channel ID.
+- members() (PNChannelMember[], required): Members to remove.
+- include() (PNMemberIncludes): Same include options as above.
+- filter(), sort(), limit(), page(): Same as above.
 
 #### Sample code
 
@@ -692,7 +639,7 @@ Remove users from a channel.
 
 #### Response
 
-Returns `PNMembersResult` (same structure as Get channel members).
+Returns PNMembersResult (fields as in Get channel members).
 
 ### Manage channel members
 
@@ -717,17 +664,15 @@ Add and remove users in a channel in one request.
 `
 ```
 
-`channel()` Type: String Default: n/a Unique channel identifier  
-`setUuids()` Type: Array[String] Default: n/a UUIDs to add  
-`removeUuids()` Type: Array[String] Default: n/a UUIDs to remove  
-`setMembers()` Type: Array[PNChannelMember] Default: n/a Members to add  
-`removeMembers()` Type: Array[PNChannelMember] Default: n/a Members to remove  
-`custom()` Type: Array or StdClass Default: n/a Custom JSON values  
-`include()` Type: `PNMemberIncludes` Default: n/a (same include options as above)  
-`filter()` Type: String Default: n/a  
-`sort()` Type: String or Array[String] Default: n/a  
-`limit()` Type: integer Default: `100`  
-`page()` Type: Array[String => String] Default: n/a
+Parameters:
+- channel() (String, required): Channel ID.
+- setUuids() (Array[String]): UUIDs to add.
+- removeUuids() (Array[String]): UUIDs to remove.
+- setMembers() (Array[PNChannelMember]): Members to add.
+- removeMembers() (Array[PNChannelMember]): Members to remove.
+- custom() (Array | StdClass): JSON values.
+- include() (PNMemberIncludes): Same include options as above.
+- filter(), sort(), limit(), page(): Same as above.
 
 #### Sample code
 
@@ -739,4 +684,6 @@ Add and remove users in a channel in one request.
 
 #### Response
 
-Returns `PNMembersResult` (same structure as Get channel members).
+Returns PNMembersResult (fields as in Get channel members).
+
+Last updated on Nov 6, 2025

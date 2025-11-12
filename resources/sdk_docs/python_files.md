@@ -1,14 +1,14 @@
 # File Sharing API for Python SDK
 
-Upload and share files up to 5 MB on a channel. Subscribers receive a file event with file ID, name, and optional description.
+Upload and share files up to 5 MB on PubNub. When you upload a file to a channel, PubNub stores it and publishes a file event with the file ID, name, and optional description to subscribers.
 
 ##### Request execution and return values
 
-Operations can be synchronous or asynchronous.
+Choose synchronous or asynchronous execution.
 
 `.sync()` returns an `Envelope` with:
-- result: type differs per API
-- status: `PnStatus`
+- `Envelope.result`: varies by API
+- `Envelope.status`: `PnStatus`
 
 ```
 `1pubnub.publish() \  
@@ -18,7 +18,7 @@ Operations can be synchronous or asynchronous.
 `
 ```
 
-`.pn_async(callback)` returns `None` and calls your callback with `Envelope.result` and `Envelope.status`.
+`.pn_async(callback)` returns `None` and invokes your callback with `(result, status)`.
 
 ```
 1def my_callback_function(result, status):  
@@ -33,7 +33,7 @@ Operations can be synchronous or asynchronous.
 
 ## Send file
 
-Uploads a file to a channel and publishes a file message. Internally calls publish_file_message.
+Uploads a file to a channel, then publishes a file message on the channel. Internally calls [`publish_file_message`](#publish-file-message).
 
 ### Method(s)
 
@@ -51,19 +51,37 @@ Uploads a file to a channel and publishes a file message. Internally calls publi
 ```
 
 Parameters:
-- channel (String, required): Channel for the file.
-- file_name (String, required): Name of the file to send.
-- message (Dictionary): Message to send along with the file.
-- should_store (Boolean, default True): Store the file message in channel history.
-- ttl (Integer): How long to store the message in history.
-- file_object (bytes or Python file object, required): Input stream with file content.
-- meta (Dictionary): Metadata for message filtering.
-- custom_message_type (String): Case-sensitive, alphanumeric 3–50 chars; dashes and underscores allowed; cannot start with special characters or with pn_ or pn-. Examples: text, action, poll.
+- channel (required)  
+  Type: String, Default: n/a  
+  Channel for the file.
+- file_name (required)  
+  Type: String, Default: n/a  
+  Name of the file to send.
+- message  
+  Type: Dictionary, Default: n/a  
+  Message to send along with the file.
+- should_store  
+  Type: Boolean, Default: True  
+  Store the published file message in channel history.
+- ttl  
+  Type: Integer, Default: n/a  
+  How long the message is stored.
+- file_object (required)  
+  Type: bytes or Python file object, Default: n/a  
+  File content.
+- meta  
+  Type: Dictionary, Default: n/a  
+  Metadata for message filtering.
+- custom_message_type  
+  Type: String, Default: n/a  
+  Case-sensitive, 3–50 alphanumeric chars; dashes and underscores allowed; cannot start with special chars or with pn_ / pn- (examples: text, action, poll).
 
-Deprecated:
-- cipher_key: Use the crypto module instead. If provided, it overrides crypto module config and uses legacy 128-bit encryption.
+Deprecated parameter:
+- cipher_key (deprecated). Configure the crypto module instead: /docs/sdks/python/api-reference/configuration#crypto_module. If provided, it overrides crypto module config and uses legacy 128-bit encryption.
 
 ### Sample code
+
+##### Reference code
 
 - Builder Pattern
 - Named Arguments
@@ -119,6 +137,7 @@ Deprecated:
 39    main()  
 ```
 
+show all 39 lines
 ```
 1import os  
 2from pubnub.pnconfiguration import PNConfiguration  
@@ -174,14 +193,14 @@ Deprecated:
 
 ### Returns
 
-Envelope:
+Returns an `Envelope`:
 - result: PNSendFileResult
 - status: PNStatus
 
 PNSendFileResult:
 - name (String): Uploaded file name.
 - file_id (String): Uploaded file ID.
-- timestamp (String): Message publish timetoken.
+- timestamp (String): Publish timetoken.
 
 ## List channel files
 
@@ -196,9 +215,15 @@ Retrieve files uploaded to a channel.
 ```
 
 Parameters:
-- channel (String, required): Channel to get files from.
-- limit (Int): Number of elements to return.
-- next (String): Server-provided cursor for forward pagination.
+- channel (required)  
+  Type: String, Default: n/a  
+  Channel to list files.
+- limit  
+  Type: Int, Default: n/a  
+  Number of elements to return.
+- next  
+  Type: String, Default: n/a  
+  Server-provided pagination token for forward pagination.
 
 ### Sample code
 
@@ -221,14 +246,14 @@ Parameters:
 
 ### Returns
 
-Envelope:
+Returns an `Envelope`:
 - result: PNGetFilesResult
 - status: PNStatus
 
 PNGetFilesResult:
-- next (String): Pagination cursor.
+- next (String): Pagination token.
 - count (Int): Number of files returned.
-- data (List): List of files, each with:
+- data (List): List of channel files with:
   - id (Long): File ID.
   - name (String): File name.
   - size (String): File size.
@@ -249,9 +274,15 @@ Generate a URL to download a file from a channel.
 ```
 
 Parameters:
-- channel (String, required): Channel name.
-- file_name (String, required): Stored file name.
-- file_id (String, required): File identifier.
+- channel (required)  
+  Type: String  
+  Channel where the file was uploaded.
+- file_name (required)  
+  Type: String  
+  Stored file name.
+- file_id (required)  
+  Type: String  
+  File’s unique ID.
 
 ### Sample code
 
@@ -275,7 +306,7 @@ Parameters:
 
 ### Returns
 
-Envelope:
+Returns an `Envelope`:
 - result: PNGetFileDownloadURLResult
 - status: PNStatus
 
@@ -297,12 +328,18 @@ Download a file from a channel.
 ```
 
 Parameters:
-- channel (String, required): Channel name.
-- file_name (String, required): Stored file name.
-- file_id (String, required): File identifier.
+- channel (required)  
+  Type: String  
+  Channel where the file was uploaded.
+- file_name (required)  
+  Type: String  
+  Stored file name.
+- file_id (required)  
+  Type: String  
+  File’s unique ID.
 
-Deprecated:
-- cipher_key: Use the crypto module instead. If provided, it overrides crypto module config and uses legacy 128-bit encryption.
+Deprecated parameter:
+- cipher_key (deprecated). Configure the crypto module instead: /docs/sdks/python/api-reference/configuration#crypto_module. If provided, it overrides crypto module config and uses legacy 128-bit encryption.
 
 ### Sample code
 
@@ -331,7 +368,7 @@ Deprecated:
 
 ### Returns
 
-Envelope:
+Returns an `Envelope`:
 - result: PNDownloadFileResult
 - status: PNStatus
 
@@ -353,9 +390,15 @@ Delete a file from a channel.
 ```
 
 Parameters:
-- channel (String, required): Channel to delete from.
-- file_id (String, required): File identifier.
-- file_name (String, required): File name.
+- channel (required)  
+  Type: String  
+  Channel to delete from.
+- file_id (required)  
+  Type: String  
+  File ID.
+- file_name (required)  
+  Type: String  
+  File name.
 
 ### Sample code
 
@@ -380,7 +423,7 @@ Parameters:
 
 ### Returns
 
-Envelope:
+Returns an `Envelope`:
 - result: PNDeleteFileResult
 - status: PNStatus
 
@@ -389,7 +432,7 @@ PNDeleteFileResult:
 
 ## Publish file message
 
-Publish the uploaded file message to a channel. Called internally by send_file after upload. Use directly if send_file fails after upload (status.operation === PNPublishFileMessageOperation).
+Publishes a message to a channel about an already-uploaded file (ID and name), enabling discovery and download. Called internally by [`send_file`](#send-file). If `send_file` fails with `status.operation === PNPublishFileMessageOperation`, use this to resend the message without re-uploading.
 
 ### Method(s)
 
@@ -407,14 +450,30 @@ Publish the uploaded file message to a channel. Called internally by send_file a
 ```
 
 Parameters:
-- channel (String, required): Channel to publish to.
-- meta (Dictionary): Metadata for filtering.
-- message (Dictionary): Payload.
-- file_id (String, required): File identifier.
-- custom_message_type (String): Case-sensitive, alphanumeric 3–50 chars; dashes and underscores allowed; cannot start with special characters or with pn_ or pn-. Examples: text, action, poll.
-- file_name (String, required): File name.
-- should_store (Boolean, default True): Store in history (subject to retention).
-- ttl (Int, default 0): History TTL; defaults to keyset retention.
+- channel (required)  
+  Type: String, Default: n/a  
+  Channel to publish to.
+- meta  
+  Type: Dictionary, Default: n/a  
+  Metadata for message filtering.
+- message  
+  Type: Dictionary, Default: n/a  
+  Payload.
+- file_id (required)  
+  Type: String, Default: n/a  
+  File ID.
+- custom_message_type  
+  Type: String, Default: n/a  
+  Case-sensitive, 3–50 alphanumeric chars; dashes/underscores allowed; cannot start with special chars or pn_ / pn- (examples: text, action, poll).
+- file_name (required)  
+  Type: String, Default: n/a  
+  File name.
+- should_store  
+  Type: Boolean, Default: True  
+  Store in history (False to skip).
+- ttl  
+  Type: Int, Default: 0  
+  Duration to store in history; defaults to key set’s retention if not specified.
 
 ### Sample code
 
@@ -450,6 +509,7 @@ Parameters:
 24    .pn_async(callback)  
 ```
 
+show all 24 lines
 ```
 `1envelope = pubnub.publish_file_message(channel="test_channel",  
 2                                       message="Bring me a shrubbery",  
@@ -464,9 +524,11 @@ Parameters:
 
 ### Returns
 
-Envelope:
+Returns an `Envelope`:
 - result: PNPublishFileMessageResult
 - status: PNStatus
 
 PNPublishFileMessageResult:
-- timestamp (String): Message publish timetoken.
+- timestamp (String): Publish timetoken.
+
+Last updated on Sep 3, 2025

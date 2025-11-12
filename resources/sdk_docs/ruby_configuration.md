@@ -1,24 +1,28 @@
 # Configuration API for Ruby SDK
 
-Complete reference for configuring and initializing the PubNub Ruby SDK, including event handling and essential examples.
+Complete reference for configuring and initializing the PubNub Ruby SDK, including encryption options and essential examples.
 
 ## Initialization
 
 ### Installing
+
+To use `pubnub` ruby gem, install via `rubygems`:
 
 ```
 `1gem install pubnub  
 `
 ```
 
-Or add to Gemfile:
+Or add to your Gemfile:
 
 ```
-`1gem 'pubnub', '~> 6.0.0'  
+`1gem 'pubnub', '~> 6.0.1'  
 `
 ```
 
 ### Usage
+
+Require the gem:
 
 ```
 `1require 'pubnub'  
@@ -27,9 +31,11 @@ Or add to Gemfile:
 
 ### Description
 
-Initialize the PubNub client before using any APIs to set credentials (`publish_key`, `subscribe_key`, etc.).
+Initialize the PubNub Client API context before any API calls to set credentials such as `publish_key` and `subscribe_key`.
 
 ### Method(s)
+
+Initialize PubNub:
 
 ```
 `1Pubnub(  
@@ -57,46 +63,42 @@ Initialize the PubNub client before using any APIs to set credentials (`publish_
 ```
 
 Parameters:
-- subscribe_key (String, Symbol) – required. Your subscribe key.
-- publish_key (String, Symbol) – required for publishing. Your publish key.
-- secret_key (String, Symbol) – required for Access Manager on server-side.
-- auth_key (String, Symbol) – authentication key.
-- ssl (Boolean, default: false) – enable TLS.
-- user_id (String) – required. UTF-8 up to 92 alphanumeric chars. Must be unique and persisted per user/device.
-- heartbeat (Integer) – heartbeat interval and presence timeout. Disabled by default.
-- callback (Lambda) – default callback for client method calls (overridden per call).
-- ttl (Integer) – default TTL for grant/revoke.
-- open_timeout (Integer, default: 10) – non-subscribe open timeout (s).
-- read_timeout (Integer, default: 10) – non-subscribe read timeout (s).
-- idle_timeout (Integer, default: 10) – non-subscribe idle timeout (s).
-- s_open_timeout (Integer, default: 310) – subscribe open timeout (s).
-- s_read_timeout (Integer, default: 310) – subscribe read timeout (s).
-- s_idle_timeout (Integer, default: 310) – subscribe idle timeout (s).
-- logger (Object, default: Logger instance to 'pubnub.log') – custom logger. See Logging docs.
-- origin (String, default: ps.pndsn.com) – custom origin. Setter: #origin=(origin).
-- http_sync (Boolean, default: false) – async by default (returns future). When true, returns envelope(s) synchronously.
-- crypto_module (Crypto::CryptoModule) – encryption/decryption module taking cipher_key and random_iv.
-- cipher_key (String) – deprecated; pass via crypto_module instead.
-- random_iv (Boolean, default: true) – deprecated; pass via crypto_module. True: per-request random IV (recommended).
-- uuid (String) – deprecated; use user_id instead.
+- subscribe_key (String, Symbol) — required. Your subscribe key.
+- publish_key (String, Symbol) — required for publishing. Your publish key.
+- secret_key (String, Symbol) — required for Access Manager. Keep server-side only.
+- auth_key (String, Symbol) — authentication key.
+- ssl (Boolean, default: false) — use TLS if true.
+- user_id (String) — required unique user/device identifier (UTF-8, up to 92 alphanumeric chars). Required to connect.
+- heartbeat (Integer) — heartbeat interval and inactivity timeout for Presence. Disabled by default.
+- callback (Lambda) — default callback passed to calls (overridden by per-call callbacks).
+- ttl (Integer) — default TTL for grant/revoke.
+- open_timeout (Integer, default: 10) — non-subscribe open timeout (seconds).
+- read_timeout (Integer, default: 10) — non-subscribe read timeout (seconds).
+- idle_timeout (Integer, default: 10) — non-subscribe idle timeout (seconds).
+- s_open_timeout (Integer, default: 310) — subscribe open timeout (seconds).
+- s_read_timeout (Integer, default: 310) — subscribe read timeout (seconds).
+- s_idle_timeout (Integer, default: 310) — subscribe idle timeout (seconds).
+- logger (Object, default: Logger to 'pubnub.log') — custom logger. See [Logging](/docs/sdks/ruby/logging).
+- origin (String, default: ps.pndsn.com) — custom origin. Setter: `#origin=(origin)`. For custom domains, see [request process](/docs/general/setup/data-security#request-process).
+- http_sync (Boolean, default: false) — if true, methods return `Envelope` or array of envelopes; otherwise async future.
+- crypto_module (Crypto::CryptoModule) — cryptography module for message/file encryption. Accepts `cipher_key` and `random_iv`. See [Encryption API](/docs/sdks/ruby/api-reference/encryption).
+- cipher_key (String) — deprecated here; pass via `crypto_module`.
+- random_iv (Boolean, default: true) — deprecated here; pass via `crypto_module`. True uses random IV for all requests; false uses fixed IV except file upload.
+- uuid (String) — deprecated; use `user_id`.
 
-Disabling random initialization vector
-- Only for backward compatibility (< 4.6.0). Do not disable for new applications.
+Note: Disable random IV only for backward compatibility (< 4.6.0). Do not disable for new apps.
 
-#### crypto_module
+#### `crypto_module`
 
-Configures encryption (from 5.2.2). Supports:
-- Legacy 128-bit encryption (no change required to keep using it).
-- Recommended 256-bit AES-CBC (must be explicitly configured).
+`crypto_module` encrypts/decrypts messages and files. From 5.2.2, algorithms are configurable. SDK includes:
+- Legacy 128-bit encryption (backward compatible).
+- Recommended 256-bit AES-CBC (explicitly configure in the PubNub config).
 
-See Encryption API for configuration details and examples.
+See [Message Encryption](/docs/general/setup/data-security#message-encryption) and [Encryption](/docs/sdks/ruby/api-reference/encryption).
 
 ### Sample code
 
 #### Initialize the PubNub client API with encryption
-
-Required User ID
-- Always set a stable, unique user_id; otherwise the client cannot connect.
 
 ```
 1require 'pubnub'  
@@ -126,11 +128,12 @@ Required User ID
 20  main  
 21  puts 'finished'  
 22end  
+
 ```
 
 ### Returns
 
-PubNub instance for invoking APIs like publish(), subscribe(), history(), here_now(), etc.
+Returns the PubNub instance for APIs like `publish()`, `subscribe()`, `history()`, `here_now()`, etc.
 
 ### Other examples
 
@@ -184,10 +187,7 @@ PubNub instance for invoking APIs like publish(), subscribe(), history(), here_n
 
 #### Initializing with Access Manager
 
-Requires Access Manager add-on enabled in Admin Portal.
-
-Secure your secret_key
-- Keep secret_key server-side only; it grants root Access Manager permissions.
+Requires Access Manager enabled in [Admin Portal](https://admin.pubnub.com/). Keep `secret_key` secure and server-side.
 
 ```
 `1pubnub = Pubnub.new(subscribe_key: 'my_subkey', secret_key: 'my_secretkey', user_id: 'myUniqueUserId')  
@@ -196,7 +196,7 @@ Secure your secret_key
 
 ## Event listeners
 
-Add listeners before calling subscribe or other methods.
+Add listeners before invoking methods.
 
 #### Add listeners
 
@@ -227,6 +227,7 @@ Add listeners before calling subscribe or other methods.
 24
   
 25pubnub.add_listener(name: 'my_listener', callback: callback)  
+
 ```
 
 #### Remove listeners
@@ -299,15 +300,16 @@ Add listeners before calling subscribe or other methods.
   
 47# We're removing subsciber by giving it's object, now we don't have any listeners active  
 48pubnub_client.remove_listener(callback: callbacks0)  
+
 ```
 
 ## Presence to a channel group
 
-Subscribe to the presence channel of a channel group.
+Subscribe to presence channel(s) of a channel group.
 
 ### Method(s)
 
-- See subscribe() method.
+- [Go to the `subscribe()` method](/docs/sdks/ruby/api-reference/publish-and-subscribe#subscribe).
 
 ### Sample code
 
@@ -333,11 +335,12 @@ Subscribe to the presence channel of a channel group.
 17
   
 18pubnub.presence(channel_groups: 'family')  
+
 ```
 
 ## Authentication key
 
-Get the current auth_key.
+Get the current `auth_key`.
 
 ### Method(s)
 
@@ -359,4 +362,4 @@ This method doesn't take any arguments.
 
 The current authentication key.
 
-Last updated on Sep 3, 2025
+Last updated on **Sep 3, 2025**

@@ -1,25 +1,19 @@
 # Access Manager v3 API for Kotlin SDK
 
 ##### Breaking changes in v9.0.0
-- Kotlin and Java SDKs unified; new PubNub client instantiation; updated async callbacks and emitted status events.
-- Migration details: Java/Kotlin SDK migration guide.
+- Kotlin SDK v9.0.0 unifies Kotlin and Java SDKs, changes client instantiation, async callbacks, and status events. Apps using < 9.0.0 may be impacted.
+- See Java/Kotlin SDK migration guide.
 
 ##### Gradle compatibility
-- Use Gradle 6.8+ for reliable dependency resolution.
+- Use Gradle 6.8+ for proper dependency resolution.
 
-Access Manager v3 lets servers (initialized with a Secret Key) grant clients time-limited tokens with embedded permissions for PubNub resources:
-- Time-limited access (TTL up to 43,200 minutes).
-- Resource lists or RegEx patterns.
-- Mixed permissions in a single request (e.g., read channel1, write channel2).
-- Restrict a token to a single client via authorizedUuid/authorizedUserId.
+Access Manager v3 lets servers (initialized with a Secret Key) grant time-limited tokens with embedded permissions for PubNub resources using lists or RegEx patterns, optionally restricted to a single authorized client (`authorizedUuid` / `authorizedUserId`).
 
 ##### User ID / UUID
-- User ID may be called UUID/uuid in APIs and responses; it holds the value of userId set during initialization.
-
-For core concepts, see Manage Permissions with Access Manager v3.
+- “UUID/uuid” in some APIs is the same value as the `userId` set during initialization.
 
 ##### Request execution
-Most SDK methods return an Endpoint. You must call .sync() or .async() to execute.
+- Most SDK calls return an Endpoint. You must call `.sync()` or `.async()` to execute.
 
 ```
 1val channel = pubnub.channel("channelName")  
@@ -37,25 +31,31 @@ Most SDK methods return an Endpoint. You must call .sync() or .async() to execut
 ## Grant token
 
 ##### Requires Access Manager add-on
-Enable Access Manager for your key in the Admin Portal.
+Enable in Admin Portal.
 
 ##### Requires Secret Key authentication
-Use a server-side SDK instance initialized with a Secret Key.
+Initialize the server SDK with a Secret Key.
 
-The grantToken() method issues a token with:
-- ttl (minutes, required, 1–43,200).
-- authorizedUUID (recommended for single-client enforcement).
-- Permissions for:
-  - channels
-  - channelGroups
-  - uuids (users’ object metadata)
+`grantToken()` issues a token with `ttl`, optional `authorizedUUID`, and permissions for:
+- channels
+- channelGroups
+- uuids
 
-Unauthorized or invalid tokens return 403.
+Unauthorized or invalid requests return 403.
 
-- Permissions: channels (read, write, get, manage, update, join, delete), channelGroups (read, manage), uuids (get, update, delete).
-- TTL: required; max 43,200 minutes (30 days).
-- Patterns: define permissions using RegEx via patterns.
-- Authorized UUID: restrict token to one uuid to prevent impersonation.
+Permissions per resource:
+- channel: read, write, get, manage, update, join, delete
+- channelGroups: read, manage
+- uuids: get, update, delete
+
+TTL
+- Required; minutes; min 1, max 43,200 (30 days). No default.
+
+Patterns
+- Use RegEx via `patterns` instead of enumerating resources.
+
+Authorized UUID
+- Restrict token to one client via `authorizedUUID`. Recommended.
 
 ### Method(s)
 
@@ -70,15 +70,27 @@ Unauthorized or invalid tokens return 403.
 `
 ```
 
-- ttl (Number, required): Minutes token is valid. Min 1, max 43,200.
-- meta (Object): Scalar-only metadata; arrays/objects not supported.
-- authorizedUUID (String): Single uuid allowed to use the token.
-- channels (list<Channel>): Channel grants as list or RegEx pattern.
-- channelGroups (list<ChannelGroupGrant>): Channel group grants as list or RegEx pattern.
-- uuids (list<UUIDGrant>): UUID grants as list or RegEx pattern.
+- ttl (required)
+  - Type: Number
+  - Total minutes token is valid; [1..43,200].
+- meta
+  - Type: Object
+  - Extra metadata; scalar values only (no arrays/objects).
+- authorizedUUID
+  - Type: String
+  - Single uuid authorized to use the token.
+- channels
+  - Type: list<Channel>
+  - Channel grants list or RegEx pattern.
+- channelGroups
+  - Type: list<ChannelGroupGrant>
+  - Channel group grants list or RegEx pattern.
+- uuids
+  - Type: list<UUIDGrant>
+  - UUID grants list or RegEx pattern.
 
 ##### Required key/value mappings
-Specify permissions for at least one uuid, channel, or channelGroup (list or RegEx).
+- Specify permissions for at least one uuid, channel, or channelGroup (list or pattern).
 
 ### Sample code
 
@@ -98,9 +110,9 @@ Specify permissions for at least one uuid, channel, or channelGroup (list or Reg
 ### Other examples
 
 #### Grant an authorized client different levels of access to various resources in a single call
-Grants my-authorized-uuid:
-- Read: channel-a, channel-group-b; get: uuid-c.
-- Read/write: channel-b, channel-c, channel-d; get/update: uuid-d.
+Grants `my-authorized-uuid`:
+- Read: channel-a, channel-group-b; get: uuid-c
+- Read/write: channel-b, channel-c, channel-d; get/update: uuid-d
 
 ```
 1
@@ -109,7 +121,7 @@ Grants my-authorized-uuid:
 ```
 
 #### Grant an authorized client read access to multiple channels using RegEx
-Grants my-authorized-uuid read access to channels matching channel-[A-Za-z0-9].
+Grants `my-authorized-uuid` read to channels matching `channel-[A-Za-z0-9]`.
 
 ```
 1
@@ -118,10 +130,10 @@ Grants my-authorized-uuid read access to channels matching channel-[A-Za-z0-9].
 ```
 
 #### Grant an authorized client different levels of access to various resources and read access to channels using RegEx in a single call
-Grants my-authorized-uuid:
-- Read: channel-a, channel-group-b; get: uuid-c.
-- Read/write: channel-b, channel-c, channel-d; get/update: uuid-d.
-- Read via RegEx: channels matching channel-[A-Za-z0-9].
+Grants `my-authorized-uuid`:
+- Read: channel-a, channel-group-b; get: uuid-c
+- Read/write: channel-b, channel-c, channel-d; get/update: uuid-d
+- Read to channels matching `channel-[A-Za-z0-9]`
 
 ```
 1
@@ -130,24 +142,22 @@ Grants my-authorized-uuid:
 ```
 
 ### Error responses
-400 Bad Request with details (e.g., invalid RegEx, timestamp, or permissions). Errors returned as a string under PubNubException.
+- Invalid requests return 400 with details (e.g., RegEx, timestamp, permissions). Errors under PubNubException.
 
 ## Grant token - spaces & users
 
 ##### Requires Access Manager add-on
 Enable in Admin Portal.
 
-grantToken() issues a token with:
-- ttl (required), authorizedUserId, and permissions for:
-  - spaces
-  - users (user metadata)
-- Supports lists and RegEx patterns; mixed permissions in one call.
-- Only authorizedUserId can use the token. Unauthorized/invalid returns 403.
+`grantToken()` issues a token with `ttl`, optional `authorizedUserId`, and permissions for:
+- spaces
+- users
 
-- Permissions: space (read, write, get, manage, update, join, delete), user (get, update, delete).
-- TTL: required; max 43,200 minutes.
-- Patterns: grant via RegEx.
-- Authorized user ID: restrict to a single userId to prevent impersonation.
+Permissions per resource:
+- space: read, write, get, manage, update, join, delete
+- user: get, update, delete
+
+TTL, patterns, and authorization work as above (use `authorizedUserId`).
 
 ### Method(s)
 
@@ -162,14 +172,24 @@ grantToken() issues a token with:
 `
 ```
 
-- ttl (Int, required): Minutes valid. Min 1, max 43,200.
-- meta (Object): Scalar-only metadata.
-- authorizedUserId (UserId): Single userId allowed to use the token.
-- spacesPermissions (List<SpacePermissions>): List of permissions or RegEx patterns.
-- usersPermissions (List<UserPermissions>): List of permissions or RegEx patterns.
+- ttl (required)
+  - Type: Int
+  - Total minutes token is valid; [1..43,200].
+- meta
+  - Type: Object
+  - Extra metadata; scalar values only.
+- authorizedUserId
+  - Type: UserId
+  - Single userId authorized to use the token.
+- spacesPermissions
+  - Type: List<SpacePermissions>
+  - Space permissions (list or RegEx patterns).
+- usersPermissions
+  - Type: List<UserPermissions>
+  - User permissions (list or RegEx patterns).
 
 ##### Required key/value mappings
-Specify permissions for at least one User or Space (list or RegEx).
+- Specify permissions for at least one User or Space (list or pattern).
 
 ### Sample code
 
@@ -189,9 +209,9 @@ Specify permissions for at least one User or Space (list or RegEx).
 ### Other examples
 
 #### Grant an authorized client different levels of access to various resources in a single call
-Grants my-authorized-userId:
-- Read: space-a; get: userId-c.
-- Read/write: space-b, space-c, space-d; get/update: userId-d.
+Grants `my-authorized-userId`:
+- Read: space-a; get: userId-c
+- Read/write: space-b, space-c, space-d; get/update: userId-d
 
 ```
 1
@@ -200,7 +220,7 @@ Grants my-authorized-userId:
 ```
 
 #### Grant an authorized client read access to multiple spaces using RegEx
-Grants my-authorized-userId read access to spaces matching space-[A-Za-z0-9].
+Grants `my-authorized-userId` read to spaces matching `space-[A-Za-z0-9]`.
 
 ```
 1
@@ -209,10 +229,10 @@ Grants my-authorized-userId read access to spaces matching space-[A-Za-z0-9].
 ```
 
 #### Grant an authorized client different levels of access to various resources and read access to spaces using RegEx in a single call
-Grants my-authorized-userId:
-- Read: space-a and userId-c.
-- Read/write: space-b, space-c, space-d; get/update: userId-d.
-- Read via RegEx: spaces matching space-[A-Za-z0-9].
+Grants `my-authorized-userId`:
+- Read: space-a and userId-c
+- Read/write: space-b, space-c, space-d; get/update: userId-d
+- Read to spaces matching `space-[A-Za-z0-9]`
 
 ```
 1
@@ -221,7 +241,7 @@ Grants my-authorized-userId:
 ```
 
 ### Error responses
-400 Bad Request with details (e.g., invalid RegEx, timestamp, or permissions). Errors returned as a string under PubNubException.
+- Invalid requests return 400 with details (e.g., RegEx, timestamp, permissions). Errors under PubNubException.
 
 ## Revoke token
 
@@ -229,9 +249,9 @@ Grants my-authorized-userId:
 Enable in Admin Portal.
 
 ##### Enable token revoke
-Turn on “Revoke v3 Token” in your keyset (ACCESS MANAGER section) before using revokeToken().
+- In Admin Portal, enable “Revoke v3 Token” on the keyset.
 
-revokeToken() disables an existing token granted via grantToken(). Use for tokens with ttl ≤ 30 days; for longer TTL, contact support.
+`revokeToken()` disables a previously granted valid token. Use for tokens with ttl ≤ 30 days; contact support for longer ttl.
 
 ### Method(s)
 
@@ -240,7 +260,9 @@ revokeToken() disables an existing token granted via grantToken(). Use for token
 `
 ```
 
-- token (String, required): Existing token with embedded permissions.
+- token (required)
+  - Type: String
+  - Existing token to revoke.
 
 ### Sample code
 
@@ -251,14 +273,16 @@ revokeToken() disables an existing token granted via grantToken(). Use for token
 ```
 
 ### Returns
-Returns Unit on success.
+- Unit on success.
 
 ### Error Responses
-Possible: 400 Bad Request, 403 Forbidden, 503 Service Unavailable.
+- 400 Bad Request
+- 403 Forbidden
+- 503 Service Unavailable
 
 ## Parse token
 
-parseToken() decodes a token and returns its embedded permissions and TTL. Useful for debugging.
+`parseToken()` decodes a token and returns its embedded permissions and ttl (useful for debugging).
 
 ### Method(s)
 
@@ -267,7 +291,9 @@ parseToken() decodes a token and returns its embedded permissions and TTL. Usefu
 `
 ```
 
-- token (String, required): Current token with embedded permissions.
+- token (required)
+  - Type: String
+  - Token to decode.
 
 ### Sample code
 
@@ -360,11 +386,11 @@ parseToken() decodes a token and returns its embedded permissions and TTL. Usefu
 ```
 
 ### Error Responses
-If parsing fails, the token may be damaged; request a new one from your server.
+- Parsing errors may indicate a damaged token; request a new one.
 
 ## Set token
 
-setToken() updates the client’s authentication token.
+`setToken()` updates the client’s authentication token.
 
 ### Method(s)
 
@@ -373,7 +399,9 @@ setToken() updates the client’s authentication token.
 `
 ```
 
-- token (String, required): Current token with embedded permissions.
+- token (required)
+  - Type: String
+  - Current token with embedded permissions.
 
 ### Sample code
 
@@ -384,6 +412,6 @@ setToken() updates the client’s authentication token.
 ```
 
 ### Returns
-No return value.
+- No response value.
 
 Last updated on Sep 3, 2025

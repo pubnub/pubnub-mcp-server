@@ -1,14 +1,12 @@
 # Message Actions API for Python SDK
 
-Use message actions to add or remove metadata on published messages (for example, receipts and reactions). Subscribe to a channel to receive message action events, or fetch past message actions from Message Persistence.
+Use Message Actions to add or remove metadata (for example, receipts or reactions) on published messages. Message actions are delivered to subscribers and can be fetched from Message Persistence.
 
 ##### Request execution and return values
 
-Operations can be executed synchronously or asynchronously.
+You can execute operations synchronously or asynchronously.
 
-`.sync()` returns an `Envelope` with:
-- `Envelope.result` (type varies by API)
-- `Envelope.status` (type: PnStatus)
+`.sync()` returns an `Envelope` with `Envelope.result` (type varies by API) and `Envelope.status` (`PnStatus`).
 
 ```
 `1pubnub.publish() \  
@@ -18,7 +16,7 @@ Operations can be executed synchronously or asynchronously.
 `
 ```
 
-`.pn_async(callback)` returns `None` and passes `Envelope.result` and `Envelope.status` to your callback.
+`.pn_async(callback)` returns `None` and invokes your callback with `Envelope.result` and `Envelope.status`.
 
 ```
 1def my_callback_function(result, status):  
@@ -34,23 +32,17 @@ Operations can be executed synchronously or asynchronously.
 
 ##### Reactions
 
-"Message Reactions" is a specific use of the Message Actions API for emoji/social reactions.
+Message Reactions are a specific use of Message Actions for emoji/social reactions. The underlying API is the same.
 
-##### Message Actions vs. Message Reactions
-
-Message Actions is the low-level API for adding metadata (such as read receipts, delivery confirmations, custom data). Message Reactions uses Message Actions specifically for emoji reactions. Same API, different naming based on use case.
-
-## Add message action[​](#add-message-action)
+## Add message action
 
 ##### Requires Message Persistence
 
-Message Persistence must be enabled for your key in the Admin Portal:
-- Enable: https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-
-- Admin Portal: https://admin.pubnub.com/
+Enable Message Persistence for your key in the Admin Portal.
 
 Add an action to a published message. The response includes the added action.
 
-### Method(s)[​](#methods)
+### Method(s)
 
 ```
 `1pubnub.add_message_action() \  
@@ -61,14 +53,14 @@ Add an action to a published message. The response includes the added action.
 ```
 
 Parameters:
-- channel (Type: String) — Channel name for the message action.
-- message_action (Type: PNMessageAction) — Payload for the action:
-  - message_action.type (Type: String) — Action type.
-  - message_action.value (Type: String) — Action value.
-  - message_action.message_timetoken (Type: Integer) — Timetoken of the target message.
-- message_action_callback (Type: Function) — Callback for success or error.
+- channel (String) – Channel name to add the message action to.
+- message_action (PNMessageAction) – Message action payload:
+  - message_action.type (String) – Action type.
+  - message_action.value (String) – Action value.
+  - message_action.message_timetoken (Integer) – Timetoken of the target message.
+- message_action_callback (Function) – Callback for success or error (see PNMessageAction callback).
 
-### Sample code[​](#sample-code)
+### Sample code
 
 - Builder Pattern
 - Named Arguments
@@ -121,7 +113,8 @@ Parameters:
 37    add_message_action(pubnub)  
 38
   
-39  
+39
+  
 40if __name__ == "__main__":  
 41    main()  
 42
@@ -171,12 +164,14 @@ Parameters:
   
 33    # Initialize PubNub client  
 34    pubnub = PubNub(pn_config)  
-35  
+35
+  
 36    # Add message action  
 37    add_message_action(pubnub)  
 38
   
-39  
+39
+  
 40if __name__ == "__main__":  
 41    main()  
 42
@@ -184,13 +179,13 @@ Parameters:
 
 ```
 
-### Returns[​](#returns)
+### Returns
 
 `add_message_action()` returns an `Envelope`:
 - result: PNAddMessageActionResult
 - status: PNStatus
 
-#### PNAddMessageActionResult[​](#pnaddmessageactionresult)
+#### PNAddMessageActionResult
 
 ```
 `1{  
@@ -203,17 +198,15 @@ Parameters:
 `
 ```
 
-## Remove message action[​](#remove-message-action)
+## Remove message action
 
 ##### Requires Message Persistence
 
-Message Persistence must be enabled for your key in the Admin Portal:
-- Enable: https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-
-- Admin Portal: https://admin.pubnub.com/
+Enable Message Persistence for your key in the Admin Portal.
 
 Remove a previously added action from a published message. The response is empty.
 
-### Method(s)[​](#methods-1)
+### Method(s)
 
 ```
 `1pubnub.remove_message_action() \  
@@ -225,12 +218,12 @@ Remove a previously added action from a published message. The response is empty
 ```
 
 Parameters:
-- channel (Type: String) — Channel name.
-- action_timetoken (Type: Integer) — Timetoken of the message action to remove.
-- message_timetoken (Type: Integer) — Timetoken of the target message.
-- message_action_callback (Type: Function) — Callback for success or error.
+- channel (String) – Channel name to remove the message action from.
+- action_timetoken (Integer) – Timetoken of the message action to remove.
+- message_timetoken (Integer) – Timetoken of the target message.
+- message_action_callback (Function) – Callback for success or error (see PNMessageAction callback).
 
-### Sample code[​](#sample-code-1)
+### Sample code
 
 - Builder Pattern
 - Named Arguments
@@ -261,13 +254,13 @@ Parameters:
 
 ```
 
-### Returns[​](#returns-1)
+### Returns
 
 `remove_message_action()` returns an `Envelope`:
 - result: PNRemoveMessageActionResult
 - status: PNStatus
 
-#### PNRemoveMessageActionResult[​](#pnremovemessageactionresult)
+#### PNRemoveMessageActionResult
 
 ```
 `1# in case of success (empty object)  
@@ -275,17 +268,15 @@ Parameters:
 `
 ```
 
-## Get message actions[​](#get-message-actions)
+## Get message actions
 
 ##### Requires Message Persistence
 
-Message Persistence must be enabled for your key in the Admin Portal:
-- Enable: https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-
-- Admin Portal: https://admin.pubnub.com/
+Enable Message Persistence for your key in the Admin Portal.
 
-Get a list of message actions in a channel, sorted by action timetoken (ascending).
+Get a list of message actions in a channel. Actions are sorted by action timetoken in ascending order.
 
-### Method(s)[​](#methods-2)
+### Method(s)
 
 ```
 `1pubnub.get_message_actions() \  
@@ -298,13 +289,13 @@ Get a list of message actions in a channel, sorted by action timetoken (ascendin
 ```
 
 Parameters:
-- channel (Type: String) — Channel to list actions for.
-- start (Type: String) — Message action timetoken for start of range (exclusive).
-- end (Type: String) — Message action timetoken for end of range (inclusive).
-- limit (Type: Integer) — Max actions to return. If exceeded, results include a more token. See REST API: /docs/sdks/rest-api/get-actions
-- message_action_callback (Type: Function) — Callback for success or error.
+- channel (String) – Channel name to list message actions for.
+- start (String) – Action timetoken for the start of the range (exclusive).
+- end (String) – Action timetoken for the end of the range (inclusive).
+- limit (Integer) – Max number of actions to return; if exceeded, results include a more token (see REST API docs).
+- message_action_callback (Function) – Callback for success or error (see PNMessageAction callback).
 
-### Sample code[​](#sample-code-2)
+### Sample code
 
 - Builder Pattern
 - Named Arguments
@@ -333,13 +324,13 @@ Parameters:
 
 ```
 
-### Returns[​](#returns-2)
+### Returns
 
 `get_message_actions` returns an `Envelope`:
 - result: PNGetMessageActionsResult
 - status: PNStatus
 
-#### PNGetMessageActionsResult[​](#pngetmessageactionsresult)
+#### PNGetMessageActionsResult
 
 ```
 `1{  
@@ -356,7 +347,7 @@ Parameters:
 `
 ```
 
-## PNMessageAction[​](#pnmessageaction)
+## PNMessageAction
 
 Structure:
 
@@ -371,7 +362,7 @@ Structure:
 `
 ```
 
-Sample `message_action_callback`:
+Callback template:
 
 ```
 `1def message_action_callback(envelope, status):**2    if status.is_error():  

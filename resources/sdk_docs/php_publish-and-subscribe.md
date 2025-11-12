@@ -1,28 +1,28 @@
 # Publish/Subscribe API for PHP SDK
 
-PubNub delivers messages globally with low latency. Use publish to send data and subscribe to receive it.
+Low-latency publish and real-time subscribe for channels and channel groups.
 
-For concepts, see Connection Management and Publish Messages.
+For conceptual guidance, see Connection Management and Publish Messages.
 
 ## Publish
 
-publish() sends a message to all subscribers on a channel.
+`publish()` sends a JSON-serializable payload to all subscribers of a channel. Messages are replicated globally and delivered to all subscribers.
 
-Essentials:
-- Initialize PubNub with publishKey.
-- You don't need to subscribe to publish.
-- You cannot publish to multiple channels simultaneously.
-- Security: Set ssl=true during initialization; optional message encryption.
-- Message data: JSON-serializable only; strings may include any UTF‑8.
-- Don’t JSON-serialize message or meta; SDK handles serialization.
-- Size: Max 32 KiB including channel and escapes. Target < ~1.8 KB.
-- Rate: In-memory queue per-connection stores ~100 messages; bursts can drop messages if subscribers lag.
-- customMessageType: Optional label like text, action, poll (3–50 chars, case-sensitive, alphanumeric, dashes/underscores allowed; cannot start with special chars or pn_/pn-).
-- Best practices: Publish serially, confirm success before sending next, retry on failure, keep queue <100, throttle bursts (e.g., ≤5 msgs/sec).
+Key points
+- Initialize with publishKey. Subscribing isn’t required to publish.
+- One channel per publish call (no multi-channel publish).
+- Transport security: set ssl = true at initialization; optional message encryption via Crypto module.
+- Payload: Any JSON-serializable type (object, array, number, string; UTF‑8 strings). Don’t pass special classes/functions.
+- Don’t JSON serialize message or meta yourself—SDK handles it.
+- Size: Max 32 KiB (including escaped characters and channel name). Aim for <1,800 bytes. Oversize returns Message Too Large.
+- Throughput: Publish as fast as bandwidth allows; soft limits apply. Subscribers may drop messages if overwhelmed; in-memory queue is 100 messages.
+- customMessageType: Optional case-sensitive label (3–50 alphanumeric chars; dashes and underscores allowed; can’t start with special chars or pn_/pn-). Examples: text, action, poll.
+- Best practices:
+  - Publish serially; check success response [1,"Sent","136074940..."] before sending next.
+  - On failure [0,"blah","<timetoken>"], retry.
+  - Keep queue <100; throttle bursts (example ≤5 msg/s).
 
 ### Method(s)
-
-To Publish a message use:
 
 ```
 `1$pubnub->publish()  
@@ -37,20 +37,21 @@ To Publish a message use:
 `
 ```
 
-Parameters:
-- channel (String): Destination channel ID. Required.
-- message (String|Array): Payload. Required.
-- shouldStore (Boolean, default: account default): Store in history.
-- ttl (Number): Per-message time to live for Message Persistence.
-- meta (Array, default: null): Metadata for message filtering.
-- usePost (Boolean, default: false): Use POST to publish.
-- customMessageType (String): Case-sensitive 3–50 char label; allowed [A-Za-z0-9_-]; cannot start with special chars nor pn_/pn-. Examples: text, action, poll.
+Parameters
+- channel (string, required): Destination channel ID.
+- message (string|array, required): Payload.
+- shouldStore (bool, default: account default): Store in history.
+- ttl (number): Per-message TTL in Message Persistence.
+- meta (array, default: null): Metadata for server-side filtering.
+- usePost (bool, default: false): Use POST to publish.
+- customMessageType (string): Business-specific label; see constraints above.
 
 ### Sample code
 
 #### Publish a message to a channel
 
 ##### Reference code
+This example is a self-contained code snippet ready to be run.
 
 ```
 1
@@ -59,13 +60,12 @@ Parameters:
 ```
 
 ##### Subscribe to the channel
-
-Before running the publish example, subscribe to the same channel (see Subscribe).
+Before running the publish example, subscribe to the same channel (via Debug Console or a separate script).
 
 ### Response
 
-publish() returns PNPublishResult:
-- getTimetoken(): Integer timetoken when the message was published.
+Returns PNPublishResult:
+- getTimetoken() → Integer: Timetoken when the message was published.
 
 ### Other examples
 
@@ -87,11 +87,9 @@ publish() returns PNPublishResult:
 
 ## Fire
 
-Sends a message to Functions event handlers and Illuminate on the target channel. Messages aren’t replicated to subscribers and aren’t stored in history.
+`fire()` sends a message to Functions event handlers and Illuminate. It doesn’t replicate to subscribers and isn’t stored in history.
 
 ### Method(s)
-
-To Fire a message use:
 
 ```
 `1$pubnub->fire()  
@@ -103,11 +101,11 @@ To Fire a message use:
 `
 ```
 
-Parameters:
-- channel (String): Destination channel ID. Required.
-- message (String|Array): Payload. Required.
-- meta (Array, default: null): Metadata for filtering.
-- usePost (Boolean, default: false): Use POST.
+Parameters
+- channel (string, required): Destination channel ID.
+- message (string|array, required): Payload to handlers.
+- meta (array, default: null): Metadata for filtering.
+- usePost (bool, default: false): Use POST to publish.
 
 ### Sample code
 
@@ -121,23 +119,22 @@ Parameters:
 
 ## Signal
 
-signal() sends a lightweight signal to channel subscribers.
+`signal()` sends a lightweight signal to all subscribers of a channel.
 
-Essentials:
-- Initialize PubNub with publishKey.
-- Payload size limit: 64 bytes (without URI/headers). Contact support for larger needs.
-- Signals vs Messages:
-  - Payload: 64B vs 32KB
-  - Cost: cheaper vs more expensive
-  - Persistence: no vs yes
-  - Push notifications: no vs yes
-  - Use cases: non-critical streams vs broad use
-  - Metadata: signals don’t support metadata; messages do
-- Channel separation: Use separate channels for signals and messages.
+Key points
+- Initialize with publishKey.
+- Signal payload size limit: 64 bytes (body only). For larger, contact support.
+- Channel separation: Use separate channels for signals vs messages to aid recovery.
+
+Signals vs Messages
+- Payload size: signals 64B; messages up to 32KB.
+- Cost: signals cost less.
+- Persistence: signals aren’t stored; messages can be persisted.
+- Push: signals can’t trigger Mobile Push; messages can.
+- Use cases: signals for non-critical/ephemeral (e.g., geo updates); messages for critical/non-critical.
+- Metadata: signals don’t support metadata; messages do.
 
 ### Method(s)
-
-To Send a signal use:
 
 ```
 `1$pubnub->signal()  
@@ -147,9 +144,9 @@ To Send a signal use:
 `
 ```
 
-Parameters:
-- channel (String): Channel ID. Required.
-- message (String|Array): Signal payload. Required.
+Parameters
+- channel (string, required): Channel ID.
+- message (string|array, required): Signal payload (≤64B).
 
 ### Sample code
 
@@ -163,24 +160,20 @@ Parameters:
 
 ### Response
 
-signal() returns PNSignalResult:
-- getTimetoken(): int timetoken when the signal was sent.
+Returns PNSignalResult:
+- getTimetoken() → int: Timetoken when the signal was sent.
 
 ## Subscribe
 
-Receive messages, signals, and presence via event listeners. Requires subscribeKey during initialization. Newly subscribed clients receive messages published after subscribe() completes.
+Receive messages, signals, and presence via event listeners. Add listeners before subscribing.
 
-Behavior:
-- subscribe() opens a long-lived TCP connection and blocks until:
-  - message event
-  - presence event
-  - status event
-- Throw PubNubUnsubscribeException inside callbacks to exit the loop.
-- Unsubscribing from all channels resets last timetoken and can cause message gaps.
+Description
+- Opens a TCP socket to PubNub and listens on specified channels. Requires subscribeKey at initialization.
+- By default, only receives messages published after subscribe() completes.
+- Blocking behavior: subscribe blocks until a message event, presence event, or status event occurs. Throw PubNubUnsubscribeException inside callbacks to exit the loop.
+- Unsubscribing from all channels resets last timetoken and may cause message gaps; prefer unsubscribing selectively when switching channels.
 
 ### Method(s)
-
-To Subscribe to a channel use:
 
 ```
 `1$pubnub->subscribe()  
@@ -192,48 +185,46 @@ To Subscribe to a channel use:
 `
 ```
 
-Parameters:
-- channels (String|Array): Channel(s) to subscribe. Either channels or channelGroups required.
-- channelGroups (String|Array): Channel group(s) to subscribe. Either channels or channelGroups required.
-- withTimetoken (Integer): Start from a specific timetoken.
-- withPresence (Boolean): Also subscribe to presence events for the channels/groups.
+Parameters
+- channels (string|array): Channels to subscribe. Either channel or channelGroup is required.
+- channelGroups (string|array): Channel groups to subscribe. Either channel or channelGroup is required.
+- withTimetoken (integer): Start from a specific timetoken.
+- withPresence (boolean): Also subscribe to related presence information.
 
 ### Sample code
 
 Subscribe to a channel:
 
 ```
-`1$pubnub->subscribe()  
-2    ->channels("my_channel")  
-3    ->execute();  
-`
+1
+  
+
 ```
 
 ##### Event listeners
-
-Add a listener before calling subscribe(). See Listeners section for details.
+Handle responses via a Listener. Add listeners before calling subscribe.
 
 ### Response
 
-PNStatus:
-- getCategory(): PNStatusCategory (see status categories)
-- isError(): bool
-- getException(): PubNubException (if error)
-- getStatusCode(): int
-- Operation: OperationType
+PNStatus
+- getCategory() → PNStatusCategory: See PHP SDK status categories.
+- isError() → bool: True if an error occurred.
+- getException() → PubNubException: Exception details (if error).
+- getStatusCode() → int: Status code.
+- Operation → OperationType: Operation type of the request.
 
-PNMessageResult:
-- getMessage(): Object message payload
-- getSubscription(): String channel ID
-- getTimetoken(): Integer timetoken
+PNMessageResult
+- getMessage() → object: The message.
+- getSubscription() → string: Channel ID on which message was received.
+- getTimetoken() → integer: Timetoken for the message.
 
-PNPresenceEventResult:
-- getStatusCode(): Integer
-- getUuid(): String
-- getTimestamp(): Integer
-- getOccupancy(): Integer
-- getSubscription(): String channel ID
-- getTimetoken(): Integer timetoken
+PNPresenceEventResult
+- getStatusCode() → integer: Event code (join, leave, timeout, state-change).
+- getUuid() → string: UUID for event.
+- getTimestamp() → integer: Timestamp for event.
+- getOccupancy() → integer: Current occupancy.
+- getSubscription() → string: Channel ID.
+- getTimetoken() → integer: Timetoken.
 
 ### Other examples
 
@@ -246,26 +237,22 @@ PNPresenceEventResult:
 ```
 
 #### Subscribing to multiple channels
-
-Multiplexing: subscribe to multiple channels with an array. Alternative: Wildcard Subscribe and Channel Groups (Stream Controller add-on required).
+Use multiplexing (array of channel names). You can also use Wildcard Subscribe and Channel Groups (requires Stream Controller add-on enabled in Admin Portal).
 
 ```
-`1$pubnub->subscribe()  
-2    ->channels(["my_channel1", "my_channel2"])  
-3    ->execute();  
-`
+1
+  
+
 ```
 
 #### Subscribing to a Presence channel
 
-Requires Presence add-on. To receive presence, either use withPresence() or subscribe to the presence channel by appending -pnpres to the channel name (e.g., my_channel-pnpres).
+Requires Presence add-on. For a channel my_channel, its presence channel is my_channel-pnpres.
 
 ```
-`1$pubnub->subscribe()  
-2    ->channels("my_channel")  
-3    ->withPresence()  
-4    ->execute();  
-`
+1
+  
+
 ```
 
 #### Sample Responses
@@ -331,7 +318,12 @@ Requires Presence add-on. To receive presence, either use withPresence() or subs
 `
 ```
 
-With presence_deltas enabled, interval messages may include joined, left, timedout arrays. Example:
+When presence_deltas is enabled, interval messages may include:
+- joined
+- left
+- timedout
+
+Example:
 
 ```
 `1{  
@@ -344,7 +336,7 @@ With presence_deltas enabled, interval messages may include joined, left, timedo
 `
 ```
 
-If > ~30 KB, extra fields omitted and here_now_refresh=true is included:
+If the interval message exceeds ~30KB, extra fields are omitted and here_now_refresh: true is included; perform hereNow to get full state.
 
 ```
 `1{  
@@ -358,20 +350,23 @@ If > ~30 KB, extra fields omitted and here_now_refresh=true is included:
 
 #### Wildcard subscribe to channels
 
-Requires Stream Controller add-on. One-level wildcard only (a.*). Example:
+Requires Stream Controller add-on (Enable Wildcard Subscribe). Only one level supported (a.*).
 
 ```
-`1$pubnub->subscribe()  
-2    ->channels("foo.*")  
-3    ->execute();  
-`
+1
+  
+
 ```
 
-Wildcard grants/revokes: Only one-level deep; grant/revoke must match.
+Wildcard grants and revokes
+- One level only (a.*). Granting on * or a.b.* treats them as literal channels unless matching the supported depth. Revokes work at the same one-level depth and must match previously granted patterns.
 
 #### Subscribing with state
 
-Requires Presence add-on. Required UUID: Set and persist a unique UUID for the user/device.
+Requires Presence add-on.
+
+Required UUID
+- Always set and persist a unique UUID for the user/device. Without it, you can’t connect.
 
 ```
 1
@@ -384,10 +379,9 @@ Requires Presence add-on. Required UUID: Set and persist a unique UUID for the u
 Requires Stream Controller add-on.
 
 ```
-`1$pubnub->subscribe()  
-2    ->channelGroups(["cg1", "cg2"])  
-3    ->execute();  
-`
+1
+  
+
 ```
 
 #### Subscribe to the Presence channel of a channel group
@@ -395,20 +389,16 @@ Requires Stream Controller add-on.
 Requires Stream Controller and Presence add-ons.
 
 ```
-`1$pubnub->subscribe()  
-2    ->channelGroups("awesome_channel_group")  
-3    ->withPresence()  
-4    ->execute();  
-`
+1
+  
+
 ```
 
 ## Unsubscribe
 
-Unsubscribe by throwing PubNubUnsubscribeException inside status/message/presence callbacks. Specify channels and/or channel groups to keep the loop for others; otherwise unsubscribes from all.
+To unsubscribe, throw PubNubUnsubscribeException inside status/message/presence callbacks. Specify channels and/or channel groups to remove while keeping the loop for remaining subscriptions; otherwise, it unsubscribes from all.
 
 ### Method(s)
-
-To Unsubscribe from a channel use:
 
 ```
 `1(new PubNubUnsubscribeException())  
@@ -417,11 +407,9 @@ To Unsubscribe from a channel use:
 `
 ```
 
-Parameters:
-- getChannels (String, default: false): Channels to get here-now details.
-- getChannelGroups (String, default: false): Channel groups to get here-now details.
-- setChannels (Array, default: false): Channels to unsubscribe (either channel or channelGroup required).
-- setChannelGroups (Array, default: false): Channel groups to unsubscribe (either channel or channelGroup required).
+Parameters
+- setChannels (array): Channels to unsubscribe; either channel or channelGroup required.
+- setChannelGroups (array): Channel groups to unsubscribe; either channel or channelGroup required.
 
 ### Sample code
 
@@ -434,8 +422,6 @@ Unsubscribe from a channel:
 ```
 
 ### Rest response from server
-
-Successful call returns:
 
 ```
 `1{  
@@ -451,23 +437,8 @@ Successful call returns:
 Requires Stream Controller add-on.
 
 ```
-1use PubNub\Callbacks\SubscribeCallback;  
-2use PubNub\Exceptions\PubNubUnsubscribeException;  
-3
+1
   
-4class MySubscribeCallback extends SubscribeCallback {  
-5    function status($pubnub, $status) {  
-6        throw new PubNubUnsubscribeException();  
-7    }  
-8
-  
-9    function message($pubnub, $message) {  
-10    }  
-11
-  
-12    function presence($pubnub, $presence) {  
-13    }  
-14}  
 
 ```
 
@@ -483,23 +454,8 @@ Requires Stream Controller add-on.
 #### Unsubscribe from a channel group
 
 ```
-1use PubNub\Callbacks\SubscribeCallback;  
-2use PubNub\Exceptions\PubNubUnsubscribeException;  
-3
+1
   
-4class MySubscribeCallback extends SubscribeCallback {  
-5    function status($pubnub, $status) {  
-6        throw (new PubNubUnsubscribeException())->setChannelGroups(["my_channel"]);  
-7    }  
-8
-  
-9    function message($pubnub, $message) {  
-10    }  
-11
-  
-12    function presence($pubnub, $presence) {  
-13    }  
-14}  
 
 ```
 
@@ -510,5 +466,3 @@ Requires Stream Controller add-on.
 3}  
 `
 ```
-
-Last updated on Oct 21, 2025**

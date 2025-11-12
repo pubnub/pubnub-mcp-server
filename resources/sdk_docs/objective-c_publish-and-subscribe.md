@@ -1,40 +1,39 @@
 # Publish/Subscribe API for Objective-C SDK (Condensed)
 
-PubNub publishes messages in <30 ms to channels and broadcasts to all subscribers.
+PubNub publishes globally in <30 ms. Publish JSON-serializable messages and receive them via subscriptions.
 
-For concepts, see Connection Management and Publish Messages.
+For concepts, see Connection Management and Publish Messages docs.
 
 ## Publish
 
-publish() sends a JSON-serializable message to all subscribers of a single channel.
-
-- Prerequisites
-  - Initialize PubNub with publishKey.
+- Requirements:
+  - Initialize with publishKey.
   - You can publish without being subscribed.
-  - You cannot publish to multiple channels simultaneously.
-- Security
-  - Enable SSL/TLS by setting ssl=true during initialization.
-  - Optional message encryption via cryptoModule.
-- Message data
+  - You can’t publish to multiple channels simultaneously.
+- Security: Enable TLS (ssl = true) and optional message encryption (cryptoModule).
+- Message:
   - Any JSON-serializable Foundation object (NSString, NSNumber, NSArray, NSDictionary).
-  - Don’t include special Objective-C classes or functions.
-  - Don’t JSON-serialize message or meta; SDK handles serialization.
-- Size and compression
-  - Max message size: 32 KiB (including escaped characters and channel name). Optimal < 1800 bytes.
-  - If oversized: Message Too Large error. See Message Size Limit.
-  - Objective-C SDK supports compressed messages; not enabled by default.
-  - Compression is useful for payloads >1 KiB; increases CPU usage for compress/decompress.
-- Publish rate
-  - Publish as fast as bandwidth allows; subscriber in-memory queue limit is 100 messages.
-  - If burst > queue capacity, earlier messages may be missed.
-- Custom message type
-  - Optional customMessageType (e.g., text, action, poll) to label messages.
-- Best practices
-  - Publish serially to a channel; wait for success before next publish.
-  - On failure, retry.
-  - Throttle bursts (e.g., ≤5 msg/s) per app latency needs.
+  - Don’t pre-JSON serialize message or meta; the SDK handles it.
+  - UTF-8 strings supported.
+- Size:
+  - Max message size: 32 KiB (including escape chars and channel name). Optimal <1800 bytes.
+  - “Message Too Large” if exceeded. See Message Size Limit docs.
+- Compression (supported by Objective-C SDK):
+  - Not enabled by default; specify compressed:YES.
+  - Useful when payload >1 KiB; small messages can grow.
+  - Adds CPU overhead for compress/decompress.
+  - Server transcodes for clients lacking compression support.
+- Publish rate:
+  - Publish as bandwidth allows, but subscribers have in-memory queue of 100 messages.
+  - Excess bursts can drop earliest messages if subscriber can’t keep up.
+- Custom message type:
+  - Optional customMessageType for business categorization (e.g., text, action, poll).
+- Best practices:
+  - Publish serially per channel.
+  - Check success response before next publish; retry on failure.
+  - Avoid queue overflow; throttle as needed (e.g., ≤5 msg/s).
 
-Compression example:
+#### Compressed publish example
 
 ```
 `1[self.client publish:@{@"message": @"This message will be compressed"}  
@@ -51,7 +50,7 @@ Compression example:
 
 ### Method(s)
 
-Publish a message with block
+#### Publish a message with block
 
 ```
 `1- (void)publish:(id)message   
@@ -60,7 +59,11 @@ Publish a message with block
 `
 ```
 
-Publish a message with compression and block
+- message (id): NSString | NSNumber | NSArray | NSDictionary to publish.
+- channel (NSString): Target channel ID.
+- block (PNPublishCompletionBlock): Completion with PNPublishStatus.
+
+#### Publish a message with compression and block
 
 ```
 `1- (void)publish:(id)message   
@@ -70,7 +73,9 @@ Publish a message with compression and block
 `
 ```
 
-Publish a message with storage and block
+- compressed (BOOL): If YES, compress and send in request body (helps with large data).
+
+#### Publish a message with storage and block
 
 ```
 `1- (void)publish:(id)message   
@@ -80,7 +85,9 @@ Publish a message with storage and block
 `
 ```
 
-Publish a message with storage, compression, and block
+- shouldStore (BOOL): NO prevents storage in Message Persistence (default YES).
+
+#### Publish a message with storage, compression, and block
 
 ```
 `1- (void)publish:(id)message   
@@ -91,7 +98,7 @@ Publish a message with storage, compression, and block
 `
 ```
 
-Publish a message with payload and block
+#### Publish a message with payload and block
 
 ```
 `1- (void)publish:(nullable id)message   
@@ -101,7 +108,9 @@ Publish a message with payload and block
 `
 ```
 
-Publish a message with payload, compression, and block
+- payloads (NSDictionary): Push payloads for vendors (apns, fcm).
+
+#### Publish a message with payload, compression, and block
 
 ```
 `1- (void)publish:(nullable id)message   
@@ -112,7 +121,7 @@ Publish a message with payload, compression, and block
 `
 ```
 
-Publish a message with payload, storage, and block
+#### Publish a message with payload, storage, and block
 
 ```
 `1- (void)publish:(nullable id)message   
@@ -123,7 +132,7 @@ Publish a message with payload, storage, and block
 `
 ```
 
-Publish a message with payloads, storage, compression, and block
+#### Publish a message with payloads, storage, compression, and block
 
 ```
 `1- (void)publish:(nullable id)message   
@@ -135,7 +144,7 @@ Publish a message with payloads, storage, compression, and block
 `
 ```
 
-Publish a message with metadata and block
+#### Publish a message with metadata and block
 
 ```
 `1- (void)publish:(id)message   
@@ -145,7 +154,9 @@ Publish a message with metadata and block
 `
 ```
 
-Publish a message with compression, metadata, and block
+- metadata (NSDictionary): Values for server-side filtering.
+
+#### Publish a message with compression, metadata, and block
 
 ```
 `1- (void)publish:(id)message   
@@ -156,7 +167,7 @@ Publish a message with compression, metadata, and block
 `
 ```
 
-Publish a message with storage, metadata, and block
+#### Publish a message with storage, metadata, and block
 
 ```
 `1- (void)publish:(id)message   
@@ -167,7 +178,7 @@ Publish a message with storage, metadata, and block
 `
 ```
 
-Publish a message with storage, compression, metadata, and block
+#### Publish a message with storage, compression, metadata, and block
 
 ```
 `1- (void)publish:(id)message   
@@ -179,7 +190,7 @@ Publish a message with storage, compression, metadata, and block
 `
 ```
 
-Publish a message with payload, metadata, and block
+#### Publish a message with payload, metadata, and block
 
 ```
 `1- (void)publish:(nullable id)message   
@@ -190,7 +201,9 @@ Publish a message with payload, metadata, and block
 `
 ```
 
-Publish a message with payload, compression, metadata, and block
+- Either payloads or message should be provided.
+
+#### Publish a message with payload, compression, metadata, and block
 
 ```
 `1- (void)publish:(nullable id)message   
@@ -202,7 +215,7 @@ Publish a message with payload, compression, metadata, and block
 `
 ```
 
-Publish a message with payload, storage, metadata, and block
+#### Publish a message with payload, storage, metadata, and block
 
 ```
 `1- (void)publish:(nullable id)message   
@@ -214,7 +227,7 @@ Publish a message with payload, storage, metadata, and block
 `
 ```
 
-Publish a message with payload, storage, compression, metadata, and block
+#### Publish a message with payload, storage, compression, metadata, and block
 
 ```
 `1- (void)publish:(nullable id)message   
@@ -229,7 +242,7 @@ Publish a message with payload, storage, compression, metadata, and block
 
 ### Sample code
 
-Publish a message to a channel
+#### Publish a message to a channel
 
 ```
 1#import Foundation/Foundation.h>  
@@ -367,7 +380,7 @@ Publish a message to a channel
   
 115NSDictionary *pushPayloads = @{  
 116    @"apns": apnsPayload,  
-117    @"gcm": fcmPayload  
+117    @"fcm": fcmPayload  
 118};  
 119
   
@@ -405,7 +418,9 @@ Publish a message to a channel
 
 ```
 
-Subscribe to the channel before running the publish example (via Debug Console or another client).
+##### Subscribe to the channel
+
+Before running the publish example, subscribe to the same channel (via Debug Console or another client).
 
 ### Response
 
@@ -415,24 +430,20 @@ Subscribe to the channel before running the publish example (via Debug Console o
   
 3@property (nonatomic, readonly, strong) NSNumber *timetoken;  
 4@property (nonatomic, readonly, strong) NSString *information;  
-5
-  
+5  
 6@end  
-7
-  
+7  
 8@interface PNPublishStatus : PNAcknowledgmentStatus  
-9
-  
+9  
 10@property (nonatomic, readonly, strong) PNPublishData *data;  
-11
-  
+11  
 12@end  
 
 ```
 
 ### Other examples
 
-Publish with metadata
+#### Publish with metadata
 
 ```
 1[self publish: @"Hello from the PubNub Objective-C" toChannel:@"chat_channel"  
@@ -460,11 +471,13 @@ Publish with metadata
 
 ```
 
-Push payload helper: Use helper to format Push payloads for publishing Push messages (see Create Push Payload Helper Section).
+#### Push payload helper
+
+Use the helper method to construct push payloads for the Message parameter (see Create Push Payload Helper).
 
 ## Publish (builder pattern)
 
-Note: Builder pattern; optional args can be omitted.
+- Publishes message on a channel using a fluent builder. Omit optional args as needed.
 
 ### Method(s)
 
@@ -482,15 +495,15 @@ Note: Builder pattern; optional args can be omitted.
 `
 ```
 
-- message: NSString/NSNumber/NSArray/NSDictionary
-- channel: target channel
-- shouldStore: default YES; NO excludes from history
-- compress: send compressed body
-- ttl: hours to retain in storage
-- payloads: mobile push payloads (apns/gcm)
-- metadata: publish metadata for filtering
-- customMessageType: 3–50 char label; alphanumeric, dash, underscore; not starting with special chars or pn_/pn-
-- block: PNPublishCompletionBlock
+- message (id): NSString | NSNumber | NSArray | NSDictionary.
+- channel (NSString): Target channel.
+- shouldStore (BOOL): Default YES.
+- compress (BOOL): Compress and send in body.
+- ttl (NSUInteger): Hours to store message.
+- payloads (NSDictionary): Push payloads (aps/fcm). Provide either payloads or message.
+- metadata (NSDictionary): Server-side filtering.
+- customMessageType (NSString): 3–50 chars, alphanumeric; dashes/underscores allowed; cannot start with special chars or “pn_”/“pn-”.
+- block (PNPublishCompletionBlock)
 
 ### Sample code
 
@@ -527,9 +540,7 @@ Note: Builder pattern; optional args can be omitted.
 
 ## Fire (builder pattern)
 
-fire() sends a message to BLOCKS Event Handlers only (not replicated and not stored).
-
-Note: Builder pattern; optional args can be omitted.
+- Sends a message to BLOCKS Event Handlers only; not replicated, not delivered to subscribers, not stored.
 
 ### Method(s)
 
@@ -543,6 +554,8 @@ Note: Builder pattern; optional args can be omitted.
 7    .performWithCompletion(PNPublishCompletionBlock);  
 `
 ```
+
+- message | channel | compress | payloads | metadata | block as above.
 
 ### Sample code
 
@@ -577,9 +590,8 @@ Note: Builder pattern; optional args can be omitted.
 
 ## Signal
 
-signal() sends a small payload to subscribers of a channel.
-
-- Payload limit: 64 bytes for message payload (not including URI/headers).
+- Sends a lightweight message to all subscribers of a channel.
+- Payload limit: 64 bytes (payload only). Contact support to increase.
 
 ### Method(s)
 
@@ -590,9 +602,13 @@ signal() sends a small payload to subscribers of a channel.
 `
 ```
 
+- message (id): NSString | NSNumber | NSArray | NSDictionary.
+- channel (NSString)
+- block (PNSignalCompletionBlock)
+
 ### Sample code
 
-Signal a message to a channel
+#### Signal a message to a channel
 
 ```
 1[self.client signal:@{ @"Hello": @"world" } channel:@"announcement"  
@@ -621,24 +637,20 @@ Signal a message to a channel
   
 3@property (nonatomic, readonly, strong) NSNumber *timetoken;  
 4@property (nonatomic, readonly, strong) NSString *information;  
-5
-  
+5  
 6@end  
-7
-  
+7  
 8@interface PNSignalStatus : PNAcknowledgmentStatus  
-9
-  
+9  
 10@property (nonatomic, readonly, strong) PNSignalStatusData *data;  
-11
-  
+11  
 12@end  
 
 ```
 
 ## Signal (builder pattern)
 
-Note: Builder pattern; optional args can be omitted.
+- Fluent signal builder. Optional args removable.
 
 ### Method(s)
 
@@ -651,9 +663,11 @@ Note: Builder pattern; optional args can be omitted.
 `
 ```
 
+- customMessageType: same rules as publish.
+
 ### Sample code
 
-Signal a message to a channel
+#### Signal a message to a channel
 
 ```
 1self.client.signal().message(@{ @"Hello": @"world" }).channel(@"announcement").customMessageType(@"text-message-signal").performWithCompletion(^(PNSignalStatus *status) {  
@@ -681,28 +695,34 @@ Signal a message to a channel
   
 3@property (nonatomic, readonly, strong) NSNumber *timetoken;  
 4@property (nonatomic, readonly, strong) NSString *information;  
-5
-  
+5  
 6@end  
-7
-  
+7  
 8@interface PNSignalStatus : PNAcknowledgmentStatus  
-9
-  
+9  
 10@property (nonatomic, readonly, strong) PNSignalStatusData *data;  
-11
-  
+11  
 12@end  
 
 ```
 
 ## Subscribe
 
-Receive messages via event listeners (PNObjectEventListener). Subscription opens a TCP socket and listens on specified channels. Requires subscribeKey. Newly subscribed clients receive messages published after subscribe completes.
+### Receive messages
 
-- Connectivity: Use connect status callback before first publish to avoid race.
-- Restore: Set restore=YES to attempt reconnect and retrieve missed messages after disconnect (default reconnect after 320s timeout).
-- Unsubscribing from all channels resets last timetoken and can cause message gaps.
+Use event listeners (PNObjectEventListener) to receive messages, signals, and events on subscribed channels.
+
+### Description
+
+- Subscribes via a persistent socket using subscribeKey.
+- By default, only messages published after subscribe completes are received.
+
+Connectivity:
+- Use connect/PNConnectedCategory status to know when subscription is active before publishing.
+- For automatic reconnect and missed messages best-effort, set restore:YES; default timeout ~320s.
+
+Unsubscribe caveat:
+- Unsubscribing from all channels resets last timetoken; can cause message gaps.
 
 ### Method(s)
 
@@ -712,6 +732,9 @@ Receive messages via event listeners (PNObjectEventListener). Subscription opens
 `
 ```
 
+- channels (NSArray<NSString *>)
+- shouldObservePresence (BOOL): Enable presence for channels.
+
 ```
 `1- (void)subscribeToChannels:(NSArrayNSString *> *)channels   
 2               withPresence:(BOOL)shouldObservePresence   
@@ -719,12 +742,16 @@ Receive messages via event listeners (PNObjectEventListener). Subscription opens
 `
 ```
 
+- state (NSDictionary<NSString*, id>): Per-channel initial state.
+
 ```
 `1- (void)subscribeToChannels:(NSArrayNSString *> *)channels   
 2               withPresence:(BOOL)shouldObservePresence   
 3             usingTimeToken:(nullable NSNumber *)timeToken;  
 `
 ```
+
+- timeToken (NSNumber): Start from timetoken (best-effort).
 
 ```
 `1- (void)subscribeToChannels:(NSArrayNSString *> *)channels   
@@ -789,10 +816,12 @@ Subscribe to a channel:
 41        // An issue occurred while the client tried to subscribe,  
 42        // or the client was disconnected from the network  
 43        else {  
-44  
+44
+  
 45            PNErrorStatus *errorStatus = (PNErrorStatus *)status;  
 46            if (errorStatus.category == PNAccessDeniedCategory) {  
-47  
+47
+  
 48                // Access Manager prohibited this client from subscribing to this channel and channel group.  
 49                // This is another explicit error.  
 50            }  
@@ -811,11 +840,9 @@ Subscribe to a channel:
 63        }  
 64    }  
 65    else if (status.operation == PNUnsubscribeOperation) {  
-66
-  
+66  
 67        if (status.category == PNDisconnectedCategory) {  
-68
-  
+68  
 69            // This is the expected category for an unsubscribe.  
 70            // There were no errors in unsubscribing from everything.  
 71        }  
@@ -859,8 +886,7 @@ Subscribe to a channel:
   
 3// Name of channel on which subscriber received data.  
 4@property (nonatomic, readonly, strong) NSString *channel;  
-5
-  
+5  
 6// Name of channel or channel group (if not equal to channel name).  
 7@property (nonatomic, nullable, readonly, strong) NSString *subscription;  
 8  
@@ -981,20 +1007,18 @@ Subscribe to a channel:
 
 ### Other examples
 
-Wildcard subscribe to channels
+#### Wildcard subscribe to channels
 
-- Requires Stream Controller (Enable Wildcard Subscribe).
-- Only one level wildcard supported (a.*).
+Requires Stream Controller add-on (enable wildcard subscribe). One-level wildcard only (a.*).
 
 ```
 `1[self.client subscribeToChannels: @[@"my_channel.*"] withPresence:YES];  
 `
 ```
 
-Subscribing to a Presence channel
+#### Subscribing to a Presence channel
 
-- Requires Presence add-on.
-- Presence channel name: <channel>-pnpres
+Requires Presence add-on. Subscribe to channel’s presence by appending -pnpres.
 
 ```
 1/**  
@@ -1010,22 +1034,26 @@ Subscribing to a Presence channel
 10
   
 11    if (![event.data.channel isEqualToString:event.data.subscription]) {  
-12  
+12
+  
 13        // Presence event has been received on channel group stored in event.data.subscription.  
 14    }  
 15    else {  
 16  
 17        // Presence event has been received on channel stored in event.data.channel.  
 18    }  
-19  
+19
+  
 20    if (![event.data.presenceEvent isEqualToString:@"state-change"]) {  
-21  
+21
+  
 22        NSLog(@"%@ \"%@'ed\"\nat: %@ on %@ (Occupancy: %@)", event.data.presence.uuid,  
 23                event.data.presenceEvent, event.data.presence.timetoken, event.data.channel,  
 24                event.data.presence.occupancy);  
 25    }  
 26    else {  
-27  
+27
+  
 28        NSLog(@"%@ changed state at: %@ on %@ to: %@", event.data.presence.uuid,  
 29                event.data.presence.timetoken, event.data.channel, event.data.presence.state);  
 30    }  
@@ -1033,9 +1061,9 @@ Subscribing to a Presence channel
 
 ```
 
-Sample Responses
+#### Sample Responses
 
-Join event
+##### Join event
 
 ```
 `1{  
@@ -1047,7 +1075,7 @@ Join event
 `
 ```
 
-Leave event
+##### Leave event
 
 ```
 `1{  
@@ -1059,7 +1087,7 @@ Leave event
 `
 ```
 
-Timeout event
+##### Timeout event
 
 ```
 `1{  
@@ -1071,7 +1099,7 @@ Timeout event
 `
 ```
 
-State change event
+##### State change event
 
 ```
 `1{  
@@ -1085,7 +1113,7 @@ State change event
 `
 ```
 
-Interval event
+##### Interval event
 
 ```
 `1{  
@@ -1096,7 +1124,7 @@ Interval event
 `
 ```
 
-With presence_deltas enabled, interval messages may include joined/left/timedout arrays:
+Presence deltas (when enabled) may include joined, left, timedout arrays. If message > ~30 KB, arrays omitted and here_now_refresh: true is included (use hereNow).
 
 ```
 `1{  
@@ -1109,8 +1137,6 @@ With presence_deltas enabled, interval messages may include joined/left/timedout
 `
 ```
 
-If >30KB, extra fields omitted and here_now_refresh=true indicates doing hereNow:
-
 ```
 `1{  
 2    "action" : "interval",  
@@ -1121,10 +1147,9 @@ If >30KB, extra fields omitted and here_now_refresh=true indicates doing hereNow
 `
 ```
 
-Subscribing with state
+#### Subscribing with state
 
-- Requires Presence.
-- Always set a stable UUID for the client.
+Requires Presence. Always set a stable UUID per user/device.
 
 ```
 1// Initialize and configure PubNub client instance  
@@ -1186,8 +1211,7 @@ Subscribing with state
 
 ## Subscribe channel group
 
-- Requires Stream Controller add-on.
-- Subscribes to a channel group.
+Requires Stream Controller add-on.
 
 ### Method(s)
 
@@ -1197,12 +1221,16 @@ Subscribing with state
 `
 ```
 
+- groups (NSArray<NSString *>), shouldObservePresence (BOOL)
+
 ```
 `1- (void)subscribeToChannelGroups:(NSArrayNSString *> *)groups   
 2                    withPresence:(BOOL)shouldObservePresence   
 3                     clientState:(nullable NSDictionaryNSString *, id> *)state;  
 `
 ```
+
+- state (NSDictionary<NSString*, id>): Per-group initial state.
 
 ### Sample code
 
@@ -1233,7 +1261,8 @@ Subscribe to a channel group
 14        // Message has been received on channel group stored in message.data.subscription.  
 15    }  
 16    else {  
-17  
+17
+  
 18        // Message has been received on channel stored in message.data.channel.  
 19    }  
 20
@@ -1304,8 +1333,7 @@ Subscribe to a channel group
 
 ```
 1@interface PNSubscriberData : PNServiceData  
-2
-  
+2  
 3// Name of channel for which subscriber received data.  
 4@property (nonatomic, readonly, strong) NSString *channel;  
 5// Name of channel or channel group (in case if not equal to channel).  
@@ -1355,9 +1383,9 @@ Subscribe to a channel group
 
 ### Other examples
 
-Subscribe to the Presence channel of a channel group
+#### Subscribe to the Presence channel of a channel group
 
-- Requires Stream Controller + Presence add-ons.
+Requires Stream Controller and Presence add-ons.
 
 ```
 1/**  
@@ -1366,16 +1394,13 @@ Subscribe to the Presence channel of a channel group
 4    */  
 5[self.client addListener:self];  
 6[self.client subscribeToChannelGroups:@[channelGroup] withPresence:YES];  
-7
-  
+7  
 8// Handle new message from one of channels on which client has been subscribed.  
 9- (void)client:(PubNub *)client didReceiveMessage:(PNMessageResult *)message {  
-10
-  
+10  
 11    // Handle new message stored in message.data.message  
 12    if (![message.data.channel isEqualToString:message.data.subscription]) {  
-13
-  
+13  
 14        // Message has been received on channel group stored in message.data.subscription.  
 15    }  
 16    else {  
@@ -1386,8 +1411,7 @@ Subscribe to the Presence channel of a channel group
 21    NSLog(@"Received message: %@ on channel %@ at %@", message.data.message,  
 22            message.data.channel, message.data.timetoken);  
 23}  
-24
-  
+24  
 25// New presence event handling.  
 26- (void)client:(PubNub *)client didReceivePresenceEvent:(PNPresenceEventResult *)event {  
 27  
@@ -1412,8 +1436,7 @@ Subscribe to the Presence channel of a channel group
 46                event.data.presence.timetoken, event.data.channel, event.data.presence.state);  
 47    }  
 48}  
-49
-  
+49  
 50// Handle subscription status change.  
 51- (void)client:(PubNub *)client didReceiveStatus:(PNStatus *)status {  
 52  
@@ -1472,9 +1495,10 @@ Subscribe to the Presence channel of a channel group
 
 ## Unsubscribe
 
-Unsubscribes from specific channels; socket closes only when no channels remain.
+- For single channel, leaves the channel and closes the socket.
+- For multiplexed channels, removes specified channel(s); socket remains until none left.
 
-- Unsubscribing from all channels resets last timetoken and may cause gaps.
+Caveat: Unsubscribe from all resets timetoken and may cause gaps.
 
 ### Method(s)
 
@@ -1483,6 +1507,9 @@ Unsubscribes from specific channels; socket closes only when no channels remain.
 2                   withPresence:(BOOL)shouldObservePresence;  
 `
 ```
+
+- channels (NSArray<NSString *>)
+- shouldObservePresence (BOOL): Also disable presence observation or not.
 
 ### Sample code
 
@@ -1517,8 +1544,7 @@ Unsubscribe from a channel:
 
 ```
 1@interface PNSubscriberData : PNServiceData  
-2
-  
+2  
 3// Name of channel for which subscriber received data.  
 4@property (nonatomic, readonly, strong) NSString *channel;  
 5// Name of channel or channel group (in case if not equal to channel).  
@@ -1568,15 +1594,12 @@ Unsubscribe from all channels and channel groups.
 4 */  
 5[self.client addListener:self];  
 6[self.client unsubscribeFromAll];  
-7
-  
+7  
 8// Handle subscription status change.  
 9- (void)client:(PubNub *)client didReceiveStatus:(PNStatus *)status {  
-10
-  
+10  
 11    if (status.operation == PNUnsubscribeOperation && status.category == PNDisconnectedCategory) {  
-12
-  
+12  
 13        /**  
 14         This is the expected category for an unsubscribe. This means there was no error in unsubscribing  
 15         from everything.  
@@ -1592,7 +1615,7 @@ None
 
 ## Unsubscribe from a channel group
 
-Unsubscribe from specified channel groups.
+Unsubscribe from a channel group.
 
 ### Method(s)
 
@@ -1602,9 +1625,12 @@ Unsubscribe from specified channel groups.
 `
 ```
 
+- groups (NSArray<NSString *>)
+- shouldObservePresence (BOOL)
+
 ### Sample code
 
-Unsubscribe from a channel group
+#### Unsubscribe from a channel group
 
 ```
 1/**  
@@ -1613,15 +1639,12 @@ Unsubscribe from a channel group
 4 */  
 5[self.client addListener:self];  
 6[self.client unsubscribeFromChannelGroups: @[@"developers"] withPresence:YES];  
-7
-  
+7  
 8// Handle subscription status change.  
 9- (void)client:(PubNub *)client didReceiveStatus:(PNStatus *)status {  
-10
-  
+10  
 11    if (status.operation == PNUnsubscribeOperation && status.category == PNDisconnectedCategory) {  
-12
-  
+12  
 13        /**  
 14         This is the expected category for an unsubscribe. This means there was no error in unsubscribing  
 15         from everything.  
@@ -1635,8 +1658,7 @@ Unsubscribe from a channel group
 
 ```
 1@interface PNSubscriberData : PNServiceData  
-2
-  
+2  
 3// Name of channel for which subscriber received data.  
 4@property (nonatomic, readonly, strong) NSString *channel;  
 5// Name of channel or channel group (in case if not equal to channel).  
@@ -1668,7 +1690,7 @@ Unsubscribe from a channel group
 
 ## Presence
 
-Subscribe to presence channels to receive occupancy and state events. With restore=true, client can attempt to reconnect and retrieve missed messages after disconnect (default reconnect after 320s timeout).
+Subscribe to presence channels to monitor occupancy and state events. With restore:YES, the client auto-reconnects and attempts to retrieve missed messages (best-effort). Default connection timeout ~320s.
 
 ### Method(s)
 
@@ -1677,9 +1699,9 @@ Subscribe to presence channels to receive occupancy and state events. With resto
 `
 ```
 
-### Sample code
+- channels (NSArray<NSString *>): Channel IDs for presence observation.
 
-Subscribe to the presence channel (<channel>-pnpres)
+### Sample code
 
 ```
 1/**  
@@ -1688,12 +1710,10 @@ Subscribe to the presence channel (<channel>-pnpres)
 4 */  
 5[self.client addListener:self];  
 6[self.client subscribeToPresenceChannels:@[@"my_channel"]];  
-7
-  
+7  
 8// New presence event handling.  
 9- (void)client:(PubNub *)client didReceivePresenceEvent:(PNPresenceEventResult *)event {  
-10
-  
+10  
 11    if (![event.data.channel isEqualToString:event.data.subscription]) {  
 12  
 13        // Presence event has been received on channel group stored in event.data.subscription.  
@@ -1722,8 +1742,7 @@ Subscribe to the presence channel (<channel>-pnpres)
 
 ```
 1@interface PNSubscriberData : PNServiceData  
-2
-  
+2  
 3// Name of channel for which subscriber received data.  
 4@property (nonatomic, readonly, strong) NSString *channel;  
 5// Name of channel or channel group (in case if not equal to channel).  
@@ -1792,7 +1811,7 @@ Subscribe to the presence channel (<channel>-pnpres)
 
 ## Presence unsubscribe
 
-Stop monitoring presence for specified channels.
+Stop monitoring the presence of channel(s); socket remains open if other subscriptions exist.
 
 ### Method(s)
 
@@ -1800,6 +1819,8 @@ Stop monitoring presence for specified channels.
 `1- (void)unsubscribeFromPresenceChannels:(NSArrayNSString *> *)channels;  
 `
 ```
+
+- channels (NSArray<NSString *>)
 
 ### Sample code
 
@@ -1814,8 +1835,7 @@ Unsubscribe from the presence channel:
 
 ```
 1@interface PNSubscriberData : PNServiceData  
-2
-  
+2  
 3// Name of channel for which subscriber received data.  
 4@property (nonatomic, readonly, strong) NSString *channel;  
 5// Name of channel or channel group (in case if not equal to channel).  
@@ -1844,5 +1864,3 @@ Unsubscribe from the presence channel:
 **28@end  
 
 ```
-
-Last updated on Sep 3, 2025

@@ -1,21 +1,26 @@
-# Presence API for Unity SDK
+# Presence API for Unity SDK (Summary)
 
-Presence tracks who is online/offline and stores custom state:
+Presence tracks who is online/offline and stores custom state. It provides:
 - Join/leave events per channel
-- Occupancy (subscribed user count)
-- Channels a UUID is subscribed to
+- Occupancy counts
+- Channels a UUID/device is subscribed to
 - Presence state per user
 
-Presence event modes (configured in Admin Portal):
+Enable Presence for your key in the Admin Portal. See Presence overview and Presence Events for details.
+
+##### Presence event modes
 - Announce Mode
 - Interval Mode
-Mode depends on occupancy. See Presence Events documentation for behavior.
+Mode depends on occupancy and is configured in the Admin Portal.
 
-Requires Presence add-on enabled for your key.
+---
 
 ## Here now
 
-Returns current channel state: list of UUIDs and occupancy. 3-second response cache.
+Requires Presence. Returns current channel state: list of UUIDs subscribed and total occupancy.
+
+##### Cache
+3-second response cache.
 
 ### Method(s)
 
@@ -25,30 +30,31 @@ Returns current channel state: list of UUIDs and occupancy. 3-second response ca
 3    .ChannelGroups(Array)  
 4    .IncludeState(bool)  
 5    .IncludeUUIDs(bool)  
-6    .QueryParam(Dictionarystring,object>)  
-7    .Execute(System.ActionPNHereNowResult, PNStatus>)  
+6    .Limit(int)  
+7    .Offset(int)  
+8    .QueryParam(Dictionarystring,object>)  
+9    .Execute(System.ActionPNHereNowResult, PNStatus>)  
 `
 ```
 
-Parameters and options:
+Parameters:
 - Channels (Array): Channels to query.
 - ChannelGroups (Array): Channel groups to query. Wildcards not supported.
-- IncludeState (bool): Include user state in response.
-- IncludeUUIDs (bool): Include UUIDs in response.
-- QueryParam (Dictionary<string, object>): Extra query parameters.
-- Execute(System.Action<PNHereNowResult, PNStatus>): Callback execution.
-- ExecuteAsync(): Returns Task<PNResult<PNHereNowResult>>.
+- IncludeState (bool): Include user presence state in results if true.
+- IncludeUUIDs (bool): Include UUIDs in results if true.
+- Limit (int, default 1000): 0–1000 occupants per channel. 0 returns occupancy counts only (no user details). Applied only when specific Channels are provided.
+- Offset (int, default 0): Zero-based start index for pagination. Requires Limit > 0; included only if Offset > 0. Applied only when specific Channels are provided.
+- QueryParam (Dictionary<string, object>): Extra query params for debugging.
+- Async/Execute: PNCallback or System.Action of PNHereNowResult.
+- ExecuteAsync: Returns Task<PNResult<PNHereNowResult>>.
 
 ### Sample code
 
 #### Get a list of UUIDs subscribed to channel
 
-Reference code
-
 ```
 1
   
-
 ```
 
 ### Returns
@@ -78,15 +84,15 @@ PNHereNowOccupantData:
 ```
 1
   
-
 ```
 
 #### Returning state
 
+Requires Presence.
+
 ```
 1
   
-
 ```
 
 #### Example response
@@ -135,12 +141,13 @@ PNHereNowOccupantData:
 
 #### Return occupancy only
 
-Set IncludeUUIDs to false to return only occupancy for a channel.
+Requires Presence.
+
+To return only occupancy for a single channel, specify the channel and set UUIDs to false (or use Limit = 0).
 
 ```
 1
   
-
 ```
 
 #### Example response
@@ -172,11 +179,14 @@ Set IncludeUUIDs to false to return only occupancy for a channel.
 `
 ```
 
+---
+
 ## Where now
 
-Returns channels a UUID is subscribed to.
+Requires Presence. Returns the list of channels a UUID is subscribed to.
 
-Timeout events: If the app restarts within the heartbeat window, no timeout event is generated.
+##### Timeout events
+If the app restarts within the heartbeat window, no timeout event is generated.
 
 ### Method(s)
 
@@ -188,11 +198,11 @@ Timeout events: If the app restarts within the heartbeat window, no timeout even
 `
 ```
 
-Parameters and options:
-- Uuid (string): Target UUID.
-- QueryParam (Dictionary<string, object>): Extra query parameters.
-- Execute(System.Action<PNWhereNowResult, PNStatus>): Callback execution.
-- ExecuteAsync(): Returns Task<PNResult<PNWhereNowResult>>.
+Parameters:
+- Uuid (string): UUID to query.
+- QueryParam (Dictionary<string, object>): Extra query params for debugging.
+- Async/Execute: PNCallback or System.Action of PNWhereNowResult.
+- ExecuteAsync: Returns Task<PNResult<PNWhereNowResult>>.
 
 ### Sample code
 
@@ -201,7 +211,6 @@ Parameters and options:
 ```
 1
   
-
 ```
 
 ### Returns
@@ -211,7 +220,7 @@ WhereNow() returns PNResult<PNWhereNowResult>:
 - Status: PNStatus
 
 PNWhereNowResult:
-- Channels (List<string>): Channels where the UUID is present.
+- Channels (List<string>)
 
 ### Other examples
 
@@ -220,7 +229,6 @@ PNWhereNowResult:
 ```
 1
   
-
 ```
 
 #### Obtain information about the current list of channels of some other UUID
@@ -228,12 +236,13 @@ PNWhereNowResult:
 ```
 1
   
-
 ```
+
+---
 
 ## User state
 
-Set/get key/value pairs for a subscriber UUID. State is a Dictionary<string, object>.
+Requires Presence. Set/get key/value pairs for a subscriber Uuid. State is a Dictionary<string, object>.
 
 ### Method(s)
 
@@ -250,14 +259,14 @@ Set/get key/value pairs for a subscriber UUID. State is a Dictionary<string, obj
 `
 ```
 
-Parameters and options:
-- Channels (Array): Channels to set state on.
-- ChannelGroups (Array): Channel groups to set state on.
+Parameters:
+- Channels (Array): Channels to set state.
+- ChannelGroups (Array): Channel groups to set state.
 - State (Dictionary<string, object>): State to set.
-- Uuid (string): Target UUID.
-- QueryParam (Dictionary<string, object>): Extra query parameters.
-- Execute(System.Action<PNSetStateResult, PNStatus>): Callback execution.
-- ExecuteAsync(): Returns Task<PNResult<PNSetStateResult>>.
+- Uuid (string)
+- QueryParam (Dictionary<string, object>)
+- Async/Execute: PNCallback or System.Action of PNSetStateResult.
+- ExecuteAsync: Returns Task<PNResult<PNSetStateResult>>.
 
 #### Get state
 
@@ -271,13 +280,13 @@ Parameters and options:
 `
 ```
 
-Parameters and options:
-- Channels (Array): Channels to fetch state for.
-- ChannelGroups (Array): Channel groups to fetch state for.
-- Uuid (string): Target UUID.
-- QueryParam (Dictionary<string, object>): Extra query parameters.
-- Execute(System.Action<PNGetStateResult, PNStatus>): Callback execution.
-- ExecuteAsync(): Returns Task<PNResult<PNGetStateResult>>.
+Parameters:
+- Channels (Array): Channel(s) to fetch state.
+- ChannelGroups (Array): Channel group(s) to fetch state.
+- Uuid (string)
+- QueryParam (Dictionary<string, object>)
+- Async/Execute: PNCallback or System.Action of PNGetStateResult.
+- ExecuteAsync: Returns Task<PNResult<PNGetStateResult>>.
 
 ### Sample code
 
@@ -286,7 +295,6 @@ Parameters and options:
 ```
 1
   
-
 ```
 
 #### Get state
@@ -294,7 +302,6 @@ Parameters and options:
 ```
 1
   
-
 ```
 
 ### Returns
@@ -320,7 +327,6 @@ PNGetStateResult:
 ```
 1
   
-
 ```
 
 #### Get state synchronously
@@ -328,7 +334,6 @@ PNGetStateResult:
 ```
 1
   
-
 ```
 
 #### Set state for channels in channel group
@@ -336,7 +341,6 @@ PNGetStateResult:
 ```
 1
   
-
 ```
 
 Response:
@@ -349,3 +353,5 @@ Response:
 6}  
 `
 ```
+
+Last updated on Nov 10, 2025**

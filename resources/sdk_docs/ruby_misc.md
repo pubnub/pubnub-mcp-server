@@ -1,8 +1,8 @@
 # Utility Methods API for Ruby SDK
 
-Utility methods that don't fit other categories.
+The methods on this page are utility methods that don't fit into other categories.
 
-## Time
+## Time[​](#time)
 
 Returns a 17-digit precision Unix epoch timetoken.
 
@@ -13,7 +13,7 @@ Returns a 17-digit precision Unix epoch timetoken.
 `
 ```
 
-Convert current time to a timetoken and back:
+Convert back and forth between current time and a timetoken:
 
 ```
 1now = Time.now  
@@ -29,9 +29,9 @@ Convert current time to a timetoken and back:
 
 ```
 
-### Method(s)
+### Method(s)[​](#methods)
 
-Fetch Time using:
+To fetch `Time` use:
 
 ```
 `1time(  
@@ -42,12 +42,12 @@ Fetch Time using:
 ```
 
 Parameters:
-- http_sync (Boolean, default false): Executes asynchronously by default and returns a future; call value to get the Envelope. If set to true, returns array of envelopes (even if there's only one envelope). For sync methods Envelope object will be returned.
-- callback (Lambda): Accepts one parameter Callback that will be called for each envelope. For async methods, a future is returned; call value to retrieve the Envelope (thread blocks until value is returned).
+- http_sync (Boolean, default false): If false, executes asynchronously and returns a future; call `value` on the future to get the `Envelope`. If true, returns an array of envelopes (even if there's only one envelope). For sync methods `Envelope` object will be returned.
+- callback (Lambda): Accepts one parameter (`Callback`) and is called for each `envelope`. For async methods a future is returned; call `value` to retrieve the `Envelope` (thread will block until returned).
 
-### Sample code
+### Sample code[​](#sample-code)
 
-#### Get PubNub timetoken
+#### Get PubNub timetoken[​](#get-pubnub-timetoken)
 
 ##### Reference code
 
@@ -85,9 +85,9 @@ Parameters:
 
 ```
 
-### Rest response from server
+### Rest response from server[​](#rest-response-from-server)
 
-The time() function returns a string timetoken in the following format:
+The `time()` function returns a string timetoken in the following format:
 
 ```
 `113769501243685161**`

@@ -1,18 +1,23 @@
-# Presence API for Unreal SDK (Condensed)
+# Presence API for Unreal SDK
 
-Presence tracks online/offline users, channel occupancy, and user state. Available via Blueprints or C++.
+Presence tracks online/offline users and custom state:
+- Joins/leaves per channel
+- Occupancy (user count) per channel
+- Channels a user/device is subscribed to
+- Presence state per user
 
-Requires Presence add-on enabled for your key in the Admin Portal. For events, see Presence Events.
+Requires Presence add-on to be enabled for your key in the Admin Portal. See Presence Events for event subscription details.
 
-## Setup
+You can use the SDK via Blueprints (Pubnub Subsystem node) or C++.
 
-- Blueprints: use the Pubnub Subsystem node.
-- C++: add dependency to PubnubLibrary in Source/YourProject/YourProject.Build.cs, compile, and use as a Game Instance Subsystem.
+Add C++ dependency in Source/YourProject/YourProject.Build.cs:
 
 ```
 `PrivateDependencyModuleNames.AddRange(new string[] { "PubnubLibrary" });  
 `
 ```
+
+Access the subsystem in C++:
 
 ```
 #include "Kismet/GameplayStatics.h"  
@@ -24,22 +29,24 @@ UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>(
 
 ```
 
+Example:
+
 ```
 `PubnubSubsystem->SubscribeToChannel("MyChannel");  
 `
 ```
 
----
+### Usage in Blueprints and C++
 
 ## List users from channel - Channel entity
 
-Returns UUIDs currently subscribed and channel occupancy.
+Available in entities: Channel
 
-Cache: 3 seconds.
+Requires Presence. Returns current channel state: UUIDs subscribed and total occupancy. Cache: 3 seconds.
 
 ### Method(s)
 
-Create a Channel entity and call ListUsersFromChannel:
+Create a Channel entity for the target channel:
 
 ```
 1UPubnubChannelEntity* ChannelEntity = PubnubSubsystem->CreateChannelEntity("my-channel");  
@@ -52,18 +59,31 @@ Create a Channel entity and call ListUsersFromChannel:
 
 ```
 
-- ListUsersFromChannelResponse (required): Type FOnListUsersFromChannelResponse. Result delegate. Native alternative: FOnListUsersFromChannelResponseNative.
-- ListUsersFromChannelSettings: Type FPubnubListUsersFromChannelSettings. Method configuration.
+- ListUsersFromChannelResponse
+  - Type: FOnListUsersFromChannelResponse
+  - Delegate for the result. Or use native callback FOnListUsersFromChannelResponseNative (lambda).
+- ListUsersFromChannelSettings
+  - Type: FPubnubListUsersFromChannelSettings
+  - Method configuration.
 
 #### FPubnubListUsersFromChannelSettings
 
-- ChannelGroups: FString. Comma-delimited channel group names. Ignored if empty. No wildcards.
-- DisableUserID: bool. Whether to disable including user IDs in the response. Default true.
-- State: bool. Whether to include client state in the response. Default false.
+- ChannelGroups
+  - Type: FString
+  - Comma-delimited channel group names. Not used if empty. No wildcards.
+- DisableUserID
+  - Type: bool
+  - Whether to disable including user IDs in the response. Default true.
+- State
+  - Type: bool
+  - Whether to include connected clients’ state. Default false.
 
 ### Sample code
 
+- C++
+
 #### Actor.h
+
 ```
 1
   
@@ -71,6 +91,7 @@ Create a Channel entity and call ListUsersFromChannel:
 ```
 
 #### Actor.cpp
+
 ```
 1
   
@@ -83,31 +104,35 @@ Void. Delegate returns FOnListUsersFromChannelResponse.
 
 #### FOnListUsersFromChannelResponse
 
-- Result: FPubnubOperationResult. Operation result.
-- Data: FPubnubListUsersFromChannelWrapper. Result data.
+- Result: FPubnubOperationResult
+- Data: FPubnubListUsersFromChannelWrapper
 
 #### FPubnubListUsersFromChannelWrapper
 
-- Occupancy: int. Number of users in the channel.
-- UsersState: TMap<FString, FString>. Map of user IDs and their state.
+- Occupancy: int
+- UsersState: TMap<FString, FString> (user ID -> state)
 
 #### FOnListUsersFromChannelResponseNative
 
-- Result: const FPubnubOperationResult&.
-- Data: const FPubnubListUsersFromChannelWrapper&.
+- Result: const FPubnubOperationResult&
+- Data: const FPubnubListUsersFromChannelWrapper&
 
 ### Other examples
 
 #### Return occupancy only
 
-#### Actor.h
+Specify the channel and set DisableUserID to false.
+
+##### Actor.h
+
 ```
 1
   
 
 ```
 
-#### Actor.cpp
+##### Actor.cpp
+
 ```
 1
   
@@ -116,27 +141,25 @@ Void. Delegate returns FOnListUsersFromChannelResponse.
 
 #### Use lambda
 
-#### Actor.h
+##### Actor.h
+
 ```
 1
   
 
 ```
 
-#### Actor.cpp
+##### Actor.cpp
+
 ```
 1
   
 
 ```
-
----
 
 ## List users from channel - PubNub client
 
-Returns UUIDs currently subscribed and channel occupancy.
-
-Cache: 3 seconds.
+Requires Presence. Returns current channel state (UUID list and occupancy). Cache: 3 seconds.
 
 ### Method(s)
 
@@ -149,13 +172,22 @@ Cache: 3 seconds.
 `
 ```
 
-- Channel (required): FString. Channel name.
-- ListUsersFromChannelResponse (required): FOnListUsersFromChannelResponse. Native alternative: FOnListUsersFromChannelResponseNative.
-- ListUsersFromChannelSettings: FPubnubListUsersFromChannelSettings.
+- Channel
+  - Type: FString
+  - Channel to get presence details of.
+- ListUsersFromChannelResponse
+  - Type: FOnListUsersFromChannelResponse
+  - Delegate for the result. Or use native FOnListUsersFromChannelResponseNative (lambda).
+- ListUsersFromChannelSettings
+  - Type: FPubnubListUsersFromChannelSettings
 
 ### Sample code
 
+- C++
+- Blueprint
+
 #### Actor.h
+
 ```
 1
   
@@ -163,6 +195,7 @@ Cache: 3 seconds.
 ```
 
 #### Actor.cpp
+
 ```
 1
   
@@ -177,7 +210,10 @@ Void. Delegate returns FOnListUsersFromChannelResponse.
 
 #### Return occupancy only
 
+Specify the channel and set DisableUserID to false.
+
 #### Actor.h
+
 ```
 1
   
@@ -185,6 +221,7 @@ Void. Delegate returns FOnListUsersFromChannelResponse.
 ```
 
 #### Actor.cpp
+
 ```
 1
   
@@ -194,6 +231,7 @@ Void. Delegate returns FOnListUsersFromChannelResponse.
 #### Use lambda
 
 #### Actor.h
+
 ```
 1
   
@@ -201,19 +239,18 @@ Void. Delegate returns FOnListUsersFromChannelResponse.
 ```
 
 #### Actor.cpp
+
 ```
 1
   
 
 ```
 
----
-
 ## List user subscribed channels
 
-Returns the list of channels a User ID is subscribed to.
+Requires Presence. Returns channels a User ID is subscribed to.
 
-Timeout: If the app restarts within the heartbeat window, no timeout event is generated.
+Timeout events: If the app restarts within the heartbeat window, no timeout event is generated.
 
 ### Method(s)
 
@@ -225,12 +262,20 @@ Timeout: If the app restarts within the heartbeat window, no timeout event is ge
 `
 ```
 
-- UserID (required): FString. Target user.
-- ListUserSubscribedChannelsResponse (required): FOnListUsersSubscribedChannelsResponse.
+- UserID
+  - Type: FString
+  - User ID to query.
+- ListUserSubscribedChannelsResponse
+  - Type: FOnListUsersSubscribedChannelsResponse
+  - Callback for the result.
 
 ### Sample code
 
+- C++
+- Blueprint
+
 #### Actor.h
+
 ```
 1
   
@@ -238,6 +283,7 @@ Timeout: If the app restarts within the heartbeat window, no timeout event is ge
 ```
 
 #### Actor.cpp
+
 ```
 1
   
@@ -250,19 +296,20 @@ Void. Delegate returns FOnListUsersSubscribedChannelsResponse.
 
 #### FOnListUsersSubscribedChannelsResponse
 
-- Result: FPubnubOperationResult.
-- Channels: TArray<FString>&. Channel names.
+- Result: FPubnubOperationResult
+- Channels: TArray<FString>&
 
 #### FOnListUsersSubscribedChannelsResponseNative
 
-- Result: const FPubnubOperationResult&.
-- Channels: const TArray<FString>&.
+- Result: const FPubnubOperationResult&
+- Channels: const TArray<FString>&
 
 ### Other examples
 
 #### Use lambda
 
 #### Actor.h
+
 ```
 1
   
@@ -270,17 +317,16 @@ Void. Delegate returns FOnListUsersSubscribedChannelsResponse.
 ```
 
 #### Actor.cpp
+
 ```
 1
   
 
 ```
 
----
-
 ## User state
 
-Set/get key/value pairs specific to a subscriber User ID.
+Requires Presence. Set/get key/value pairs per subscriber User ID.
 
 ### Method(s)
 
@@ -296,16 +342,29 @@ Set/get key/value pairs specific to a subscriber User ID.
 `
 ```
 
-- Channel (required): FString. Target channel.
-- StateJson (required): FString. JSON object for state.
-- OnSetStateResponse (required): FOnSetStateResponse. Native alternative: FOnSetStateResponseNative.
-- SetStateSettings: FPubnubSetStateSettings.
+- Channel
+  - Type: FString
+  - Channel to set presence state on.
+- StateJson
+  - Type: FString
+  - JSON object to set as state.
+- OnSetStateResponse
+  - Type: FOnSetStateResponse
+  - Delegate for the result. Or use native FOnSetStateResponseNative (lambda).
+- SetStateSettings
+  - Type: FPubnubSetStateSettings
 
 #### FPubnubSetStateSettings
 
-- ChannelGroups: FString. Comma-delimited channel groups. Ignored if empty.
-- UserID: FString. User to set state for. If NULL, uses current context User ID.
-- HeartBeat: bool. Whether to set state and issue a /heartbeat call simultaneously.
+- ChannelGroups
+  - Type: FString
+  - Comma-delimited channel group names. Not used if empty.
+- UserID
+  - Type: FString
+  - User ID to set state for. If NULL, uses current context User ID.
+- HeartBeat
+  - Type: bool
+  - Whether to set state and make a heartbeat call via /heartbeat.
 
 #### Get state
 
@@ -319,14 +378,26 @@ Set/get key/value pairs specific to a subscriber User ID.
 `
 ```
 
-- Channel: FString. Channel to get state of.
-- ChannelGroup: FString. Channel group to get state of.
-- UserID: FString. Target user.
-- OnGetStateResponse (required): FOnGetStateResponse.
+- Channel
+  - Type: FString
+  - Channel to get presence state of.
+- ChannelGroup
+  - Type: FString
+  - Channel group to get presence state of.
+- UserID
+  - Type: FString
+  - User ID to get presence state of.
+- OnGetStateResponse
+  - Type: FOnGetStateResponse
+  - Callback for the result.
 
 ### Sample code
 
+- C++
+- Blueprint
+
 #### Actor.h
+
 ```
 1
   
@@ -334,6 +405,7 @@ Set/get key/value pairs specific to a subscriber User ID.
 ```
 
 #### Actor.cpp
+
 ```
 1
   
@@ -342,7 +414,11 @@ Set/get key/value pairs specific to a subscriber User ID.
 
 #### Get State
 
+- C++
+- Blueprint
+
 #### Actor.h
+
 ```
 1
   
@@ -350,6 +426,7 @@ Set/get key/value pairs specific to a subscriber User ID.
 ```
 
 #### Actor.cpp
+
 ```
 1
   
@@ -362,29 +439,30 @@ SetState returns FOnSetStateResponse.
 
 #### FOnSetStateResponse
 
-- Result: FPubnubOperationResult.
+- Result: FPubnubOperationResult
 
 #### FOnSetStateResponseNative
 
-- Result: const FPubnubOperationResult&.
+- Result: const FPubnubOperationResult&
 
 GetState returns FOnGetStateResponse.
 
 #### FOnGetStateResponse
 
-- Result: FPubnubOperationResult.
-- StateResponse: FString. State JSON.
+- Result: FPubnubOperationResult
+- StateResponse: FString
 
 #### FOnGetStateResponseNative
 
-- Result: const FPubnubOperationResult&.
-- StateResponse: FString.
+- Result: const FPubnubOperationResult&
+- StateResponse: FString
 
 ### Other examples
 
 #### Set state with result struct
 
 #### Actor.h
+
 ```
 1
   
@@ -392,6 +470,7 @@ GetState returns FOnGetStateResponse.
 ```
 
 #### Actor.cpp
+
 ```
 1
   
@@ -401,6 +480,7 @@ GetState returns FOnGetStateResponse.
 #### Set state for a channel group
 
 #### Actor.h
+
 ```
 1
   
@@ -408,6 +488,7 @@ GetState returns FOnGetStateResponse.
 ```
 
 #### Actor.cpp
+
 ```
 1
   
@@ -417,6 +498,7 @@ GetState returns FOnGetStateResponse.
 #### Set state with lambda
 
 #### Actor.h
+
 ```
 1
   
@@ -424,6 +506,7 @@ GetState returns FOnGetStateResponse.
 ```
 
 #### Actor.cpp
+
 ```
 1
   
@@ -433,6 +516,7 @@ GetState returns FOnGetStateResponse.
 #### Get state from channel group
 
 #### Actor.h
+
 ```
 1
   
@@ -440,6 +524,7 @@ GetState returns FOnGetStateResponse.
 ```
 
 #### Actor.cpp
+
 ```
 1
   
@@ -449,6 +534,7 @@ GetState returns FOnGetStateResponse.
 #### Get state from channel group with lambda
 
 #### Actor.h
+
 ```
 1
   
@@ -456,17 +542,17 @@ GetState returns FOnGetStateResponse.
 ```
 
 #### Actor.cpp
+
 ```
 1
   
 
 ```
 
----
-
 ## Complete example
 
 #### ASample_PresenceFull.h
+
 ```
 1
   
@@ -474,7 +560,10 @@ GetState returns FOnGetStateResponse.
 ```
 
 #### ASample_PresenceFull.cpp
+
 ```
 1
 **
 ```
+
+Last updated on Sep 11, 2025**

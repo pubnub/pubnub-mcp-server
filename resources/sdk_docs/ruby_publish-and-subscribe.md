@@ -1,28 +1,31 @@
 # Publish/Subscribe API for Ruby SDK
 
-Low-latency real-time messaging to channels and channel groups.
+Send messages to channel subscribers, listen for messages and presence events, and manage subscriptions.
+
+For conceptual guidance, see Connection Management and Publish Messages.
 
 ## Publish
 
-`publish()` sends a JSON-serializable message to all subscribers of a channel.
+publish() sends a JSON-serializable message to all subscribers of a channel. Messages are replicated globally.
 
-- Prerequisites
-  - Initialize with publish_key.
-  - You can publish without being subscribed.
-  - Cannot publish to multiple channels simultaneously.
-- Security: Set ssl: true during initialization. Optional message encryption available.
-- Message data: Any JSON-serializable data. Avoid special classes/functions.
-- Don't JSON serialize: Pass full objects for message and meta; SDK serializes automatically.
-- Size limit: Max 32 KiB including channel and escapes; target under 1,800 bytes. Oversize returns Message Too Large.
-- Throughput: Publish as bandwidth allows; subscriber in-memory queue size ~100. Bursts can drop messages.
-- custom_message_type: Optional business-specific label (3–50 chars, alphanumeric, dashes/underscores; cannot start with special chars or pn_/pn-).
-- Best practices
-  - Publish serially.
-  - Verify success return code (for example, [1,"Sent","136074940..."]).
-  - Publish next only after success; on failure ([0,"blah","<timetoken>"]) retry.
-  - Keep queue under 100; throttle bursts (e.g., ≤5 msgs/s).
+Key points:
+- Initialize PubNub with publishKey.
+- Not required to be subscribed to publish.
+- Cannot publish to multiple channels simultaneously.
+- Security: set ssl: true at initialization for TLS/SSL; optional message encryption.
+- Message data: any JSON-serializable object; pass objects directly—do not pre‑serialize message or meta (serialization is automatic).
+- Size: max 32 KiB (including escaped characters and channel name); aim < 1,800 bytes.
+- Throughput: publish as fast as bandwidth allows; subscribers have an in‑memory queue of ~100 messages—throttle bursts to avoid drops.
+- Optional custom_message_type: business-specific label (for example: text, action, poll). 3–50 chars; case-sensitive alphanumeric; dashes/underscores allowed; cannot start with special characters or pn_/pn-.
+- Best practices:
+  - Publish serially, not concurrently.
+  - Check success response (for example, [1,"Sent","136074940..."]) before sending next.
+  - Retry on failure ([0,"blah","<timetoken>"]).
+  - Keep in-memory queue under 100 messages; throttle, for example ≤5 msgs/sec.
 
 ### Method(s)
+
+To Publish a message you can use the following method(s) in the Ruby SDK:
 
 ```
 `1publish(  
@@ -39,19 +42,22 @@ Low-latency real-time messaging to channels and channel groups.
 `
 ```
 
-- channel (String, required): Channel ID.
-- message (Object, required): Ruby object with to_json.
-- store (Boolean): Store for history. Default true.
-- compressed (Boolean): Compress message. Default false.
-- publish_key (String): Publish key override.
-- http_sync (Boolean): Default false (async returns future; call value to get Envelope). If true, returns array of Envelopes.
-- custom_message_type (String): Business-specific label (text, action, poll).
-- meta (Object): JSON-serializable additional context.
-- callback (Lambda): Invoked per envelope. For async, use future.value to get Envelope.
+Parameters:
+- channel (String, required): target channel.
+- message (Object, required): JSON-serializable object (defines #to_json).
+- store (Boolean): store in History; default true.
+- compressed (Boolean): compress message; default false.
+- publish_key (String): key to use when publishing.
+- http_sync (Boolean): default false. Async returns a future; call value to get Envelope. If true, returns array of Envelopes (even for one).
+- custom_message_type (String): 3–50 chars; case-sensitive alphanumeric; - and _ allowed; not starting with special chars, pn_, or pn-.
+- meta (Object): JSON-serializable metadata.
+- callback (Lambda): called per envelope. For async, use future.value to retrieve Envelope.
 
 ### Sample code
 
 #### Publish a message to a channel
+
+Reference code:
 
 ```
 1require 'pubnub'  
@@ -86,12 +92,11 @@ Low-latency real-time messaging to channels and channel groups.
 26if __FILE__ == $0  
 27  main  
 28end  
-
 ```
 
 ##### Subscribe to the channel
 
-Before running the publish example, subscribe to the same channel (for example, using the Debug Console or a separate script).
+Before running the above publish example, either use the Debug Console or, in another process, subscribe to the same channel.
 
 ### Rest response from server
 
@@ -131,9 +136,11 @@ Before running the publish example, subscribe to the same channel (for example, 
 
 ## Fire
 
-Sends a message directly to Functions event handlers and Illuminate on the target channel. Not delivered to subscribers and not stored in history.
+fire() sends a message to Functions event handlers and Illuminate on the target channel. Messages are not replicated to subscribers and not stored in history.
 
 ### Method(s)
+
+To Fire a message you can use the following method(s) in the Ruby SDK:
 
 ```
 `1fire(  
@@ -147,12 +154,12 @@ Sends a message directly to Functions event handlers and Illuminate on the targe
 `
 ```
 
-- channel (String, required): Channel ID.
-- message (Object, required): Ruby object with to_json.
-- compressed (Boolean): Compress message. Default false.
-- publish_key (String): Publish key override.
-- http_sync (Boolean): Default false (async future.value to get Envelope). If true, returns array of Envelopes.
-- callback (Lambda): Invoked per envelope.
+Parameters:
+- channel (String, required), message (Object, required).
+- compressed (Boolean): default false.
+- publish_key (String).
+- http_sync (Boolean): default false. Async returns future; sync returns Envelope or array of Envelopes if true.
+- callback (Lambda): per-envelope; for async use future.value.
 
 ### Sample code
 
@@ -172,13 +179,13 @@ Sends a message directly to Functions event handlers and Illuminate on the targe
 
 ## Signal
 
-`s
+signal() sends a lightweight signal to all subscribers of a channel.
 
-ignal()` sends a lightweight signal to all subscribers of a channel.
-
-- Default payload size limit: 64 bytes (payload only). Contact support for larger limits.
+- Default max payload size: 64 bytes (payload only). Contact support for higher limits.
 
 ### Method(s)
+
+To Signal a message you can use the following method(s) in the Ruby SDK:
 
 ```
 `1pubnub.signal(  
@@ -190,10 +197,10 @@ ignal()` sends a lightweight signal to all subscribers of a channel.
 `
 ```
 
-- message (Object, required): Ruby object with to_json.
-- channel (String, required): Channel ID.
-- compressed (Boolean): Compress message. Default false.
-- custom_message_type (String): Business-specific label (text, action, poll).
+Parameters:
+- message (Object, required), channel (String, required).
+- compressed (Boolean): default false.
+- custom_message_type (String): same constraints as publish.
 
 ### Sample code
 
@@ -221,17 +228,19 @@ ignal()` sends a lightweight signal to all subscribers of a channel.
 
 ### Receive messages
 
-Add an event listener to receive messages, signals, and events for subscribed channels.
+Receive messages, signals, and events through event listeners. See Event Listeners.
 
 ### Description
 
-Creates an open TCP socket and begins listening for messages on specified channels. Requires subscribe_key during initialization. New subscribers receive messages published after subscribe completes.
+Opens a TCP socket to PubNub and listens on specified channels. You must initialize with subscribe_key. By default, you receive only messages published after subscribe() completes.
 
-- Connectivity: Check envelope.status to confirm subscribe before publishing to avoid race conditions.
-- Reconnect: With restore: true, client attempts to reconnect and catch up missed messages after disconnect. Default reconnect after 320s timeout.
-- Unsubscribing from all channels resets last timetoken and may cause message gaps.
+- Connectivity notification: check envelope.status to know when subscribed before publishing to avoid race conditions.
+- Auto-reconnect and catch-up: set restore: true to attempt to retrieve missed messages after disconnect. Default reconnect after ~320 seconds timeout.
+- Unsubscribing from all channels resets the last-received timetoken and may cause message gaps.
 
 ### Method(s)
+
+To Subscribe to a channel you can use the following method(s) in the Ruby SDK:
 
 ```
 `1subscribe(  
@@ -246,17 +255,18 @@ Creates an open TCP socket and begins listening for messages on specified channe
 `
 ```
 
-- channels (String|Symbol|Array): Channels to subscribe (supports arrays and wildcards).
-- channel_groups (String|Symbol|Array): Channel groups to subscribe.
-- presence (String|Symbol|Array): Presence channels to subscribe.
-- presence_callback (Lambda): Callback per presence event from wildcard subscribe. Works only with http_sync: true.
-- with_presence (Boolean): Also subscribes to presence channels for channels provided. See Presence Events.
-- http_sync (Boolean): Default false (async future; call value). If true, returns array of Envelopes (one per message).
-- callback (Lambda): Called for each retrieved message. Works only with http_sync: true.
+Parameters:
+- channels (String|Symbol|Array): channels to subscribe; supports arrays and wildcard channels.
+- channel_groups (String|Symbol|Array): group(s) to subscribe.
+- presence (String|Symbol|Array): channels to subscribe for presence events.
+- presence_callback (Lambda): called for presence events from wildcard subscribe; works only with http_sync: true.
+- with_presence (Boolean): also subscribe to corresponding -pnpres channels. See Presence Events.
+- http_sync (Boolean): default false. Async returns future; if true returns array of Envelopes (one per message).
+- callback (Lambda): called per retrieved message; works only with http_sync: true.
 
 ##### Event listeners
 
-Subscribe responses are handled by a Listener.
+Responses are handled by listener callbacks. See Listeners section.
 
 ### Sample code
 
@@ -281,7 +291,7 @@ Subscribe to a channel:
 
 #### Subscribing to multiple channels
 
-Supports multiplexing, wildcard subscribe, and channel groups (Stream Controller add-on required).
+Multiplex multiple channels using arrays. Wildcard Subscribe and Channel Groups require the Stream Controller add-on.
 
 ```
 `1# Subscribe to channels (with presence) and groups  
@@ -297,7 +307,7 @@ Supports multiplexing, wildcard subscribe, and channel groups (Stream Controller
 
 #### Subscribing to a Presence channel
 
-Requires Presence add-on. Presence channel is channel-name + "-pnpres".
+Requires Presence add-on. Subscribe to presence by appending -pnpres or use with_presence: true.
 
 ```
 `1# Subscribes to room0, room0-pnpres, room1, room1-pnpres, room2, room2-pnpres  
@@ -371,10 +381,7 @@ Requires Presence add-on. Presence channel is channel-name + "-pnpres".
 `
 ```
 
-When presence_deltas pnconfig flag is enabled, interval messages can include:
-- joined
-- left
-- timedout
+With presence_deltas enabled, interval messages may include arrays joined, left, timedout:
 
 ```
 `1{  
@@ -387,7 +394,7 @@ When presence_deltas pnconfig flag is enabled, interval messages can include:
 `
 ```
 
-If the interval message would exceed ~32KB, extra fields are omitted and here_now_refresh: true is included:
+If the interval message exceeds ~30 KB, extra fields are omitted and here_now_refresh: true is included. Call hereNow to fetch the full list.
 
 ```
 `1{  
@@ -401,7 +408,7 @@ If the interval message would exceed ~32KB, extra fields are omitted and here_no
 
 #### Wildcard subscribe to channels
 
-Requires Stream Controller add-on (Enable Wildcard Subscribe). Only one level (a.*) supported.
+Requires Stream Controller add-on (Enable Wildcard Subscribe). Supports one-level wildcard (a.*). Grants/revokes with wildcards must match the same one-level pattern.
 
 ```
 `1# Subscribe to wildcard channel 'ruby.*' (make sure you have wildcard subscribe enabled in your pubnub admin console!)  
@@ -412,13 +419,9 @@ Requires Stream Controller add-on (Enable Wildcard Subscribe). Only one level (a
 `
 ```
 
-Wildcard grants/revokes only work one level deep (a.*).
-
 #### Subscribing with state
 
-Requires Presence add-on.
-
-Required User ID: Always set user_id to uniquely identify the user/device and persist it.
+Requires Presence. Always set a persistent UserId to uniquely identify the user/device.
 
 ```
 1require 'pubnub'  
@@ -458,7 +461,6 @@ Required User ID: Always set user_id to uniquely identify the user/device and pe
 30        end  
 31    end  
 32end  
-
 ```
 
 #### Subscribe to a channel group
@@ -499,12 +501,11 @@ Requires Stream Controller and Presence add-ons.
 17
   
 18pubnub.presence(channel_groups: 'family')  
-
 ```
 
 ##### Subscribe sync
 
-The loop exits when no subscribed channels remain.
+Loop exits when there are no subscribed channels left.
 
 ```
 1require 'pubnub'  
@@ -518,16 +519,17 @@ The loop exits when no subscribed channels remain.
 8while pubnub.subscribed_channels.size > 0 do  
 9    sleep 1  
 10end  
-
 ```
 
 ## Unsubscribe
 
-Unsubscribe removes channels from the subscription; the socket closes when no channels remain.
+Unsubscribe from one or more channels or groups. For a single channel, issues a leave and closes the socket if no channels remain. For multiplexed channels, removes specified channels; socket stays open while others remain.
 
-- Unsubscribing from all channels then resubscribing resets the last timetoken and may lead to message gaps.
+- Unsubscribing from all channels resets the last-received timetoken and may cause message gaps if you resubscribe later.
 
 ### Method(s)
+
+To Unsubscribe from a channel you can use the following method(s) in the Ruby SDK:
 
 ```
 `1unsubscribe(  
@@ -539,10 +541,11 @@ Unsubscribe removes channels from the subscription; the socket closes when no ch
 `
 ```
 
-- channels (Symbol|String): Channels to unsubscribe (required if channel_groups not specified).
-- channel_groups (Symbol|String): Channel groups to unsubscribe (required if channels not specified).
-- http_sync (Boolean): Default false (async future; call value). If true, returns array of Envelopes.
-- callback (Lambda): Invoked per envelope.
+Parameters:
+- channels (Symbol|String): channels to unsubscribe (required if channel_groups not provided).
+- channel_groups (Symbol|String): groups to unsubscribe (required if channels not provided).
+- http_sync (Boolean): default false. Async returns future; if true returns array of Envelopes.
+- callback (Lambda): per-envelope; for async use future.value.
 
 ### Sample code
 

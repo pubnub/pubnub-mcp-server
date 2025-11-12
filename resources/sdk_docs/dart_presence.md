@@ -1,16 +1,18 @@
 # Presence API for Dart SDK
 
-Requires Presence add-on enabled for your key in the Admin Portal. For event details, see Presence Events. Learn more in Presence overview.
+Requires Presence: Enable the Presence add-on for your key in the Admin Portal.
 
-Presence tracks online/offline status and optional user state, including:
-- Join/leave events
-- Occupancy (number of users per channel)
-- Channels a user/device is subscribed to
+Presence provides:
+- Join/leave events per channel
+- Channel occupancy (user count)
+- Subscribed channels per user/device
 - Presence state per user
+
+Learn more: Presence overview; Presence events.
 
 ## Here now
 
-Returns current state of a channel, including UUIDs subscribed and total occupancy.
+Returns the current state of channels: list of UUIDs and occupancy.
 
 Cache: 3-second response cache.
 
@@ -30,13 +32,13 @@ Cache: 3-second response cache.
 ```
 
 Parameters:
-- keyset (Keyset): Override for the PubNub default keyset configuration.
-- using (String): Keyset name from the keysetStore to use.
-- channels (Set<String>): Channels to retrieve here-now details for.
-- channelGroups (Set<String>): Channel groups to retrieve here-now details for. Wildcards not supported.
-- stateInfo (StateInfo, default false): If true, include user presence state in the response.
-- limit (int, default 1000): Max occupants per channel (0–1000). Use 0 for occupancy-only without user details.
-- offset (int, default 0): Zero-based starting index for pagination (>= 0). Requires limit > 0.
+- keyset (Type: Keyset): Override for the default keyset.
+- using (Type: String): Keyset name from keysetStore to use.
+- channels (Type: Set<String>): Channels to fetch here-now details.
+- channelGroups (Type: Set<String>): Channel groups to fetch here-now details. Wildcards not supported.
+- stateInfo (Type: StateInfo, Default: false): If true, include presence state for users.
+- limit (Type: int, Default: 1000): Max occupants per channel, 0–1000. Use 0 for counts only (no user details).
+- offset (Type: int, Default: 0): Zero-based starting index for pagination; requires limit > 0. Use with limit to paginate.
 
 ### Sample code
 
@@ -77,27 +79,22 @@ Reference code
 26    print('Error retrieving presence information: $e');  
 27  }  
 28}  
-
 ```
-show all 28 lines
 
 ### Returns
 
-hereNow() returns HereNowResult:
-
+HereNowResult:
 - totalChannels (int): Total channels.
 - totalOccupancy (int): Total occupancy.
 - channels (Map<String?, ChannelOccupancy>): Per-channel details.
-- nextOffset (int?): Use to fetch next page if not all UUIDs returned. Null if no more.
+- nextOffset (int?): Offset for next page if not all UUIDs returned; null if none.
 
-#### ChannelOccupancy
-
+ChannelOccupancy:
 - channelName (String): Channel name.
 - count (int): Channel occupancy.
 - uuids (Map<String, OccupantInfo>): Per-UUID info.
 
-#### OccupantInfo
-
+OccupantInfo:
 - uuid (String): User UUID.
 - state (dynamic): User state.
 
@@ -157,7 +154,7 @@ Example response:
 
 #### Return occupancy only
 
-To return only occupancy for a channel, set the relevant flags to exclude UUIDs and state.
+To return only occupancy for a channel, set flags to exclude UUIDs and state.
 
 ```
 `1var result =  
@@ -213,7 +210,7 @@ Example response:
 
 ## Announce heartbeat
 
-A device linked to the UUID in the keyset can notify channels and channelGroups about its presence.
+A device for the keyset UUID can notify channels and channel groups that it is present.
 
 ### Method(s)
 
@@ -229,11 +226,11 @@ A device linked to the UUID in the keyset can notify channels and channelGroups 
 ```
 
 Parameters:
-- keyset (Keyset): Override default keyset.
-- using (String): Keyset name from keysetStore.
-- channels (Set<String>): Channels to notify.
-- channelGroups (Set<String>): Channel groups to notify.
-- heartbeat (int): Presence timeout override (default is 300 seconds).
+- keyset (Type: Keyset): Override for the default keyset.
+- using (Type: String): Keyset name from keysetStore.
+- channels (Type: Set<String>): Channels to notify.
+- channelGroups (Type: Set<String>): Channel groups to notify.
+- heartbeat (Type: int): Presence timeout override (default Presence Timeout is 300 seconds).
 
 ### Sample code
 
@@ -257,7 +254,7 @@ announceHeartbeat() returns HeartbeatResult (no actionable data).
 
 ## Announce leave
 
-Notify channels and channelGroups that the device (UUID) has left.
+Notify channels and channel groups that this device (UUID) has left.
 
 ### Method(s)
 
@@ -272,10 +269,10 @@ Notify channels and channelGroups that the device (UUID) has left.
 ```
 
 Parameters:
-- keyset (Keyset): Override default keyset.
-- using (String): Keyset name from keysetStore.
-- channels (Set<String>): Channels to notify.
-- channelGroups (Set<String>): Channel groups to notify.
+- keyset (Type: Keyset): Override for the default keyset.
+- using (Type: String): Keyset name from keysetStore.
+- channels (Type: Set<String>): Channels to notify.
+- channelGroups (Type: Set<String>): Channel groups to notify.
 
 ### Sample code
 
@@ -295,12 +292,12 @@ Parameters:
 
 ### Returns
 
-announceLeave() returns LeaveResult with:
-- action (String): Action name, for example leave.
+announceLeave() returns LeaveResult:
+- action (String): Action name (for example, "leave").
 
 ## User state
 
-Clients can set a dynamic custom state (for example, score, game state, location) for users on one or more channels. State is not persisted and is lost on disconnect. See Presence State.
+Clients can set dynamic, non-persisted state (for example, score, typing, location) per channel while subscribed. State is lost on disconnect.
 
 ### Method(s)
 
@@ -318,11 +315,11 @@ Clients can set a dynamic custom state (for example, score, game state, location
 ```
 
 Parameters:
-- state (dynamic): JSON object to set as state.
-- keyset (Keyset): Override default keyset.
-- using (String): Keyset name from keysetStore.
-- channels (Set<String>, default {}): Channels to set state.
-- channelGroups (Set<String>, default {}): Channel groups to set state.
+- state (Type: dynamic): JSON object to set as state.
+- keyset (Type: Keyset): Override for the default keyset.
+- using (Type: String): Keyset name from keysetStore.
+- channels (Type: Set<String>, Default: {}): Channels to set state on.
+- channelGroups (Type: Set<String>, Default: {}): Channel groups to set state on.
 
 #### Get state
 
@@ -337,10 +334,10 @@ Parameters:
 ```
 
 Parameters:
-- keyset (Keyset): Override default keyset.
-- using (String): Keyset name from keysetStore.
-- channels (Set<String>, default {}): Channels to fetch state.
-- channelGroups (Set<String>, default {}): Channel groups to fetch state.
+- keyset (Type: Keyset): Override for the default keyset.
+- using (Type: String): Keyset name from keysetStore.
+- channels (Type: Set<String>, Default: {}): Channels to fetch state for.
+- channelGroups (Type: Set<String>, Default: {}): Channel groups to fetch state for.
 
 ### Sample code
 
@@ -354,7 +351,6 @@ Parameters:
 4  state,  
 5  channels: {'my_channel'}  
 6);  
-
 ```
 
 #### Get state
@@ -371,11 +367,9 @@ Parameters:
 
 #### Set state
 
-setState returns SetUserStateResult indicating success.
+setState returns SetUserStateResult (success indicator).
 
 #### Get state
 
-getState returns GetUserStateResult with:
-- stateByUUID() (Map<String, Object>): Map of UUIDs and their user states.
-
-Last updated on Oct 28, 2025
+getState returns GetUserStateResult:
+- stateByUUID() (Type: Map<String, Object>): Map of UUIDs and their states.

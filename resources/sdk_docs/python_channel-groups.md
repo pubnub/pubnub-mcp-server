@@ -1,13 +1,13 @@
 # Channel Groups API for Python SDK
 
-Channel groups bundle thousands of channels under a name for subscribing. You can't publish to a channel group—publish to individual channels.
+Channel groups let you bundle many channels under one name and subscribe to them. You can't publish to a channel group; publish to individual channels.
 
 ##### Request execution and return values
 
-Operations can be synchronous or asynchronous.
+Operations can be run synchronously or asynchronously.
 
 `.sync()` returns an `Envelope` with:
-- `Envelope.result` (type varies per API)
+- `Envelope.result` (type varies by API)
 - `Envelope.status` (`PnStatus`)
 
 ```
@@ -18,7 +18,7 @@ Operations can be synchronous or asynchronous.
 `
 ```
 
-`.pn_async(callback)` returns `None` and passes `result` and `status` to your callback.
+`.pn_async(callback)` returns `None` and invokes your callback with `(result, status)`.
 
 ```
 1def my_callback_function(result, status):  
@@ -36,13 +36,13 @@ Operations can be synchronous or asynchronous.
 
 ##### Requires Stream Controller add-on
 
-Enable Stream Controller for your key in the Admin Portal.
+Enable the Stream Controller add-on for your key in the Admin Portal.
 
 Adds channels to a channel group.
 
 ### Method(s)
 
-Maximum 200 channels per API call.
+Maximum number of channels: 200 per API call.
 
 ```
 `1pubnub.add_channel_to_channel_group() \  
@@ -51,6 +51,7 @@ Maximum 200 channels per API call.
 `
 ```
 
+Parameters:
 - channels (String | List | Tuple): Channel(s) to add.
 - channel_group (String): Target channel group.
 
@@ -155,7 +156,7 @@ Maximum 200 channels per API call.
 
 ### Returns
 
-`add_channel_to_channel_group()` returns an `Envelope`:
+`add_channel_to_channel_group()` returns an `Envelope` with:
 - result: `PNChannelGroupsAddChannelResult`
 - status: `PNStatus`
 
@@ -180,7 +181,8 @@ Lists all channels in a channel group.
 `
 ```
 
-- channel_group (String): Channel group to fetch.
+Parameters:
+- channel_group (String): Group to list.
 
 ### Sample code
 
@@ -203,12 +205,13 @@ Lists all channels in a channel group.
 
 ### Returns
 
-`list_channels_in_channel_group()` returns an `Envelope`:
+`list_channels_in_channel_group()` returns an `Envelope` with:
 - result: `PNChannelGroupsListResult`
 - status: `PNStatus`
 
 #### PNChannelGroupsListResult
 
+Field:
 - channels (Dictionary): A list of channels in a channel group.
 
 ## Remove channels from a channel group
@@ -226,8 +229,9 @@ Removes channels from a channel group.
 `
 ```
 
-- channels (String | List | Tuple): Channels to remove.
-- channel_group (String): Channel group to remove channels from.
+Parameters:
+- channels (String | List | Tuple): Channel(s) to remove.
+- channel_group (String): Group to remove from.
 
 ### Sample code
 
@@ -251,7 +255,7 @@ Removes channels from a channel group.
 
 ### Returns
 
-`remove_channel_from_channel_group()` returns an `Envelope`:
+`remove_channel_from_channel_group()` returns an `Envelope` with:
 - result: `PNChannelGroupsRemoveChannelResult`
 - status: `PNStatus`
 
@@ -275,7 +279,8 @@ Deletes a channel group.
 `
 ```
 
-- channel_group (String): Channel group to remove.
+Parameters:
+- channel_group (String): Group to remove.
 
 ### Sample code
 
@@ -298,7 +303,7 @@ Deletes a channel group.
 
 ### Returns
 
-`remove_channel_group()` returns an `Envelope`:
+`remove_channel_group()` returns an `Envelope` with:
 - result: `PNChannelGroupsRemoveGroupResult`
 - status: `PNStatus`
 

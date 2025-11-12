@@ -1,172 +1,154 @@
 # Utility Methods API for JavaScript SDK
 
-Utility methods that don't fit into other categories.
+Utility methods that don't fit other categories.
 
-## PubNubFile[​](#pubnubfile)
+## PubNubFile
 
-Internal file representation. Available extraction methods depend on environment.
+Internal representation of a file used by the SDK. Extraction methods vary by environment.
 
-### Extracting the file[​](#extracting-the-file)
+### Extracting the file
 
-##### Methods supported in Node.js[​](#methods-supported-in-nodejs)
+#### Methods supported in Node.js
 
 - `file.toBuffer()` returns `Promise<Buffer>`
 - `file.toStream()` returns `Promise<Readable>`
-- `file.toString(encoding: string)` returns a string encoded using `encoding` (if not available, defaults to `utf8`)
+- `file.toString(encoding: string)` returns a string encoded using `encoding` (defaults to `utf8`)
 
-##### Methods supported in a browser[​](#methods-supported-in-a-browser)
+#### Methods supported in a browser
 
 - `file.toFile()` returns `Promise<File>`
 - `file.toBlob()` returns `Promise<Blob>`
 - `file.toArrayBuffer()` returns `Promise<ArrayBuffer>`
-- `file.toString(encoding: string)` returns a string encoded using `encoding` (if not available, defaults to `utf8`)
+- `file.toString(encoding: string)` returns a string encoded using `encoding` (defaults to `utf8`)
 
-##### React and React Native[​](#react-and-react-native)
+#### React and React Native
 
 - `file.toBlob()` returns `Promise<Blob>`
 
-### Creating a file[​](#creating-a-file)
+### Creating a file
 
 ```
-`1pubnub.File.create(input: FileInput): PubNubFile;  
-`
+pubnub.File.create(input: FileInput): PubNubFile;
 ```
 
-`FileInput` varies by environment.
+`FileInput` accepts various inputs depending on environment.
 
-#### Node.js[​](#nodejs)
+#### Node.js
 
-**Using streams:**
+Using streams:
 ```
-`1{  
-2    stream: Readable,  
-3    name: string,  
-4    mimeType?: string  
-5}  
-`
-```
-
-**Using buffers:**
-```
-`1{  
-2    data: Buffer,  
-3    name: string,  
-4    mimeType?: string  
-5}  
-`
+{
+  stream: Readable,
+  name: string,
+  mimeType?: string
+}
 ```
 
-**Using strings:**
+Using buffers:
 ```
-`1{  
-2    data: string,  
-3    encoding: string,  
-4    name: string,  
-5    mimeType?: string  
-6}  
-`
+{
+  data: Buffer,
+  name: string,
+  mimeType?: string
+}
 ```
 
-#### Browsers[​](#browsers)
-
-**Using [File API](https://developer.mozilla.org/en-US/docs/Web/API/File):**
+Using strings:
 ```
-`1File  
-`
-```
-
-**Using strings:**
-```
-`1{  
-2    data: string,  
-3    name: string,  
-4    mimeType?: string  
-5}  
-`
+{
+  data: string,
+  encoding: string,
+  name: string,
+  mimeType?: string
+}
 ```
 
-**Using ArrayBuffer:**
+#### Browsers
+
+Using File API:
 ```
-`1{  
-2    data: ArrayBuffer,  
-3    name: string,  
-4    mimeType?: string  
-5}  
-`
+File
 ```
 
-## Disconnect[​](#disconnect)
-
-Stop all requests to PubNub servers when there are active subscribe channels.
-
-### Method(s)[​](#methods)
-
+Using strings:
 ```
-`1disconnect()  
-`
+{
+  data: string,
+  name: string,
+  mimeType?: string
+}
 ```
 
-This method doesn't take any arguments.
+Using ArrayBuffer:
+```
+{
+  data: ArrayBuffer,
+  name: string,
+  mimeType?: string
+}
+```
 
-### Sample code[​](#sample-code)
+## Disconnect
+
+Stops all requests to PubNub servers when there are active subscribe channels.
+
+### Method(s)
 
 ```
-1
-  
+disconnect()
+```
+
+No arguments.
+
+### Sample code
 
 ```
 
-## Reconnect[​](#reconnect)
-
-Force the SDK to try to reach PubNub again.
-
-### Method(s)[​](#methods-1)
-
-```
-`1reconnect()  
-`
 ```
 
-This method doesn't take any arguments.
+## Reconnect
 
-### Sample code[​](#sample-code-1)
+Forces the SDK to attempt reconnecting to PubNub.
+
+### Method(s)
 
 ```
-1
-  
+reconnect()
+```
+
+No arguments.
+
+### Sample code
 
 ```
 
-## setProxy[​](#setproxy)
+```
+
+## setProxy
 
 Assign or reassign a proxy configuration at runtime. Node.js only.
 
-### Method(s)[​](#methods-2)
+### Method(s)
 
 ```
-`1setProxy({String hostname, Number port, String protocol})  
-`
+setProxy({String hostname, Number port, String protocol})
 ```
 
-- hostname: String, required. IP address or URI.
-- port: Number, required. Proxy listening port.
-- protocol: String, default: http. Supported: http, https, socks5, socks4, pac.
+- hostname: String, required. IP address or URI to use.
+- port: Number, required. Port where the proxy is listening.
+- protocol: String, default: `http`. Supported: `http`, `https`, `socks5`, `socks4`, `pac`.
 
-### Sample code[​](#sample-code-2)
-
-```
-1
-  
+### Sample code
 
 ```
 
-### Other examples[​](#other-examples)
+```
 
-#### Delete the proxy in run time[​](#delete-the-proxy-in-run-time)
+### Other examples
+
+#### Delete the proxy in run time
 
 ```
 1
 **
 ```
-
-Last updated on Sep 3, 2025**

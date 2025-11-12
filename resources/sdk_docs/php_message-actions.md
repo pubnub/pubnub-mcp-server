@@ -1,1 +1,3 @@
-I don’t have the documentation content to summarize. Please paste the “message-actions” section for the PubNub PHP SDK (or provide a link and the exact version), and I’ll condense it while preserving all code blocks, method signatures, parameters, essential configuration details, and examples, maintaining the original markdown structure.
+I don’t have the “message-actions” section content to work from. Please paste the PHP PubNub “Message Actions” documentation here (including all code blocks), and I’ll condense it while preserving method signatures, parameters, examples, and essential technical details.
+
+If it’s long, you can send it in multiple parts.

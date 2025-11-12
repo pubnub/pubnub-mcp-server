@@ -1,78 +1,74 @@
 # Presence API for Swift Native SDK
 
-Presence tracks who is online/offline and stores custom state:
+Presence lets you track who is online/offline and store custom presence state.
+
 - Join/leave events per channel
 - Channel occupancy (user count)
-- Channels a user/device is subscribed to
-- Presence state per user
+- Channels a UUID is subscribed to
+- Presence state associated with users
 
-Requires Presence add-on enabled for your key in the Admin Portal. For presence events, see Presence Events.
+Requires Presence add-on enabled for your key in the Admin Portal. See Presence overview and Presence Events for event subscriptions.
 
 ## Here now
 
-Returns current channel state: list of UUIDs subscribed and total occupancy.
+Returns current state for channels: list of UUIDs and total occupancy.
 
 Cache: 3-second response cache time.
 
 ### Method(s)
 
-```
-`1func hereNow(  
-2    on channels: [String],  
-3    and groups: [String] = [],  
-4    includeUUIDs: Bool = true,  
-5    includeState: Bool = false,  
-6    custom requestConfig: PubNub.RequestConfiguration = PubNub.RequestConfiguration(),  
-7    completion: ((Result[String: PubNubPresence], Error>) -> Void)?  
-8)  
-`
+```swift
+func hereNow(
+  on channels: [String],
+  and groups: [String] = [],
+  includeUUIDs: Bool = true,
+  includeState: Bool = false,
+  limit: Int = 1000,
+  offset: Int = 0,
+  custom requestConfig: PubNub.RequestConfiguration = PubNub.RequestConfiguration(),
+  completion: ((Result<[String: PubNubPresence], Error>) -> Void)?
+)
 ```
 
 Parameters:
-- on: Type [String], default n/a. Channels to return occupancy from.
-- and: Type [String], default []. Channel groups to return occupancy from. Wildcards not supported.
-- includeUUIDs: Type Bool, default true. Set to false to disable returning UUIDs.
-- includeState: Type Bool, default false. Set to true to include presence state.
-- custom: Type PubNub.RequestConfiguration, default PubNub.RequestConfiguration(). Per-request config.
-- completion: Type ((Result<[String: PubNubPresence], Error>) -> Void)?, default nil. Async result.
+- on: [String] (required) — Channels to return occupancy from.
+- and: [String] = [] — Channel groups to return occupancy from. Wildcards not supported.
+- includeUUIDs: Bool = true — Set false to omit UUIDs from response.
+- includeState: Bool = false — Set true to include presence state per UUID.
+- limit: Int = 1000 — Max occupants per channel. Range 0–1000. Use 0 for occupancy counts only (no UUID details).
+- offset: Int = 0 — Zero-based index for pagination. Must be >= 0 and used with limit > 0.
+- custom: PubNub.RequestConfiguration = PubNub.RequestConfiguration() — Per-request configuration/network overrides.
+- completion: ((Result<[String: PubNubPresence], Error>) -> Void)? — Async result.
 
 #### Completion handler result
 
-Success: Dictionary of channels mapped to PubNubPresence.
+Success: Dictionary mapping channel -> PubNubPresence
 
-```
-1public protocol PubNubPresence {  
-2
-  
-3    /// The channel identifier  
-4    var channel: String { get }  
-5
-  
-6    /// The total number of UUIDs present on the channel  
-7    var occupancy: Int { get set }  
-8
-  
-9    /// The known UUIDs present on the channel  
-10    ///  
-11    /// The `count` of this Array may differ from the `occupancy` field  
-12    var occupants: [String] { get set }  
-13
-  
-14    /// The Dictionary of UUIDs mapped to their respective presence state data  
-15    var occupantsState: [String: JSONCodable] { get set }  
-16}  
+```swift
+public protocol PubNubPresence {
 
+  /// The channel identifier
+  var channel: String { get }
+
+  /// The total number of UUIDs present on the channel
+  var occupancy: Int { get set }
+
+  /// The known UUIDs present on the channel
+  /// The `count` of this Array may differ from the `occupancy` field
+  var occupants: [String] { get set }
+
+  /// Dictionary of UUIDs mapped to their respective presence state data
+  var occupantsState: [String: JSONCodable] { get set }
+}
 ```
 
-Failure: Error describing the failure.
+Failure: Error
 
 ### Sample code
 
 #### Get a list of UUIDs subscribed to channel
 
-```
-1
-  
+```swift
 
 ```
 
@@ -80,19 +76,15 @@ Failure: Error describing the failure.
 
 #### Return occupancy only
 
-You can return only occupancy for a single channel by specifying the channel and setting UUIDs to false:
+You can return only the occupancy information by specifying the channel and setting includeUUIDs to false:
 
-```
-1
-  
+```swift
 
 ```
 
 #### Channel group usage
 
-```
-1
-  
+```swift
 
 ```
 
@@ -100,108 +92,99 @@ You can return only occupancy for a single channel by specifying the channel and
 
 Returns the list of channels a UUID is subscribed to.
 
-Timeout events: If the app restarts (or the page refreshes) within the heartbeat window, no timeout event is generated.
+Timeout events: If the app restarts (or page refreshes) within the heartbeat window, no timeout event is generated.
 
 ### Method(s)
 
-```
-`1func whereNow(  
-2    for uuid: String,  
-3    custom requestConfig: PubNub.RequestConfiguration = PubNub.RequestConfiguration(),  
-4    completion: `((Result[String: [String]], Error>) -> Void)?`  
-5)  
-`
+```swift
+func whereNow(
+  for uuid: String,
+  custom requestConfig: PubNub.RequestConfiguration = PubNub.RequestConfiguration(),
+  completion: ((Result<[String: [String]], Error>) -> Void)?
+)
 ```
 
 Parameters:
-- for: Type String, default n/a. UUID to return channel list for.
-- custom: Type PubNub.RequestConfiguration, default PubNub.RequestConfiguration(). Per-request config.
-- completion: Type ((Result<[String: [String]], Error>) -> Void)?, default nil. Async result.
+- for: String (required) — UUID to return channel list for.
+- custom: PubNub.RequestConfiguration = PubNub.RequestConfiguration() — Per-request configuration/network overrides.
+- completion: ((Result<[String: [String]], Error>) -> Void)? — Async result.
 
 #### Completion handler result
 
-- Success: Dictionary of UUIDs mapped to their array of channels.
-- Failure: Error describing the failure.
+- Success: Dictionary mapping UUID -> array of channels with presence.
+- Failure: Error
 
 ### Sample code
 
 #### Get a list of channels a UUID is subscribed to
 
-```
-1
-  
+```swift
 
 ```
 
 ## User state
 
-Clients can set dynamic custom state (for example, score, location) on channels for as long as the user stays subscribed. State is not persisted; it’s lost when the client disconnects.
+Clients can set dynamic custom state (for example, score, game state, location) per channel. State is not persisted; it’s lost when the client disconnects.
 
 ### Method(s)
 
 #### Set state
 
-```
-`1func setPresence(  
-2    state: [String: JSONCodableScalar],  
-3    on channels: [String],  
-4    and groups: [String] = [],  
-5    custom requestConfig: PubNub.RequestConfiguration = PubNub.RequestConfiguration(),  
-6    completion: ((ResultJSONCodable, Error>) -> Void)?  
-7)  
-`
+```swift
+func setPresence(
+  state: [String: JSONCodableScalar],
+  on channels: [String],
+  and groups: [String] = [],
+  custom requestConfig: PubNub.RequestConfiguration = PubNub.RequestConfiguration(),
+  completion: ((Result<JSONCodable, Error>) -> Void)?
+)
 ```
 
 Parameters:
-- state: Type [String: JSONCodableScalar], default n/a. State dictionary to store. No nested dictionaries; keys starting with pn are reserved. Overwrites previous values. Pass empty dict to clear.
-- on: Type [String], default n/a. Channels to set state on. Pass empty array to not set.
-- and: Type [String], default n/a. Channel groups to set state on.
-- custom: Type PubNub.RequestConfiguration, default PubNub.RequestConfiguration(). Per-request config.
-- completion: Type ((Result<JSONCodable, Error>) -> Void)?, default nil. Async result.
+- state: [String: JSONCodableScalar] (required) — State dictionary to store. No nested dictionaries allowed. Keys prefixed with pn are reserved. Setting state overwrites previous values. Clear state by passing an empty dictionary.
+- on: [String] (required) — Channels to set state on. Pass empty array to not set.
+- and: [String] = [] — Channel groups to set state on.
+- custom: PubNub.RequestConfiguration = PubNub.RequestConfiguration() — Per-request configuration/network overrides.
+- completion: ((Result<JSONCodable, Error>) -> Void)? — Async result.
 
 Completion handler result:
-- Success: State set as JSONCodable.
-- Failure: Error describing the failure.
+- Success: The state as JSONCodable.
+- Failure: Error.
 
 #### Get state
 
-```
-`1func getPresenceState(  
-2    for uuid: String,  
-3    on channels: [String],  
-4    and groups: [String] = [],  
-5    custom requestConfig: PubNub.RequestConfiguration = PubNub.RequestConfiguration(),  
-6    completion: ((Result(uuid: String, stateByChannel: [String: JSONCodable]), Error>) -> Void)?  
-7)  
-`
+```swift
+func getPresenceState(
+  for uuid: String,
+  on channels: [String],
+  and groups: [String] = [],
+  custom requestConfig: PubNub.RequestConfiguration = PubNub.RequestConfiguration(),
+  completion: ((Result<(uuid: String, stateByChannel: [String: JSONCodable]), Error>) -> Void)?
+)
 ```
 
 Parameters:
-- for: Type String, default n/a. UUID to retrieve the state for.
-- on: Type [String], default n/a. Channels to get the state on. Pass empty array to not get.
-- and: Type [String], default []. Channel groups to get the state on. Pass empty array to not get.
-- custom: Type PubNub.RequestConfiguration, default PubNub.RequestConfiguration(). Per-request config.
-- completion: Type ((Result<(uuid: String, stateByChannel: [String: JSONCodable]), Error>) -> Void)?, default nil. Async result.
+- for: String (required) — UUID to retrieve state for.
+- on: [String] (required) — Channels to get state on. Pass empty array to not get.
+- and: [String] = [] — Channel groups to get state on.
+- custom: PubNub.RequestConfiguration = PubNub.RequestConfiguration() — Per-request configuration/network overrides.
+- completion: ((Result<(uuid: String, stateByChannel: [String: JSONCodable]), Error>) -> Void)? — Async result.
 
 Completion handler result:
-- Success: Tuple (uuid, stateByChannel) where stateByChannel is a dictionary of channels to their state.
-- Failure: Error describing the failure.
+- Success: Tuple with uuid and dictionary channel -> state.
+- Failure: Error.
 
 ### Sample code
 
 #### Set state
 
-```
-1
-  
+```swift
 
 ```
 
 #### Get state
 
-```
-1
-  
+```swift
 
 ```
 
@@ -209,17 +192,12 @@ Completion handler result:
 
 #### Converting the response to a JSON dictionary
 
-```
-1
-  
+```swift
 
 ```
 
 #### Converting the response to a custom object
 
-```
-1
+```swift
 **
 ```
-
-Last updated on Sep 3, 2025**

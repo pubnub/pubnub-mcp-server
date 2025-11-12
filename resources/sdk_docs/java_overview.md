@@ -1,75 +1,82 @@
-# Java API & SDK Docs 11.0.0
+# Java API & SDK Docs 12.0.0
 
 ##### Breaking changes in v9.0.0
 
-PubNub Java SDK v9.0.0 unifies Java and Kotlin SDKs, changes client instantiation, async callbacks, and emitted status events. Apps built with versions < 9.0.0 may be impacted. See Java/Kotlin SDK migration guide.
+- Unified Java and [Kotlin](/docs/sdks/kotlin) SDKs, new client instantiation, updated async callbacks and [status events](/docs/sdks/java/status-events).
+- Apps built with versions < 9.0.0 may be impacted.
+- See the [Java/Kotlin SDK migration guide](/docs/general/resources/migration-guides/java-kotlin-sdk-migration-guide).
 
-This quickstart covers:
+This guide shows core PubNub usage in Java:
 - Setting up a connection
 - Sending messages
-- Receiving messages in real-time
+- Receiving messages in real time
 
-## Overview
+## Overview[​](#overview)
 
-Use the Java SDK to integrate PubNub real-time messaging: configure, add event listeners, subscribe to channels, and publish messages.
+Use the PubNub Java SDK to configure the client, add event listeners, subscribe to channels, and publish messages.
 
 ##### Chat applications
 
-For mobile chat features, see Kotlin Chat SDK.
+For mobile chat, see [Kotlin Chat SDK](/docs/chat/kotlin-chat-sdk).
 
-## Prerequisites
+## Prerequisites[​](#prerequisites)
 
 - Java knowledge
 - IntelliJ IDEA or Eclipse
 - Java 8+
-- PubNub account
+- PubNub account and keys
 
-## Setup
+## Setup[​](#setup)
 
-### Get your PubNub keys
+### Get your PubNub keys[​](#get-your-pubnub-keys)
 
-- Sign in or create an account on the Admin Portal.
-- Create an app and keyset.
-- Use publish and subscribe keys from the dashboard. Prefer separate dev/prod keysets.
+- [Sign in](https://admin.pubnub.com/#/login) or [create an account](https://admin.pubnub.com/#/signup).
+- Create an app or use an existing one.
+- Get publish and subscribe keys from the app dashboard.
+- Use separate keysets for dev/prod.
 
-### Install the SDK
+### Install the SDK[​](#install-the-sdk)
 
 ##### SDK version
 
 Use the latest SDK version.
 
-#### Maven
+#### Maven[​](#maven)
+
+Add to `pom.xml`:
 
 ```
 `1dependency>  
 2  groupId>com.pubnubgroupId>  
 3  artifactId>pubnub-gsonartifactId>  
-4  version>11.0.0version>  
+4  version>12.0.0version>  
 5dependency>  
 `
 ```
 
-#### Gradle
+#### Gradle[​](#gradle)
+
+Add to `build.gradle`:
 
 ```
-`1implementation group: 'com.pubnub', name: 'pubnub-gson', version: '11.0.0'  
+`1implementation group: 'com.pubnub', name: 'pubnub-gson', version: '12.0.0'  
 `
 ```
 
-#### Source code
+#### Source code[​](#source-code)
 
-Clone the GitHub repository:
+Clone the [GitHub repository](https://github.com/pubnub/kotlin):
 
 ```
 `1git clone https://github.com/pubnub/kotlin  
 `
 ```
 
-## Steps
+## Steps[​](#steps)
 
-### Initialize PubNub
+### Initialize PubNub[​](#initialize-pubnub)
 
-Replace demo keys with your app's keys.
+Replace demo keys with your app’s publish/subscribe keys.
 
 ```
 1
@@ -79,16 +86,13 @@ Replace demo keys with your app's keys.
 
 ##### PNConfiguration class in Java
 
-From 10.0.0+, import PNConfiguration as:
-- com.pubnub.api.java.v2.PNConfiguration
+From 10.0.0+, import `com.pubnub.api.java.v2.PNConfiguration`. See [Configuration](/docs/sdks/java/api-reference/configuration).
 
-See Configuration docs for details.
+### Set up event listeners[​](#set-up-event-listeners)
 
-### Set up event listeners
-
-Use listeners to handle:
-- Status events (connection/operational)
-- Event messages (messages and presence)
+Add listeners to handle:
+- Status events (connection/operational changes)
+- Messages and presence events
 
 ```
 1
@@ -96,11 +100,11 @@ Use listeners to handle:
 
 ```
 
-See Listeners docs for more.
+See [Listeners](/docs/sdks/java/api-reference/configuration#event-listeners).
 
-### Create a subscription
+### Create a subscription[​](#create-a-subscription)
 
-Subscribe to receive real-time messages for a channel:
+Subscribe to a channel to receive messages in real time:
 
 ```
 1
@@ -129,11 +133,13 @@ Subscribe to multiple channels with a subscription set:
 
 ```
 
-See Subscribe docs for details.
+See [Subscribe](/docs/sdks/java/api-reference/publish-and-subscribe#subscribe).
 
-### Publish messages
+### Publish messages[​](#publish-messages)
 
-Messages are JSON-serializable data up to 32 KiB. Use publish() on a channel:
+Messages must be JSON-serializable and ≤ 32 KiB.
+
+Publish to a channel:
 
 ```
 1
@@ -154,15 +160,11 @@ With options:
 `
 ```
 
-See Publish and Subscribe docs for more.
+See [Publish and Subscribe](/docs/sdks/java/api-reference/publish-and-subscribe).
 
-### Run the app
+### Run the app[​](#run-the-app)
 
-1. $1
-2. $1
-3. $1
-
-Expected output:
+You should see output similar to:
 
 ```
 `1PubNub initialized successfully  
@@ -176,7 +178,7 @@ Expected output:
 `
 ```
 
-Add a delay to prevent immediate exit:
+Add a delay to prevent the application from exiting immediately:
 
 ```
 1
@@ -184,7 +186,7 @@ Add a delay to prevent immediate exit:
 
 ```
 
-## Complete example
+## Complete example[​](#complete-example)
 
 ```
 1
@@ -192,47 +194,46 @@ Add a delay to prevent immediate exit:
 
 ```
 
-### Troubleshooting
+### Troubleshooting[​](#troubleshooting)
 
-- No connection message
-  - Check internet.
-  - Verify publish/subscribe keys.
-  - Check firewall rules.
+No connection message
+- Check internet connection.
+- Verify publish/subscribe keys.
+- Ensure firewall isn’t blocking PubNub.
 
-- Message not received
-  - Confirm subscribed channel name.
-  - Check for publish errors.
-  - Allow time for delivery.
-  - Verify message listener setup.
+Message not received
+- Confirm subscribed channel names.
+- Check for publish errors.
+- Wait for delivery.
+- Verify message listener setup.
 
-- Build errors
-  - Confirm PubNub dependency added.
-  - Use Java 8+.
-  - Fix imports.
-  - Use correct v2 package names.
+Build errors
+- Confirm PubNub dependency is added.
+- Use Java 8+.
+- Check imports and package names (v2 classes).
 
-- Gson deserialization errors
-  - Match message structure to parsing logic.
-  - Use try/catch around JSON parsing.
+Gson deserialization errors
+- Ensure message structure matches expected.
+- Use try/catch for JSON parsing.
 
-- Thread exceptions
-  - Avoid blocking main thread.
-  - Handle InterruptedException with Thread.sleep().
-  - Consider executor services for complex apps.
+Thread exceptions
+- Don’t block the main thread.
+- Handle InterruptedException with Thread.sleep().
+- Consider an executor service for complex apps.
 
 ##### More troubleshooting tips
 
-See Troubleshooting docs.
+See [Troubleshooting](/docs/sdks/java/troubleshooting).
 
-## Next steps
+## Next steps[​](#next-steps)
 
-- Presence
-- Message Persistence
-- Access Manager
-- Channel Groups
-- GitHub samples
-- SDK reference documentation
-- Support portal
-- Ask the AI assistant
+- Try [Presence](/docs/sdks/java/api-reference/presence).
+- Implement [Message Persistence](/docs/sdks/java/api-reference/storage-and-playback).
+- Use [Access Manager](/docs/sdks/java/api-reference/access-manager).
+- Explore [Channel Groups](/docs/sdks/java/api-reference/channel-groups).
+- See more samples on [GitHub](https://github.com/pubnub/kotlin).
+- Read the [SDK reference](/docs/sdks/java/api-reference/configuration).
+- Visit the [support portal](https://support.pubnub.com/).
+- Ask the AI assistant.
 
 Last updated on Sep 3, 2025

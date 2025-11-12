@@ -1,33 +1,21 @@
 # Configuration API for PHP SDK
 
-Complete API reference for building real-time applications on PubNub with the PHP Software Development Kit (SDK). This page covers configuration, initialization, and event handling with concise, working examples.
+Concise configuration, initialization, and listener details for the PubNub PHP SDK. All critical settings, method signatures, parameters, and examples are retained.
 
 ## Configuration
 
-PNConfiguration stores user-provided settings that control PubNub client behavior.
+`PNConfiguration` stores user-provided settings that control PubNub client behavior.
 
 ##### Immutable configuration
 
-Configuration objects are immutable after being passed to the PubNub constructor. You can disable immutability just before constructing PubNub (not recommended).
+Once passed to the PubNub constructor, configuration properties are immutable. To allow changes after use, call `disableImmutableCheck()` just before passing it to the PubNub constructor.
 
 ```
-use PubNub\PNConfiguration;  
-use PubNub\PubNub;  
-
+1
   
-$config = new PNConfiguration();  
-$config->setPublishKey('demo');  
-$config->setSubscribeKey('demo');  
-$config->setUserId('demo');  
-// not recommended, disables config immutability  
-$config->disableImmutableCheck();  
-
-  
-$pn = new PubNub($config);  
-
 ```
 
-### Method(s)
+### Methods
 
 Create a configuration instance:
 
@@ -36,83 +24,81 @@ Create a configuration instance:
 `
 ```
 
-Essential properties:
+### Properties
+
 - subscribeKey
-  - Type: String
-  - Default: n/a
-  - From Admin Portal. Required to connect.
+  - Type: String; Default: n/a
+  - Required. Value from Admin Portal.
 - publishKey
-  - Type: String
-  - Default: null
-  - From Admin Portal. Required to publish.
+  - Type: String; Default: null
+  - Required if publishing. Value from Admin Portal.
 - secretKey
-  - Type: String
-  - Default: null
-  - Required to grant/revoke Access Manager permissions. Use server-side only.
+  - Type: String; Default: null
+  - Required only for modifying/revealing access permissions. Keep server-side and secure.
 - UserId
-  - Type: String
-  - Default: n/a
-  - Required unique identifier (UTF-8, up to 92 alphanumeric chars). Must be set to connect.
+  - Type: String; Default: n/a
+  - Required. UTF-8 string up to 92 alphanumeric chars; uniquely identifies the user/device. If not set, you can't connect to PubNub.
 - authKey
-  - Type: String
-  - Default: null
-  - Used for Access Manager restricted requests.
+  - Type: String; Default: null
+  - Used for restricted requests if Access Manager is enabled.
 - ssl
-  - Type: Boolean
-  - Default: true
+  - Type: Boolean; Default: true
   - Enable SSL.
 - connectTimeout
-  - Type: Integer (seconds)
-  - Default: 10
+  - Type: Integer; Default: 10 (seconds)
+  - Connection timeout.
 - subscribeTimeout
-  - Type: Integer (seconds)
-  - Default: 310
+  - Type: Integer; Default: 310 (seconds)
+  - How long to keep the subscribe loop running before disconnect.
 - nonSubscribeRequestTimeout
-  - Type: Integer (seconds)
-  - Default: 10
+  - Type: Integer; Default: 10 (seconds)
+  - Timeout for non-subscribe operations.
 - filterExpression
-  - Type: String
-  - Default: null
-  - Server-side message filter expression.
+  - Type: String; Default: null
+  - Custom filter expression for subscriptions.
 - origin
-  - Type: String
-  - Default: ps.pndsn.com
-  - Custom domain upon request (see request process).
+  - Type: String; Default: ps.pndsn.com
+  - Custom origin if needed. To request a custom domain, contact Support and follow the request process.
 - cipherKey
-  - Type: String
-  - Default: null
-  - Enables end-to-end encryption for messages/files.
+  - Type: String; Default: null
+  - If provided, messages/files are encrypted.
 - useRandomIV
-  - Type: Boolean
-  - Default: true
-  - Random IV for all requests (except file upload when false).
+  - Type: Boolean; Default: true
+  - When true, a random IV is used for all requests (not just file upload). When false, the IV is hard-coded for all requests except file upload.
 - client
-  - Type: ClientInterface (PSR-18)
-  - Default: Guzzle HTTP client
-  - Custom HTTP client support (see PHP 8.0.0 migration guide).
+  - Type: ClientInterface; Default: Guzzle HTTP client
+  - Custom PSR-18 HTTP client. If unset, default Guzzle is used. See the PHP 8.0.0 migration guide for custom client details.
 - crypto
-  - Type: PubNubCryptoCore
-  - Default: n/a
-  - Cryptography module for messages/files. Accepts cipherKey and useRandomIV. See Encryption API.
+  - Type: PubNubCryptoCore; Default: n/a
+  - Cryptography module for messages/files. Accepts `cipherKey` and `useRandomIV`. See Encryption API for detailed configuration and examples.
 
 ##### Disabling random initialization vector
 
-Only disable random IV for backward compatibility (< 4.3.0). Do not disable for new applications.
+Disable random IV only for backward compatibility (< 4.3.0). Never disable for new applications.
 
 #### crypto module
 
-Encrypts and decrypts messages and files. From 6.1.0, algorithms are configurable. Options: legacy 128-bit and recommended 256-bit AES-CBC. Keep current config for legacy; explicitly set to use 256-bit AES-CBC. See Encryption for details.
+Configurable since 6.1.0. Options:
+- Legacy 128-bit encryption (default if already used)
+- Recommended 256-bit AES-CBC
+
+See Message Encryption and the Encryption API for configuration details and partial encryption methods.
+
+##### Legacy encryption with 128-bit cipher key entropy
+
+No change required to continue using legacy encryption. To use 256-bit AES-CBC, explicitly configure it in `PNConfiguration`.
 
 ### Sample code
 
 ##### Required User ID
 
-Always set a persistent UserId. Without it, the client cannot connect.
+Always set `UserId` to uniquely identify the user or device. Persist it and keep it stable for the user's/device's lifetime. If not set, you can't connect.
+
+##### Reference code
 
 ```
 1
   
-
 ```
 
 ### Rest response from server
@@ -121,7 +107,7 @@ Returns a client configuration that is ready to use.
 
 ## Initialization
 
-Add PubNub to your project using the steps in the Getting Started guide.
+Add PubNub to your project using the Getting Started guide.
 
 #### Use PHP SDK in your code
 
@@ -130,7 +116,7 @@ Add PubNub to your project using the steps in the Getting Started guide.
 `
 ```
 
-PEM files for pubsub.pubnub.com, pubsub.pubnub.net, and ps.pndsn.com:
+Download PEM files for domains:
 
 ```
 `1echo Q | openssl s_client -connect pubsub.pubnub.com:443 -servername pubsub.pubnub.com -showcerts  
@@ -139,13 +125,13 @@ PEM files for pubsub.pubnub.com, pubsub.pubnub.net, and ps.pndsn.com:
 `
 ```
 
-Set verify_peer to true to use PEM files.
+Set `verify_peer` to `true` to use PEM files.
 
 ### Description
 
-Initialize the PubNub Client API context with account-level credentials (publishKey, subscribeKey) before using any APIs.
+Initializes the PubNub Client API context. Establishes credentials such as `publishKey` and `subscribeKey`.
 
-### Method(s)
+### Methods
 
 Initialize PubNub:
 
@@ -156,123 +142,116 @@ Initialize PubNub:
 
 - pnConfiguration
   - Type: PNConfiguration
-  - See Configuration above.
+  - See Configuration for details.
 
 ### Sample code
 
 #### Initialize the PubNub client API
 
+##### Required User ID
+
+Always set `UserId`. If not set, you can't connect.
+
 ```
 1
   
-
 ```
 
 ### Returns
 
-Returns a PubNub instance for APIs like publish(), subscribe(), history(), and hereNow().
+A PubNub instance for APIs such as `publish()`, `subscribe()`, `history()`, `hereNow()`.
 
 ### Other examples
 
 #### Initialize a non-secure client
 
-```
-1use PubNub\PNConfiguration;  
-2use PubNub\PubNub;  
-3
-  
-4$pnConfiguration = new PNConfiguration();  
-5
-  
-6$pnConfiguration->setSubscribeKey("my_sub_key");  
-7$pnConfiguration->setPublishKey("my_pub_key");  
-8$pnConfiguration->setSecure(false);  
-9$pnConfiguration->setUserId("myUniqueUserId");  
-10$pubnub = new PubNub($pnConfiguration);  
+##### Required User ID
 
-```
-
-#### Initialization for a Read-Only client
-
-Omit publishKey when only subscribing.
-
-```
-1use PubNub\PNConfiguration;  
-2use PubNub\PubNub;  
-3
-  
-4$pnConfiguration = new PNConfiguration();  
-5
-  
-6$pnConfiguration->setSubscribeKey("my_sub_key");  
-7
-  
-8$pubnub = new PubNub($pnConfiguration);  
-
-```
-
-#### Use a custom UUID
-
-```
-1use PubNub\PNConfiguration;  
-2use PubNub\PubNub;  
-3
-  
-4$pnconf = new PNConfiguration();  
-5
-  
-6$pnconf->setSubscribeKey("mySubscribeKey");  
-7$pnconf->setPublishKey("myPublishKey");  
-8$pnconf->setUserId("myUniqueUserId");  
-9
-  
-10$pubnub = new PubNub($pnconf);  
-
-```
-
-#### Initializing with Access Manager
-
-Requires the Access Manager add-on enabled in the Admin Portal.
-
-Keep secretKey secure; use server-side only. Initializing with secretKey grants root permissions for Access Manager and signs all Access Manager requests.
+Always set `UserId`.
 
 ```
 1
   
+```
+
+#### Initialization for a Read-Only client
+
+Omit `publishKey` to create a read-only client.
+
+##### Required User ID
+
+Always set `UserId`.
 
 ```
+1
+  
+```
+
+#### Use a custom UUID
+
+Set a custom `UserId`.
+
+##### Required User ID
+
+Always set `UserId`.
+
+```
+1
+  
+```
+
+#### Initializing with Access Manager
+
+Requires Access Manager add-on enabled in the Admin Portal.
+
+Secure your `secretKey`. Only use it on secure server-side platforms. When initialized with `secretKey`, servers have root permissions without additional grants.
+
+##### Required User ID
+
+Always set `UserId`.
+
+```
+1
+  
+```
+
+The `pubnub` instance will use `secretKey` to sign all Access Manager messages.
 
 ## Event listeners
 
-Listeners notify your app about connection status, messages, and presence events. Add listeners before calling methods.
+Listeners notify about connection status, messages, and presence events. Add listeners before invoking methods.
 
 #### Add listeners
 
 ```
 1
   
-
 ```
 
 #### Remove listeners
 
 ```
-1$subscribeCallback = new MySubscribeCallback();  
-2
+1
   
-3$pubnub->addListener($subscribeCallback);  
-4
-  
-5// some time later  
-6$pubnub->removeListener($subscribeCallback);  
-
 ```
+
+#### Listener status events
+
+- PNConnectedCategory: Subscribed with a new mix of channels/groups.
+- PNAccessDeniedCategory: Access error (Access Manager). See `status.errorData.channels`/`channelGroups`.
+- PNMalformedResponseCategory: Non-JSON response (e.g., captive portal/proxy).
+- PNBadRequestCategory: Missing or invalid parameters.
+- PNDecryptionErrorCategory: Some messages couldn't be decrypted. See `status.associatedObject` (PNMessageData) for channel/message.
+- PNTimeoutCategory: No server response in time.
+- PNUnknownCategory: No specific category or unknown error.
+- PNUnexpectedDisconnectCategory: Connectivity issues.
+- PNCancelledCategory: Request cancelled by user.
 
 ## UserId
 
-Set/get a user ID.
+Set/get a user ID at runtime.
 
-### Property(s)
+### Properties
 
 #### Set UserId
 
@@ -282,8 +261,8 @@ Set/get a user ID.
 ```
 
 - UserId
-  - Type: String
-  - Required; used as device/user identifier.
+  - Type: String; Default: n/a
+  - Required device/user identifier. If not set, you can't connect.
 
 #### Get UserId
 
@@ -298,23 +277,25 @@ No arguments.
 
 #### Set UserId
 
+##### Required User ID
+
+Always set `UserId`.
+
 ```
-`1$pnconf = new PNConfiguration();  
-2$pnconf->setUserId("myUniqueUserId");  
-`
+1
+  
 ```
 
 #### Get UserId
 
 ```
-`1$pubnub->getConfiguration()  
-2    ->getUserId();  
-`
+1
+  
 ```
 
 ## Authentication key
 
-Setter and getter for auth key (used with Access Manager).
+Setter and getter for user auth key.
 
 #### Set auth key
 
@@ -325,6 +306,7 @@ Setter and getter for auth key (used with Access Manager).
 
 - AuthKey
   - Type: String
+  - Used for restricted requests when Access Manager is enabled.
 
 #### Get auth key
 
@@ -340,17 +322,15 @@ No arguments.
 #### Set auth key
 
 ```
-`1$pubnub->getConfiguration()  
-2    ->setAuthKey("my_newauthkey");  
-`
+1
+  
 ```
 
 #### Get auth key
 
 ```
-`1$pubnub->getConfiguration()  
-2    ->getAuthKey();  
-`
+1
+  
 ```
 
 ### Returns
@@ -359,9 +339,9 @@ None.
 
 ## Filter expression
 
-Requires Stream Controller add-on. Filtering applies server-side to reduce unwanted messages. See Publish Messages docs.
+Requires Stream Controller add-on. Filters allow subscribers to only receive messages that match server-side-evaluated conditions. See Publish Messages for more info.
 
-### Method(s)
+### Methods
 
 #### Set filter expression
 
@@ -372,6 +352,7 @@ Requires Stream Controller add-on. Filtering applies server-side to reduce unwan
 
 - filterExpression
   - Type: string
+  - Logical expression evaluated on PubNub servers.
 
 #### Get filter expression
 
@@ -386,16 +367,19 @@ No arguments.
 
 #### Set filter expression
 
+##### Required User ID
+
+Always set `UserId`.
+
 ```
 1
   
-
 ```
 
 #### Get filter expression
 
 ```
-`1$pubnub->getFilterConfiguration();**`
+1
+**
 ```
-
-Last updated on Oct 21, 2025**
+Last updated on Nov 6, 2025**

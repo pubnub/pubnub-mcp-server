@@ -1,21 +1,20 @@
 # Channel Groups API for Ruby SDK
 
-Channel groups allow you to bundle thousands of channels into a named group. You can subscribe to a channel group to receive messages from all channels it contains.
+Channel groups let you bundle many channels under a single name and subscribe to that group to receive messages from all contained channels.
 
 ##### Channel group operations
-- You can't publish to a channel group—only subscribe. Publish to individual channels instead.
+- You can't publish to a channel group—only subscribe to it. Publish to individual channels instead.
 
-All channel group methods require the Stream Controller add-on enabled for your key in the PubNub Admin Portal.
+## Add channels to a channel group
 
-## Add channels to a channel group[​](#add-channels-to-a-channel-group)
+##### Requires Stream Controller add-on
+Enable the Stream Controller add-on for your key in the PubNub Admin Portal.
 
 Adds channels to a channel group.
 
-##### Requires Stream Controller add-on
+### Method(s)
 
-### Method(s)[​](#methods)
-
-Use in the Ruby SDK:
+Use the following method in the Ruby SDK:
 
 ```
 `1channel_registration(  
@@ -28,21 +27,20 @@ Use in the Ruby SDK:
 `
 ```
 
-Parameters:
-- action (Symbol): Use :add.
-- channels (String, Symbol): Channels to add.
-- channel_groups (String, Symbol): Channel groups to add to.
-- http_sync (Boolean): Default false. Async returns a future; if true, returns envelope(s).
-- callback (Lambda 1-arg): Called per envelope. For async, call value on the returned future to get the Envelope.
+- Maximum number of channels per call: 200.
+- Parameters:
+  - action (Symbol): Use :add to add channels.
+  - channels (String, Symbol): Channels to add.
+  - channel_groups (String, Symbol): Channel groups to add channels to.
+  - http_sync (Boolean): Default false. Async returns a future; if true, returns envelope(s).
+  - callback (Lambda one-arg): Invoked per envelope. For async, a future is returned; call value to retrieve the Envelope.
 
-##### Maximum number of channels
-- Up to 200 channels per API call.
+### Sample code
 
-### Sample code[​](#sample-code)
-
-#### Add channels[​](#add-channels)
+#### Add channels
 
 ##### Reference code
+This self-contained example includes configuration and logging.
 
 ```
 1require 'pubnub'  
@@ -88,7 +86,7 @@ Parameters:
 
 ```
 
-### Response[​](#response)
+### Response
 
 ```
 `1#  
@@ -101,15 +99,16 @@ Parameters:
 `
 ```
 
-## List channels in a channel group[​](#list-channels-in-a-channel-group)
+## List channels in a channel group
+
+##### Requires Stream Controller add-on
+Enable the Stream Controller add-on for your key in the Admin Portal.
 
 Lists all channels in a channel group.
 
-##### Requires Stream Controller add-on
+### Method(s)
 
-### Method(s)[​](#methods-1)
-
-Use in the Ruby SDK:
+Use the following method in the Ruby SDK:
 
 ```
 `1channel_registration(  
@@ -121,15 +120,15 @@ Use in the Ruby SDK:
 `
 ```
 
-Parameters:
-- action (Symbol): Use :get.
-- channel_groups (String, Symbol): Channel groups to list channels for.
-- http_sync (Boolean): Default false. Async returns a future; if true, returns envelope(s).
-- callback (Lambda 1-arg): Called per envelope. For async, call value on the returned future to get the Envelope.
+- Parameters:
+  - action (Symbol): Use :get to list channels in a channel group.
+  - channel_groups (String, Symbol): Channel groups to list.
+  - http_sync (Boolean): Default false. Async returns a future; if true, returns envelope(s).
+  - callback (Lambda one-arg): Invoked per envelope. For async, a future is returned; call value to retrieve the Envelope.
 
-### Sample code[​](#sample-code-1)
+### Sample code
 
-#### List channels[​](#list-channels)
+#### List channels
 
 ```
 `1pubnub.channel_registration(action: :get, group: 'family') do |envelope|  
@@ -138,7 +137,7 @@ Parameters:
 `
 ```
 
-### Response[​](#response-1)
+### Response
 
 ```
 `1#  
@@ -155,15 +154,16 @@ Parameters:
 `
 ```
 
-## Remove channels from a channel group[​](#remove-channels-from-a-channel-group)
+## Remove channels from a channel group
+
+##### Requires Stream Controller add-on
+Enable the Stream Controller add-on for your key in the Admin Portal.
 
 Removes channels from a channel group.
 
-##### Requires Stream Controller add-on
+### Method(s)
 
-### Method(s)[​](#methods-2)
-
-Use in the Ruby SDK:
+Use the following method in the Ruby SDK:
 
 ```
 `1channel_registration(  
@@ -176,16 +176,16 @@ Use in the Ruby SDK:
 `
 ```
 
-Parameters:
-- action (Symbol): Use :remove.
-- channels (String, Symbol): Channels to remove.
-- channel_groups (String, Symbol): Channel groups to remove channels from.
-- http_sync (Boolean): Default false. Async returns a future; if true, returns envelope(s).
-- callback (Lambda 1-arg): Called per envelope. For async, call value on the returned future to get the Envelope.
+- Parameters:
+  - action (Symbol): Use :remove to remove channels.
+  - channels (String, Symbol): Channels to remove.
+  - channel_groups (String, Symbol): Channel groups to remove channels from.
+  - http_sync (Boolean): Default false. Async returns a future; if true, returns envelope(s).
+  - callback (Lambda one-arg): Invoked per envelope. For async, a future is returned; call value to retrieve the Envelope.
 
-### Sample code[​](#sample-code-2)
+### Sample code
 
-#### Remove channels[​](#remove-channels)
+#### Remove channels
 
 ```
 `1pubnub.channel_registration(action: :remove, channel: 'son', group: 'family') do |envelope|  
@@ -194,7 +194,7 @@ Parameters:
 `
 ```
 
-### Response[​](#response-2)
+### Response
 
 ```
 `1#  
@@ -207,15 +207,16 @@ Parameters:
 `
 ```
 
-## Delete a channel group[​](#delete-a-channel-group)
+## Delete a channel group
+
+##### Requires Stream Controller add-on
+Enable the Stream Controller add-on for your key in the Admin Portal.
 
 Deletes a channel group.
 
-##### Requires Stream Controller add-on
+### Method(s)
 
-### Method(s)[​](#methods-3)
-
-Use in the Ruby SDK:
+Use the following method in the Ruby SDK:
 
 ```
 `1channel_registration(  
@@ -227,15 +228,15 @@ Use in the Ruby SDK:
 `
 ```
 
-Parameters:
-- action (Symbol): Use :remove.
-- channel_groups (String, Symbol): Channel groups to remove.
-- http_sync (Boolean): Default false. Async returns a future; if true, returns envelope(s).
-- callback (Lambda 1-arg): Called per envelope. For async, call value on the returned future to get the Envelope.
+- Parameters:
+  - action (Symbol): Use :remove to delete channel groups.
+  - channel_groups (String, Symbol): Channel groups to remove.
+  - http_sync (Boolean): Default false. Async returns a future; if true, returns envelope(s).
+  - callback (Lambda one-arg): Invoked per envelope. For async, a future is returned; call value to retrieve the Envelope.
 
-### Sample code[​](#sample-code-3)
+### Sample code
 
-#### Delete channel group[​](#delete-channel-group)
+#### Delete channel group
 
 ```
 `1pubnub.channel_registration(action: :remove, channel_group: 'family') do |envelope|  
@@ -244,7 +245,7 @@ Parameters:
 `
 ```
 
-### Response[​](#response-3)
+### Response
 
 ```
 `1#**2    @status = {  
@@ -255,5 +256,3 @@ Parameters:
 7>  
 `
 ```
-
-Last updated on Sep 3, 2025**

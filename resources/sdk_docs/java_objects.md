@@ -1,10 +1,10 @@
 # App Context API for Java SDK
 
-Breaking changes in v9.0.0
-- Unified Java/Kotlin codebases, new PubNub client instantiation, updated async callbacks and status events.
-- Apps using < 9.0.0 may be impacted. See Java/Kotlin SDK migration guide.
-- This page covers App Context (formerly Objects v2). For Objects v1, see migration guide.
-- App Context stores user/channel metadata and memberships, and emits set/update/remove events (re-setting identical data doesn’t emit).
+##### Breaking changes in v9.0.0
+
+PubNub Java SDK v9.0.0 unifies Java and Kotlin SDKs, changes client instantiation, and updates asynchronous callbacks and emitted status events. Apps built with < 9.0.0 may be impacted. See Java/Kotlin SDK migration guide: /docs/general/resources/migration-guides/java-kotlin-sdk-migration-guide
+
+App Context (formerly Objects v2) provides serverless storage for user and channel metadata and their membership associations. PubNub emits events on set, update, or removal (idempotent sets don’t emit).
 
 ## User
 
@@ -27,13 +27,13 @@ Use the following in the Java SDK:
 `
 ```
 
-- requiredParameterDescription
-`limit` Type: Integer Default: `100` Number of objects to return. Default/Max: 100.
-`page` Type: PNPage Default: n/a Cursor-based pagination.
-`filter` Type: String? Default: n/a Filter expression. Only matching objects are returned. See filtering.
-`sort` Type: List`<PNSortKey>` Default: `listOf()` Sort by `ID`, `NAME`, `UPDATED`, `STATUS`, `TYPE` with asc/desc for sort direction (for example, `PNSortKey.asc(PNSortKey.Key.TYPE)`).
-`includeTotalCount` Type: Boolean Default: `false` Whether to include the total count in the paginated response.
-`includeCustom` Type: Boolean Default: `false` Whether to include the Custom object in the response.
+Parameters:
+- limit (Integer, default 100): Number of objects to return. Default/Max: 100.
+- page (PNPage): Cursor-based pagination.
+- filter (String): Filter expression. See /docs/general/metadata/filtering.
+- sort (List<PNSortKey>, default listOf()): Sort by ID, NAME, UPDATED, STATUS, TYPE with asc/desc (for example, PNSortKey.asc(PNSortKey.Key.TYPE)).
+- includeTotalCount (Boolean, default false): Include total count in response.
+- includeCustom (Boolean, default false): Include the Custom object.
 
 #### Sample code
 
@@ -76,7 +76,7 @@ Use the following in the Java SDK:
 
 ### Get user metadata
 
-Returns metadata for the specified UUID, optionally including the custom data object for each.
+Returns metadata for the specified UUID, optionally including the custom data object.
 
 #### Method(s)
 
@@ -89,9 +89,9 @@ Use the following in the Java SDK:
 `
 ```
 
-- requiredParameterDescription
-`uuid` Type: String Default: `pubnub.getConfiguration().getUserId().getValue()` Unique User Metadata identifier. If not supplied, then userId from configuration will be used.
-`includeCustom` Type: Boolean Default: `false` Whether to include the Custom object in the response.
+Parameters:
+- uuid (String, default pubnub.getConfiguration().getUserId().getValue()): Unique User Metadata identifier. If not supplied, configuration userId is used.
+- includeCustom (Boolean, default false): Include the Custom object.
 
 #### Sample code
 
@@ -125,7 +125,7 @@ Use the following in the Java SDK:
 
 ### Set user metadata
 
-Sets metadata for a UUID. Partial updates of custom metadata are not supported; the provided custom object overwrites existing data. Use ETag for conditional updates.
+Sets metadata for a UUID. Custom overwrites existing custom data; use read-modify-write if you need to merge.
 
 #### Method(s)
 
@@ -144,18 +144,17 @@ Use the following in the Java SDK:
 `
 ```
 
-- requiredParameterDescription
-`uuid` Type: String Default: `pubnub.getConfiguration().getUserId().getValue()` Unique User Metadata identifier. If not supplied, then userId from configuration will be used.
-`name` Type: String Default: n/a Display name for the user.
-`externalId` Type: String Default: n/a User's identifier in an external system.
-`profileUrl` Type: String Default: n/a The URL of the user's profile picture.
-`email` Type: String Default: n/a The user's email address.
-`custom` Type: Any Default: n/a Custom JSON values. Can be strings, numbers, or booleans. Filtering by Custom isn’t supported.
-`includeCustom` Type: Boolean Default: `false` Whether to include the `custom` object in the fetch response.
-`ifMatchesEtag` Type: String Default: n/a Use the eTag from an applicable get metadata call to ensure updates only apply if the object hasn’t changed. If the eTags differ, the server returns HTTP 412.
+Parameters:
+- uuid (String, default pubnub.getConfiguration().getUserId().getValue()): Unique User Metadata identifier. Defaults to configuration userId.
+- name (String): Display name.
+- externalId (String): ID in external system.
+- profileUrl (String): Profile image URL.
+- email (String): Email address.
+- custom (Any): Custom JSON values (strings, numbers, booleans). Filtering by Custom isn’t supported.
+- includeCustom (Boolean, default false): Include custom in fetch response.
+- ifMatchesEtag (String): Use eTag from get to ensure conditional update; mismatches return HTTP 412.
 
-API limits
-- For max parameter lengths, see REST API docs.
+API limits: See /docs/sdks/rest-api/set-user-metadata.
 
 #### Sample code
 
@@ -201,8 +200,8 @@ Use the following in the Java SDK:
 `
 ```
 
-- requiredParameterDescription
-`uuid` Type: String Default: `pubnub.getConfiguration().getUserId().getValue()` Unique User Metadata identifier. If not supplied, then userId from configuration will be used.
+Parameters:
+- uuid (String, default pubnub.getConfiguration().getUserId().getValue()): Unique User Metadata identifier. Defaults to configuration userId.
 
 #### Sample code
 
@@ -243,13 +242,13 @@ Use the following in the Java SDK:
 `
 ```
 
-- requiredParameterDescription
-`limit` Type: Integer Default: `100` Number of objects to return. Default/Max: 100.
-`page` Type: PNPage Default: n/a Cursor-based pagination.
-`filter` Type: String Default: n/a Filter expression. Only matching objects are returned. See filtering.
-`sort` Type: List`<PNSortKey>` Default: `listOf()` Sort by `ID`, `NAME`, `UPDATED`, `STATUS`, `TYPE` with asc/desc for sort direction (for example, `PNSortKey.asc(PNSortKey.Key.TYPE)`).
-`includeTotalCount` Type: Boolean Default: `false` Whether to include the total count in the paginated response.
-`includeCustom` Type: Boolean Default: `false` Whether to include the Custom object in the response.
+Parameters:
+- limit (Integer, default 100): Number of objects to return. Default/Max: 100.
+- page (PNPage): Cursor-based pagination.
+- filter (String): Filter expression. See /docs/general/metadata/filtering.
+- sort (List<PNSortKey>, default listOf()): Sort by ID, NAME, UPDATED, STATUS, TYPE with asc/desc (e.g., PNSortKey.asc(PNSortKey.Key.TYPE)).
+- includeTotalCount (Boolean, default false): Include total count.
+- includeCustom (Boolean, default false): Include the Custom object.
 
 #### Sample code
 
@@ -284,7 +283,7 @@ Use the following in the Java SDK:
 
 ### Get channel metadata
 
-Returns metadata for the specified Channel, optionally including the custom data object for each.
+Returns metadata for the specified Channel, optionally including the custom data object.
 
 #### Method(s)
 
@@ -297,9 +296,9 @@ Use the following in the Java SDK:
 `
 ```
 
-- requiredParameterDescription
-`channel` Type: String Default: n/a Channel name.
-`includeCustom` Type: Boolean Default: `false` Whether to include the Custom object in the response.
+Parameters:
+- channel (String): Channel name.
+- includeCustom (Boolean, default false): Include the Custom object.
 
 #### Sample code
 
@@ -331,7 +330,7 @@ Use the following in the Java SDK:
 
 ### Set channel metadata
 
-Sets metadata for a Channel. Partial updates of custom metadata are not supported; provided custom overwrites existing. Use ETag for conditional updates.
+Sets metadata for a Channel. Custom overwrites existing data; use read-modify-write to merge.
 
 #### Method(s)
 
@@ -350,16 +349,15 @@ Use the following in the Java SDK:
 
 ```
 
-- requiredParameterDescription
-`channel` Type: String Default: n/a Channel ID.
-`name` Type: String Default: n/a Name for the channel.
-`description` Type: String Default: n/a Description of a channel.
-`custom` Type: Map`<String, Object>` Default: n/a Any object of key-value pairs with supported data types. App Context filtering language doesn’t support filtering by custom properties.
-`includeCustom` Type: Boolean Default: `false` Whether to include the `custom` object in the fetch response.
-`ifMatchesEtag` Type: String Default: n/a Use eTag to ensure updates only if unchanged; mismatch returns HTTP 412.
+Parameters:
+- channel (String): Channel ID.
+- name (String): Channel name.
+- description (String): Channel description.
+- custom (Map<String, Object>): Key-value pairs; filtering by custom not supported.
+- includeCustom (Boolean, default false): Include custom in fetch response.
+- ifMatchesEtag (String): Conditional update using eTag; mismatches return HTTP 412.
 
-API limits
-- For max parameter lengths, see REST API docs.
+API limits: See /docs/sdks/rest-api/set-channel-metadata.
 
 #### Sample code
 
@@ -413,8 +411,8 @@ Use the following in the Java SDK:
 `
 ```
 
-- requiredParameterDescription
-`channel` Type: String Default: n/a Channel ID.
+Parameters:
+- channel (String): Channel ID.
 
 #### Sample code
 
@@ -456,13 +454,13 @@ Use the following in the Java SDK:
 `
 ```
 
-- requiredParameterDescription
-`userId` Type: String Default: `pubnub.getConfiguration().getUserId().getValue()` Unique User Metadata identifier. If not supplied, then userId from configuration will be used.
-`limit` Type: Integer Default: `100` Number of objects to return. Default/Max: 100.
-`page` Type: PNPage Default: n/a Cursor-based pagination.
-`filter` Type: String Default: n/a Filter expression. Only matching objects are returned. See filtering.
-`sort` Type: List`<PNSortKey>` Default: `listOf()` Sort by `ID`, `NAME`, `UPDATED`, `STATUS`, `TYPE` with asc/desc.
-`include` Type: `MembershipInclude` Default: All parameters set to `false` Object holding the configuration for whether to include additional data in the response.
+Parameters:
+- userId (String, default pubnub.getConfiguration().getUserId().getValue()): Unique User Metadata identifier. Defaults to configuration userId.
+- limit (Integer, default 100): Number of objects to return. Default/Max: 100.
+- page (PNPage): Cursor-based pagination.
+- filter (String): Filter expression. See /docs/general/metadata/filtering.
+- sort (List<PNSortKey>, default listOf()): Sort by ID, NAME, UPDATED, STATUS, TYPE with asc/desc.
+- include (MembershipInclude, defaults false for all): Include additional data in response.
 
 #### Sample code
 
@@ -521,27 +519,25 @@ Use the following in the Java SDK:
 `
 ```
 
-- requiredParameterDescription
-`channelMemberships` Type: List`<PNChannelMembership>` Default: n/a Collection of PNChannelMembership to add to membership.
-`userId` Type: String Default: `pubnub.getConfiguration().getUserId().getValue()` Unique User Metadata identifier. If not supplied, then userId from configuration will be used.
-`limit` Type: Integer Default: `100` Number of objects to return. Default/Max: 100.
-`page` Type: PNPage Default: n/a Cursor-based pagination.
-`filter` Type: String Default: n/a Filter expression. Only matching objects are returned. See filtering.
-`sort` Type: List`<PNSortKey>` Default: `listOf()` Sort by `ID`, `NAME`, `UPDATED`, `STATUS`, `TYPE` with asc/desc.
-`include` Type: `MembershipInclude` Default: All parameters set to `false` Object holding the configuration for whether to include additional data in the response.
+Parameters:
+- channelMemberships (List<PNChannelMembership>): Collection of PNChannelMembership to add.
+- userId (String, default pubnub.getConfiguration().getUserId().getValue()): Unique User Metadata identifier. Defaults to configuration userId.
+- limit (Integer, default 100): Number of objects to return. Default/Max: 100.
+- page (PNPage): Cursor-based pagination.
+- filter (String): Filter expression. See /docs/general/metadata/filtering.
+- sort (List<PNSortKey>, default listOf()): Sort by ID, NAME, UPDATED, STATUS, TYPE with asc/desc.
+- include (MembershipInclude, defaults false for all): Include additional data in response.
 
-API limits
-- For max parameter lengths, see REST API docs.
+API limits: See /docs/sdks/rest-api/set-membership-metadata.
 
 #### PNChannelMembership
 
-`PNChannelMembership` is a utility class that uses the builder pattern to construct a channel membership with additional custom data.
+PNChannelMembership is a utility class (builder) for constructing a channel membership with additional custom data.
 
-- requiredParameterDescription
-`channel` Type: `ChannelId` The name of the channel associated with this membership.
-`custom` Type: `Object` A dictionary that stores custom metadata related to the membership.
-`status` Type: `String` The status of the membership, for example: "active" or "inactive"
-`type` Type: `String` The type of membership for categorization purposes.
+- channel (ChannelId): The name of the channel for this membership.
+- custom (Object): Custom metadata for the membership.
+- status (String): Membership status (e.g., "active", "inactive").
+- type (String): Membership type for categorization.
 
 #### Sample code
 
@@ -592,14 +588,14 @@ Use the following in the Java SDK:
 `
 ```
 
-- requiredParameterDescription
-`channelMemberships` Type: List`<PNChannelMembership>` Default: n/a Collection of PNChannelMembership to add to membership.
-`userId` Type: String Default: `pubnub.getConfiguration().getUserId().getValue()` Unique User Metadata identifier. If not supplied, then userId from configuration will be used.
-`limit` Type: Integer Default: `100` Number of objects to return. Default/Max: 100.
-`page` Type: PNPage Default: n/a Cursor-based pagination.
-`filter` Type: String Default: n/a Filter expression. Only matching objects are returned. See filtering.
-`sort` Type: List`<PNSortKey>` Default: `listOf()` Sort by `ID`, `NAME`, `UPDATED`, `STATUS`, `TYPE` with asc/desc.
-`include` Type: `MembershipInclude` Default: All parameters set to `false` Object holding the configuration for whether to include additional data in the response.
+Parameters:
+- channelMemberships (List<PNChannelMembership>): Collection of PNChannelMembership to add to membership.
+- userId (String, default pubnub.getConfiguration().getUserId().getValue()): Unique User Metadata identifier. Defaults to configuration userId.
+- limit (Integer, default 100): Number of objects to return. Default/Max: 100.
+- page (PNPage): Cursor-based pagination.
+- filter (String): Filter expression. See /docs/general/metadata/filtering.
+- sort (List<PNSortKey>, default listOf()): Sort by ID, NAME, UPDATED, STATUS, TYPE with asc/desc.
+- include (MembershipInclude, defaults false for all): Include additional data in response.
 
 #### Sample code
 
@@ -632,7 +628,7 @@ Use the following in the Java SDK:
 
 ### Manage channel memberships
 
-Manage a user's channel memberships (set and remove in one call).
+Manage a user's channel memberships.
 
 #### Method(s)
 
@@ -650,15 +646,15 @@ Use the following in the Java SDK:
 `
 ```
 
-- requiredParameterDescription
-`set` Type: `Collection<PNChannelMembership>` Default: n/a List of members PNChannelMembership to add to channel.
-`remove` Type: `Collection<Stirng>` Default: n/a List of members channelIds to remove from channel.
-`userId` Type: String Default: `pubnub.getConfiguration().getUserId().getValue()` Unique User Metadata identifier. If not supplied, then userId from configuration will be used.
-`limit` Type: Integer Default: `100` Number of objects to return. Default/Max: 100.
-`page` Type: PNPage Default: n/a Cursor-based pagination.
-`filter` Type: String Default: n/a Filter expression. Only matching objects are returned. See filtering.
-`sort` Type: List`<PNSortKey>` Default: `listOf()` Sort by `ID`, `NAME`, `UPDATED`, `STATUS`, `TYPE` with asc/desc.
-`include` Type: `MembershipInclude` Default: All parameters set to `false` Object holding the configuration for whether to include additional data in the response.
+Parameters:
+- set (Collection<PNChannelMembership>): List of members to add to channel.
+- remove (Collection<Stirng>): List of channelIds to remove from channel.
+- userId (String, default pubnub.getConfiguration().getUserId().getValue()): Unique User Metadata identifier. Defaults to configuration userId.
+- limit (Integer, default 100): Number of objects to return. Default/Max: 100.
+- page (PNPage): Cursor-based pagination.
+- filter (String): Filter expression. See /docs/general/metadata/filtering.
+- sort (List<PNSortKey>, default listOf()): Sort by ID, NAME, UPDATED, STATUS, TYPE with asc/desc.
+- include (MembershipInclude, defaults false for all): Include additional data in response.
 
 #### Sample code
 
@@ -710,13 +706,13 @@ Use the following in the Java SDK:
 `
 ```
 
-- requiredParameterDescription
-`channel` Type: String Default: n/a Channel ID.
-`limit` Type: Integer Default: `100` Number of objects to return. Default/Max: 100.
-`page` Type: PNPage Default: n/a Cursor-based pagination.
-`filter` Type: String Default: n/a Filter expression. Only matching objects are returned. See filtering.
-`sort` Type: List`<PNSortKey>` Default: `listOf()` Sort by `ID`, `NAME`, `UPDATED`, `STATUS`, `TYPE` with asc/desc for sort direction (for example, `PNSortKey.asc(PNSortKey.Key.TYPE)`).
-`include` Type: `MemberInclude` Default: All parameters set to `false`. Object holding the configuration for whether to include additional data in the response.
+Parameters:
+- channel (String): Channel ID.
+- limit (Integer, default 100): Number of objects to return. Default/Max: 100.
+- page (PNPage): Cursor-based pagination.
+- filter (String): Filter expression. See /docs/general/metadata/filtering.
+- sort (List<PNSortKey>, default listOf()): Sort by ID, NAME, UPDATED, STATUS, TYPE with asc/desc.
+- include (MemberInclude, defaults false for all): Include additional data in response.
 
 #### Sample code
 
@@ -766,27 +762,25 @@ Use the following in the Java SDK:
 `
 ```
 
-- requiredParameterDescription
-`channel` Type: String Default: n/a Channel name.
-`channelMembers` Type: `Collection<PNUser>` Default: n/a List of members to add to channel.
-`limit` Type: Integer Default: `100` Number of objects to return. Default/Max: 100.
-`page` Type: PNPage Default: n/a Cursor-based pagination.
-`filter` Type: String Default: n/a Filter expression. Only matching objects are returned. See filtering.
-`sort` Type: List`<PNSortKey>` Default: `listOf()` Sort by `ID`, `NAME`, `UPDATED`, `STATUS`, `TYPE` with asc/desc.
-`include` Type: `MemberInclude` Default: All parameters set to `false`. Object holding the configuration for whether to include additional data in the response.
+Parameters:
+- channel (String): Channel name.
+- channelMembers (Collection<PNUser>): List of members to add to channel.
+- limit (Integer, default 100): Number of objects to return. Default/Max: 100.
+- page (PNPage): Cursor-based pagination.
+- filter (String): Filter expression. See /docs/general/metadata/filtering.
+- sort (List<PNSortKey>, default listOf()): Sort by ID, NAME, UPDATED, STATUS, TYPE with asc/desc.
+- include (MemberInclude, defaults false for all): Include additional data in response.
 
-API limits
-- For max parameter lengths, see REST API docs.
+API limits: See /docs/sdks/rest-api/set-channel-members-metadata.
 
 #### PNUser
 
-`PNUser` is a builder-based utility to construct a user with optional custom, status, and type.
+PNUser is a utility class (builder) to construct a user object with optional custom metadata.
 
-- requiredPropertyDescription
-`userId` Type: `String` The unique identifier for the user. Cannot be null or empty.
-`custom` Type: `Object` Custom metadata related to the user.
-`status` Type: `String` User status such as `active` or `inactive`.
-`type` Type: `String` Categorization type of the user.
+- userId (String, required): Unique user identifier; non-null, non-empty.
+- custom (Object): Custom metadata for the user.
+- status (String): e.g., active, inactive.
+- type (String): Categorization type.
 
 #### Sample code
 
@@ -837,14 +831,14 @@ Use the following in the Java SDK:
 `
 ```
 
-- requiredParameterDescription
-`channel` Type: String Default: n/a Channel name.
-`channelMembers` Type: Collection`<String>` Default: n/a List of member userIds to remove from channel.
-`limit` Type: Integer Default: `100` Number of objects to return. Default/Max: 100.
-`page` Type: PNPage Default: n/a The paging object used for pagination.
-`filter` Type: String Default: n/a Filter expression. Only matching objects are returned. See filtering.
-`sort` Type: List`<PNSortKey>` Default: `listOf()` List of properties to sort by. Available options are `PNSortKey.Key.ID`, `PNSortKey.Key.NAME`, `PNSortKey.Key.UPDATED`, `PNSortKey.Key.STATUS` and `PNSortKey.Key.TYPE`. Use `PNSortKey.asc` or `PNSortKey.desc` to specify sort direction. For example: `PNSortKey.asc(PNSortKey.Key.TYPE)` or `PNSortKey.asc(PNSortKey.Key.STATUS)`
-`include` Type: `MemberInclude` Default: All parameters set to `false` Object defining options to include additional data in the response.
+Parameters:
+- channel (String): Channel name.
+- channelMembers (Collection<String>): Member userIds to remove.
+- limit (Integer, default 100): Number of objects to return. Default/Max: 100.
+- page (PNPage): Paging object.
+- filter (String): Filter expression. See /docs/general/metadata/filtering.
+- sort (List<PNSortKey>, default listOf()): Sort by ID, NAME, UPDATED, STATUS, TYPE with asc/desc (e.g., PNSortKey.asc(PNSortKey.Key.TYPE)).
+- include (MemberInclude, defaults false for all): Object defining options to include additional data in the response.
 
 #### Sample code
 
@@ -877,7 +871,7 @@ Use the following in the Java SDK:
 
 ### Manage channel members
 
-Set and remove channel members for a channel in one call.
+Set and remove channel memberships for a user.
 
 #### Method(s)
 
@@ -893,15 +887,15 @@ Use the following in the Java SDK:
 `
 ```
 
-- requiredParameterDescription
-`channel` Type: String Default: n/a Channel name.
-`set` Type: Collection`<PNUser>` Default: n/a List of members to add to channel.
-`remove` Type: Collection`<String>` Default: n/a List of userIds to remove from channel.
-`limit` Type: Integer Default: `100` Number of objects to return. Default/Max: 100.
-`page` Type: PNPage Default: n/a The paging object used for pagination.
-`filter` Type: String Default: n/a Filter expression. Only matching objects are returned. See filtering.
-`sort` Type: List`<PNSortKey>` Default: `listOf()` List of properties to sort by. Available options are `PNSortKey.Key.ID`, `PNSortKey.Key.NAME`, `PNSortKey.Key.UPDATED`, `PNSortKey.Key.STATUS` and `PNSortKey.Key.TYPE`. Use `PNSortKey.asc` or `PNSortKey.desc` for direction.
-`include` Type: `MemberInclude` Default: All parameters set to `false` Object holding the configuration for whether to include additional data in the response.
+Parameters:
+- channel (String): Channel name.
+- set (Collection<PNUser>): Members to add to channel.
+- remove (Collection<String>): userIds to remove from channel.
+- limit (Integer, default 100): Number of objects to return. Default/Max: 100.
+- page (PNPage): Paging object.
+- filter (String): Filter expression. See /docs/general/metadata/filtering.
+- sort (List<PNSortKey>, default listOf()): Sort by ID, NAME, UPDATED, STATUS, TYPE with asc/desc.
+- include (MemberInclude, defaults false for all): Include additional data in response.
 
 #### Sample code
 

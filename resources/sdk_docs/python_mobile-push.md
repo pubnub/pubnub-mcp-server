@@ -1,14 +1,15 @@
 # Mobile Push Notifications API for Python SDK
 
-Connect PubNub publishing with push services: Google FCM (Android) and Apple APNs (iOS). Requires enabling the Mobile Push Notifications add-on for your key in the Admin Portal.
+Connect PubNub publishing with third-party push services: Google Android FCM and Apple iOS APNs (APNs2). See Mobile Push Notifications.
+
+Requires Mobile Push Notifications add-on: enable in the Admin Portal.
 
 ##### Request execution and return values
 
-Operations can be synchronous or asynchronous.
-
-`.sync()` returns an `Envelope` with:
-- `Envelope.result` (type differs per API)
-- `Envelope.status` (`PnStatus`)
+- `.sync()` returns an `Envelope` with:
+  - `Envelope.result` (type varies per API)
+  - `Envelope.status` (`PnStatus`)
+- `.pn_async(callback)` returns `None` and invokes your callback with `(result, status)`.
 
 ```
 `1pubnub.publish() \  
@@ -17,8 +18,6 @@ Operations can be synchronous or asynchronous.
 4    .sync()  
 `
 ```
-
-`.pn_async(callback)` returns `None` and invokes your callback with `result` and `status`.
 
 ```
 1def my_callback_function(result, status):  
@@ -33,7 +32,7 @@ Operations can be synchronous or asynchronous.
 
 ## Add a device to a push notifications channel
 
-Requires Mobile Push Notifications add-on. Enable in the Admin Portal. Enable push notifications on a set of channels for a device token.
+Enable mobile push notifications on a set of channels.
 
 ### Method(s)
 
@@ -48,11 +47,11 @@ Requires Mobile Push Notifications add-on. Enable in the Admin Portal. Enable pu
 ```
 
 Parameters:
-- push_type (Type: PNPushType) Accepted: PNPushType.GCM, PNPushType.APNS2
-- channels (Type: List) Channels to enable push for.
-- device_id (Type: String) Device token.
-- topic (Type: String) APNs topic (iOS bundle identifier). Required for PNPushType.APNS2.
-- environment (Type: PNPushEnvironment, Default: PNPushEnvironment.DEVELOPMENT) APNs environment. Required for PNPushType.APNS2.
+- push_type (PNPushType): Accepted values: `PNPushType.GCM`, `PNPushType.APNS2`.
+- channels (List): Channels to enable for push notifications.
+- device_id (String): Device token/ID.
+- topic (String): APNs topic (bundle identifier). Required for `PNPushType.APNS2`.
+- environment (PNPushEnvironment): APNs environment. Default `PNPushEnvironment.DEVELOPMENT`. Required for `PNPushType.APNS2`.
 
 ### Sample code
 
@@ -185,11 +184,11 @@ Parameters:
 
 ### Returns
 
-No actionable data. Inspect `status.is_error()` on the returned status.
+No actionable data. Check outcome using `status.is_error()`.
 
 ## List channels for device
 
-Requires Mobile Push Notifications add-on. Lists channels with push enabled for the given device token.
+List channels that have push notifications enabled for the specified device token.
 
 ### Method(s)
 
@@ -203,12 +202,14 @@ Requires Mobile Push Notifications add-on. Lists channels with push enabled for 
 ```
 
 Parameters:
-- push_type (Type: PNPushType) Accepted: PNPushType.GCM, PNPushType.APNS2
-- device_id (Type: String) Device token.
-- topic (Type: String) APNs topic. Required for PNPushType.APNS2.
-- environment (Type: PNPushEnvironment, Default: PNPushEnvironment.DEVELOPMENT) APNs environment. Required for PNPushType.APNS2.
+- push_type (PNPushType): Accepted values: `PNPushType.GCM`, `PNPushType.APNS2`.
+- device_id (String): Device token.
+- topic (String): APNs topic (bundle identifier). Required for `PNPushType.APNS2`.
+- environment (PNPushEnvironment): APNs environment. Default `PNPushEnvironment.DEVELOPMENT`. Required for `PNPushType.APNS2`.
 
 ### Sample code
+
+#### List channels for device
 
 - Builder Pattern
 - Named Arguments
@@ -252,12 +253,15 @@ Parameters:
 ### Returns
 
 `Envelope` with:
-- result (PNPushListProvisionsResult) channels: List of channels associated for push.
-- status (PNStatus)
+- result: PNPushListProvisionsResult
+- status: PNStatus
+
+PNPushListProvisionsResult:
+- Channels (List): Channels associated for mobile push notifications.
 
 ## Remove device from channel
 
-Requires Mobile Push Notifications add-on. Disable push notifications on a set of channels for a device token.
+Disable mobile push notifications on a set of channels.
 
 ### Method(s)
 
@@ -272,13 +276,15 @@ Requires Mobile Push Notifications add-on. Disable push notifications on a set o
 ```
 
 Parameters:
-- push_type (Type: PNPushType) Accepted: PNPushType.GCM, PNPushType.APNS2
-- channels (Type: List) Channels to disable.
-- device_id (Type: String) Device token.
-- topic (Type: String) APNs topic. Required for PNPushType.APNS2.
-- environment (Type: PNPushEnvironment, Default: PNPushEnvironment.DEVELOPMENT) APNs environment. Required for PNPushType.APNS2.
+- push_type (PNPushType): Accepted values: `PNPushType.GCM`, `PNPushType.APNS2`.
+- channels (List): Channels to disable.
+- device_id (String): Device token.
+- topic (String): APNs topic (bundle identifier). Required for `PNPushType.APNS2`.
+- environment (PNPushEnvironment): APNs environment. Default `PNPushEnvironment.DEVELOPMENT`. Required for `PNPushType.APNS2`.
 
 ### Sample code
+
+#### Remove device from channel
 
 - Builder Pattern
 - Named Arguments
@@ -296,8 +302,7 @@ Parameters:
 9
   
 10# for APNS2  
-11
-  
+11  
 12envelope = pubnub.remove_channels_from_push() \  
 13    .push_type(PNPushType.APNS2) \  
 14    .channels("ch1", "ch2", "ch3") \  
@@ -329,11 +334,11 @@ Parameters:
 
 ### Returns
 
-No actionable data. Inspect `status.is_error()`.
+No actionable data. Check outcome using `status.is_error()`.
 
 ## Remove all mobile push notifications
 
-Requires Mobile Push Notifications add-on. Disable push notifications for all channels registered with the device token.
+Disable mobile push notifications from all channels registered with the specified device token.
 
 ### Method(s)
 
@@ -347,12 +352,14 @@ Requires Mobile Push Notifications add-on. Disable push notifications for all ch
 ```
 
 Parameters:
-- push_type (Type: PNPushType) Accepted: PNPushType.GCM, PNPushType.MPNS, PNPushType.APNS2
-- device_id (Type: String) Device token.
-- topic (Type: String) APNs topic. Required for PNPushType.APNS2.
-- environment (Type: PNPushEnvironment, Default: PNPushEnvironment.DEVELOPMENT) APNs environment. Required for PNPushType.APNS2.
+- push_type (PNPushType): Accepted values: `PNPushType.GCM`, `PNPushType.MPNS`, `PNPushType.APNS2`.
+- device_id (String): Device token.
+- topic (String): APNs topic (bundle identifier). Required for `PNPushType.APNS2`.
+- environment (PNPushEnvironment): APNs environment. Default `PNPushEnvironment.DEVELOPMENT`. Required for `PNPushType.APNS2`.
 
 ### Sample code
+
+#### Remove all mobile push notifications
 
 - Builder Pattern
 - Named Arguments
@@ -393,6 +400,6 @@ Parameters:
 
 ### Returns
 
-No actionable data. Inspect `status.is_error()`.
+No actionable data. Check outcome using `status.is_error()`.
 
 Last updated on Oct 29, 2025

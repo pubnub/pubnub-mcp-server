@@ -1,57 +1,70 @@
-# Unreal API & SDK Docs v1.0.0
+# Unreal API & SDK Docs 1.2.0
 
-Build a minimal "Hello, World" app demonstrating PubNub in Unreal Engine:
+Build a minimal “Hello, World” app in Unreal Engine using PubNub:
 - Connect to PubNub
-- Publish a "Hello, World" message
+- Publish “Hello, World”
 - Receive messages in real time
 
 ## Overview
 
-Initialize the SDK, configure keys, set up listeners, and send/receive a "Hello, World" message in C++ with minimal code.
+Initialize the SDK, set event listeners, and send/receive a “Hello, World” message in Unreal Engine (C++).
 
 ## Prerequisites
 
-- Unreal Engine 5.2+ recommended (5.0.X–5.1.X requires manual plugin install)
+- Unreal Engine 5.2+ (5.0.x–5.1.x supported via manual plugin install)
 - Basic Unreal Engine and C++ knowledge
 - PubNub account and keyset
 
-For Unreal Engine versions lower than 5.2.0 (5.0.X - 5.1.X), you must install the plugin manually:
-- Download and install Unreal Engine 5.0.X or 5.1.X.
+For Unreal Engine 5.0.x–5.1.x, install the plugin manually:
+- Install Unreal Engine 5.0.x or 5.1.x.
 - Create a new blank Unreal project.
-- Create a Plugins folder in your project.
-- Clone https://github.com/pubnub/unreal-engine into Plugins and rename the folder to Pubnub.
-- Generate IDE project files (macOS: Services -> Generate xCode project; Windows: Generate Visual Studio project files), then open the workspace.
-- In Source/YourProject/YourProject.Build.cs add:
+- Create an empty Plugins folder in your project.
+
+#### Download the SDK
+
+In the Plugins folder of your Unreal project:
+- Clone the SDK: https://github.com/pubnub/unreal-engine
+- Rename the cloned folder to Pubnub
+
+#### Configure the workspace
+
+Generate project files:
+- macOS: Services -> Generate xCode project
+- Windows: Generate Visual Studio project files
+
+Open your IDE, then add the dependency to PubnubLibrary in Source/YourProject/YourProject.Build.cs:
+
 ```
 `PrivateDependencyModuleNames.AddRange(new string[] { "PubnubLibrary" });  
 `
 ```
-- Compile and run.
 
-### Installation on Unreal Engine <5.2.0
-
-Use the manual plugin installation steps above.
+Compile and run.
 
 ## Setup
 
 ### Get your PubNub keys
 
-- Sign in or create an account at the Admin Portal, create an app.
-- Use the auto-generated publish and subscribe keys from the app’s keyset.
-- Create separate keysets for production and test environments.
+- Sign in or create an account: https://admin.pubnub.com
+- Create an app; first keyset is generated automatically
+- Get publish and subscribe keys from the dashboard
+- Use separate keysets for production and test environments
 
 ### Install the SDK
 
-Always use the latest SDK version.
-
-- Install the PubNub SDK plugin from FAB: https://www.fab.com/listings/9501a8d6-f9e6-4cf8-8b56-d173bdb71fc4 or from GitHub: https://github.com/pubnub/unreal-engine
+- Use the latest SDK version.
+- Install the PubNub SDK plugin from FAB (https://www.fab.com/listings/9501a8d6-f9e6-4cf8-8b56-d173bdb71fc4) or from GitHub (https://github.com/pubnub/unreal-engine).
 - Enable the PubNubSDK plugin in your project.
-- In Build.cs (for C++ usage), add:
+
+Add the C++ module dependency in Build.cs:
+
 ```
 `PrivateDependencyModuleNames.AddRange(new string[] { "PubnubLibrary" });  
 `
 ```
-- Include the SDK header in files where you use it:
+
+Include the header in files using the SDK:
+
 ```
 `#include "PubnubSubsystem.h"  
 `
@@ -60,33 +73,34 @@ Always use the latest SDK version.
 ### Configure PubNub in Unreal Editor
 
 Project Settings -> Plugins -> Pubnub SDK:
-- Publish Key: demo (replace with production key)
-- Subscribe Key: demo (replace with production key)
-- Secret Key: leave empty (only for Access Manager operations)
+- Publish Key: demo (replace with your key)
+- Subscribe Key: demo (replace with your key)
+- Secret Key: leave empty (only for access control)
 - Initialize Automatically: checked (recommended)
 - Set Secret Key Automatically: unchecked (only if using access control)
 
-SDK initialization: If Initialize Automatically is disabled, initialize the SDK in code before use.
+SDK initialization
+- If Initialize Automatically is off, initialize PubNub in code before use.
 
-Required User ID: Always set a persistent User ID; connection fails without it.
+Required User ID
+- Always set a stable User ID for the lifetime of the user/device. Without it, you cannot connect.
 
 ### Configure the Unreal Engine project
 
-Create and set:
-- C++ classes:
-  - PubNubGameInstance: UGameInstance
-  - PubNubPlayerController: APlayerController
-- Project Settings:
-  - Default GameInstance: PubNubGameInstance
-  - Default Player Controller: PubNubPlayerController
+Create two C++ classes:
+- PubNubGameInstance (inherits UGameInstance)
+- PubNubPlayerController (inherits APlayerController)
+
+Project settings:
+- Set Default GameInstance to PubNubGameInstance
+- Set Default Player Controller to PubNubPlayerController
 
 ## Steps
 
 ### Initialize PubNub
 
-Set up PubNub in your GameInstance: configure User ID, bind listeners, subscribe, and log status.
-
 In your header file (PubNubGameInstance.h):
+
 ```
 // PubNubGameInstance.h  
 #pragma once  
@@ -126,6 +140,7 @@ private:
 ```
 
 In your implementation file (PubNubGameInstance.cpp):
+
 ```
 // PubNubGameInstance.cpp  
 #include "PubNubGameInstance.h"  
@@ -185,21 +200,22 @@ void UPubNubGameInstance::PublishHelloWorld()
 
 ```
 
-For more information, see Configuration docs.
-
 ### Set up event listeners
 
-Bind message and error handlers (shown above in Init) to log received messages and errors. See Event Listeners docs.
+- Message and error listeners are bound in GameInstance::Init.
+- They log received messages and errors.
 
 ### Create a subscription
 
-Subscribe to the target channel (shown above in Init). See Subscribe docs.
+- Subscribes to "hello_world_channel" in GameInstance::Init.
 
 ### Publish messages
 
-Publish a JSON-serializable payload (<32 KiB). Press P to publish in the example PlayerController.
+- Messages must be JSON-serializable and < 32 KiB.
+- Use a PlayerController to publish on P key press.
 
 In your header file (PubNubPlayerController.h):
+
 ```
 // PubNubPlayerController.h  
 #pragma once  
@@ -230,6 +246,7 @@ protected:
 ```
 
 In your implementation file (PubNubPlayerController.cpp):
+
 ```
 // PubNubPlayerController.cpp  
 #include "PubNubPlayerController.h"  
@@ -258,15 +275,18 @@ void APubNubPlayerController::HandleKeyP()
 
 ```
 
-See Publish docs.
-
 ### Run the app
 
-Build and run your project, then use the bound input to publish and observe messages in the log.
+- Launch the project, play in editor, press P to publish, and observe the Output Log.
+
+#### Cross-platform testing
+
+- Test on multiple platforms to verify real-time behavior.
 
 ## Complete example
 
 - PubNubGameInstance.h
+
 ```
 // PubNubGameInstance.h  
 #pragma once  
@@ -306,6 +326,7 @@ private:
 ```
 
 - PubNubGameInstance.cpp
+
 ```
 // PubNubGameInstance.cpp  
 #include "PubNubGameInstance.h"  
@@ -366,6 +387,7 @@ void UPubNubGameInstance::PublishHelloWorld()
 ```
 
 - PubNubPlayerController.h
+
 ```
 // PubNubPlayerController.h  
 #pragma once  
@@ -396,6 +418,7 @@ protected:
 ```
 
 - PubNubPlayerController.cpp
+
 ```
 // PubNubPlayerController.cpp  
 #include "PubNubPlayerController.h"  
@@ -426,15 +449,12 @@ void APubNubPlayerController::HandleKeyP()
 
 ## Next steps
 
-- Unreal Chat SDK
-- Presence
-- Message Persistence
-- Access Manager
-- Objects (Users/Channels metadata)
-- Blog: Announcing PubNub’s UE and Gaming Chat SDKs
-- GitHub repository
-- SDK reference documentation
-- Support portal
-- Ask the AI assistant
-
-Last updated on Sep 11, 2025
+- Unreal Chat SDK: /docs/chat/unreal-chat-sdk
+- Presence: /docs/sdks/unreal/api-reference/presence
+- Message Persistence: /docs/sdks/unreal/api-reference/storage-and-playback
+- Access Manager: /docs/sdks/unreal/api-reference/access-manager
+- Objects: /docs/sdks/unreal/api-reference/objects
+- Blog announcement: https://www.pubnub.com/blog/announcing-pubnubs-unreal-engine-and-gaming-chat-sdks/
+- GitHub samples: https://github.com/pubnub/unreal-engine/
+- SDK reference: /docs/sdks/unreal/api-reference/configuration
+- Support: https://support.pubnub.com/

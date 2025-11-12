@@ -1,14 +1,20 @@
 # Mobile Push Notifications API for Ruby SDK
 
-Connect PubNub publishing to third-party push services: Google Android FCM and Apple iOS APNs (APNs2). Learn more: Mobile Push Notifications.
+Connect PubNub publishing with third-party push services:
+- Google Android FCM (Firebase Cloud Messaging)
+- Apple iOS APNs (Apple Push Notification service)
 
-Requirement: Enable the Mobile Push Notifications add-on for your key in the Admin Portal. See how to enable add-on features.
+Requires Mobile Push Notifications add-on. Enable for your key in the Admin Portal: https://admin.pubnub.com/. Learn more: https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-
+
+To learn more about Mobile Push Notifications: /docs/general/push/send
 
 ## Add a device to a push notifications channel
 
 Enable mobile push notifications on a set of channels.
 
 ### Method(s)
+
+Use the following method(s) in the Ruby SDK:
 
 ```
 `1pubnub.add_channels_to_push(  
@@ -25,18 +31,20 @@ Enable mobile push notifications on a set of channels.
 ```
 
 Parameters:
-- push_token (String) Device token.
-- push_gateway (String) Backend: gcm, apns2.
-- channel (String) Comma-separated channels to add.
-- topic (String) APNs topic (bundle identifier). Required if push_gateway is apns2.
-- environment (String) APNs environment. Required if push_gateway is apns2. Default: development. Accepted: development, production.
-- auth_key (String) Access Manager authorization key (if enabled).
-- http_sync (Boolean) If false, runs asynchronously and returns a Future. If true, returns an array of envelopes (even if one). Default: false.
-- callback (Lambda with one parameter) Callback for each returned envelope. For async calls, use Future#value to get the result.
+- push_token — Type: String. Device token.
+- push_gateway — Type: String. Backend to use. Accepted values: gcm, apns2.
+- channel — Type: String. Comma-separated channels to add.
+- topic — Type: String. APNs topic (bundle identifier). Required if push_gateway is apns2.
+- environment — Type: String. APNs environment. Required if push_gateway is apns2. Default: development. Accepted values: development, production.
+- auth_key — Type: String. Access Manager authorization key (if Access Manager is enabled).
+- http_sync — Type: Boolean. If false, runs asynchronously and returns a Future. If true, returns an array of envelopes (even if one). Default: false.
+- callback — Type: Lambda accepting one parameter. Callback for each returned envelope. For async calls, use Future#value to get the result.
 
 ### Sample code
 
 #### Add device to channel
+
+##### Reference code
 
 ```
 1require 'pubnub'  
@@ -91,7 +99,6 @@ Parameters:
 45if __FILE__ == $0  
 46  main  
 47end  
-
 ```
 
 ### Response
@@ -114,9 +121,11 @@ Parameters:
 
 ## List push notifications channels for a device
 
-List channels with push enabled for a given device token.
+List channels that have push notifications enabled for the specified device token.
 
 ### Method(s)
+
+Use the following method(s) in the Ruby SDK:
 
 ```
 `1pubnub.list_push_provisions(  
@@ -132,13 +141,13 @@ List channels with push enabled for a given device token.
 ```
 
 Parameters:
-- push_token (String) Device token.
-- push_gateway (String) Backend: gcm, apns2.
-- topic (String) APNs topic (bundle identifier). Required if push_gateway is apns2.
-- environment (String) APNs environment. Required if push_gateway is apns2. Default: development. Accepted: development, production.
-- auth_key (String) Access Manager authorization key (if enabled).
-- http_sync (Boolean) If false, runs asynchronously and returns a Future. If true, returns an array of envelopes. Default: false.
-- callback (Lambda with one parameter) Callback for each returned envelope. For async calls, use Future#value.
+- push_token — Type: String. Device token.
+- push_gateway — Type: String. Backend to use. Accepted values: gcm, apns2.
+- topic — Type: String. APNs topic (bundle identifier). Required if push_gateway is apns2.
+- environment — Type: String. APNs environment. Required if push_gateway is apns2. Default: development. Accepted values: development, production.
+- auth_key — Type: String. Access Manager authorization key (if Access Manager is enabled).
+- http_sync — Type: Boolean. If false, runs asynchronously and returns a Future. If true, returns an array of envelopes. Default: false.
+- callback — Type: Lambda accepting one parameter. Callback for each returned envelope. For async calls, use Future#value.
 
 ### Sample code
 
@@ -163,7 +172,6 @@ Parameters:
 15) do |envelope|  
 16    puts envelope  
 17end  
-
 ```
 
 ### Response
@@ -190,20 +198,22 @@ Disable mobile push notifications on a set of channels.
 
 ### Method(s)
 
+Use the following method(s) in the Ruby SDK:
+
 ```
 `1pubnub.remove_channels_from_push(push_token: push_token, push_gateway: push_gateway, channel: channel, topic: topic, environment: environment, auth_key: auth_key, http_sync: http_sync, callback: callback)  
 `
 ```
 
 Parameters:
-- push_token (String) Device token.
-- push_gateway (String) Backend: gcm, apns2.
-- channel (String) Comma-separated channels to remove.
-- topic (String) APNs topic (bundle identifier). Required if push_gateway is apns2.
-- environment (String) APNs environment. Required if push_gateway is apns2. Default: development. Accepted: development, production.
-- auth_key (String) Access Manager authorization key (if enabled).
-- http_sync (Boolean) If false, runs asynchronously and returns a Future. If true, returns an array of envelopes. Default: false.
-- callback (Lambda with one parameter) Callback for each returned envelope. For async calls, use Future#value.
+- push_token — Type: String. Device token.
+- push_gateway — Type: String. Backend to use. Accepted values: gcm, apns2.
+- channel — Type: String. Comma-separated channels to remove.
+- topic — Type: String. APNs topic (bundle identifier). Required if push_gateway is apns2.
+- environment — Type: String. APNs environment. Required if push_gateway is apns2. Default: development. Accepted values: development, production.
+- auth_key — Type: String. Access Manager authorization key (if Access Manager is enabled).
+- http_sync — Type: Boolean. If false, runs asynchronously and returns a Future. If true, returns an array of envelopes. Default: false.
+- callback — Type: Lambda accepting one parameter. Callback for each returned envelope. For async calls, use Future#value.
 
 ### Sample code
 
@@ -230,7 +240,6 @@ Parameters:
 17) do |envelope|  
 18    puts envelope  
 19end  
-
 ```
 
 ### Response
@@ -253,9 +262,11 @@ Parameters:
 
 ## Remove a device from all push notifications channels
 
-Disable mobile push notifications from all channels for a device token.
+Disable mobile push notifications from all channels registered with the specified device token.
 
 ### Method(s)
+
+Use the following method(s) in the Ruby SDK:
 
 ```
 `1pubnub.remove_device_from_push(  
@@ -271,13 +282,13 @@ Disable mobile push notifications from all channels for a device token.
 ```
 
 Parameters:
-- push_token (String) Device token.
-- push_gateway (String) Backend: gcm, apns2.
-- topic (String) APNs topic (bundle identifier). Required if push_gateway is apns2.
-- environment (String) APNs environment. Required if push_gateway is apns2. Default: development. Accepted: development, production.
-- auth_key (String) Access Manager authorization key (if enabled).
-- http_sync (Boolean) If false, runs asynchronously and returns a Future. If true, returns an array of envelopes. Default: false.
-- callback (Lambda with one parameter) Callback for each returned envelope. For async calls, use Future#value.
+- push_token — Type: String. Device token.
+- push_gateway — Type: String. Backend to use. Accepted values: gcm, apns2.
+- topic — Type: String. APNs topic (bundle identifier). Required if push_gateway is apns2.
+- environment — Type: String. APNs environment. Required if push_gateway is apns2. Default: development. Accepted values: development, production.
+- auth_key — Type: String. Access Manager authorization key (if Access Manager is enabled).
+- http_sync — Type: Boolean. If false, runs asynchronously and returns a Future. If true, returns an array of envelopes. Default: false.
+- callback — Type: Lambda accepting one parameter. Callback for each returned envelope. For async calls, use Future#value.
 
 ### Sample code
 
@@ -302,7 +313,6 @@ Parameters:
 15) do |envelope|  
 16    puts envelope  
 17end  
-
 ```
 
 ### Response

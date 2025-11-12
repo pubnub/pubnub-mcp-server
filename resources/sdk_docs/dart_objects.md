@@ -1,14 +1,12 @@
 # App Context API for Dart SDK
 
-App Context (formerly Objects v2) provides serverless storage for user and channel metadata and their membership associations. PubNub emits real-time events when object data changes.
-
-Refer to the migration guide for upgrading from Objects v1.
+App Context (formerly Objects v2) provides serverless storage for user and channel metadata and their membership associations, with real-time events on changes. To upgrade from Objects v1, see the migration guide.
 
 ## User
 
 ### Get metadata for all users
 
-Returns a paginated list of UUID Metadata objects, optionally including the custom data object.
+Returns a paginated list of UUID Metadata objects, optionally including custom data.
 
 #### Method(s)
 
@@ -29,20 +27,22 @@ Returns a paginated list of UUID Metadata objects, optionally including the cust
 `
 ```
 
-Parameters:
-- includeCustomFields (bool, default: false) Include Custom in response.
-- limit (int, default: 100, max: 100) Number of objects to return.
-- start (String) Forward cursor for pagination.
-- end (String) Backward cursor for pagination.
-- includeCount (bool, default: false) Include total count in paginated response.
-- includeStatus (bool, default: true) Include status in response.
-- includeType (bool, default: true) Include type in response.
-- filter (String) Filter expression. See filtering guide.
-- sort (Set<String>) Sort by id, name, updated with asc/desc (example: {name: 'asc'}).
-- keyset (Keyset) Override default keyset configuration.
-- using (String) Keyset name from keysetStore to use.
+Parameters
+- includeCustomFields (bool, Default: false): Include Custom object in response.
+- limit (int, Default: 100): Number of objects to return. Default/Max: 100.
+- start (String): Cursor for forward pagination.
+- end (String): Cursor for backward pagination.
+- includeCount (bool, Default: true): Whether to include total count (note: text says default is false).
+- includeStatus (bool, Default: true): Include status object.
+- includeType (bool, Default: true): Include type object.
+- filter (String, Default: null): Filter expression. See filtering guide.
+- sort (Set<String>): Sort by id, name, updated with asc/desc (for example, {name: 'asc'}).
+- keyset (Keyset): Override PubNub default keyset configuration.
+- using (String): Keyset name from keysetStore for this call.
 
 #### Sample code
+
+Reference code
 
 ```
 1import 'package:pubnub/pubnub.dart';  
@@ -75,6 +75,7 @@ Parameters:
 25    print('Failed to get all UUID metadata: $e');  
 26  }  
 27}  
+
 ```
 
 #### Response
@@ -112,7 +113,7 @@ Parameters:
 
 ### Get user metadata
 
-Returns metadata for a specified UUID.
+Returns metadata for the specified UUID, optionally including custom data.
 
 #### Method(s)
 
@@ -129,13 +130,13 @@ Returns metadata for a specified UUID.
 `
 ```
 
-Parameters:
-- uuid (String, default: UUID from default keyset) UUID to fetch.
-- keyset (Keyset) Override default keyset configuration.
-- using (String) Keyset name from keysetStore to use.
-- includeCustomFields (bool, default: false) Include Custom in response.
-- includeStatus (bool, default: true) Include status in response.
-- includeType (bool, default: true) Include type in response.
+Parameters
+- uuid (String, Default: defaultKeyset UUID): UUID to fetch. Uses configured UUID if not supplied.
+- keyset (Keyset): Override default keyset.
+- using (String): Keyset name from keysetStore.
+- includeCustomFields (bool, Default: false): Include Custom object.
+- includeStatus (bool, Default: true): Include status object.
+- includeType (bool, Default: true): Include type object.
 
 #### Sample code
 
@@ -164,13 +165,9 @@ Parameters:
 
 ### Set user metadata
 
-Set metadata for a UUID, optionally including custom data.
+Sets metadata for a UUID, optionally including custom data.
 
-Unsupported partial updates of custom metadata:
-- The custom field overwrites existing data. To merge:
-  1) Get the current UUID metadata.
-  2) Merge your changes locally into the custom object.
-  3) Write back using setUUIDMetadata.
+Note: Custom metadata overwrites previous value. To append/modify custom data, read the current object, merge your changes locally, and write back.
 
 #### Method(s)
 
@@ -196,19 +193,20 @@ Unsupported partial updates of custom metadata:
 18  String? status;  
 19  String? type;  
 20}  
+
 ```
 
-Parameters:
-- uuidMetadataInput (UuidMetadataInput) UUID metadata details. Filtering by custom is not supported.
-- uuid (String, default: UUID from default keyset) UUID to set.
-- includeCustomFields (bool, default: false) Include Custom in response.
-- includeStatus (bool, default: true) Include status in response.
-- includeType (bool, default: true) Include type in response.
-- ifMatchesEtag (String?) Use eTag for conditional update; mismatches return HTTP 412.
-- keyset (Keyset) Override default keyset configuration.
-- using (String) Keyset name from keysetStore to use.
+Parameters
+- uuidMetadataInput (UuidMetadataInput): UUID metadata details. App Context filtering doesn’t support filtering by custom properties.
+- uuid (String, Default: defaultKeyset UUID): UUID to set. Uses configured UUID if not supplied.
+- includeCustomFields (bool, Default: false): Include Custom object in response.
+- includeStatus (bool, Default: true): Include status object.
+- includeType (bool, Default: true): Include type object.
+- ifMatchesEtag (String?): Use eTag from a get call to ensure conditional updates; mismatched eTags return HTTP 412.
+- keyset (Keyset): Override default keyset.
+- using (String): Keyset name from keysetStore.
 
-API limits: See REST API docs for parameter limits.
+API limits: See REST API docs for maximum parameter lengths.
 
 #### Sample code
 
@@ -241,7 +239,7 @@ API limits: See REST API docs for parameter limits.
 
 ### Remove user metadata
 
-Removes metadata for a specified UUID.
+Removes metadata from a specified UUID.
 
 #### Method(s)
 
@@ -254,10 +252,10 @@ Removes metadata for a specified UUID.
 `
 ```
 
-Parameters:
-- uuid (String, default: UUID from default keyset) UUID to remove.
-- keyset (Keyset) Override default keyset configuration.
-- using (String) Keyset name from keysetStore to use.
+Parameters
+- uuid (String): UUID to remove. Uses configured UUID if not supplied.
+- keyset (Keyset): Override default keyset.
+- using (String): Keyset name from keysetStore.
 
 #### Sample code
 
@@ -268,13 +266,13 @@ Parameters:
 
 #### Response
 
-Returns RemoveUuidMetadataResult without actionable data; errors throw exceptions.
+removeUUIDMetadata() returns RemoveUuidMetadataResult with no actionable data; errors throw an exception.
 
 ## Channel
 
 ### Get metadata for all channels
 
-Returns a paginated list of Channel Metadata objects, optionally including the custom data object.
+Returns a paginated list of Channel Metadata objects, optionally including custom data.
 
 #### Method(s)
 
@@ -295,18 +293,18 @@ Returns a paginated list of Channel Metadata objects, optionally including the c
 `
 ```
 
-Parameters:
-- limit (int, default: 100, max: 100) Number of objects to return.
-- start (String) Forward cursor for pagination.
-- end (String) Backward cursor for pagination (ignored if start is provided).
-- includeCustomFields (bool, default: false) Include Custom in response.
-- includeCount (bool, default: false) Include total count in paginated response.
-- includeStatus (bool, default: true) Include status in response.
-- includeType (bool, default: true) Include type in response.
-- filter (String) Filter expression. See filtering guide.
-- sort (Set<String>) Sort by id, name, updated with asc/desc.
-- keyset (Keyset) Override default keyset configuration.
-- using (String) Keyset name from keysetStore to use.
+Parameters
+- limit (int, Default: 100): Number of objects per page. Default/Max: 100.
+- start (String): Cursor for next page (forward pagination).
+- end (String): Cursor for previous page (backward pagination). Ignored if start is supplied.
+- includeCustomFields (bool, Default: false): Include Custom object.
+- includeCount (bool, Default: true): Include total count (note: text says default is false).
+- includeStatus (bool, Default: true): Include status object.
+- includeType (bool, Default: true): Include type object.
+- filter (String, Default: null): Filter expression. See filtering.
+- sort (Set<String>): Sort by id, name, updated with asc/desc.
+- keyset (Keyset): Override default keyset.
+- using (String): Keyset name from keysetStore.
 
 #### Sample code
 
@@ -350,7 +348,7 @@ Parameters:
 
 ### Get channel metadata
 
-Returns metadata for a specified channel.
+Returns metadata for a specified channel, optionally including custom data.
 
 #### Method(s)
 
@@ -366,13 +364,13 @@ Returns metadata for a specified channel.
 `
 ```
 
-Parameters:
-- channelId (String) Channel name.
-- keyset (Keyset) Override default keyset configuration.
-- using (String) Keyset name from keysetStore to use.
-- includeCustomFields (bool, default: false) Include Custom in response.
-- includeStatus (bool, default: true) Include status in response.
-- includeType (bool, default: true) Include type in response.
+Parameters
+- channelId (String): Channel name.
+- keyset (Keyset): Override default keyset.
+- using (String): Keyset name from keysetStore.
+- includeCustomFields (bool, Default: false): Include Custom object.
+- includeStatus (bool, Default: true): Include status object.
+- includeType (bool, Default: true): Include type object.
 
 #### Sample code
 
@@ -399,13 +397,9 @@ Parameters:
 
 ### Set channel metadata
 
-Set metadata for a channel, optionally including custom data.
+Sets metadata for a channel, optionally including custom data.
 
-Unsupported partial updates of custom metadata:
-- The custom field overwrites existing data. To merge:
-  1) Get the current channel metadata (includeCustomFields: true).
-  2) Merge your changes locally into the custom object.
-  3) Write back using setChannelMetadata.
+Note: Custom metadata overwrites previous value. To append/modify custom data, read the current object, merge locally, and write back.
 
 #### Method(s)
 
@@ -429,19 +423,20 @@ Unsupported partial updates of custom metadata:
 16  String? status;  
 17  String? type;  
 18}  
+
 ```
 
-Parameters:
-- channelId (String) Channel name.
-- channelMetadataInput (ChannelMetadataInput) Channel metadata details. Filtering by Custom isn’t supported.
-- includeCustomFields (bool, default: false) Include Custom in response.
-- includeStatus (bool, default: true) Include status in response.
-- includeType (bool, default: true) Include type in response.
-- ifMatchesEtag (String?) Use eTag for conditional update; mismatches return HTTP 412.
-- keyset (Keyset) Override default keyset configuration.
-- using (String) Keyset name from keysetStore to use.
+Parameters
+- channelId (String): Channel name.
+- channelMetadataInput (ChannelMetadataInput): Channel metadata details. Filtering by Custom isn’t supported.
+- includeCustomFields (bool, Default: false): Include Custom field in response.
+- includeStatus (bool, Default: true): Include status object.
+- includeType (bool, Default: true): Include type object.
+- ifMatchesEtag (String?): Conditional update using eTag; mismatched eTags return HTTP 412.
+- keyset (Keyset): Override default keyset.
+- using (String): Keyset name from keysetStore.
 
-API limits: See REST API docs for parameter limits.
+API limits: See REST API docs for maximum parameter lengths.
 
 #### Sample code
 
@@ -472,7 +467,7 @@ API limits: See REST API docs for parameter limits.
 
 #### Other examples
 
-Iteratively update existing metadata:
+Iteratively update existing metadata
 
 ```
 1import 'dart:async';  
@@ -530,6 +525,7 @@ Iteratively update existing metadata:
 47      print('An error occurred: ${e.message}');  
 48    }  
 49}  
+
 ```
 
 ### Remove channel metadata
@@ -547,10 +543,10 @@ Removes metadata for a specified channel.
 `
 ```
 
-Parameters:
-- channelID (String) Channel name.
-- keyset (Keyset) Override default keyset configuration.
-- using (String) Keyset name from keysetStore to use.
+Parameters
+- channelID (String): Channel name.
+- keyset (Keyset): Override default keyset.
+- using (String): Keyset name from keysetStore.
 
 #### Sample code
 
@@ -561,7 +557,7 @@ Parameters:
 
 #### Response
 
-Returns RemoveChannelMetadataResult without actionable data; errors throw exceptions.
+removeChannelMetadata() returns RemoveChannelMetadataResult with no actionable data; errors throw an exception.
 
 ## Channel memberships
 
@@ -591,21 +587,21 @@ Returns a list of channel memberships for a user (not subscriptions).
 `
 ```
 
-Parameters:
-- uuid (String, default: UUID from default keyset) UUID to fetch memberships for.
-- limit (int, default: 100, max: 100)
-- start (String) Forward cursor.
-- end (String) Backward cursor.
-- includeCustomFields (bool, default: false) Include membership Custom in response.
-- includeChannelFields (bool, default: false) Include channel metadata fields.
-- includeChannelCustomFields (bool, default: false) Include channel custom fields.
-- includeChannelStatus (bool, default: true) Include channel status.
-- includeChannelType (bool, default: true) Include channel type.
-- includeCount (bool, default: false) Include total count.
-- filter (String) Filter expression. See filtering guide.
-- sort (Set<String>) Sort by id, name, updated with asc/desc.
-- keyset (Keyset) Override default keyset.
-- using (String) Keyset name from keysetStore.
+Parameters
+- uuid (String, Default: defaultKeyset UUID): UUID to query; uses configured UUID if not supplied.
+- limit (Int, Default: 100): Number of objects to return. Default/Max: 100.
+- start (String): Cursor-based pagination.
+- end (String): Cursor-based pagination.
+- includeCustomFields (bool, Default: false): Include Custom object.
+- includeChannelFields (bool, Default: false): Include channel metadata fields.
+- includeCustomChannelFields (bool, Default: false): Include channel custom fields.
+- includeChannelStatus (bool, Default: true): Include channel status object.
+- includeChannelType (bool, Default: true): Include channel type object.
+- includeCount (bool, Default: false): Include total count (note: signature shows default true).
+- filter (String, Default: null): Filter expression. See filtering.
+- sort (Set<String>): Sort by id, name, updated with asc/desc.
+- keyset (Keyset): Override default keyset.
+- using (String): Keyset name from keysetStore.
 
 #### Sample code
 
@@ -660,7 +656,7 @@ Parameters:
 
 ### Set channel memberships
 
-Set channel memberships for a UUID.
+Sets channel memberships for a UUID.
 
 #### Method(s)
 
@@ -690,26 +686,29 @@ Set channel memberships for a UUID.
 22  String channelId;  
 23  MapString, dynamic>? custom;  
 24}  
+
 ```
 
-Parameters:
-- setMetadata (List<MembershipMetadataInput>) Memberships to set.
-- uuid (String, default: UUID from default keyset)
-- limit (int, default: 100, max: 100)
-- start (String), end (String) Pagination cursors.
-- includeCustomFields (bool, default: false) Include membership Custom.
-- includeChannelFields (bool, default: false) Include channel metadata fields.
-- includeChannelCustomFields (bool, default: false)
-- includeChannelStatus (bool, default: true)
-- includeChannelType (bool, default: true)
-- includeStatus (bool, default: true)
-- includeType (bool, default: true)
-- includeCount (bool, default: false)
-- filter (String) See filtering guide.
-- sort (Set<String>) Sort by id, name, updated with asc/desc.
-- keyset (Keyset), using (String)
+Parameters
+- setMetadata (List<MembershipMetadataInput>): Memberships to set.
+- uuid (String, Default: defaultKeyset UUID): UUID to update; uses configured UUID if not supplied.
+- limit (Int, Default: 100): Number of objects per page.
+- start (String): Cursor-based pagination.
+- end (String): Backward pagination cursor; ignored if start supplied.
+- includeCustomFields (bool, Default: false): Include Custom field in response.
+- includeChannelFields (bool, Default: false): Include channel metadata fields.
+- includeCustomChannelFields (bool, Default: false): Include channel custom fields.
+- includeChannelStatus (bool, Default: true): Include channel status.
+- includeChannelType (bool, Default: true): Include channel type.
+- includeStatus (bool, Default: true): Include status object.
+- includeType (bool, Default: true): Include type object.
+- includeCount (bool, Default: false): Include total count (note: signature shows default true).
+- filter (String, Default: null): Filter expression. See filtering.
+- sort (Set<String>): Sort by id, name, updated with asc/desc.
+- keyset (Keyset): Override default keyset.
+- using (String): Keyset name from keysetStore.
 
-API limits: See REST API docs for parameter limits.
+API limits: See REST API docs for maximum parameter lengths.
 
 #### Sample code
 
@@ -721,6 +720,7 @@ API limits: See REST API docs for parameter limits.
   
 5  var result = await pubnub.objects  
 6      .setMemberships(setMetadata, includeChannelFields: true);  
+
 ```
 
 #### Response
@@ -769,7 +769,7 @@ API limits: See REST API docs for parameter limits.
 
 ### Remove channel memberships
 
-Remove channel memberships for a UUID.
+Removes channel memberships for a UUID.
 
 #### Method(s)
 
@@ -796,22 +796,24 @@ Remove channel memberships for a UUID.
 `
 ```
 
-Parameters:
-- channelIds (Set<String>) Channels to remove from membership.
-- uuid (String, default: UUID from default keyset)
-- limit (int, default: 100, max: 100)
-- start/end (String) Pagination cursors.
-- includeCustomFields (bool, default: false)
-- includeChannelFields (bool, default: false)
-- includeChannelCustomFields (bool, default: false)
-- includeChannelStatus (bool, default: true)
-- includeChannelType (bool, default: true)
-- includeStatus (bool, default: true)
-- includeType (bool, default: true)
-- includeCount (bool, default: false)
-- filter (String) See filtering guide.
-- sort (Set<String>)
-- keyset (Keyset), using (String)
+Parameters
+- channelIds (Set<String>): Channels to remove from membership.
+- uuid (String): UUID to update; uses configured UUID if not supplied.
+- limit (Int, Default: 100): Number of objects per page.
+- start (String): Cursor-based pagination.
+- end (String): Cursor-based pagination.
+- includeCustomFields (bool, Default: false): Include Custom field.
+- includeChannelFields (bool, Default: false): Include channel metadata fields.
+- includeCustomChannelFields (bool, Default: false): Include channel custom fields.
+- includeChannelStatus (bool, Default: true): Include channel status.
+- includeChannelType (bool, Default: true): Include channel type.
+- includeStatus (bool, Default: true): Include status object.
+- includeType (bool, Default: true): Include type object.
+- includeCount (bool, Default: false): Include total count (note: signature shows default true).
+- filter (String, Default: null): Filter expression. See filtering.
+- sort (Set<String>): Sort by id, name, updated with asc/desc.
+- keyset (Keyset): Override default keyset.
+- using (String): Keyset name from keysetStore.
 
 #### Sample code
 
@@ -821,6 +823,7 @@ Parameters:
   
 3  // for other uuid  
 4  var result = await pubnub.objects.removeMemberships({'my_channel'}, uuid: 'uuid1');  
+
 ```
 
 #### Response
@@ -869,7 +872,7 @@ Parameters:
 
 ### Manage channel memberships
 
-Manage a user's channel memberships (set and remove in one call).
+Adds and removes memberships for a user in a single call.
 
 #### Method(s)
 
@@ -900,25 +903,28 @@ Manage a user's channel memberships (set and remove in one call).
 23  String channelId;  
 24  MapString, dynamic>? custom;  
 25}  
+
 ```
 
-Parameters:
-- setMetadata (List<MembershipMetadataInput>) Memberships to set.
-- removeChannelIds (Set<String>) Channels to remove from membership.
-- uuid (String, default: UUID from default keyset)
-- limit (int, default: 100, max: 100)
-- start/end (String) Pagination cursors.
-- includeCustomFields (bool, default: false)
-- includeChannelFields (bool, default: false)
-- includeChannelCustomFields (bool, default: false)
-- includeChannelStatus (bool, default: true)
-- includeChannelType (bool, default: true)
-- includeStatus (bool, default: true)
-- includeType (bool, default: true)
-- includeCount (bool, default: false)
-- filter (String) See filtering guide.
-- sort (Set<String>)
-- keyset (Keyset), using (String)
+Parameters
+- setMetadata (List<MembershipMetadataInput>): Memberships to set.
+- channelIds (Set<String>): Channels to remove from membership.
+- uuid (String): UUID to update; uses configured UUID if not supplied.
+- limit (Int, Default: 100): Number of objects per page.
+- start (String): Cursor-based pagination.
+- end (String): Cursor-based pagination.
+- includeCustomFields (bool, Default: false): Include Custom object.
+- includeChannelFields (bool, Default: false): Include channel metadata fields.
+- includeCustomChannelFields (bool, Default: false): Include channel custom fields.
+- includeChannelStatus (bool, Default: true): Include channel status.
+- includeChannelType (bool, Default: true): Include channel type.
+- includeStatus (bool, Default: true): Include status object.
+- includeType (bool, Default: true): Include type object.
+- includeCount (bool, Default: false): Include total count.
+- filter (String, Default: null): Filter expression. See filtering.
+- sort (Set<String>): Sort by id, name, updated with asc/desc.
+- keyset (Keyset): Override default keyset.
+- using (String): Keyset name from keysetStore.
 
 #### Sample code
 
@@ -979,7 +985,7 @@ Parameters:
 
 ### Get channel members
 
-Returns a list of members in a channel. Includes user metadata when available.
+Returns a list of members in a channel, including user metadata where available.
 
 #### Method(s)
 
@@ -1005,21 +1011,23 @@ Returns a list of members in a channel. Includes user metadata when available.
 `
 ```
 
-Parameters:
-- channelId (String) Channel name.
-- limit (int, default: 100, max: 100)
-- start/end (String) Pagination cursors.
-- includeCustomFields (bool, default: false) Include membership Custom.
-- includeUUIDFields (bool, default: false) Include user metadata fields.
-- includeUUIDCustomFields (bool, default: false) Include user custom fields.
-- includeUUIDStatus (bool, default: true)
-- includeUUIDType (bool, default: true)
-- includeStatus (bool, default: true)
-- includeType (bool, default: true)
-- includeCount (bool, default: false)
-- filter (String) See filtering guide.
-- sort (Set<String>)
-- keyset (Keyset), using (String)
+Parameters
+- channelId (String): Channel name.
+- limit (Int, Default: 100): Number of objects per page.
+- start (String): Cursor-based pagination.
+- end (String): Cursor-based pagination.
+- includeCustomFields (bool, Default: false): Include Custom object in response.
+- includeUUIDFields (bool, Default: false): Include additional UUID fields.
+- includeUUIDCustomFields (bool, Default: false): Include additional UUID custom fields.
+- includeUUIDStatus (bool, Default: true): Include user status object.
+- includeUUIDType (bool, Default: true): Include user type object.
+- includeStatus (bool, Default: true): Include status object.
+- includeType (bool, Default: true): Include type object.
+- includeCount (bool, Default: false): Include total count (note: signature shows default true).
+- filter (String, Default: null): Filter expression. See filtering.
+- sort (Set<String>): Sort by id, name, updated with asc/desc.
+- keyset (Keyset): Override default keyset.
+- using (String): Keyset name from keysetStore.
 
 #### Sample code
 
@@ -1109,26 +1117,29 @@ Sets members in a channel.
 24  String? status;  
 25  String type;  
 26}  
+
 ```
 
-Parameters:
-- channelId (String) Channel name.
-- setMetadata (List<ChannelMemberMetadataInput>) Metadata to add.
-- limit (int, default: 100, max: 100)
-- start/end (String) Pagination cursors.
-- includeCustomFields (bool, default: false)
-- includeUUIDFields (bool, default: false)
-- includeUUIDCustomFields (bool, default: false)
-- includeUUIDStatus (bool, default: true)
-- includeUUIDType (bool, default: true)
-- includeStatus (bool, default: true)
-- includeType (bool, default: true)
-- includeCount (bool, default: false)
-- filter (String) See filtering guide.
-- sort (Set<String>)
-- keyset (Keyset), using (String)
+Parameters
+- channelId (String): Channel name.
+- setMetadata (ChannelMemberMetadataInput): Metadata to be added.
+- limit (Int, Default: 100): Number of objects per page.
+- start (String): Cursor-based pagination.
+- end (String): Cursor-based pagination.
+- includeCustomFields (bool, Default: false): Include Custom object.
+- includeUUIDFields (bool, Default: false): Include additional UUID fields.
+- includeUUIDCustomFields (bool, Default: false): Include additional UUID custom fields.
+- includeUUIDStatus (bool, Default: true): Include user status object.
+- includeUUIDType (bool, Default: true): Include user type object.
+- includeStatus (bool, Default: true): Include status object.
+- includeType (bool, Default: true): Include type object.
+- includeCount (bool, Default: false): Include total count.
+- filter (String, Default: null): Filter expression. See filtering.
+- sort (Set<String>): Sort by id, name, updated with asc/desc.
+- keyset (Keyset): Override default keyset.
+- using (String): Keyset name from keysetStore.
 
-API limits: See REST API docs for parameter limits.
+API limits: See REST API docs for maximum parameter lengths.
 
 #### Sample code
 
@@ -1217,22 +1228,24 @@ Removes members from a channel.
 `
 ```
 
-Parameters:
-- channelId (String) Channel name.
-- uuids (Set<String>) UUIDs to remove.
-- limit (int, default: 100, max: 100)
-- start/end (String) Pagination cursors.
-- includeCustomFields (bool, default: false)
-- includeUUIDFields (bool, default: false)
-- includeUUIDCustomFields (bool, default: false)
-- includeUUIDStatus (bool, default: true)
-- includeUUIDType (bool, default: true)
-- includeStatus (bool, default: true)
-- includeType (bool, default: true)
-- includeCount (bool, default: false)
-- filter (String) See filtering guide.
-- sort (Set<String>)
-- keyset (Keyset), using (String)
+Parameters
+- channelId (String): Channel name.
+- uuids (Set<String>): UUIDs to remove.
+- limit (Int, Default: 100): Number of objects per page.
+- start (String): Cursor for forward pagination.
+- end (String): Cursor-based pagination.
+- includeCustomFields (bool, Default: false): Include Custom object.
+- includeUUIDFields (bool, Default: false): Include additional UUID fields.
+- includeUUIDCustomFields (bool, Default: false): Include additional UUID custom fields.
+- includeUUIDStatus (bool, Default: true): Include user status object.
+- includeUUIDType (bool, Default: true): Include user type object.
+- includeStatus (bool, Default: true): Include status object.
+- includeType (bool, Default: true): Include type object.
+- includeCount (bool, Default: false): Include total count.
+- filter (String, Default: null): Filter expression. See filtering.
+- sort (Set<String>): Sort by id, name, updated with asc/desc.
+- keyset (Keyset): Override default keyset.
+- using (String): Keyset name from keysetStore.
 
 #### Sample code
 
@@ -1291,7 +1304,7 @@ Parameters:
 
 ### Manage channel members
 
-Set and remove channel members in a single call.
+Sets and removes channel members in one call.
 
 #### Method(s)
 
@@ -1324,25 +1337,28 @@ Set and remove channel members in a single call.
 25  String? status;  
 26  String type;  
 27}  
+
 ```
 
-Parameters:
-- channelId (String) Channel name.
-- setMetadata (List<ChannelMemberMetadataInput>) Metadata to set.
-- removeMemberUuids (Set<String>) UUIDs to remove.
-- limit (int, default: 100, max: 100)
-- start/end (String) Pagination cursors.
-- includeCustomFields (bool, default: false)
-- includeUUIDFields (bool, default: false)
-- includeUUIDCustomFields (bool, default: false)
-- includeUUIDStatus (bool, default: true)
-- includeUUIDType (bool, default: true)
-- includeStatus (bool, default: true)
-- includeType (bool, default: true)
-- includeCount (bool, default: false)
-- filter (String) See filtering guide.
-- sort (Set<String>)
-- keyset (Keyset), using (String)
+Parameters
+- channelId (String): Channel name.
+- setMetadata (List<ChannelMemberMetadataInput>): Metadata to set.
+- removeMemberUuids (Set<String>): UUIDs to remove.
+- limit (Int, Default: 100): Number of objects per page.
+- start (String): Cursor for next page (forward pagination).
+- end (String): Cursor for previous page (backward pagination).
+- includeCustomFields (bool, Default: false): Include Custom field.
+- includeUUIDFields (bool, Default: false): Include UUID metadata fields.
+- includeUUIDCustomFields (bool, Default: false): Include UUID custom fields.
+- includeUUIDStatus (bool, Default: true): Include user status object.
+- includeUUIDType (bool, Default: true): Include user type object.
+- includeStatus (bool, Default: true): Include status object.
+- includeType (bool, Default: true): Include type object.
+- includeCount (bool, Default: false): Include total count (note: signature shows default true).
+- filter (String, Default: null): Filter expression. See filtering.
+- sort (Set<String>): Sort by id, name, updated with asc/desc.
+- keyset (Keyset): Override default keyset.
+- using (String): Keyset name from keysetStore.
 
 #### Sample code
 

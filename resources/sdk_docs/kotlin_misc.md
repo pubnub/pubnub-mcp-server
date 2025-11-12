@@ -1,240 +1,234 @@
 # Utility Methods API for Kotlin SDK
 
 ##### Breaking changes in v9.0.0
-- Kotlin SDK v9.0.0 unifies Java/Kotlin codebases, changes client instantiation, async callbacks, and emitted status events.
-- May impact apps built with versions < 9.0.0.
-- See Java/Kotlin SDK migration guide and status events docs.
+Kotlin SDK v9.0.0 unifies Kotlin and Java SDKs, introduces a new client instantiation model, and changes async callbacks and status events. Apps built with versions < 9.0.0 may be impacted. See the Java/Kotlin SDK migration guide.
 
 ##### Request execution
-Most SDK methods return an Endpoint object. You must call .sync() or .async() to execute.
+Most methods return an Endpoint. You must call `.sync()` or `.async()` to execute.
 
 ```
-val channel = pubnub.channel("channelName")
-
-channel.publish("This SDK rules!").async { result ->
-    result.onFailure { exception ->
-        // Handle error
-    }.onSuccess { value ->
-        // Handle successful method result
-    }
-}
+1val channel = pubnub.channel("channelName")  
+2
+  
+3channel.publish("This SDK rules!").async { result ->  
+4    result.onFailure { exception ->  
+5        // Handle error  
+6    }.onSuccess { value ->  
+7        // Handle successful method result  
+8    }  
+9}  
 ```
 
 ## Create push payload
-
-Build a push payload for use with publish.
+Create a push payload for use with publish endpoints.
 
 ### Method(s)
-
 ```
-val pushPayloadHelper = PushPayloadHelper()
-
-val fcmPayloadV2 = FCMPayloadV2()
-val apnsPayload = APNSPayload()
-
-pushPayloadHelper.fcmPayloadV2 = fcmPayloadV2
-pushPayloadHelper.apnsPayload = apnsPayload
+1val pushPayloadHelper = PushPayloadHelper()  
+2
+  
+3val fcmPayloadV2 = FCMPayloadV2()  
+4val apnsPayload = APNSPayload()  
+5
+  
+6pushPayloadHelper.fcmPayloadV2 = fcmPayloadV2  
+7pushPayloadHelper.apnsPayload = apnsPayload  
 ```
 
-Parameters:
-- apnsPayload (APNSPayload): Set APNS/APNS2 payload (under pn_apns).
-- fcmPayloadV2 (FCMPayloadV2): Set FCM V2 payload (under pn_fcm).
-- commonPayload (Map<String, Any>): Set fields delivered to native PubNub subscribers along with pn_apns and pn_fcm.
-- build(): Map<String, Any> — builds payload from set values.
+- apnsPayload — Type: APNSPayload. APNS/APNS2 payload set under pn_apns.
+- fcmPayloadV2 — Type: FCMPayloadV2. FCM V2 payload set under pn_fcm.
+- commonPayload — Type: Map<String, Any>. Common payload for native PubNub subscribers, merged with pn_apns and pn_fcm.
+- build — Type: Map<String, Any>. Builds the payload from values set above.
 
 ### Sample code
-
+##### Reference code
+#### Create push payload
 ```
-
+1
+  
 ```
 
 ### Response
-PushPayloadHelper.build() returns Map<String, Any> suitable for the message parameter of pubnub.publish().
+PushPayloadHelper#build() returns Map<String, Any>, which can be passed as the message argument to pubnub.publish().
 
 ## Destroy
-
 Frees threads for a clean exit.
 
 ### Method(s)
-
 ```
-fun destroy()
+`1destroy()  
+`
 ```
 
 ### Sample code
-
 ```
-
+1
+  
 ```
 
 ### Returns
-None.
+None
 
 ## Get subscribed channels groups
-
 Returns all subscribed channel groups.
 
 ### Method(s)
-
 ```
-fun getSubscribedChannelGroups(): List<String>
+`1fun getSubscribedChannelGroups(): ListString>  
+`
 ```
 
 ### Sample code
-
 ```
-
+1
+  
 ```
 
 ### Response
-
 ```
-["channel1", "channel2"]
+`1["channel1", "channel2"]  
+`
 ```
 
 ## Get subscribed channels
-
 Returns all subscribed channels.
 
 ### Method(s)
-
 ```
-fun getSubscribedChannels(): List<String>
+`1fun getSubscribedChannels(): ListString>  
+`
 ```
 
 ### Sample code
-
 ```
-
+1
+  
 ```
 
 ### Response
-
 ```
-["channel1", "channel2"]
+`1["channel1", "channel2"]  
+`
 ```
 
 ## Disconnect
-
-Stops all requests to PubNub when there are active subscribe channels.
+Stops all requests to PubNub when there are active subscriptions.
 
 ### Method(s)
-
 ```
-fun disconnect()
+`1disconnect()  
+`
 ```
-
-This method takes no arguments.
+No arguments.
 
 ### Sample code
-
 ```
-
+1
+  
 ```
 
 ## Reconnect
-
-Forces the SDK to try to reach PubNub.
+Forces the SDK to attempt reconnection.
 
 ### Method(s)
-
 ```
-fun reconnect(timeout: Long)
+`1reconnect(timeout: Long)  
+`
 ```
-
-Parameters:
-- timeout (Long): Timetoken to reconnect from.
+- timeout — Type: Long. Timetoken to reconnect from.
 
 ### Sample code
-
 ```
-
+1
+  
 ```
 
 ## Timetoken to date
-
 Convert a PubNub timetoken (100-ns intervals since 1970-01-01) to Instant.
 
 ### Method signature
-
 ```
-fun TimetokenUtil.timetokenToInstant(timetoken: Long): Instant
+`1TimetokenUtil.timetokenToInstant(timetoken: Long): Instant  
+`
 ```
 
-Input:
-- timetoken (Long): PubNub timetoken.
+#### Input
+- timetoken — Type: Long.
 
-Output:
-- Instant: Date/time representation.
+#### Output
+- Instant — Human-readable date representation.
 
 ### Sample code
-
+Convert 17276954606232118 to Instant.
 ```
-
+1
+  
 ```
 
 ## Date to timetoken
-
-Convert Instant to a PubNub timetoken.
+Convert an Instant to a PubNub timetoken.
 
 ### Method signature
-
 ```
-fun TimetokenUtil.instantToTimetoken(instant: Instant): Long
+`1TimetokenUtil.instantToTimetoken(instant: Instant): Long  
+`
 ```
 
-Input:
-- instant (Instant): Date/time to convert.
+#### Input
+- instant — Type: Instant.
 
-Output:
-- Long: Timetoken.
+#### Output
+- Long — Converted timetoken.
 
 ### Sample code
-
+Convert September 30, 2024 12:12:24 GMT to a timetoken.
 ```
-
+1
+  
 ```
 
 ## Unix timestamp to timetoken
-
-Convert a Unix timestamp (seconds since 1970-01-01) to a PubNub timetoken.
+Convert a Unix timestamp (ms since 1970-01-01) to a PubNub timetoken.
 
 ### Method signature
-
 ```
-fun TimetokenUtil.unixToTimetoken(unixTime: Long): Long
+`1TimetokenUtil.unixToTimetoken(unixTime: Long): Long   
+`
 ```
 
-Input:
-- unixTime (Long): Unix timestamp.
+#### Input
+- unixTime — Type: Long.
 
-Output:
-- Long: Timetoken.
+#### Output
+- Long — Converted timetoken.
 
 ### Sample code
-
+Convert 1727866935316 (2024-10-02 11:02:15.316) to a timetoken:
 ```
-
+1
+  
 ```
 
 ## Timetoken to Unix timestamp
-
-Convert a PubNub timetoken to a Unix timestamp (seconds since 1970-01-01).
+Convert a PubNub timetoken to a Unix timestamp.
 
 ### Method signature
-
 ```
-fun TimetokenUtil.timetokenToUnix(timetoken: Long): Long
+`1TimetokenUtil.timetokenToUnix(timetoken: Long): Long   
+`
 ```
 
-Input:
-- timetoken (Long): PubNub timetoken.
+#### Input
+- timetoken — Type: Long.
 
-Output:
-- Long: Unix timestamp.
+#### Output
+- Long — Converted Unix timestamp.
 
 ### Sample code
-
+Convert 17276954606232118 (2024-09-30 11:24:20.623211800) to Unix time:
+```
+1
+**
 ```
 
-```
+Last updated on Oct 15, 2025**

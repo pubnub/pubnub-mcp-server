@@ -1,6 +1,6 @@
 # Utility Methods API for Dart SDK
 
-Utility methods that don't fit other categories.
+Utility methods that don't fit into other categories.
 
 ## Pause
 
@@ -18,6 +18,7 @@ This method doesn't take any arguments.
 ### Sample code
 
 ##### Reference code
+
 ```
 1import 'package:pubnub/pubnub.dart';  
 2
@@ -47,11 +48,12 @@ This method doesn't take any arguments.
 22  subscription.pause();  
 23  print('Subscription paused.');  
 24}  
+
 ```
 
 ## Resume
 
-Force the SDK to try and reach out to PubNub again.
+Force the SDK to resume data transmission and reach PubNub.
 
 ### Method(s)
 
@@ -60,6 +62,8 @@ Force the SDK to try and reach out to PubNub again.
 `
 ```
 
+This method doesn't take any arguments.
+
 ### Sample code
 
 ```
@@ -67,19 +71,19 @@ Force the SDK to try and reach out to PubNub again.
 `
 ```
 
-This method doesn't take any arguments.
-
 ## Time
 
 Returns the current timetoken value from the PubNub network.
 
 ##### Algorithm constructing the timetoken
+
 ```
 `1timetoken = (Unix epoch time in seconds) * 10000000  
 `
 ```
 
 Example of creating a timetoken for a specific time and date:
+
 ```
 `108/19/2013 @ 9:20pm in UTC = 1376961606  
 2timetoken = 1376961606 * 10000000  
@@ -88,12 +92,14 @@ Example of creating a timetoken for a specific time and date:
 ```
 
 ### Method(s)
+
 ```
 `1time()  
 `
 ```
 
 ### Sample code
+
 ```
 `1var response = await pubnub.time();  
 `
@@ -101,5 +107,5 @@ Example of creating a timetoken for a specific time and date:
 
 ### Returns
 
-time() returns a Timetoken with:
-- value(): Type: int — current timetoken as an int.
+- Returns a Timetoken.
+- Timetoken.value(): int — current timetoken.

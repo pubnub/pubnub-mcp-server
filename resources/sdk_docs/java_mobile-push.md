@@ -1,14 +1,16 @@
 # Mobile Push Notifications API for Java SDK
 
 ##### Breaking changes in v9.0.0
-Java SDK v9.0.0 unifies Java/Kotlin SDKs, changes PubNub client instantiation, and updates asynchronous callbacks and emitted status events. See the Java/Kotlin SDK migration guide for details.
+PubNub Java SDK v9.0.0 unifies Java and Kotlin SDKs, changes client instantiation, and updates asynchronous callbacks and emitted status events. See the Java/Kotlin SDK migration guide for details:
+- https://www.pubnub.com/docs/general/resources/migration-guides/java-kotlin-sdk-migration-guide
 
-The Mobile Push Notifications feature connects PubNub to FCM (Android) and APNs (iOS). Learn more: Mobile Push Notifications.
+The Mobile Push Notifications feature connects native PubNub publishing to third-party push services (Google Android FCM and Apple iOS APNs). Learn more: https://www.pubnub.com/docs/general/push/send
+
+Requires Mobile Push Notifications add-on. Enable in Admin Portal: https://admin.pubnub.com/ (How to enable add-ons: https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-)
 
 ## Add a device to a push notifications channel
 
 ##### Requires Mobile Push Notifications add-on
-Enable Mobile Push Notifications for your key in the Admin Portal.
 
 Enable mobile push notifications on a set of channels.
 
@@ -24,14 +26,18 @@ Enable mobile push notifications on a set of channels.
 `
 ```
 
-- pushType (PNPushType): Push type; PNPushType.FCM, PNPushType.APNS2.
-- channels (List<String>): Channels to enable.
+Parameters:
+- pushType (PNPushType): Push type. Accepted: PNPushType.FCM, PNPushType.APNS2.
+- channels (List<String>): Channels to enable for push notifications.
 - deviceId (String): Device ID (push token).
 - topic (String): APNs topic (bundle identifier). Required for APNS2.
-- environment (PNPushEnvironment): APNs environment; PNPushEnvironment.DEVELOPMENT, PNPushEnvironment.PRODUCTION. Required for APNS2.
-- async (Consumer<Result>): Consumer of PNPushAddChannelResult.
+- environment (PNPushEnvironment): APNs environment. Accepted: PNPushEnvironment.DEVELOPMENT, PNPushEnvironment.PRODUCTION. Required for APNS2.
+- async (Consumer<Result>): Consumer of a Result of type PNPushAddChannelResult.
 
 ### Sample code
+
+##### Reference code
+Self-contained example with imports and console logging.
 
 #### Add device to channel
 
@@ -42,14 +48,13 @@ Enable mobile push notifications on a set of channels.
 ```
 
 ### Returns
-No payload. Check result.isSuccess().
+No payload. Check result.isSuccess() on the result object.
 
 ## List push notifications channels for a device
 
 ##### Requires Mobile Push Notifications add-on
-Enable Mobile Push Notifications for your key in the Admin Portal.
 
-Get all channels with push notifications for a push token.
+Get all channels with push notifications for the specified push token.
 
 ### Method(s)
 
@@ -62,11 +67,12 @@ Get all channels with push notifications for a push token.
 `
 ```
 
-- pushType (PNPushType): PNPushType.FCM, PNPushType.APNS2.
+Parameters:
+- pushType (PNPushType): Push type. Accepted: PNPushType.FCM, PNPushType.APNS2.
 - deviceId (String): Device ID (push token).
 - topic (String): APNs topic (bundle identifier). Required for APNS2.
-- environment (PNPushEnvironment): PNPushEnvironment.DEVELOPMENT, PNPushEnvironment.PRODUCTION. Required for APNS2.
-- async (Consumer<Result>): Consumer of PNPushListProvisionsResult.
+- environment (PNPushEnvironment): APNs environment. Accepted: PNPushEnvironment.DEVELOPMENT, PNPushEnvironment.PRODUCTION. Required for APNS2.
+- async (Consumer<Result>): Consumer of a Result of type PNPushListProvisionsResult.
 
 ### Sample code
 
@@ -79,13 +85,12 @@ Get all channels with push notifications for a push token.
 ```
 
 ### Returns
-PNPushListProvisionsResult:
-- getChannels(): List<String> of channels.
+PNPushListProvisionsResult with:
+- getChannels() -> List<String>: Channels associated with push notifications.
 
 ## Remove a device from push notifications channels
 
 ##### Requires Mobile Push Notifications add-on
-Enable Mobile Push Notifications for your key in the Admin Portal.
 
 Disable push notifications on selected channels.
 
@@ -100,12 +105,13 @@ Disable push notifications on selected channels.
 `
 ```
 
-- pushType (PNPushType): PNPushType.FCM, PNPushType.APNS2.
-- channels (List<String>): Channels to disable.
+Parameters:
+- pushType (PNPushType): Push type. Accepted: PNPushType.FCM, PNPushType.APNS2.
+- channels (List<String>): Channels to disable for push notifications.
 - deviceId (String): Device ID (push token).
 - topic (String): APNs topic (bundle identifier). Required for APNS2.
-- environment (PNPushEnvironment): PNPushEnvironment.DEVELOPMENT, PNPushEnvironment.PRODUCTION. Required for APNS2.
-- async (Consumer<Result>): Consumer of PNPushRemoveChannelResult.
+- environment (PNPushEnvironment): APNs environment. Accepted: PNPushEnvironment.DEVELOPMENT, PNPushEnvironment.PRODUCTION. Required for APNS2.
+- async (Consumer<Result>): Consumer of a Result of type PNPushRemoveChannelResult.
 
 ### Sample code
 
@@ -118,14 +124,13 @@ Disable push notifications on selected channels.
 ```
 
 ### Returns
-No payload. Check result.isFailure() on error or handle exceptions via result.onFailure(...).
+No payload. Check result.isFailure() on error or handle via result.onFailure(...).
 
 ## Remove a device from all push notifications channels
 
 ##### Requires Mobile Push Notifications add-on
-Enable Mobile Push Notifications for your key in the Admin Portal.
 
-Disable push notifications from all channels for the specified push token.
+Disable push notifications from all channels registered for the specified push token.
 
 ### Method(s)
 
@@ -138,11 +143,12 @@ Disable push notifications from all channels for the specified push token.
 `
 ```
 
-- pushType (PNPushType): PNPushType.FCM, PNPushType.APNS2.
+Parameters:
+- pushType (PNPushType): Push type. Accepted: PNPushType.FCM, PNPushType.APNS2.
 - deviceId (String): Device ID (push token).
 - topic (String): APNs topic (bundle identifier). Required for APNS2.
-- environment (PNPushEnvironment): PNPushEnvironment.DEVELOPMENT, PNPushEnvironment.PRODUCTION. Required for APNS2.
-- async (Consumer<Result>): Consumer of PNPushRemoveAllChannelsResult.
+- environment (PNPushEnvironment): APNs environment. Accepted: PNPushEnvironment.DEVELOPMENT, PNPushEnvironment.PRODUCTION. Required for APNS2.
+- async (Consumer<Result>): Consumer of a Result of type PNPushRemoveAllChannelsResult.
 
 ### Sample code
 
@@ -155,6 +161,6 @@ Disable push notifications from all channels for the specified push token.
 ```
 
 ### Returns
-No payload. Check result.isFailure() on error or handle exceptions via result.onFailure(...).
+No payload. Check result.isFailure() on error or handle via result.onFailure(...).
 
 Last updated on Oct 21, 2025

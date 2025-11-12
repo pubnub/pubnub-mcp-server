@@ -1,28 +1,32 @@
 # Swift API & SDK Docs 10.0.1
 
-This guide shows how to set up PubNub in Swift with SwiftUI or UIKit and covers: connection, sending messages, and receiving messages in real time. The Swift SDK also supports Linux.
+Core concepts:
+- Setting up a connection
+- Sending messages
+- Receiving messages in real-time
 
 ## Overview
 
-Two paths are provided:
-- SwiftUI (iOS apps using SwiftUI)
-- UIKit (iOS apps using UIKit)
+Two implementation paths with the same PubNub APIs:
+- SwiftUI: iOS apps using SwiftUI
+- UIKit: iOS apps using UIKit
 
-Core API usage is the same; lifecycle and UI patterns differ.
+The PubNub Swift SDK also supports Linux.
 
 ## Prerequisites
 
 - Basic Swift knowledge
 - Xcode 14.0+
-- PubNub account
+- PubNub account and keyset
 
 ## Setup
 
 ### Get your PubNub keys
 
 - Sign in or create an account in the PubNub Admin Portal.
-- Create an app and get your publish and subscribe keys.
-- Use separate keysets for dev/prod when possible.
+- Create an app or use an existing one.
+- Copy your publish and subscribe keys from the app dashboard.
+- Use separate keysets for dev and prod.
 
 ### Install the SDK
 
@@ -30,9 +34,9 @@ Always use the latest SDK version.
 
 #### CocoaPods
 
-Install CocoaPods if needed: `gem install cocoapods`
+Install CocoaPods: `gem install cocoapods`
 
-Add PubNub to your Podfile:
+Add to Podfile:
 
 ```
 `pod 'PubNubSwift', '~> 10.0.1'  
@@ -43,18 +47,20 @@ Run `pod install`, then open the `.xcworkspace`.
 
 #### Carthage
 
-Add to your Cartfile:
+Add to Cartfile:
 
 ```
 `github "pubnub/swift" ~> 10.0.1  
 `
 ```
 
-Run `carthage update --use-xcframeworks`, then add `PubNub.xcframework` to Frameworks, Libraries, and Embedded Content.
+Run `carthage update --use-xcframeworks` and add `PubNub.xcframework` to Frameworks, Libraries, and Embedded Content.
+
+You can integrate the PubNub Swift SDK into any Swift application:
 
 #### Swift Package Manager
 
-Add PubNub as a dependency to Package.swift:
+Add to Package.swift:
 
 ```
 `dependencies: [  
@@ -72,18 +78,18 @@ Clone the GitHub repository:
 `
 ```
 
-Include the Swift package in your project.
+Include the Swift package in your project as a dependency.
 
 ## Steps
 
 ### Initialize PubNub
 
-Replace demo keys with your own publish/subscribe keys.
+Replace demo keys with your keyset.
 
 - SwiftUI
 - UIKit
 
-Create a view model and hold a strong reference to PubNub:
+Create a view model and store a strong reference to PubNub:
 
 ```
 1import SwiftUI  
@@ -124,7 +130,7 @@ Initialize the view model in your App entry point:
 12}  
 ```
 
-Access the view model in your view:
+Access the view model via @EnvironmentObject:
 
 ```
 1import SwiftUI  
@@ -140,7 +146,7 @@ Access the view model in your view:
 10}  
 ```
 
-UIKit: Create and store a PubNub instance:
+UIKit: create and store a PubNub instance:
 
 ```
 1import UIKit  
@@ -158,11 +164,11 @@ UIKit: Create and store a PubNub instance:
 12}  
 ```
 
-For more information, refer to the Configuration section of the SDK documentation.
+See Configuration docs for more details.
 
 ### Set up event listeners
 
-Set up listeners for connection state and messages.
+Implement listeners to react to messages and events.
 
 - SwiftUI
 - UIKit
@@ -174,7 +180,7 @@ Add a messages store:
 `
 ```
 
-Create a Subscription and listeners:
+Create a Subscription and set up listeners:
 
 ```
 1import SwiftUI  
@@ -271,7 +277,8 @@ UIKit: Subscription and listeners:
 29      // Connection status changes are posted on the main thread.  
 30      // No manual synchronization needed  
 31      self?.updateConnectionStatus(newStatus)  
-32  
+32
+  
 33      // When connected, publish a welcome message  
 34      if case .connected = newStatus {  
 35        self?.sendWelcomeMessage()  
@@ -308,16 +315,16 @@ UIKit: Subscription and listeners:
 62}  
 ```
 
-For more information, refer to the Listeners section of the SDK documentation.
+See Listeners docs for details.
 
 ### Trigger a subscription
 
-Subscribe to receive messages and unsubscribe when done.
+Subscribe to receive messages and unsubscribe when appropriate.
 
 - SwiftUI
 - UIKit
 
-SwiftUI example:
+SwiftUI: subscribe on appear, unsubscribe on disappear:
 
 ```
 1import SwiftUI  
@@ -341,7 +348,7 @@ SwiftUI example:
 18}  
 ```
 
-UIKit example:
+UIKit: subscribe in viewWillAppear, unsubscribe in viewWillDisappear:
 
 ```
 `1override func viewWillAppear(_ animated: Bool) {  
@@ -358,11 +365,11 @@ UIKit example:
 `
 ```
 
-For more information, refer to the Subscribe section of the SDK documentation.
+See Subscribe docs for details.
 
 ### Publish messages
 
-Publish to a channel; subscribers receive the message in real time. Messages must be JSON-serializable and < 32 KiB.
+Publish JSON-serializable data (< 32 KiB) to a channel. In these examples, publish after a successful connection.
 
 - SwiftUI
 - UIKit
@@ -407,7 +414,7 @@ UIKit:
 `
 ```
 
-For more information, refer to the Publish section of the SDK documentation.
+See Publish docs for details.
 
 ### Run the app
 
@@ -422,35 +429,31 @@ Message received: Hello from iOS!
 
 ## Complete example
 
-Download the complete example:
-
-- SwiftUI: [Getting Started guide - SwiftUI](/assets/files/GettingStarted-SwiftUI-4f196125968319f1608bd23f5da28e8f.zip)
-- UIKit: [Getting Started guide - UIKit](/assets/files/GettingStarted-UIKit-6183c005507ed2c3049122120f159a4a.zip)
+- [Getting Started guide - SwiftUI](/assets/files/GettingStarted-SwiftUI-4f196125968319f1608bd23f5da28e8f.zip)
+- [Getting Started guide - UIKit](/assets/files/GettingStarted-UIKit-6183c005507ed2c3049122120f159a4a.zip)
 
 ### Troubleshooting
 
-No connection message
-- Check internet connectivity.
-- Verify publish/subscribe keys.
-- Ensure no firewall blocks PubNub.
-
-Message not received
-- Confirm subscription to the correct channel.
-- Check publish result for errors.
-- Allow time for delivery.
-
-Build errors
-- Verify dependency integration.
-- Check Swift version compatibility.
-- Ensure correct imports.
+- No connection message:
+  - Check internet connection.
+  - Verify publish/subscribe keys.
+  - Ensure no firewall blocks PubNub.
+- Message not received:
+  - Confirm the correct channel is subscribed.
+  - Check publish result for errors.
+  - Allow time for delivery.
+- Build errors:
+  - Verify dependency integration.
+  - Ensure compatible Swift version.
+  - Check imports.
 
 ## Next steps
 
-- Learn about the Swift Chat SDK for ready-to-use chat features.
-- Add typing indicators and read receipts.
-- Use Presence to track online/offline status.
-- Implement Message Persistence to store/retrieve messages.
-- Use Access Manager to secure channels.
-- Explore the GitHub repository for more samples.
-- See the SDK reference documentation for detailed APIs.
-- Visit the support portal for help.
+- Learn the Swift Chat SDK.
+- Use Presence for online/offline state.
+- Enable Message Persistence.
+- Secure channels with Access Manager.
+- Explore the GitHub repo and SDK reference docs.
+- Visit the support portal or use the AI assistant.
+
+Last updated on Sep 3, 2025

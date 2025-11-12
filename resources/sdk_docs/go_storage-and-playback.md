@@ -1,34 +1,32 @@
 # Message Persistence API for Go SDK
 
-Message Persistence provides real-time access to stored, timestamped messages across multiple availability zones. Stored messages can be encrypted with AES-256. See Message Persistence docs for details.
+Message Persistence gives real-time access to published message history. Each message is timestamped to the nearest 10 ns and stored redundantly across regions. Stored messages can be encrypted with AES-256. See Message Persistence.
 
-Retention options: 1 day, 7 days, 30 days, 3 months, 6 months, 1 year, Unlimited.
+Retention policy options: 1 day, 7 days, 30 days, 3 months, 6 months, 1 year, Unlimited.
 
-Retrievable data:
+Retrievable items:
 - Messages
 - Message reactions
 - Files (via File Sharing API)
 
-## Fetch history[​](#fetch-history)
+## Fetch history
 
-Requires Message Persistence. Enable in the Admin Portal.
+Requires Message Persistence (enable in Admin Portal).
 
-Fetch historical messages from one or multiple channels. Use `includeMessageActions` to include message actions.
+Fetch historical messages from one or multiple channels. Use includeMessageActions to fetch message actions alongside messages.
 
-Ordering and time window:
-- Only `start`: returns messages older than `start` timetoken (start exclusive).
-- Only `end`: returns messages from `end` timetoken and newer (end inclusive).
-- Both `start` and `end`: messages between them (inclusive of `end`).
+Time window behavior:
+- Only start: returns messages older than start timetoken.
+- Only end: returns messages from end timetoken and newer.
+- Both start and end: returns messages between them (inclusive of end).
 
 Limits:
 - Single channel: up to 100 messages.
-- Multiple channels (up to 500): up to 25 messages per channel.
-- When `IncludeMessageActions` is true: 25 messages max, one channel only.
-- Page by iteratively calling with adjusted `start`.
+- Multiple channels (up to 500): up to 25 per channel.
+- When IncludeMessageActions=true: limited to 1 channel and 25 messages.
+Page by iteratively adjusting the start timetoken.
 
-### Method(s)[​](#methods)
-
-To run Fetch History:
+### Method(s)
 
 ```
 `1pn.Fetch().  
@@ -47,53 +45,55 @@ To run Fetch History:
 ```
 
 Parameters:
-- Channels (string, required): Channels to fetch history from. Max 500 channels.
-- Count (int, default 100 or 25): Max 100 for single channel; 25 for multiple channels; 25 when `IncludeMessageActions` is true.
+- Channels (string, required): Channels to return history for. Max 500.
+- Count (int, default: 100 single channel, 25 multi-channel, 25 when IncludeMessageActions=true): Number of messages to return.
 - Start (int64): Start timetoken (exclusive).
 - End (int64): End timetoken (inclusive).
 - IncludeMeta (bool, default false): Include message meta.
 - IncludeMessageType (bool, default true): Include message type.
 - IncludeUUID (bool, default true): Include publisher UUID.
-- IncludeMessageActions (bool, default false): Include message actions. Restricts to one channel and 25 messages.
-- IncludeCustomMessageType (bool): Include custom message type filtering.
-- QueryParam (map[string]string, default nil): Additional query string parameters.
+- IncludeMessageActions (bool, default false): Include message actions; enforces single channel and 25 messages.
+- IncludeCustomMessageType (bool): Retrieve messages with the custom message type. See Retrieving Messages.
+- QueryParam (map[string]string, default nil): Extra query string parameters.
 
 Truncated response:
-- When including message actions, response may be truncated. A `more` property includes parameters to page for additional results.
+- When fetching with message actions, results may be truncated due to internal limits. A more property is returned with additional parameters; make iterative calls adjusting parameters to fetch more.
 
-### Sample code[​](#sample-code)
+### Sample code
 
-Reference code: Retrieve the last messages on a channel.
+Reference code
 
+Retrieve the last messages on a channel:
 ```
 1
   
 
 ```
 
-### Returns[​](#returns)
+### Returns
 
 Fetch() returns FetchResponse:
-- Messages (map[string][]FetchResponseItem): Map of channel to list of messages.
+
+- Messages (map[string][]FetchResponseItem): Map from channel name to message items.
 
 FetchResponseItem:
-- Message (interface): Message payload.
-- Timetoken (string): Message timetoken.
-- Meta (interface): Metadata (if provided on publish).
-- MessageType (int): Type; 4 for file messages.
-- UUID (string): Publisher UUID.
-- MessageActions (map[string]PNHistoryMessageActionsTypeMap): Message actions.
-- File (PNFileDetails): File info if applicable.
-- Error (error): Decryption error if decryption failed.
+- Message (interface)
+- Timetoken (string)
+- Meta (interface)
+- MessageType (int) — 4 for file messages
+- UUID (string)
+- MessageActions (map[string]PNHistoryMessageActionsTypeMap)
+- File (PNFileDetails)
+- Error (error) — decryption error if any
 
 PNHistoryMessageActionsTypeMap:
 - ActionsTypeValues (map[string][]PNHistoryMessageActionTypeVal)
 
 PNHistoryMessageActionTypeVal:
-- UUID (string): Publisher UUID.
-- ActionTimetoken (string): Action publish timetoken.
+- UUID (string)
+- ActionTimetoken (string)
 
-### Status response[​](#status-response)
+### Status response
 
 - Error (error)
 - Category (StatusCategory)
@@ -108,43 +108,40 @@ PNHistoryMessageActionTypeVal:
 - AffectedChannels ([]string)
 - AffectedChannelGroups ([]string)
 
-### Other examples[​](#other-examples)
+### Other examples
 
-#### Fetch with metadata[​](#fetch-with-metadata)
-
+Fetch with metadata
 ```
 1
   
 
 ```
 
-#### Fetch with time range[​](#fetch-with-time-range)
-
+Fetch with time range
 ```
 1
   
 
 ```
 
-#### Fetch from multiple channels[​](#fetch-from-multiple-channels)
-
+Fetch from multiple channels
 ```
 1
   
 
 ```
 
-## Delete messages from history[​](#delete-messages-from-history)
+## Delete messages from history
 
-Requires Message Persistence. Enable in the Admin Portal.
+Requires Message Persistence (enable in Admin Portal).
 
-Remove messages from a specific channel’s history.
+Removes messages from a specific channel’s history.
 
 Required setting:
-- Enable Delete-From-History in the Admin Portal.
-- Initialize the SDK with a secret key.
+- Enable Delete-From-History for your key in Admin Portal.
+- Initialize SDK with a secret key.
 
-### Method(s)[​](#methods-1)
+### Method(s)
 
 ```
 `1pn.DeleteMessages().  
@@ -160,30 +157,9 @@ Parameters:
 - Channel (string, required): Channel to delete messages from.
 - Start (int64): Start timetoken (inclusive).
 - End (int64): End timetoken (exclusive).
-- QueryParam (map[string]string): Additional query parameters.
+- QueryParam (map[string]string): Extra query string parameters.
 
-### Sample code[​](#sample-code-1)
-
-```
-1
-  
-
-```
-
-### Returns[​](#returns-1)
-
-DeleteMessages() returns an empty HistoryDeleteResponse. Check status response for success.
-
-### Status response[​](#status-response-1)
-
-See Status response fields above.
-
-### Other examples[​](#other-examples-1)
-
-#### Delete specific message from history[​](#delete-specific-message-from-history)
-
-To delete a single message, pass its publish timetoken in End and timetoken-1 in Start.
-Example: Start=15526611838554309, End=15526611838554310.
+### Sample code
 
 ```
 1
@@ -191,15 +167,47 @@ Example: Start=15526611838554309, End=15526611838554310.
 
 ```
 
-## Message counts[​](#message-counts)
+### Returns
 
-Requires Message Persistence. Enable in the Admin Portal.
+DeleteMessages() returns an empty HistoryDeleteResponse. Verify success via status response.
 
-Return the number of messages on one or more channels since the given timetoken.
-- Count includes messages with timetoken >= corresponding ChannelsTimetoken.
-- For Unlimited retention keys, counts only consider messages from the last 30 days.
+### Status response
 
-### Method(s)[​](#methods-2)
+- Error (error)
+- Category (StatusCategory)
+- Operation (OperationType)
+- StatusCode (int)
+- TLSEnabled (bool)
+- UUID (string)
+- AuthKey (string)
+- Origin (string)
+- OriginalResponse (string)
+- Request (string)
+- AffectedChannels ([]string)
+- AffectedChannelGroups ([]string)
+
+### Other examples
+
+Delete specific message from history
+
+To delete one message, pass its publish timetoken in End and timetoken-1 in Start (e.g., Start=15526611838554309, End=15526611838554310).
+
+```
+1
+  
+
+```
+
+## Message counts
+
+Requires Message Persistence (enable in Admin Portal).
+
+Returns the number of messages published on channels since a given time. Count is the number of history messages with a timetoken >= value(s) provided in ChannelsTimetoken.
+
+Unlimited retention note:
+- For keys with unlimited retention, only messages from the last 30 days are counted.
+
+### Method(s)
 
 ```
 `1pn.MessageCounts().  
@@ -211,11 +219,11 @@ Return the number of messages on one or more channels since the given timetoken.
 ```
 
 Parameters:
-- Channels ([]string, required): Channels to count messages for.
-- ChannelsTimetoken ([]int64, default nil): Single timetoken to apply to all channels, or per-channel list equal in length to Channels. Otherwise returns PNStatus with error.
-- QueryParam (map[string]string, default nil): Additional query parameters.
+- Channels ([]string, required): Channels to fetch message counts for.
+- ChannelsTimetoken ([]int64, default nil): Array of timetokens aligned with channels. Provide a single timetoken to apply to all channels, or one per channel. Mismatched lengths return PNStatus with error.
+- QueryParam (map[string]string, default nil): Extra query string parameters.
 
-### Sample code[​](#sample-code-2)
+### Sample code
 
 ```
 1
@@ -223,43 +231,55 @@ Parameters:
 
 ```
 
-### Returns[​](#returns-2)
+### Returns
 
 MessageCounts() returns MessageCountsResponse:
-- Channels (map[string]int): Channel-to-count map. Channels with no messages: 0. Channels with >= 10,000 messages: 10000.
+- Channels (map[string]int): Channel names with message counts. 0 if none. 10000 if >= 10,000.
 
-### Status response[​](#status-response-2)
+### Status response
 
-See Status response fields above.
+- Error (error)
+- Category (StatusCategory)
+- Operation (OperationType)
+- StatusCode (int)
+- TLSEnabled (bool)
+- UUID (string)
+- AuthKey (string)
+- Origin (string)
+- OriginalResponse (string)
+- Request (string)
+- AffectedChannels ([]string)
+- AffectedChannelGroups ([]string)
 
-### Other examples[​](#other-examples-2)
+### Other examples
 
-#### Retrieve count of messages using different timetokens for each channel[​](#retrieve-count-of-messages-using-different-timetokens-for-each-channel)
-
+Retrieve count of messages using different timetokens for each channel
 ```
 1
   
 
 ```
 
-## History (deprecated)[​](#history-deprecated)
+## History (deprecated)
 
-Requires Message Persistence. Deprecated, use Fetch History instead.
+Requires Message Persistence (enable in Admin Portal).
 
-Fetch historical messages of a channel. Controls:
-- Default: newest end of the timeline (Reverse=false).
-- Set Reverse=true to search from oldest end.
-- Page with Start OR End timetoken.
+Alternative method:
+- Deprecated. Use fetch history instead.
+
+Fetches historical messages of a channel. You can:
+- Use Reverse=false (default, newest end) or Reverse=true (oldest end).
+- Page with Start OR End timetokens.
 - Retrieve a slice with both Start AND End.
 - Limit with Count.
 
-Start & End behavior:
-- Only Start: older than and up to Start timetoken (start exclusive).
-- Only End: End timetoken and newer (end inclusive).
-- Both: between Start and End (inclusive on End).
-- Max 100 messages per call; page by adjusting Start.
+Start & End usage:
+- Only Start: messages older than and up to Start.
+- Only End: messages matching End and newer.
+- Both: messages between Start and End (inclusive of End).
+Max 100 messages per call; page by adjusting Start if more are available.
 
-### Method(s)[​](#methods-3)
+### Method(s)
 
 ```
 `1pn.History().  
@@ -276,28 +296,27 @@ Start & End behavior:
 ```
 
 Parameters:
-- Channel (string, required): Channel to fetch history from.
-- Reverse (bool, default false): If true, traverse from oldest first for paging windows.
-- IncludeTimetoken (bool, default false): Include event timetokens.
-- IncludeMeta (bool, default false): Include message meta.
+- Channel (string, required): Channel to return history from.
+- Reverse (bool, default false): Traverse from oldest first.
+- IncludeTimetoken (bool, default false): Include event timetokens in response.
+- IncludeMeta (bool, default false): Include meta.
 - Start (int64): Start timetoken (exclusive).
 - End (int64): End timetoken (inclusive).
 - Count (int, default 100): Number of messages to return.
-- QueryParam (map[string]string, default nil): Additional query parameters.
+- QueryParam (map[string]string, default nil): Extra query string parameters.
 
-Tip: Messages are returned in ascending time order regardless of Reverse. Reverse affects where retrieval starts when more than Count messages exist in the interval.
+Tip: Messages are returned sorted ascending by time regardless of Reverse. Reverse only affects which end is used when more than Count messages are in the interval.
 
-### Sample code[​](#sample-code-3)
+### Sample code
 
 Retrieve the last 100 messages on a channel:
-
 ```
 1
   
 
 ```
 
-### Returns[​](#returns-3)
+### Returns
 
 History() returns HistoryResponse:
 - Messages ([]HistoryResponseItem)
@@ -308,51 +327,56 @@ HistoryResponseItem:
 - Timetoken (int64)
 - Message (interface)
 - Meta (interface)
+- Error (error) — decryption error if any
+
+### Status response
+
 - Error (error)
+- Category (StatusCategory)
+- Operation (OperationType)
+- StatusCode (int)
+- TLSEnabled (bool)
+- UUID (string)
+- AuthKey (string)
+- Origin (string)
+- OriginalResponse (string)
+- Request (string)
+- AffectedChannels ([]string)
+- AffectedChannelGroups ([]string)
 
-### Status response[​](#status-response-3)
+### Other examples
 
-See Status response fields above.
-
-### Other examples[​](#other-examples-3)
-
-#### Use history() to retrieve the three oldest messages[​](#use-history-to-retrieve-the-three-oldest-messages)
-
+Use history() to retrieve the three oldest messages
 ```
 1
   
 
 ```
 
-#### Use history() to retrieve messages newer than a given timetoken[​](#use-history-to-retrieve-messages-newer-than-a-given-timetoken)
-
+Use history() to retrieve messages newer than a given timetoken
 ```
 1
   
 
 ```
 
-#### Use history() to retrieve messages until a given timetoken[​](#use-history-to-retrieve-messages-until-a-given-timetoken)
-
+Use history() to retrieve messages until a given timetoken
 ```
 1
   
 
 ```
 
-#### History paging example[​](#history-paging-example)
-
+History paging example
 ```
 1
   
 
 ```
 
-#### Include timetoken in history response[​](#include-timetoken-in-history-response)
-
+Include timetoken in history response
 ```
 1
 **
 ```
-
 Last updated on Oct 29, 2025**

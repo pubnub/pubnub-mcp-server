@@ -1,17 +1,13 @@
 # Access Manager v3 API for Objective-C SDK
 
-Access Manager enforces client access controls to PubNub resources (channels, channel groups, UUID metadata) using time-limited tokens with embedded permissions. Permissions can be granted:
-- For a limited period of time.
-- To resource lists or patterns (regular expressions).
-- In a single request with differing permission levels.
+Access Manager v3 issues time-limited tokens with embedded permissions for PubNub resources (channels, channel groups, UUID metadata). Permissions can target explicit resources or regex patterns and can differ per resource in a single grant. You can restrict token usage to a single client by setting the authorized UUID in the grant request. Objective-C SDK supports client-side usage only: parse and set tokens received from your server.
 
-Authorized UUID: You can restrict a token to a single client UUID by adding the authorized UUID parameter when the server grants the token.
-
-Client device support only: The Objective-C SDK can only parse and set tokens received from your server. It cannot grant permissions.
+Client device support only
+- Objective-C SDK cannot grant permissions. Use it to parse and set tokens issued by a server.
 
 ## Parse token
 
-Decodes an existing token and returns its embedded permissions and details.
+Decodes a token and returns its embedded permissions and metadata (useful for debugging, checking ttl, resources, authorized UUID).
 
 ### Method(s)
 
@@ -20,7 +16,8 @@ Decodes an existing token and returns its embedded permissions and details.
 `
 ```
 
-- token (String, required): Current token with embedded permissions.
+Parameters
+- token (String): Current token with embedded permissions.
 
 ### Sample code
 
@@ -61,8 +58,7 @@ Decodes an existing token and returns its embedded permissions and details.
   
 29    // 6. Access explicit resources  
 30    NSLog(@"\nExplicit Resources:");  
-31
-  
+31  
 32    NSLog(@"Authorized channels:");  
 33    if (token.resources.channels.count > 0) {  
 34        [token.resources.channels enumerateKeysAndObjectsUsingBlock:^(NSString *channel, PNPAMResourcePermission *permission, BOOL *stop) {  
@@ -114,8 +110,7 @@ Decodes an existing token and returns its embedded permissions and details.
 76    } else {  
 77        NSLog(@"  None");  
 78    }  
-79
-  
+79  
 80    NSLog(@"UUID patterns:");  
 81    if (token.patterns.uuids.count > 0) {  
 82        [token.patterns.uuids enumerateKeysAndObjectsUsingBlock:^(NSString *pattern, PNPAMResourcePermission *permission, BOOL *stop) {  
@@ -124,8 +119,7 @@ Decodes an existing token and returns its embedded permissions and details.
 85    } else {  
 86        NSLog(@"  None");  
 87    }  
-88
-  
+88  
 89    // 8. Access metadata if present  
 90    if (token.meta.count > 0) {  
 91        NSLog(@"\nToken metadata:");  
@@ -141,7 +135,7 @@ Decodes an existing token and returns its embedded permissions and details.
 
 ### Returns
 
-`PNPAMToken` instance:
+`PNPAMToken` instance with token metadata and permissions:
 
 ```
 1@interface PNPAMToken : NSObject  
@@ -203,29 +197,25 @@ Decodes an existing token and returns its embedded permissions and details.
   
 43// Permissions granted to specific / regexp matching uuids  
 44@property (nonatomic, readonly, strong) NSDictionaryNSString *, PNPAMResourcePermission *> *uuids;  
-45
-  
+45  
 46@end  
-47
-  
+47  
 48@interface PNPAMResourcePermission : NSObject  
-49
-  
+49  
 50// Bit field with a given permission value  
 51@property (nonatomic, readonly, assign) PNPAMPermission value;  
-52
-  
+52  
 53@end  
 
 ```
 
 ### Error Responses
 
-If parsing fails, the token may be invalid or damaged. Request a new token from your server.
+If parsing fails, the token may be damaged. Request a new token from your server.
 
 ## Set token
 
-Update the authentication token granted by your server.
+Updates the authentication token on the client.
 
 ### Method(s)
 
@@ -234,7 +224,8 @@ Update the authentication token granted by your server.
 `
 ```
 
-- token (String, required): Current token with embedded permissions.
+Parameters
+- token (String): Current token with embedded permissions.
 
 ### Sample code
 

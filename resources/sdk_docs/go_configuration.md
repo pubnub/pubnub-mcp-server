@@ -1,5 +1,5 @@
 # Configuration API for Go SDK
-Go complete API reference for building real-time applications on PubNub, including basic usage and sample code.
+Go API reference for configuring PubNub clients.
 [View on GoDoc](https://godoc.org/github.com/pubnub/go)
 
 ## Configuration
@@ -15,28 +15,27 @@ Create a configuration instance with:
 `
 ```
 
-Properties and options:
-
+Properties:
 - SubscribeKey
   - Type: string
   - Default: n/a
-  - Description: Subscribe key from the Admin Portal.
+  - Description: Subscribe key from the Admin Portal. Required.
 - PublishKey
   - Type: string
   - Default: None
-  - Description: Publish key from the Admin Portal (required if publishing).
+  - Description: Publish key from the Admin Portal. Required if publishing.
 - SecretKey
   - Type: string
   - Default: None
-  - Description: Secret key (required for modifying or revealing access permissions).
+  - Description: Secret key, required only for modifying or revealing access permissions.
 - SetUserId
   - Type: UserId
   - Default: n/a
-  - Description: userId to use. The UserId object takes String as an argument. Set a unique identifier for the user or device. UTF-8 string up to 92 alphanumeric characters. Required to connect.
+  - Description: userId to use. UserId takes String as an argument. Must be a unique, UTF-8 string up to 92 alphanumeric characters. Required to connect; without it the client won’t connect.
 - AuthKey
   - Type: string
   - Default: None
-  - Description: If Access Manager is used, client includes this AuthKey in restricted requests.
+  - Description: If Access Manager is used, this AuthKey is sent with restricted requests.
 - Secure
   - Type: bool
   - Default: True
@@ -48,7 +47,7 @@ Properties and options:
 - ConnectTimeout
   - Type: int
   - Default: 10
-  - Description: Max time to establish a connection (seconds).
+  - Description: Maximum time to establish a connection (seconds).
 - SubscribeRequestTimeout
   - Type: int
   - Default: 310
@@ -64,19 +63,19 @@ Properties and options:
 - Origin
   - Type: string
   - Default: ps.pndsn.com
-  - Description: Custom origin if needed. For custom domains, contact support and follow the request process.
+  - Description: Custom origin if needed. To request a custom domain, contact support and follow the request process.
 - MaximumReconnectionRetries
   - Type: int
   - Default: 50
-  - Description: Number of reconnection attempts before giving up.
+  - Description: Number of reconnection retries before giving up.
 - SetPresenceTimeout
   - Type: int
   - Default: 0
-  - Description: How long the server considers the client alive for presence (seconds). Heartbeats keep the client active; if none received within timeout, client is marked inactive and a "timeout" event is emitted on the presence channel.
+  - Description: Presence timeout (seconds). Server considers the client alive for this duration; client sends periodic heartbeats. If no heartbeat arrives within the timeout, the client is marked inactive and a “timeout” event is emitted on the presence channel.
 - SetPresenceTimeoutWithCustomInterval
   - Type: int
   - Default: 0
-  - Description: Heartbeat interval (seconds). For shorter presence timeouts, set roughly to (SetPresenceTimeout / 2) - 1.
+  - Description: How often the client sends heartbeats. For shorter presence timeouts, set roughly to (SetPresenceTimeout / 2) - 1.
 - SuppressLeaveEvents
   - Type: bool
   - Default: n/a
@@ -84,51 +83,49 @@ Properties and options:
 - MaxIdleConnsPerHost
   - Type: int
   - Default: 30
-  - Description: Sets HTTP Transport's MaxIdleConnsPerHost.
+  - Description: Sets HTTP Transport’s MaxIdleConnsPerHost.
 - FileMessagePublishRetryLimit
   - Type: int
   - Default: 5
-  - Description: Number of publish retries for file messages.
+  - Description: Number of retries for Publish File Message failures.
 - CryptoModule
   - Type: crypto.NewAesCbcCryptor(CipherKey, UseRandomInitializationVector) or crypto.NewLegacyCryptor(CipherKey, UseRandomInitializationVector)
   - Default: None
-  - Description: Cryptography module used for encryption and decryption of messages and files. Pass CipherKey and UseRandomInitializationVector as arguments. See CryptoModule section.
+  - Description: Cryptography module used for encryption/decryption of messages and files. Takes CipherKey and UseRandomInitializationVector as arguments. See CryptoModule below.
 - CipherKey
   - Type: string
   - Default: None
-  - Description: Deprecated way to set cipher key; pass it to CryptoModule instead. If set, messages/files are encrypted.
+  - Description: Deprecated; pass to CryptoModule instead. If set, all communications to/from PubNub will be encrypted.
 - UseRandomInitializationVector
   - Type: bool
   - Default: true
-  - Description: Deprecated way to set IV; pass it to CryptoModule instead. When true, IV is random for all requests (not just file upload). When false, IV is hard-coded for all requests except file upload.
+  - Description: Deprecated; pass to CryptoModule instead. When true, IV is random for all requests (not just file upload). When false, IV is hard-coded for all requests except file upload.
 - UUID
   - Type: string
   - Default: n/a
-  - Description: Deprecated; use userId instead. Required to connect if using UUID.
+  - Description: Deprecated; use userId instead. Required to connect if userId is not set.
 
 ##### Disabling random initialization vector
-Disable random IV only for backward compatibility (<5.0.0). Do not disable random IV for new applications.
+Disable random IV only for backward compatibility (<5.0.0). Do not disable random IV in new applications.
 
 #### CryptoModule
 
-CryptoModule encrypts and decrypts messages and files. From 7.1.2, you can configure the algorithms it uses.
+CryptoModule encrypts and decrypts messages and files. From 7.1.2, you can configure the algorithms.
 
-- Options:
-  - Legacy 128-bit encryption
-  - Recommended 256-bit AES-CBC
-- If you don't set CryptoModule but set cipherKey and useRandomInitializationVector in config, the client uses legacy encryption.
-- For configuration details, utilities, and examples, see Encryption.
+- Options: legacy 128‑bit encryption and recommended 256‑bit AES‑CBC.
+- If you don’t set CryptoModule but set cipherKey and useRandomInitializationVector in config, the client uses legacy encryption.
+- For details, utilities, and examples, see Encryption.
 
 ##### Legacy encryption with 128-bit cipher key entropy
-You can continue using legacy encryption. To use recommended 256-bit AES-CBC encryption, explicitly set it in PubNub config.
+To keep using legacy encryption, no changes are required. To use the recommended 256‑bit AES‑CBC encryption, explicitly set it in config.
 
 ### Sample code
 
 ##### Reference code
-Use as a reference when working with other examples.
+Self-contained snippet ready to run. Includes necessary imports and method execution with console logging.
 
 ##### Required User ID
-Always set the UserId to uniquely identify the user or device. Persist it for the lifetime of the user/device. Required to connect.
+Always set UserId to uniquely identify the user or device. Persist it and keep it unchanged for the lifetime of the user or device. Without it, you won’t be able to connect.
 
 ```
 1
@@ -138,7 +135,7 @@ Always set the UserId to uniquely identify the user or device. Persist it for th
 
 ### Server response
 
-Configured and ready-to-use client configuration instance.
+Configured and ready to use client configuration instance.
 
 ### Other examples
 
@@ -216,7 +213,7 @@ Configured and ready-to-use client configuration instance.
 
 ### Proxy configuration
 
-Configure a client to use a proxy for subscribe requests:
+The following sample configures a client to use a proxy for subscribe requests:
 
 ```
 1
@@ -224,7 +221,7 @@ Configure a client to use a proxy for subscribe requests:
 
 ```
 
-Configure a client to use a proxy for non-subscribe requests:
+The following sample configures a client to use a proxy for non-subscribe requests:
 
 ```
 1

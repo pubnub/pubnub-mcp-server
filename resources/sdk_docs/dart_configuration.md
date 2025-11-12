@@ -20,33 +20,19 @@ Create configurations for different subscribe keys using a Keyset object. Use Ke
 ```
 
 Keyset properties:
-- subscribeKey
-  - Type: String; Default: n/a
-  - subscribeKey from the Admin Portal.
-- publishKey
-  - Type: String; Default: n/a
-  - publishKey from the Admin Portal (only required if publishing).
-- secretKey
-  - Type: String; Default: n/a
-  - secretKey used for administrative tasks.
-- authKey
-  - Type: String; Default: n/a
-  - If Access Manager is enabled, the client includes this key with restricted requests.
-- userId
-  - Type: String; Default: n/a
-  - userId to use. Set a unique identifier for the user or device. UTF-8 string up to 92 alphanumeric characters. Required to connect.
-- cipherKey
-  - Type: String; Default: n/a
-  - Deprecated on Keyset; pass to crypto instead. If passed, all communications to/from PubNub will be encrypted.
-- UUID
-  - Type: String; Default: n/a
-  - Deprecated; use userId instead.
+- subscribeKey (String, required): subscribeKey from the Admin Portal.
+- publishKey (String): publishKey from the Admin Portal (required if publishing).
+- secretKey (String): used for administrative tasks. Keep secure; server-side only.
+- authKey (String): used with Access Manager for restricted requests.
+- userId (String, required): unique UTF-8 identifier (up to 92 alphanumeric chars). Must be set to connect.
+- cipherKey (String, deprecated): pass to crypto instead. If set, encrypts all communications.
+- UUID (String, deprecated): use userId instead.
 
 ### Sample code
 
 ##### Required User ID
 
-Always set the userId to uniquely identify the user or device that connects to PubNub. Persist it for the lifetime of the user or device.
+Always set the userId to uniquely identify the user or device that connects to PubNub. Persist it for the lifetime of the user/device.
 
 ```
 1import 'package:pubnub/pubnub.dart';  
@@ -68,10 +54,6 @@ Always set the userId to uniquely identify the user or device that connects to P
 
 ## Initialization
 
-Add the SDK to your project using one of the procedures in Getting Started.
-
-### Description
-
 Instantiate PubNub with a default Keyset. Keyset resolution:
 - If provided, the keyset parameter is used.
 - Otherwise, the method uses the using parameter.
@@ -90,34 +72,24 @@ Instantiate PubNub with a default Keyset. Keyset resolution:
 `
 ```
 
-Constructor arguments:
-- defaultKeyset
-  - Type: Keyset; Default: n/a
-  - The default keyset to use.
-- networking
-  - Type: INetworkingModule; Default: NetworkingModule
-  - Configure custom origin, SSL, and retry policy for subscribe operations.
-  - Default retry policy: RetryPolicy.exponential (subscribe only).
-  - RetryPolicy options:
+Parameters:
+- defaultKeyset (Keyset): default keyset to use.
+- networking (INetworkingModule, default: NetworkingModule): configure custom origin, SSL, and subscribe retry policy.
+  - Default subscribe retry policy: RetryPolicy.exponential.
+  - Available:
     - RetryPolicy.none()
     - RetryPolicy.linear({backoff, maxRetries, maximumDelay})
     - RetryPolicy.exponential({maxRetries, maximumDelay})
-  - See SDK connection lifecycle.
-- parser
-  - Type: IParserModule; Default: ParserModule
-- crypto
-  - Type: ICryptoModule; Default: CryptoModule
-  - Cryptography module used for encryption/decryption of messages and files. Takes the cipherKey parameter. See cryptoModule.
+- parser (IParserModule, default: ParserModule): parsing module.
+- crypto (ICryptoModule, default: CryptoModule): encryption/decryption for messages/files. Takes cipherKey. See cryptoModule.
 
 #### cryptoModule
 
-Encrypts and decrypts messages and files. From 4.2.4 onward, algorithms are configurable.
-- Options: legacy 128-bit encryption (default if cipherKey set on config and cryptoModule not provided) and recommended 256-bit AES-CBC.
-- See Message Encryption, File Encryption, and the Encryption page for configuration and utilities.
+Encrypts/decrypts messages and files. From 4.2.4 onward, you can configure algorithms. Two options:
+- Legacy 128-bit encryption (default if cipherKey is set and cryptoModule not set).
+- Recommended 256-bit AES-CBC.
 
-##### Legacy encryption with 128-bit cipher key entropy
-
-To keep legacy encryption, no change needed. To use 256-bit AES-CBC, explicitly set it in PubNub config.
+For details and utilities, see Encryption docs.
 
 ### Sample code
 
@@ -142,7 +114,7 @@ To keep legacy encryption, no change needed. To use 256-bit AES-CBC, explicitly 
 
 ### Returns
 
-Initialization returns the PubNub instance for invoking PubNub APIs like publish(), subscribe(), etc.
+PubNub instance for invoking APIs like publish(), subscribe(), etc.
 
 ### Other examples
 
@@ -188,11 +160,7 @@ Initialization returns the PubNub instance for invoking PubNub APIs like publish
 
 #### Initializing with Access Manager
 
-##### Requires Access Manager add-on
-
-##### Secure your secretKey
-
-Use secretKey only on secure server-side platforms. With secretKey, the client gets root Access Manager permissions (signs all Access Manager messages).
+Requires Access Manager add-on. Keep secretKey secure; use only on secure server-side platforms. Initializing with secretKey grants root Access Manager permissions.
 
 ```
 `1final pubnub = PubNub(  
@@ -205,10 +173,11 @@ Use secretKey only on secure server-side platforms. With secretKey, the client g
 
 ## Event listeners
 
-Receive connectivity status, message, presence, and other notifications via listeners. A Subscription is required.
+Listeners notify connectivity status, message, and presence via a Subscription.
 
 ### Listeners
 
+Available:
 - message
 - signal
 - objects
@@ -278,7 +247,7 @@ Receive connectivity status, message, presence, and other notifications via list
 
 ## userID
 
-Set/get a user ID.
+Set/get a user ID on the fly.
 
 ### Methods
 
@@ -288,9 +257,7 @@ Set/get a user ID.
 `
 ```
 
-- userId
-  - Type: String; Default: n/a
-  - User ID to be used as a device identifier.
+- userId (String): User ID to be used as a device identifier.
 
 ### Sample code
 
@@ -320,9 +287,7 @@ Setter and getter for users' authentication key.
 `
 ```
 
-- authKey
-  - Type: String
-  - If Access Manager is utilized, client will use this authKey in all restricted requests.
+- authKey (String): If Access Manager is utilized, client uses this in all restricted requests.
 
 ### Sample code
 
@@ -337,9 +302,7 @@ Setter and getter for users' authentication key.
 
 ## Filter expression
 
-##### Requires Stream Controller add-on
-
-Stream filtering allows a subscriber to receive only messages that satisfy the filter.
+Requires Stream Controller add-on. Apply a server-side filter to only receive messages that match the filter.
 
 ### Method(s)
 
@@ -349,9 +312,7 @@ Stream filtering allows a subscriber to receive only messages that satisfy the f
 `
 ```
 
-- filterExpression
-  - Type: String
-  - PSV2 feature to subscribe with a custom filter expression.
+- filterExpression (String): PSV2 feature to subscribe with a custom filter expression.
 
 ### Sample code
 
@@ -367,13 +328,13 @@ Stream filtering allows a subscriber to receive only messages that satisfy the f
 
 ## Handling disconnects
 
-The client may disconnect due to network conditions. By default, the client reconnects exponentially for subscribe connections only. See SDK connection lifecycle.
+The client may disconnect due to network conditions. By default, the client reconnects exponentially for subscribe connections only. Non-subscribe requests never retry.
 
 ### Retry policy
 
-Configure subscribe retry policy on NetworkingModule. Non-subscribe requests never retry. Set the policy during PubNub construction.
+Configure subscribe retries via NetworkingModule. Set at PubNub construction time.
 
-Default: exponential retry for subscribe operations. Retries are attempted on network issues (host down, host lookup failed, timeouts, unknown HTTP exceptions). maxRetries applies to all except timeouts. Use RetryPolicy.none() to disable all retries.
+Default: exponential retry for subscribe operations. Retries occur on network-related diagnostics (host down, lookup failed, timeouts, unknown HTTP exceptions). maxRetries applies to all except timeouts. Use RetryPolicy.none() to disable all retries (including subscribe).
 
 ```
 `1var pubnub = PubNub(  
@@ -387,9 +348,9 @@ Available policies:
 - RetryPolicy.linear({int? backoff, int? maxRetries, int? maximumDelay})
 
 Arguments:
-- maximumDelay (int): Max milliseconds to wait before retry.
-- backoff (int): Backoff amount in milliseconds.
-- maxRetries (int): Number of max retries.
+- maximumDelay (int): Max milliseconds to wait before a retry.
+- backoff (int): Linear backoff in milliseconds.
+- maxRetries (int): Max number of retries.
 
 #### Examples
 

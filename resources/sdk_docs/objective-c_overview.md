@@ -1,26 +1,22 @@
 # Objective-C API & SDK Docs 6.1.0
 
-Build a simple app that connects to PubNub and sends/receives messages.
+This overview shows how to configure the PubNub Objective-C SDK, add listeners, subscribe, and publish a message. Replace myPublishKey and mySubscribeKey with your keyset from the Admin Portal.
 
 ## Setup
 
 ### Get your PubNub keys
 
 - Sign in or create an account on the PubNub Admin Portal.
-- Create an app and use the generated keyset.
-- Get your publish and subscribe keys from the app dashboard.
+- Create an app and keyset; copy the publish and subscribe keys.
 - Use separate keysets for dev/prod.
 
 ### Install the SDK
 
-##### SDK version
 Use the latest SDK version.
-
-Download the SDK using one of the following:
 
 ### Use CocoaPods
 
-Install/update CocoaPods, create a Podfile, and install:
+Install/update CocoaPods, create a Podfile, and install pods. Use the CocoaPods-generated workspace.
 
 ```
 `1pod init  
@@ -37,9 +33,10 @@ Install/update CocoaPods, create a Podfile, and install:
   
 6     pod "PubNub", "~> 5"  
 7 end  
+
 ```
 
-Run pod install, then use the generated workspace. Import in classes where you use PubNub:
+Import in classes where PubNub is used:
 
 ```
 `1#import PubNub/PubNub.h>  
@@ -48,7 +45,7 @@ Run pod install, then use the generated workspace. Import in classes where you u
 
 ### Use Carthage
 
-Add PubNub to your Cartfile and build:
+Install Carthage, add PubNub to your Cartfile, build/update, embed the framework, and import headers.
 
 ```
 `1github "pubnub/objective-c" ~> 4  
@@ -60,18 +57,12 @@ Add PubNub to your Cartfile and build:
 `
 ```
 
-Specify platform if needed:
-
 ```
 `1carthage update --platform ios --no-use-binaries  
 `
 ```
 
-Then:
-- Open Carthage/Build/<platform> (e.g., iOS).
-- Drag PubNub.framework into your app target.
-- In General > Embedded Binaries, add PubNub.framework.
-- Import PubNub headers:
+Import:
 
 ```
 `1#import PubNub/PubNub.h>  
@@ -93,7 +84,7 @@ View the supported platforms.
 
 ### Initialize PubNub
 
-Open your workspace (from CocoaPods) and in AppDelegate:
+Add a PubNub client property and configure it with your keys and UUID.
 
 ```
 1@interface AppDelegate () PNEventsListener>  
@@ -104,9 +95,8 @@ Open your workspace (from CocoaPods) and in AppDelegate:
 5
   
 6@end  
-```
 
-Minimum configuration (replace myPublishKey/mySubscribeKey and set a UUID):
+```
 
 ```
 1// Initialize and configure PubNub client instance  
@@ -115,11 +105,12 @@ Minimum configuration (replace myPublishKey/mySubscribeKey and set a UUID):
 4
   
 5self.client = [PubNub clientWithConfiguration:configuration];  
+
 ```
 
 ### Set up event listeners
 
-Add listener and handle messages/status:
+Add a listener to receive messages and status events. On PNConnectedCategory, publish a message.
 
 ```
 1[self.client addListener:self];  
@@ -127,13 +118,15 @@ Add listener and handle messages/status:
   
 3- (void)client:(PubNub *)client didReceiveMessage:(PNMessageResult *)message {  
 4    // Handle new message stored in message.data.message  
-5  
+5
+  
 6    if (![message.data.channel isEqualToString:message.data.subscription]) {  
 7        // Message has been received on channel group stored in message.data.subscription.  
 8    } else {  
 9        // Message has been received on channel stored in message.data.channel.  
 10    }  
-11  
+11
+  
 12    NSLog(@"Received message: %@ on channel %@ at %@", message.data.message[@"msg"],  
 13          message.data.channel, message.data.timetoken);  
 14}  
@@ -144,7 +137,8 @@ Add listener and handle messages/status:
 18        if (status.category == PNConnectedCategory || status.category == PNReconnectedCategory) {  
 19            // Status object for those categories can be casted to `PNSubscribeStatus` for use below.  
 20            PNSubscribeStatus *subscribeStatus = (PNSubscribeStatus *)status;  
-21  
+21
+  
 22            if (subscribeStatus.category == PNConnectedCategory) {  
 23                // This is expected for a subscribe, this means there is no error or issue whatsoever.  
 24  
@@ -152,7 +146,8 @@ Add listener and handle messages/status:
 26                NSString *targetChannel = [client channels].lastObject;  
 27                [self.client publish:@{ @"msg": @"hello" } toChannel:targetChannel  
 28                      withCompletion:^(PNPublishStatus *publishStatus) {  
-29  
+29
+  
 30                        if (!publishStatus.isError) {  
 31                            // Message successfully published to specified channel.  
 32                        } else {  
@@ -179,7 +174,8 @@ Add listener and handle messages/status:
 53             */  
 54        } else {  
 55            PNErrorStatus *errorStatus = (PNErrorStatus *)status;  
-56  
+56
+  
 57            if (errorStatus.category == PNAccessDeniedCategory) {  
 58                /**  
 59                 * This means that Access Manager does allow this client to subscribe to this channel and channel group  
@@ -196,24 +192,21 @@ Add listener and handle messages/status:
 70        }  
 71    }  
 72}  
+
 ```
 
 ### Publish and subscribe
 
-Subscribe to receive messages; publish sends to subscribers of that channel.
-
-Subscribe:
+Subscribe to a channel; publish is triggered on PNConnectedCategory in the listener above.
 
 ```
 `1[self.client subscribeToChannels: @[@"hello-world-channel"] withPresence:YES];  
 `
 ```
 
-See Publish and Subscribe docs.
-
 ## Complete example
 
-Your AppDelegate should look like:
+Your AppDelegate class (macOS and other platforms):
 
 ```
 1!-- MACOS -->  
@@ -230,20 +223,24 @@ Your AppDelegate should look like:
 9
   
 10@implementation PNAppDelegate  
-11  
+11
+  
 12- (void)applicationDidFinishLaunching:(NSNotification *)aNotification {  
 13    // Initialize and configure PubNub client instance  
 14    PNConfiguration *configuration = [PNConfiguration configurationWithPublishKey:@"myPublishKey"  
 15                                                                     subscribeKey:@"mySubscribeKey"];  
 16    configuration.uuid = @"myUniqueUUID";  
-17  
+17
+  
 18    self.client = [PubNub clientWithConfiguration:configuration];  
 19    [self.client addListener:self];  
 20    [self.client subscribeToChannels: @[@"hello-world-channel"] withPresence:YES];}  
-21  
+21
+  
 22- (void)client:(PubNub *)client didReceiveMessage:(PNMessageResult *)message {  
 23    // Handle new message stored in message.data.message  
-24  
+24
+  
 25    if (![message.data.channel isEqualToString:message.data.subscription]) {  
 26        // Message has been received on channel group stored in message.data.subscription.  
 27    } else {  
@@ -253,7 +250,8 @@ Your AppDelegate should look like:
 31    NSLog(@"Received message: %@ on channel %@ at %@", message.data.message[@ "msg"],  
 32          message.data.channel, message.data.timetoken);  
 33}  
-34  
+34
+  
 35- (void)client:(PubNub *)client didReceiveStatus:(PNStatus *)status {  
 36    if (status.operation == PNSubscribeOperation) {  
 37        if (status.category == PNConnectedCategory || status.category == PNReconnectedCategory) {  
@@ -312,18 +310,24 @@ Your AppDelegate should look like:
 90    }  
 91}  
 92@end  
-93  
+93
+  
 94!-- OTHER PLATFORMS -->  
-95  
+95
+  
 96@interface AppDelegate () PNEventsListener>  
-97  
+97
+  
 98// Stores reference on PubNub client to make sure what it won't be released.  
 99@property (nonatomic, strong) PubNub *client;  
-100  
+100
+  
 101@end  
-102  
+102
+  
 103@implementation PNAppDelegate  
-104  
+104
+  
 105- (BOOL)application:(UIApplication *)application didFinishLaunchingWithOptions:(NSDictionary *)launchOptions {  
 106    // Initialize and configure PubNub client instance  
 107    PNConfiguration *configuration = [PNConfiguration configurationWithPublishKey:@"myPublishKey"  
@@ -334,7 +338,8 @@ Your AppDelegate should look like:
 112    [self.client addListener:self];  
 113    [self.client subscribeToChannels: @[@"hello-world-channel"] withPresence:YES];  
 114}  
-115  
+115
+  
 116- (void)client:(PubNub *)client didReceiveMessage:(PNMessageResult *)message {  
 117    // Handle new message stored in message.data.message  
 118  
@@ -347,7 +352,8 @@ Your AppDelegate should look like:
 125    NSLog(@"Received message: %@ on channel %@ at %@", message.data.message[@ "msg"],  
 126          message.data.channel, message.data.timetoken);  
 127}  
-128  
+128
+  
 129- (void)client:(PubNub *)client didReceiveStatus:(PNStatus *)status {  
 130    if (status.operation == PNSubscribeOperation) {  
 131        if (status.category == PNConnectedCategory || status.category == PNReconnectedCategory) {  
@@ -360,7 +366,7 @@ Your AppDelegate should look like:
 138                // Select last object from list of subscribed channels and send message to it.  
 139                NSString *targetChannel = [client channels].lastObject;  
 140                [self.client publish: @{ @ "msg": @"hello" } toChannel:targetChannel  
-141                      withCompletion:^(PNPublishStatus *publishStatus *publishStatus) {  
+141                      withCompletion:^(PNPublishStatus *publishStatus) {  
 142  
 143                        if (!publishStatus.isError) {  
 144                            // Message successfully published to specified channel.  
@@ -406,24 +412,19 @@ Your AppDelegate should look like:
 184    }  
 185}  
 186@end  
+
 ```
 
-Run the app and you should see:
+Run the app and check console output:
 
 ```
 `1Received message: Hello on channel hello-world-channel at 15844898827972406  
 `
 ```
 
-### Walkthrough
+## Walkthrough
 
-Order of operations:
-- Configure PubNub client
-- Add status and message listeners
-- Subscribe to a channel
-- Publish a message on connect
-
-#### Configuring PubNub
+Minimal configuration to connect:
 
 ```
 1// Initialize and configure PubNub client instance  
@@ -432,9 +433,10 @@ Order of operations:
 4
   
 5self.client = [PubNub clientWithConfiguration:configuration];  
+
 ```
 
-#### Add event listeners
+Add listeners (message and status):
 
 ```
 1[self.client addListener:self];  
@@ -511,11 +513,10 @@ Order of operations:
 70        }  
 71    }  
 72}  
+
 ```
 
-#### Publishing and subscribing
-
-Publish on connect:
+Publish and subscribe:
 
 ```
 `1[self.client publish: @{ @"msg": @"Hello" } toChannel:targetChannel  
@@ -524,8 +525,6 @@ Publish on connect:
 `
 ```
 
-Subscribe:
-
 ```
 `1[self.client subscribeToChannels: @[@"hello-world-channel"] withPresence:YES];  
 `
@@ -533,4 +532,4 @@ Subscribe:
 
 ## Next steps
 
-Explore the SDK reference documentation for full API details.
+- Review the SDK reference documentation for configuration, event listeners, publish, and subscribe APIs.

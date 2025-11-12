@@ -1,151 +1,152 @@
 # Configuration API for Python SDK
 
-Complete reference for configuring the PubNub Python SDK client with essential properties, method signatures, and examples.
+Complete API reference for configuring PubNub with the Python SDK. Includes configuration object, parameters, and examples.
 
 ## Configuration
 
-`PNConfiguration` holds user-provided settings that control PubNub client behavior.
+`PNConfiguration` stores user-provided settings that control PubNub client behavior.
 
 ### Method(s)
 
-To create a configuration instance:
+To create a `PNConfiguration` instance:
 
 ```
 `1pnconfig = PNConfiguration()  
 `
 ```
 
-### Properties
+### Parameters
 
 - subscribe_key
   - Type: String
   - Default: n/a
-  - Required. Value from Admin Portal.
+  - Description: subscribe_key from Admin Portal. Required.
 
 - publish_key
   - Type: String
   - Default: None
-  - Required only if publishing. Value from Admin Portal.
+  - Description: publish_key from Admin Portal. Only required if publishing.
 
 - secret_key
   - Type: String
   - Default: None
-  - Required only for modifying/revealing access permissions (Access Manager). Keep secret_key secure; server-side use only.
+  - Description: secret_key. Only required for modifying/revealing access permissions.
 
 - user_id
   - Type: String
   - Default: n/a
-  - Required. Unique identifier for the user/device. UTF-8 string up to 92 alphanumeric characters. If not set, you cannot connect.
+  - Description: Unique user_id to identify the user or device. UTF-8 string up to 92 alphanumeric characters. Required to connect.
 
 - auth_key
   - Type: String
   - Default: None
-  - Used with Access Manager for restricted requests.
+  - Description: If Access Manager is used, client includes this authKey in restricted requests.
 
 - ssl
   - Type: Boolean
   - Default: True
-  - Enables TLS.
+  - Description: Use SSL.
 
 - connect_timeout
-  - Type: Int (seconds)
+  - Type: Int
   - Default: 5
-  - Timeout for initial connection.
+  - Description: Seconds to wait before giving up connecting.
 
 - subscribe_request_timeout
-  - Type: Int (seconds)
+  - Type: Int
   - Default: 310
-  - Duration to keep the subscribe loop before disconnecting.
+  - Description: How long to keep the subscribe loop running before disconnect (seconds).
 
 - non_subscribe_request_timeout
-  - Type: Int (seconds)
+  - Type: Int
   - Default: 10
-  - Timeout for non-subscribe operations.
+  - Description: Timeout for non-subscribe operations (seconds).
 
 - filter_expression
   - Type: String
   - Default: None
-  - Subscribe with a custom filter expression (requires Stream Controller add-on).
+  - Description: Subscribe with a custom filter expression.
 
 - heartbeat_notification_options
   - Type: PNHeartbeatNotificationOptions
   - Default: PNHeartbeatNotificationOptions.FAILURES
-  - Options: ALL, FAILURES, NONE.
+  - Description: Heartbeat notifications. Supported: PNHeartbeatNotificationOptions.ALL, PNHeartbeatNotificationOptions.NONE.
 
 - reconnect_policy
   - Type: PNReconnectionPolicy
   - Default: PNReconnectionPolicy.EXPONENTIAL (subscribe only)
-  - Values: NONE, LINEAR, EXPONENTIAL.
-  - LINEAR uses maximum_reconnection_retries and reconnection_interval.
+  - Description: Reconnection policy. Available values:
+    - PNReconnectionPolicy.NONE
+    - PNReconnectionPolicy.LINEAR (uses maximum_reconnection_retries and reconnection_interval)
+    - PNReconnectionPolicy.EXPONENTIAL
 
 - maximum_reconnection_retries
   - Type: int
   - Default: 10
-  - Only for PNReconnectionPolicy.LINEAR.
+  - Description: Number of retry attempts. Applicable to LINEAR only.
 
 - reconnection_interval
-  - Type: float (seconds)
+  - Type: float
   - Default: 2.0
-  - Only for PNReconnectionPolicy.LINEAR.
+  - Description: Delay (seconds) between retries. Applicable to LINEAR only.
 
 - suppress_leave_events
   - Type: Boolean
   - Default: False
-  - If True, no presence leave events on unsubscribe.
+  - Description: If True, client does not send presence leave events on unsubscribe.
 
 - enable_subscribe
   - Type: Boolean
   - Default: True
-  - Disable if you don’t need subscription operations. Stop extra threads with pubnub.stop().
+  - Description: Disable if you won’t subscribe. When enabled, extra threads/loops start and must be stopped with pubnub.stop().
 
 - daemon
   - Type: Boolean
   - Default: False
-  - If True, spawned thread won’t keep the app alive after SIGTERM.
+  - Description: If True, spawned thread won’t keep the app running after SIGTERM.
 
 - disable_token_manager
   - Type: Boolean
   - Default: False
-  - If True, disables Token Manager; no requests will be authorized via tokens.
+  - Description: If True, Token Manager System is disabled; no requests will be authorized via tokens.
 
 - cipher_mode
   - Type: AES.MODE_CBC or AES.MODE_GCM
   - Default: AES.MODE_CBC
-  - Cipher method for the legacy crypto module.
-  - Warning: If set to GCM, ensure all clients can decode GCM.
+  - Description: Cipher for legacy crypto module. Warning: If set to GCM, ensure all other clients can decode GCM.
 
 - fallback_cipher_mode
   - Type: AES.MODE_CBC or AES.MODE_GCM
   - Default: None
-  - Secondary cipher method for decryption if cipher_mode fails (legacy crypto).
+  - Description: Secondary cipher for decryption in legacy crypto module if cipher_mode fails.
 
 - cipher_key
   - Type: String
   - Default: None
-  - If set, encrypts communications to/from PubNub.
+  - Description: If set, all communications to/from PubNub are encrypted.
 
 - use_random_initialization_vector
   - Type: Boolean
   - Default: True
-  - If True, random IV for all requests (not just file upload). If False, IV is hard-coded except for file upload.
+  - Description: Random IV for all requests (not just file upload). If False, IV is fixed except for file upload.
 
 - crypto_module
   - Type: PubNubCryptoModule
   - Default: None
-  - Crypto module for encrypting/decrypting messages and files. Accepts config (PNConfiguration with cipher_key and use_random_initialization_vector). See crypto_module section.
+  - Description: Crypto module used for encrypting/decrypting messages and files. Accepts config (PNConfiguration with cipher_key and use_random_initialization_vector). See crypto_module section.
 
 - uuid
   - Type: String
   - Default: n/a
-  - Deprecated. Use user_id instead. If UUID not set, you won’t be able to connect.
+  - Description: Deprecated; use user_id instead. Required to connect in older code paths.
 
 #### Disabling random initialization vector
 
-Disable random IV only for backward compatibility (<5.1.0). Do not disable for new apps.
+Disable random IV only for backward compatibility (< 5.1.0). Do not disable in new apps.
 
-- Default cipher mode across SDKs is CBC.
-- If Python uses GCM, only other Python SDKs with AES.MODE_GCM can decode.
-- To decode CBC messages (from other SDKs) or fetch persisted CBC messages while using GCM, set fallback_cipher_mode to AES.MODE_CBC.
+By default, all PubNub SDKs use CBC. If Python uses GCM, only another Python SDK set to AES.MODE_GCM can decode.
+
+To decode messages sent with CBC (other SDKs) or fetch persisted messages while using GCM, set fallback_cipher_mode to AES.MODE_CBC.
 
 The following example shows how to work with messages sent using different cipher modes:
 
@@ -160,21 +161,21 @@ example
 
 #### crypto_module
 
-`crypto_module` encrypts/decrypts messages and files. From 7.2.0, you can configure algorithms.
+crypto_module encrypts and decrypts messages and files. From 7.2.0, you can configure the algorithms it uses.
 
-- Options included: legacy 128‑bit encryption and recommended 256‑bit AES‑CBC.
-- If crypto_module is not set but cipher_key and use_random_initialization_vector are set, the client uses legacy encryption.
-- For configuration details, utilities, and examples, see Encryption docs.
+Each SDK includes two options: legacy 128‑bit encryption and recommended 256‑bit AES‑CBC. If you don't set crypto_module but set cipher_key and use_random_initialization_vector, the client uses legacy encryption.
+
+For configuration details, utilities, and examples, see Encryption.
 
 ##### Legacy encryption with 128-bit cipher key entropy
 
-No change required to keep legacy encryption. To use recommended 256-bit AES-CBC, explicitly set it in PubNub config.
+No changes needed to keep using legacy encryption. To use recommended 256‑bit AES‑CBC, set crypto_module in PubNub config.
 
 ### Sample code
 
 ##### Required User ID
 
-Always set user_id to uniquely identify the user or device. Persist it for the lifetime of the user or device. If not set, you cannot connect.
+Always set a persistent user_id to uniquely identify the user or device.
 
 ##### Reference code
 
@@ -224,7 +225,7 @@ Always set user_id to uniquely identify the user or device. Persist it for the l
 
 ##### Requires Stream Controller add-on
 
-Stream filtering lets a subscriber receive only messages that match a filter.
+Stream filtering lets a subscriber receive only messages that match a filter. The client sets the filter, and the server applies it.
 
 ### Method(s)
 
@@ -233,22 +234,18 @@ Stream filtering lets a subscriber receive only messages that match a filter.
 `
 ```
 
-Accepts a string.
+The property accepts a string.
 
 ```
 `1Get Filter Expression  
 `
 ```
 
-Returns a string.
+The property returns a string.
 
 ### Sample code
 
 #### Set filter expression
-
-##### Required User ID
-
-Always set user_id to uniquely identify the user or device. If not set, you cannot connect.
 
 ```
 1from pubnub.pnconfiguration import PNConfiguration  

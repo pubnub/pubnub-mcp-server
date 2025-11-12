@@ -1,10 +1,10 @@
 # Utility Methods API for C# SDK
 
-The methods on this page are utility methods that don't fit into other categories.
+Utility methods that don't fit other categories.
 
 ##### Request execution
 
-Use try/catch with the C# SDK. Invalid parameters throw an exception. If the request reaches the server but fails (server error or network issue), error details are in the returned status.
+Use try/catch with the C# SDK. Invalid parameters throw exceptions. If the request reaches the server but fails (server error or network issues), error details are available in the returned status.
 
 ```
 1try  
@@ -24,11 +24,12 @@ Use try/catch with the C# SDK. Invalid parameters throw an exception. If the req
 13{  
 14    Console.WriteLine($"Request can't be executed due to error: {ex.Message}");  
 15}  
+
 ```
 
 ## Destroy[​](#destroy)
 
-Destroy frees up the threads and allows for clean exit.
+Frees threads for clean exit.
 
 ### Method(s)[​](#methods)
 
@@ -39,9 +40,13 @@ Destroy frees up the threads and allows for clean exit.
 
 ### Sample code[​](#sample-code)
 
+##### Reference code
+This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
+
 ```
 1
   
+
 ```
 
 ### Returns[​](#returns)
@@ -66,11 +71,12 @@ This method doesn't take any arguments.
 ```
 1
   
+
 ```
 
 ## Get subscribed channel groups[​](#get-subscribed-channel-groups)
 
-Returns all subscribed channel groups as List<String>.
+Return all subscribed channel groups as List<string>.
 
 ### Method(s)[​](#methods-2)
 
@@ -86,6 +92,7 @@ Returns all subscribed channel groups as List<String>.
 ```
 1
   
+
 ```
 
 ### Response[​](#response)
@@ -99,7 +106,7 @@ Returns all subscribed channel groups as List<String>.
 
 ## Get subscribed channels[​](#get-subscribed-channels)
 
-Returns all subscribed channels as List<String>.
+Return all subscribed channels as List<string>.
 
 ### Method(s)[​](#methods-3)
 
@@ -115,6 +122,7 @@ Returns all subscribed channels as List<String>.
 ```
 1
   
+
 ```
 
 ### Response[​](#response-1)
@@ -128,7 +136,7 @@ Returns all subscribed channels as List<String>.
 
 ## Reconnect[​](#reconnect)
 
-Force the SDK to try to reach PubNub again.
+Force the SDK to attempt reconnection to PubNub.
 
 ### Method(s)[​](#methods-4)
 
@@ -145,3 +153,5 @@ Force the SDK to try to reach PubNub again.
 1
 **
 ```
+
+Last updated on Aug 6, 2025**

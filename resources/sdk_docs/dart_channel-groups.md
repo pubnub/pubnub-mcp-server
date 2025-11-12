@@ -1,19 +1,23 @@
 # Channel Groups API for Dart SDK
 
-Channel groups bundle channels under a name. You can subscribe to channel groups to receive messages published to the channels they contain.
+Channel groups bundle many channels under a single name. You can subscribe to a channel group to receive messages from all channels it contains. You cannot publish to a channel group; publish to individual channels instead.
 
-Channel group operations
-- You can't publish to a channel group. Publish to individual channels instead.
+##### Channel group operations
+- Subscribe to channel groups; publishing is only to individual channels.
 
 ## Add channels to a channel group
 
-Requires Stream Controller add-on (enable in the Admin Portal).
+##### Requires Stream Controller add-on
+Enable the Stream Controller add-on for your key in the Admin Portal.
 
 Adds channels to a channel group.
 
 ### Method(s)
 
-Maximum number of channels: 200 per API call.
+Use the following method in the Dart SDK:
+
+##### Maximum number of channels
+You can add up to 200 channels to a channel group per API call.
 
 ```
 `1pubnub.channelGroups.addChannels(  
@@ -25,13 +29,16 @@ Maximum number of channels: 200 per API call.
 `
 ```
 
-Parameters
-- group (String): Channel group to add the channels to.
-- channels (Set<String>): Channels to add.
-- keyset (Keyset, optional): Override for the default keyset.
-- using (String, optional): Keyset name from keysetStore to use for this call.
+Parameters:
+- group (String) — Channel group to add channels to.
+- channels (Set<String>) — Channels to add.
+- keyset (Keyset) — Override default keyset configuration.
+- using (String) — Keyset name from keysetStore for this call.
 
 ### Sample code
+
+##### Reference code
+This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
 
 ```
 1import 'package:pubnub/pubnub.dart';  
@@ -64,7 +71,7 @@ Parameters
 
 ### Response
 
-Returns ChannelGroupChangeChannelsResult.
+The addChannels() method returns a ChannelGroupChangeChannelsResult.
 
 ```
 `1{  
@@ -78,11 +85,14 @@ Returns ChannelGroupChangeChannelsResult.
 
 ## List channels in a channel group
 
-Requires Stream Controller add-on (enable in the Admin Portal).
+##### Requires Stream Controller add-on
+Enable the Stream Controller add-on for your key in the Admin Portal.
 
 Lists all channels in a channel group.
 
 ### Method(s)
+
+Use the following method in the Dart SDK:
 
 ```
 `1pubnub.channelGroups.listChannels(  
@@ -93,10 +103,10 @@ Lists all channels in a channel group.
 `
 ```
 
-Parameters
-- group (String): Channel group to list.
-- keyset (Keyset, optional): Override for the default keyset.
-- using (String, optional): Keyset name from keysetStore to use for this call.
+Parameters:
+- group (String) — Channel group to list channels for.
+- keyset (Keyset) — Override default keyset configuration.
+- using (String) — Keyset name from keysetStore for this call.
 
 ### Sample code
 
@@ -107,17 +117,20 @@ Parameters
 
 ### Returns
 
-ChannelGroupListChannelsResult:
-- channels (Set<String>): Channels in the group.
-- name (String): Channel group name.
+The listChannels() operation returns a ChannelGroupListChannelsResult with:
+- channels (Set<String>) — Channels in the group.
+- name (String) — Channel group name.
 
 ## Remove channels from a channel group
 
-Requires Stream Controller add-on (enable in the Admin Portal).
+##### Requires Stream Controller add-on
+Enable the Stream Controller add-on for your key in the Admin Portal.
 
 Removes channels from a channel group.
 
 ### Method(s)
+
+Use the following method in the Dart SDK:
 
 ```
 `1pubnub.channelGroups.removeChannels(  
@@ -129,11 +142,11 @@ Removes channels from a channel group.
 `
 ```
 
-Parameters
-- group (String): Channel group to remove channels from.
-- channels (Set<String>): Channels to remove.
-- keyset (Keyset, optional): Override for the default keyset.
-- using (String, optional): Keyset name from keysetStore to use for this call.
+Parameters:
+- group (String) — Channel group to remove channels from.
+- channels (Set<String>) — Channels to remove.
+- keyset (Keyset) — Override default keyset configuration.
+- using (String) — Keyset name from keysetStore for this call.
 
 ### Sample code
 
@@ -144,7 +157,7 @@ Parameters
 
 ### Returns
 
-Returns ChannelGroupChangeChannelsResult.
+The removeChannels method returns a ChannelGroupChangeChannelsResult.
 
 ```
 `1{  
@@ -158,11 +171,14 @@ Returns ChannelGroupChangeChannelsResult.
 
 ## Delete a channel group
 
-Requires Stream Controller add-on (enable in the Admin Portal).
+##### Requires Stream Controller add-on
+Enable the Stream Controller add-on for your key in the Admin Portal.
 
 Deletes a channel group.
 
 ### Method(s)
+
+Use the following method in the Dart SDK:
 
 ```
 `1pubnub.channelGroups.delete(  
@@ -173,10 +189,10 @@ Deletes a channel group.
 `
 ```
 
-Parameters
-- group (String): Channel group to remove all channels from.
-- keyset (Keyset, optional): Override for the default keyset.
-- using (String, optional): Keyset name from keysetStore to use for this call.
+Parameters:
+- group (String) — Channel group to remove all channels from.
+- keyset (Keyset) — Override default keyset configuration.
+- using (String) — Keyset name from keysetStore for this call.
 
 ### Sample code
 
@@ -187,7 +203,7 @@ Parameters
 
 ### Returns
 
-Returns ChannelGroupDeleteResult.
+The delete method returns a ChannelGroupDeleteResult.
 
 ```
 `1{  
@@ -201,11 +217,11 @@ Returns ChannelGroupDeleteResult.
 
 ## Get subscribed channel groups
 
-Returns all subscribed channel groups as Set<String>.
+Returns all subscribed channel groups in a Set<String>.
 
 ### Method(s)
 
-Get by inspecting this Subscription property:
+Get Subscribed Channel Groups is accomplished by inspecting the following property in the Dart SDK:
 
 ```
 `1// property of `Subscription` class  

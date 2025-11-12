@@ -2,15 +2,11 @@
 
 ##### Breaking changes in v9.0.0
 
-- Kotlin and Java SDKs share a unified codebase.
-- New client instantiation approach.
-- Asynchronous API callbacks and emitted status events changed.
-- Apps built with versions < 9.0.0 may be impacted.
-- See Java/Kotlin SDK migration guide.
+PubNub Kotlin SDK v9.0.0 unifies the Kotlin and [Java](/docs/sdks/java) SDKs, changes client instantiation, and updates async callbacks and [status events](/docs/sdks/kotlin/status-events). Apps built with versions < 9.0.0 may be impacted. See the [Java/Kotlin SDK migration guide](/docs/general/resources/migration-guides/java-kotlin-sdk-migration-guide).
 
 ##### Request execution
 
-Most method invocations return an Endpoint. You must call .sync() or .async() to execute.
+Most method invocations return an Endpoint object. You must call `.sync()` or `.async()` or the operation will not run.
 
 ```
 1val channel = pubnub.channel("channelName")  
@@ -27,11 +23,11 @@ Most method invocations return an Endpoint. You must call .sync() or .async() to
 
 ## Configuration
 
-PNConfiguration holds user-provided settings. Once passed to the PubNub constructor, it is immutable. To change values per request, use value overrides.
+`PNConfiguration` stores all client configuration. Once passed to the PubNub constructor, it’s immutable. For per-request changes, use [value overrides](#value-override).
 
 ##### Immutable configuration
-- Configuration is immutable after being passed to PubNub.
-- To change per-call values, use value overrides.
+
+Configuration properties cannot be changed after the client is constructed.
 
 ### Method(s)
 
@@ -40,177 +36,181 @@ PNConfiguration holds user-provided settings. Once passed to the PubNub construc
   
 ```
 
-Use these PNConfiguration properties:
+To create a `pnConfiguration` instance you can use the following properties in the Kotlin SDK:
 
-- subscribeKey
-  - Type: String
-  - Default: n/a
-  - Required. From the Admin Portal.
-- publishKey
-  - Type: String
-  - Default: n/a
-  - From the Admin Portal (required if publishing).
-- secretKey
-  - Type: String
-  - Default: n/a
-  - Only for access operations; do not use on Android.
-- userId
-  - Type: UserId
-  - Default: n/a
-  - Required to connect. Pass a unique UTF-8 string (up to 92 alphanumeric chars) to UserId.
-- customLoggers
-  - Type: List<CustomLogger>
-  - Default: n/a
-  - Custom logger implementations.
-- cacheBusting
-  - Type: Boolean
-  - Default: false
-  - Shuffle subdomains for misbehaving proxies.
-- secure
-  - Type: Boolean
-  - Default: true
-  - Enable TLS when true.
-- connectTimeout
-  - Type: Int
-  - Default: 5
-  - Connection establishment timeout (seconds).
-- subscribeTimeout
-  - Type: Int
-  - Default: 310
-  - Subscribe request timeout (seconds).
-- nonSubscribeRequestTimeout
-  - Type: Int
-  - Default: 10
-  - Non-subscribe request timeout (seconds).
-- filterExpression
-  - Type: String
-  - Default: n/a
-  - Subscribe filter expression.
-- heartbeatNotificationOptions
-  - Type: PNHeartbeatNotificationOptions
-  - Default: PNHeartbeatNotificationOptions.FAILURES
-  - Options: FAILURES, ALL, NONE.
-- origin
-  - Type: String
-  - Default: n/a
-  - Custom origin. For custom domains, follow the request process.
-- presenceTimeout
-  - Type: Int
-  - Default: 300
-  - Server presence timeout (seconds). Min 20. Updates heartbeatInterval.
-- heartbeatInterval
-  - Type: Int
-  - Default: 0
-  - Heartbeat interval (seconds). Min 3. Recommended ≈ (presenceTimeout / 2) - 1. 0 disables.
-- proxy
-  - Type: Proxy
-  - Default: n/a
-  - Use a proxy configuration.
-- proxySelector
-  - Type: ProxySelector
-  - Default: n/a
-  - Java ProxySelector.
-- proxyAuthenticator
-  - Type: Authenticator
-  - Default: n/a
-  - Java Authenticator.
-- googleAppEngineNetworking
-  - Type: Boolean
-  - Default: n/a
-  - Enable Google App Engine networking.
-- suppressLeaveEvents
-  - Type: Boolean
-  - Default: false
-  - Do not send leave requests when true.
-- retryConfiguration
-  - Type: RetryConfiguration
-  - Default: RetryConfiguration.Exponential (subscribe only)
-  - Custom reconnection policy. Can exclude endpoint groups from retry.
-  - Values:
-    - RetryConfiguration.None
-    - RetryConfiguration.Linear(delayInSec, maxRetryNumber, excludedOperations)
-    - RetryConfiguration.Exponential(minDelayInSec, maxDelayInSec, maxRetryNumber, excludedOperations)
-  - excludedOperations: list of RetryableEndpointGroup enums (for example, SUBSCRIBE).
-- maintainPresenceState
-  - Type: Boolean
-  - Default: true
-  - Send presence state set via pubnub.setPresenceState() with each subscribe call.
-- cryptoModule
-  - Type: CryptoModule.createAesCbcCryptoModule(cipherKey) or CryptoModule.createLegacyCryptoModule(cipherKey)
-  - Default: None
-  - Encryption/decryption for messages and files. Provide cipherKey. See cryptoModule.
-- includeInstanceIdentifier
-  - Type: Boolean
-  - Default: false
-  - Include PubNubCore.instanceId with every request.
-- includeRequestIdentifier
-  - Type: Boolean
-  - Default: true
-  - Include PubNubCore.requestId with every request.
-- maximumConnections
-  - Type: Int?
-  - Default: n/a
-  - Maximum inbound concurrent connections PubNub handles.
-- certificatePinner
-  - Type: CertificatePinner
-  - Default: n/a
-  - SSL certificate pinning.
-- sslSocketFactory
-  - Type: SSLSocketFactory
-  - Default: n/a
-  - Custom SSLSocketFactory for HTTPS.
-- x509ExtendedTrustManager
-  - Type: X509ExtendedTrustManager
-  - Default: n/a
-  - Custom trust manager for X509 certificates.
-- connectionSpec
-  - Type: ConnectionSpec
-  - Default: n/a
-  - Supported TLS versions/cipher suites for HTTPS.
-- hostnameVerifier
-  - Type: HostnameVerifier
-  - Default: n/a
-  - Verifies hostnames in SSL sessions.
-- fileMessagePublishRetryLimit
-  - Type: Int
-  - Default: 5
-  - Auto-retry attempts for file message publish.
-- dedupOnSubscribe
-  - Type: Boolean
-  - Default: n/a
-  - Enable message deduplication on subscribe.
-- maximumMessagesCacheSize
-  - Type: Int
-  - Default: n/a
-  - Maximum messages cache size.
-- pnsdkSuffixes
-  - Type: Map<String, String>
-  - Default: n/a
-  - Custom suffixes for SDK identification headers.
-- managePresenceListManually
-  - Type: Boolean
-  - Default: n/a
-  - Manually manage presence list (useful with server-side ACL).
-- authKey
-  - Type: String
-  - Default: n/a
-  - Deprecated. For Access Manager v2, client uses this in restricted requests.
+- subscribeKey  
+  Type: String | Default: n/a  
+  Your `subscribeKey` from the Admin Portal. Required.
 
-#### cryptoModule
+- publishKey  
+  Type: String | Default: n/a  
+  Your `publishKey` from the Admin Portal (required if publishing).
 
-- Used to encrypt/decrypt messages and files; encryption disabled by default.
-- Options:
-  - Legacy 128-bit encryption.
-  - Recommended 256-bit AES-CBC; must be explicitly set.
-- See Encryption reference for configuration and examples.
+- secretKey  
+  Type: String | Default: n/a  
+  Your `secretKey` (only required for access operations; don’t include in Android apps).
+
+- userId  
+  Type: UserId | Default: n/a  
+  Unique identifier for the user/device (UTF-8 String up to 92 alphanumeric chars). Required to connect. Construct with `UserId(String)`.
+
+- customLoggers  
+  Type: List<CustomLogger> | Default: n/a  
+  Custom logger implementations. See [Logging](/docs/sdks/kotlin/logging).
+
+- cacheBusting  
+  Type: Boolean | Default: false  
+  Shuffle subdomains to work around misbehaving proxies.
+
+- secure  
+  Type: Boolean | Default: true  
+  Enables TLS when true.
+
+- connectTimeout  
+  Type: Int | Default: 5  
+  Connection establishment timeout (seconds).
+
+- subscribeTimeout  
+  Type: Int | Default: 310  
+  Subscribe request timeout (seconds).
+
+- nonSubscribeRequestTimeout  
+  Type: Int | Default: 10  
+  Non-subscribe request timeout (seconds).
+
+- filterExpression  
+  Type: String | Default: n/a  
+  Subscribe with a custom filter expression.
+
+- heartbeatNotificationOptions  
+  Type: PNHeartbeatNotificationOptions | Default: PNHeartbeatNotificationOptions.FAILURES  
+  Options: `ALL`, `FAILURES`, `NONE`.
+
+- origin  
+  Type: String | Default: n/a  
+  Custom origin. To request a custom domain, see the [request process](/docs/general/setup/data-security#request-process).
+
+- presenceTimeout  
+  Type: Int | Default: 300  
+  Presence timeout (seconds). Minimum 20. Updates heartbeatInterval when set. Client sends periodic heartbeats; if none arrive within the timeout, the client is marked inactive and a "timeout" event is emitted on the [presence channel](/docs/general/presence/overview).
+
+- heartbeatInterval  
+  Type: Int | Default: 0  
+  Heartbeat interval (seconds). Recommended ≈ `(presenceTimeout / 2) - 1`. Minimum 3. Default 0 (disabled).
+
+- proxy  
+  Type: Proxy | Default: n/a  
+  Use a proxy configuration. See [Oracle documentation](https://docs.oracle.com/javase/7/docs/api/java/net/Proxy.html).
+
+- proxySelector  
+  Type: ProxySelector | Default: n/a  
+  Sets Java ProxySelector. See [Oracle documentation](https://docs.oracle.com/javase/7/docs/api/java/net/ProxySelector.html).
+
+- proxyAuthenticator  
+  Type: Authenticator | Default: n/a  
+  Sets Java Authenticator. See [Oracle documentation](https://docs.oracle.com/javase/7/docs/api/java/net/Authenticator.html).
+
+- googleAppEngineNetworking  
+  Type: Boolean | Default: n/a  
+  Enable Google App Engine networking.
+
+- suppressLeaveEvents  
+  Type: Boolean | Default: false  
+  Do not send `leave` requests when true.
+
+- retryConfiguration  
+  Type: RetryConfiguration | Default: RetryConfiguration.Exponential (subscribe only)  
+  Custom reconnection parameters. You can exclude [endpoint groups](https://github.com/pubnub/kotlin/blob/master/pubnub-kotlin/pubnub-kotlin-core-api/src/commonMain/kotlin/com/pubnub/api/retry/RetryableEndpointGroup.kt) from retry policy.  
+  Available values:
+  - `RetryConfiguration.None`
+  - `RetryConfiguration.Linear(delayInSec, maxRetryNumber, excludedOperations)`
+  - `RetryConfiguration.Exponential(minDelayInSec, maxDelayInSec, maxRetryNumber, excludedOperations)`  
+  `excludedOperations` is a list of `RetryableEndpointGroup` enums (for example, `RetryableEndpointGroup.SUBSCRIBE`). See [SDK connection lifecycle](/docs/general/setup/connection-management#sdk-connection-lifecycle).
+
+- maintainPresenceState  
+  Type: Boolean | Default: true  
+  Resend presence state set with [`pubnub.setPresenceState()`](/docs/sdks/kotlin/api-reference/presence#set-state) on each subscribe.
+
+- cryptoModule  
+  Type: `CryptoModule.createAesCbcCryptoModule(cipherKey)` or `CryptoModule.createLegacyCryptoModule(cipherKey)` | Default: None  
+  Cryptography module for message/file encryption and decryption. Takes `cipherKey`. See [cryptoModule](#cryptomodule).
+
+- includeInstanceIdentifier  
+  Type: Boolean | Default: false  
+  Include `PubNubCore.instanceId` on each request.
+
+- includeRequestIdentifier  
+  Type: Boolean | Default: true  
+  Include `PubNubCore.requestId` on each request.
+
+- maximumConnections  
+  Type: Int? | Default: n/a  
+  Maximum number of inbound concurrent connections PubNub will handle.
+
+- certificatePinner  
+  Type: CertificatePinner | Default: n/a  
+  SSL certificate pinning. See [OkHttp CertificatePinner](https://square.github.io/okhttp/3.x/okhttp/okhttp3/CertificatePinner.html).
+
+- sslSocketFactory  
+  Type: SSLSocketFactory | Default: n/a  
+  Custom SSLSocketFactory for HTTPS.
+
+- x509ExtendedTrustManager  
+  Type: X509ExtendedTrustManager | Default: n/a  
+  Custom trust manager for X509 certificates.
+
+- connectionSpec  
+  Type: ConnectionSpec | Default: n/a  
+  Supported TLS versions and cipher suites. See [ConnectionSpec](https://square.github.io/okhttp/5.x/okhttp/okhttp3/-connection-spec/index.html).
+
+- hostnameVerifier  
+  Type: HostnameVerifier | Default: n/a  
+  Custom hostname verifier.
+
+- fileMessagePublishRetryLimit  
+  Type: Int | Default: 5  
+  Max automatic retries for file message publish.
+
+- dedupOnSubscribe  
+  Type: Boolean | Default: n/a  
+  Enable/disable message de-duplication on subscription.
+
+- maximumMessagesCacheSize  
+  Type: Int | Default: n/a  
+  Max size of the messages cache.
+
+- pnsdkSuffixes  
+  Type: Map<String, String> | Default: n/a  
+  Custom suffixes for SDK identification headers.
+
+- managePresenceListManually  
+  Type: Boolean | Default: n/a  
+  Enable manual management of presence list (used with server-side ACL).
+
+- authKey  
+  Type: String | Default: n/a  
+  Deprecated. See [Manage Access](/docs/general/security/access-control) and Kotlin [Access Manager API](/docs/sdks/kotlin/api-reference/access-manager). If Access Manager v2 is used, client sends this `authKey` on restricted requests.
+
+#### `cryptoModule`
+
+Encrypts/decrypts messages and files. From 7.6.0, algorithms are configurable; encryption is disabled by default. Options: legacy 128‑bit, or recommended 256‑bit AES‑CBC. See [Message Encryption](/docs/general/setup/data-security#message-encryption), [File Encryption](/docs/general/setup/data-security#file-encryption), and [Encryption](/docs/sdks/kotlin/api-reference/encryption).
+
+##### Legacy encryption with 128-bit cipher key entropy
+
+Legacy encryption continues to work unchanged. To use 256-bit AES-CBC, set it explicitly in configuration.
 
 ### Sample code
 
 ##### Reference code
-Self-contained runnable snippet with imports and logging.
+
+```
+1
+  
+```
 
 ##### Required User ID
-Always set a persistent UserId to uniquely identify the user or device. Without it, you cannot connect.
+
+Always set and persist a `UserId` to uniquely identify the user/device. If not set, you can’t connect.
 
 ```
 1
@@ -219,14 +219,14 @@ Always set a persistent UserId to uniquely identify the user or device. Without 
 
 ### Value override
 
-Override specific configuration values per request using overrideConfiguration.
+Override selected configuration options per request using `overrideConfiguration`.
 
 ```
 1
   
 ```
 
-Overridable options:
+You can override:
 - subscribeKey
 - publishKey
 - secretKey
@@ -240,11 +240,11 @@ Overridable options:
 
 ## Initialization
 
-Initialize the PubNub client before using APIs to set account-level credentials (publishKey, subscribeKey).
+Initialize before using APIs; set credentials like `publishKey` and `subscribeKey`. Add PubNub via [Getting Started](/docs/sdks/kotlin).
 
 ### Description
 
-Initialize the PubNub Client API.
+Create and configure the PubNub client.
 
 ### Methods
 
@@ -255,13 +255,13 @@ Initialize PubNub with:
   
 ```
 
-- builder
-  - Type: PNConfiguration
+- builder  
+  Type: PNConfiguration  
+  See [configuration](#configuration).
 
 ### Sample code
 
 ##### Required User ID
-Always set a persistent userId. Without it, you cannot connect.
 
 ```
 1
@@ -270,7 +270,7 @@ Always set a persistent userId. Without it, you cannot connect.
 
 ### Returns
 
-PubNub instance to call APIs: publish(), subscribe(), history(), hereNow().
+A PubNub instance to call APIs such as `publish()`, `subscribe()`, `history()`, and `hereNow()`.
 
 ### Other examples
 
@@ -297,16 +297,12 @@ PubNub instance to call APIs: publish(), subscribe(), history(), hereNow().
 
 #### Initializing with Access Manager
 
-- Requires Access Manager add-on enabled for your keys.
-- Keep secretKey secure; never expose on client platforms.
-- Initializing with secretKey grants root permissions for Access Manager. Servers get all access on all channels.
+Requires that the Access Manager add-on is enabled. Keep `secretKey` secure and server-side only.
 
 ```
 1
   
 ```
-
-Now the pubnub object can use Access Manager functions and will sign all Access Manager requests with secretKey.
 
 #### How to set proxy
 
@@ -317,16 +313,19 @@ Now the pubnub object can use Access Manager functions and will sign all Access 
 
 ## Event listeners
 
-- Client receives updates from all subscriptions: channels, channel groups, channel metadata, users metadata.
-- Subscription: updates for its specific object.
-- SubscriptionsSet: updates for all objects in the set.
-- See Publish & Subscribe for details and handlers.
+- The PubNub client receives updates for all subscriptions (channels, groups, channel metadata, user metadata).
+- A [`Subscription`](/docs/sdks/kotlin/api-reference/publish-and-subscribe#create-a-subscription) receives updates only for its target.
+- A [`SubscriptionsSet`](/docs/sdks/kotlin/api-reference/publish-and-subscribe#create-a-subscription-set) receives updates for its list of subscriptions.
+
+See [Publish & Subscribe](/docs/sdks/kotlin/api-reference/publish-and-subscribe#event-listeners).
 
 ## UserId
 
-Set/get a user ID on the fly.
+Set/get a user ID at runtime.
 
 ### Method(s)
+
+To set/get `userId`:
 
 ```
 `1// Getting the userId  
@@ -339,15 +338,13 @@ Set/get a user ID on the fly.
   
 ```
 
-- userId
-  - Type: UserId
-  - Default: n/a
-  - Required to connect. Pass a String to UserId.
+- userId  
+  Type: UserId | Default: n/a  
+  The `UserId` to use (wrap a String). Required to connect.
 
 ### Sample code
 
 ##### Required User ID
-Always set a persistent userId. Without it, you cannot connect.
 
 #### Set UserId
 
@@ -365,9 +362,7 @@ Always set a persistent userId. Without it, you cannot connect.
 
 ## Filter expression
 
-##### Requires Stream Controller add-on
-
-Apply a server-side filter to only receive messages matching a filter expression.
+Requires Stream Controller add-on. Server-side filtering allows receiving only messages that match the filter. See [Publish Messages](/docs/general/messages/publish).
 
 ### Method(s)
 
@@ -376,9 +371,9 @@ Apply a server-side filter to only receive messages matching a filter expression
   
 ```
 
-- filterExpression
-  - Type: String
-  - Subscribe with a custom filter expression.
+- filterExpression  
+  Type: String  
+  PSV2 feature to `subscribe` with a custom filter expression.
 
 ### Sample code
 

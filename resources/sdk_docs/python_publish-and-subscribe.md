@@ -1,11 +1,13 @@
 # Publish/Subscribe API for Python SDK
 
-Perform operations synchronously or asynchronously.
+PubNub delivers messages in under 30 ms. Use publish to send messages and subscribe to receive them.
 
 ##### Request execution and return values
 
+You can execute operations synchronously or asynchronously.
+
 `.sync()` returns an `Envelope` object with:
-- `Envelope.result` (type differs per API)
+- `Envelope.result` (type varies by API)
 - `Envelope.status` (`PnStatus`)
 
 ```
@@ -16,7 +18,7 @@ Perform operations synchronously or asynchronously.
 `
 ```
 
-`.pn_async(callback)` returns `None` and invokes your callback with `Envelope.result` and `Envelope.status`.
+`.pn_async(callback)` returns `None` and passes `result` and `status` to your callback.
 
 ```
 1def my_callback_function(result, status):  
@@ -27,45 +29,35 @@ Perform operations synchronously or asynchronously.
 5    .channel("myChannel") \  
 6    .message("Hello from PubNub Python SDK") \  
 7    .pn_async(my_callback_function)  
-
 ```
 
-## Publish[​](#publish)
+## Publish
 
-`publish()` sends a message to all channel subscribers.
+`publish()` sends a message to all subscribers on a channel.
 
-- Prerequisites
-  - Initialize PubNub with the `publishKey`.
-  - You don't have to be subscribed to a channel to publish to it.
+- Prerequisites and limitations
+  - Initialize PubNub with `publishKey`.
+  - You don't need to be subscribed to publish.
   - You cannot publish to multiple channels simultaneously.
-
 - Security
-  - Enable TLS/SSL by setting `ssl` to `true` during initialization.
-  - Optional message encryption via Crypto module.
-
+  - Use TLS/SSL by setting `ssl = true` during initialization.
+  - Optionally encrypt messages.
 - Message data
-  - Any JSON-serializable data (objects, arrays, integers, strings, UTF‑8 strings).
-  - Don't JSON serialize `message` or `meta`; the SDK does it automatically.
-
+  - Message can be any JSON-serializable data. Avoid custom classes/functions.
+  - Don't JSON serialize `message` or `meta`; PubNub does it automatically.
 - Size
-  - Max message size: 32 KiB (includes escaped chars and channel name).
-  - Aim for under ~1,800 bytes for optimal performance.
-  - Exceeding limit returns `Message Too Large`.
-
+  - Max message size: 32 KiB (includes escaped character count and channel name). Aim for under 1,800 bytes. Exceeding limit returns `Message Too Large`.
 - Publish rate
-  - Publish as fast as bandwidth allows.
-  - Soft throughput limit; in-memory subscriber queue holds only 100 messages.
-
+  - Publish as fast as bandwidth allows; soft throughput limits apply. In-memory queue stores only 100 messages; older messages may drop if subscribers can't keep up.
 - Custom message type
-  - Optional `custom_message_type` label such as `text`, `action`, `poll`.
-
+  - `custom_message_type` allows business-specific labels like `text`, `action`, `poll`. Must be 3–50 chars, alphanumeric, dashes and underscores allowed; cannot start with special characters or `pn_`/`pn-`.
 - Best practices
-  - Publish serially; verify success code (for example, `[1,"Sent","136074940..."]`).
-  - Publish next message only after success; on failure `[0,"blah","<timetoken>"]`, retry.
-  - Keep in-memory queue under 100 messages.
-  - Throttle bursts (e.g., ≤5 msgs/sec) to meet latency needs.
+  - Publish serially.
+  - Verify success return code (e.g., `[1,"Sent","136074940..."]`) before sending the next message.
+  - On failure (`[0,"blah","<timetoken>"]`), retry.
+  - Keep queue under 100 messages; throttle bursts (e.g., ≤5 msgs/sec) to meet latency needs.
 
-### Method(s)[​](#methods)
+### Method(s)
 
 ```
 `1pubnub.publish() \  
@@ -78,33 +70,16 @@ Perform operations synchronously or asynchronously.
 `
 ```
 
-Parameters:
-- channel (required)
-  - Type: String
-  - Destination of message (channel ID).
-- message (required)
-  - Type: Object
-  - The payload.
-- custom_message_type
-  - Type: String
-  - Case-sensitive, alphanumeric 3–50 chars; dashes `_` and underscores `-` allowed.
-  - Cannot start with special chars or `pn_`/`pn-`.
-  - Examples: `text`, `action`, `poll`.
-- should_store
-  - Type: Boolean
-  - Default: account default
-  - Store in history.
-- meta
-  - Type: Object
-  - Default: None
-  - Metadata for message filtering.
-- use_post
-  - Type: Boolean
-  - Use POST to publish.
+- channel (String, required): Destination channel ID.
+- message (Object, required): Payload.
+- custom_message_type (String): Business-specific label; 3–50 chars, alphanumeric plus `-`/`_`; cannot start with special chars or `pn_`/`pn-`.
+- should_store (Boolean): Store in history (default: account setting).
+- meta (Object): Metadata for filtering.
+- use_post (Boolean): Use POST to publish.
 
-### Sample code[​](#sample-code)
+### Sample code
 
-#### Publish a message to a channel[​](#publish-a-message-to-a-channel)
+#### Publish a message to a channel
 
 - Builder Pattern
 - Named Arguments
@@ -155,7 +130,6 @@ Parameters:
   
 36if __name__ == "__main__":  
 37    main()  
-
 ```
 
 ```
@@ -205,30 +179,28 @@ Parameters:
 36if __name__ == "__main__":  
 37    main()  
 38
-  
-
 ```
 
 ##### Subscribe to the channel
 
-Before running the publish example, subscribe to the same channel (for example, with the Debug Console or a separate script).
+Before running the publish example, subscribe to the same channel in another process or via the Debug Console.
 
-### Returns[​](#returns)
+### Returns
 
 `publish()` returns an `Envelope`:
 - result: `PNPublishResult` (includes timetoken)
 - status: `PNStatus`
 
-#### PNPublishResult[​](#pnpublishresult)
+#### PNPublishResult
 
 ```
 `1Publish success with timetoken 17193163560057793  
 `
 ```
 
-### Other examples[​](#other-examples)
+### Other examples
 
-#### Publish with metadata[​](#publish-with-metadata)
+#### Publish with metadata
 
 ```
 1def publish_callback(result, status):  
@@ -239,14 +211,13 @@ Before running the publish example, subscribe to the same channel (for example, 
   
 6pubnub.publish().channel("my_channel").message(["hello", "there"]) \  
 7    .meta({'name': 'Alex'}).pn_async(publish_callback)  
-
 ```
 
-## Fire[​](#fire)
+## Fire
 
-`fire()` sends a message to Functions event handlers and Illuminate on the target channel. Not replicated to subscribers and not stored in history.
+Sends a message to Functions event handlers and Illuminate on the target channel. Not delivered to subscribers and not stored in history.
 
-### Method(s)[​](#methods-1)
+### Method(s)
 
 ```
 `1pubnub.fire() \  
@@ -257,15 +228,12 @@ Before running the publish example, subscribe to the same channel (for example, 
 `
 ```
 
-Parameters:
-- channel (required): String — Destination channel ID.
-- message (required): Object — The payload.
-- use_post: Boolean — Default `False`. Use POST.
-- meta: Object — Default `None`. Metadata for filtering.
+- channel (String, required): Destination channel ID.
+- message (Object, required): Payload.
+- use_post (Boolean, default False): Use POST to publish.
+- meta (Object): Metadata for filtering.
 
-### Sample code[​](#sample-code-1)
-
-#### Fire a message to a channel[​](#fire-a-message-to-a-channel)
+### Sample code
 
 - Builder Pattern
 - Named Arguments
@@ -283,28 +251,27 @@ Parameters:
 ```
 `1fire = pubnub.fire(channel="my_channel", message='hello there').sync()  
 2print(f'fire timetoken: {fire.result.timetoken}')  
-`
+'
 ```
 
-### Returns[​](#returns-1)
+### Returns
 
 `fire()` returns an `Envelope`:
 - result: `PNFireResult` (includes timetoken)
 - status: `PNStatus`
 
-#### PNFireResult[​](#pnfireresult)
+#### PNFireResult
 
 ```
 `1Fire success with timetoken 17193163560057793  
 `
 ```
 
-## Signal[​](#signal)
+## Signal
 
-`signal()` sends a signal to all subscribers of a channel.
-- Payload limit: 64 bytes (payload only).
+`signal()` sends a signal to all subscribers of a channel. Payload limit: 64 bytes (payload only).
 
-### Method(s)[​](#methods-2)
+### Method(s)
 
 ```
 `1pubnub.signal() \  
@@ -314,14 +281,11 @@ Parameters:
 `
 ```
 
-Parameters:
-- message (required): Object — The payload.
-- custom_message_type: String — 3–50 chars; alphanumeric, `-` and `_` allowed; cannot start with special chars or `pn_`/`pn-`.
-- channel (required): String — Destination channel ID.
+- message (Object, required): Payload.
+- custom_message_type (String): 3–50 chars, alphanumeric plus `-`/`_`; cannot start with special chars or `pn_`/`pn-`.
+- channel (String, required): Destination channel ID.
 
-### Sample code[​](#sample-code-2)
-
-#### Signal a message to a channel[​](#signal-a-message-to-a-channel)
+### Sample code
 
 - Builder Pattern
 - Named Arguments
@@ -341,34 +305,31 @@ Parameters:
 `
 ```
 
-### Returns[​](#returns-2)
+### Returns
 
 `signal()` returns an `Envelope`:
 - result: `PNSignalResult` (includes timetoken)
 - status: `PNStatus`
 
-#### PNSignalResult[​](#pnsignalresult)
+#### PNSignalResult
 
 ```
 `1Signal success with timetoken 17193165584676126  
 `
 ```
 
-## Subscribe[​](#subscribe)
+## Subscribe
 
-Subscribe opens a socket and listens for messages/events. Provide `subscribeKey` during initialization. Enable automatic retries to reconnect and retrieve available messages after disconnect.
+Opens a socket and listens for messages/events on entities. Initialize with `subscribeKey`. Enable automatic retries to reconnect and retrieve available messages after disconnects.
 
-### Subscription scope[​](#subscription-scope)
+### Subscription scope
 
-Two types:
-- `Subscription`: entity-scoped (e.g., specific channel)
-- `SubscriptionSet`: client-scoped; includes one or more subscriptions
+- `Subscription`: entity-scoped (e.g., a specific channel)
+- `SubscriptionSet`: client-scoped set of one or more subscriptions
 
-Attach event listeners to receive messages and events.
+Events are received through listeners attached to subscriptions or sets.
 
-### Create a subscription[​](#create-a-subscription)
-
-Entity-level `Subscription` for a single entity.
+### Create a subscription
 
 ```
 `1# entity-based, local-scoped  
@@ -376,12 +337,9 @@ Entity-level `Subscription` for a single entity.
 `
 ```
 
-Parameter:
-- with_presence: bool — Whether to deliver presence updates.
+- with_presence (bool): Whether to deliver presence updates through listener streams.
 
-### Create a subscription set[​](#create-a-subscription-set)
-
-Client-level `SubscriptionSet` for multiple entities.
+### Create a subscription set
 
 ```
 `1# client-based, general-scoped  
@@ -389,25 +347,21 @@ Client-level `SubscriptionSet` for multiple entities.
 `
 ```
 
-Parameter:
-- subscriptions (required): `List[PubNubSubscription]` — Channels/Channel group subscriptions.
+- subscriptions (List[PubNubSubscription], required): Channel/group subscriptions.
 
-### Method(s)[​](#methods-3)
+### Method(s)
 
-`Subscription` and `SubscriptionSet` share the same `subscribe()` method.
-
-#### Subscribe[​](#subscribe-1)
+#### Subscribe
 
 ```
 `1subscription.subscribe(timetoken: Optional[int] = None, region: Optional[str] = None,)  
 `
 ```
 
-Parameters:
-- timetoken: int — Best-effort retrieval from a 17-digit timetoken; invalid values are ignored.
-- region: String — Region where the message was published.
+- timetoken (int): Best-effort retrieval of cached messages starting from a 17-digit timetoken; invalid values are ignored.
+- region (String): Region where the message was published.
 
-##### Sample code[​](#sample-code-3)
+##### Sample code
 
 ```
 # single channel subscription  
@@ -429,98 +383,90 @@ subscription_set = pubnub.subscription_set([channel_1, channel_2, channel_x, gro
 
   
 set_subscription = subscription_set.subscribe()  
-
 ```
 
-##### Returns[​](#returns-3)
+##### Returns
 
 No return value.
 
-## Entities[​](#entities)
+## Entities
 
-Subscribable objects for real-time updates:
-- [`PubNubChannel`](#create-channels)
-- [`PubNubChannelGroup`](#create-channel-groups)
-- [`PubNubUserMetadata`](#create-user-metadata)
-- [`PubNubChannelMetadata`](#create-channel-metadata)
+Subscribable objects for receiving real-time updates:
 
-### Create channels[​](#create-channels)
+- `PubNubChannel`
+- `PubNubChannelGroup`
+- `PubNubUserMetadata`
+- `PubNubChannelMetadata`
+
+### Create channels
 
 ```
 `pubnub.channel(String)  
 `
 ```
 
-Parameter:
-- channel (required): String — Channel ID to create a subscription of.
+- channel (String, required): Channel ID.
 
-#### Sample code[​](#sample-code-4)
+#### Sample code
 
 ```
 `pubnub.channel(f'{channel1}')  
 `
 ```
 
-### Create channel groups[​](#create-channel-groups)
+### Create channel groups
 
 ```
 `pubnub.channel_group(String)  
 `
 ```
 
-Parameter:
-- channel_group (required): String — Channel group name to create a subscription of.
+- channel_group (String, required): Channel group name.
 
-#### Sample code[​](#sample-code-5)
+#### Sample code
 
 ```
 `pubnub.channel_group("channelGroupName")  
-`
+'
 ```
 
-### Create channel metadata[​](#create-channel-metadata)
+### Create channel metadata
 
 ```
 `pubnub.channel_metadata(String)  
 `
 ```
 
-Parameter:
-- channel_metadata (required): String — Channel metadata identifier.
+- channel_metadata (String, required): Channel metadata identifier.
 
-#### Sample code[​](#sample-code-6)
+#### Sample code
 
 ```
 `pubnub.channel_metadata("channelMetadata")  
 `
 ```
 
-### Create user metadata[​](#create-user-metadata)
+### Create user metadata
 
 ```
 `pubnub.user_metadata(String)  
 `
 ```
 
-Parameter:
-- user_metadata (required): String — User metadata identifier.
+- user_metadata (String, required): User metadata identifier.
 
-#### Sample code[​](#sample-code-7)
+#### Sample code
 
 ```
 `pubnub.userMetadata("user_metadata")  
 `
 ```
 
-## Event listeners[​](#event-listeners)
+## Event listeners
 
-Attach listeners to `Subscription`, `SubscriptionSet`, or the client (for connection status). Receive messages, signals, files, presence, and metadata events.
+Attach listeners to `Subscription`, `SubscriptionSet`, or (for connection status) the PubNub client.
 
-### Add listeners[​](#add-listeners)
-
-You can implement event-specific or generic listeners.
-
-#### Method(s)[​](#methods-4)
+### Add listeners
 
 ```
 # Add event-specific listeners  
@@ -619,10 +565,9 @@ class PrintListener(SubscribeCallback):
 
   
 subscription.add_listener(PrintListener())  
-
 ```
 
-#### Sample code[​](#sample-code-8)
+#### Sample code
 
 ```
 subscription = pubnub.channel(f'{channel1}').subscription()  
@@ -651,21 +596,20 @@ subscription_set = pubnub.subscription_set(channels=["channel", "channel2"],
 
   
 subscription_set.subscribe()  
-
 ```
 
-### Add connection status listener[​](#add-connection-status-listener)
+### Add connection status listener
 
-Client-scoped listener for connection status updates.
+Client scope: only available on the PubNub object.
 
-#### Method(s)[​](#methods-5)
+#### Method(s)
 
 ```
 `1pubnub.add_listener()  
 `
 ```
 
-#### Sample code[​](#sample-code-9)
+#### Sample code
 
 ```
 1class PrintListener(SubscribeListener):  
@@ -683,28 +627,26 @@ Client-scoped listener for connection status updates.
   
 11listener = PrintListener()  
 12pubnub.add_listener(listener)  
-
 ```
 
-#### Returns[​](#returns-4)
+#### Returns
 
-Subscription status. See SDK statuses for available values.
+Subscription status. See SDK statuses for details.
 
-## Unsubscribe[​](#unsubscribe)
+## Unsubscribe
 
-Stop receiving real-time updates from a `Subscription` or a `SubscriptionSet`.
+Stop receiving updates from a `Subscription` or `SubscriptionSet`.
 
-### Method(s)[​](#methods-6)
+### Method(s)
 
 ```
 subscription.unsubscribe()  
 
   
 subscription_set.unsubscribe()  
-
 ```
 
-### Sample code[​](#sample-code-10)
+### Sample code
 
 ```
 1channel = pubnub.channel(f'{channel}')  
@@ -720,25 +662,26 @@ subscription_set.unsubscribe()
   
 9t1_subscription1.unsubscribe()  
 10subscription_set.unsubscribe()  
-
 ```
 
-### Returns[​](#returns-5)
+### Returns
 
 None
 
-## Unsubscribe all[​](#unsubscribe-all)
+## Unsubscribe all
 
-Stop receiving real-time updates from all data streams and remove associated entities. Client scope only.
+Stop receiving updates from all streams and remove associated entities.
 
-### Method(s)[​](#methods-7)
+Client scope: only available on the PubNub object.
+
+### Method(s)
 
 ```
 `1pubnub.unsubscribe_all()  
 `
 ```
 
-### Sample code[​](#sample-code-11)
+### Sample code
 
 ```
 1channel = pubnub.channel(f'{channel}')  
@@ -757,9 +700,8 @@ Stop receiving real-time updates from all data streams and remove associated ent
 11
   
 12pubnub.unsubscribe_all()  
-
 ```
 
-### Returns[​](#returns-6)
+### Returns
 
 None

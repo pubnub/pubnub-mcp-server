@@ -1,19 +1,19 @@
 # Access Manager v3 API for Swift SDK
 
-Access Manager v3 lets servers grant clients time-limited tokens with embedded permissions to PubNub resources (channels, channel groups, UUID metadata). Permissions can be:
-- Time-bound (TTL).
-- Applied to specific resources or patterns (regex).
-- Mixed per resource in one grant (for example, read to channel1 and write to channel2).
-- Restricted to an authorized UUID (only that UUID can use the token).
+Access Manager v3 issues tokens with embedded permissions granting client access to PubNub resources (channels, channel groups, UUID metadata):
+- For a limited time (ttl in minutes).
+- Via explicit resources or pattern-based (regular expression) matches.
+- Mixed permission levels in one token (for example, `read` to `channel1`, `write` to `channel2`).
+- Optional authorized UUID: restricts token usage to a single `uuid`.
 
-For end-to-end details, see Manage Permissions with Access Manager v3.
+For details on Access Manager v3, see Manage Permissions with Access Manager v3.
 
 ##### Client device support only
-Swift SDK supports only client-side Access Manager operations: parse and set tokens received from a server. It does not grant permissions.
+Swift SDK is client-only for Access Manager: you can parse and set server-issued tokens; you cannot grant permissions from the client.
 
 ## Parse token
 
-Decode a token and inspect its embedded permissions and TTL.
+The `parse()` method decodes an existing token and returns the permissions embedded in that token.
 
 ### Method(s)
 
@@ -22,9 +22,12 @@ Decode a token and inspect its embedded permissions and TTL.
 `
 ```
 
-- token (String, required): Current token with embedded permissions.
+- token (required) Type: String. Current token with embedded permissions.
 
 ### Sample code
+
+##### Reference code
+This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
 
 ```
 1
@@ -34,7 +37,7 @@ Decode a token and inspect its embedded permissions and TTL.
 
 ### Returns
 
-This method responds with a struct of PAMToken:
+Returns a `PAMToken` struct:
 
 ```
 1struct PAMToken {  
@@ -65,9 +68,10 @@ This method responds with a struct of PAMToken:
 24  /// The computed signature  
 25  public let signature: String { get }  
 26}  
+
 ```
 
-See the resource and pattern permissions stored in the PAMTokenResource structure:
+Resource and pattern permissions are stored in `PAMTokenResource`:
 
 ```
 1struct PAMTokenResource {  
@@ -82,15 +86,16 @@ See the resource and pattern permissions stored in the PAMTokenResource structur
 9  /// Permissions granted to specific / regexp matching uuids  
 10  public let uuids: [String: PAMPermission] { get }  
 11}  
+
 ```
 
 ### Error responses
 
-If parsing fails, the token may be damaged. Request a new token from the server.
+Errors during parsing may indicate a damaged token. Request a new token from your server.
 
 ## Set token
 
-Update the authentication token on the client.
+The `set()` method updates the client’s authentication token granted by the server.
 
 ### Method(s)
 
@@ -99,7 +104,7 @@ Update the authentication token on the client.
 `
 ```
 
-- token (String, required): Current token with embedded permissions.
+- token (required) Type: String. Current token with embedded permissions.
 
 ### Sample code
 
@@ -111,6 +116,6 @@ Update the authentication token on the client.
 
 ### Returns
 
-This method doesn't return any response value.
+No return value.
 
 Last updated on Sep 3, 2025

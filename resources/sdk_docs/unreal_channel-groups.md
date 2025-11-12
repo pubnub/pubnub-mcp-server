@@ -1,20 +1,20 @@
 # Channel Groups API for Unreal SDK
 
-[Channel groups](/docs/general/channels/subscribe#channel-groups) let you subscribe to a named collection of [channels](/docs/general/channels/overview). You can't publish to a channel group—publish to individual channels instead.
+Channel groups let you subscribe to many channels via a single group name. You can’t publish to a channel group; publish to individual channels instead.
 
-You can use the SDK via Blueprints or in C++.
+You can use PubNub via Blueprints or C++.
 
 - Blueprints: Use the Pubnub Subsystem node.
-- C++: Add dependency to PubnubLibrary and access via Game Instance Subsystem.
+- C++: Add PubnubLibrary dependency and access the subsystem.
 
-Add `PubnubLibrary` dependency in `Source/YourProject/YourProject.Build.cs`:
+Add dependency in Source/YourProject/YourProject.Build.cs:
 
 ```
 `PrivateDependencyModuleNames.AddRange(new string[] { "PubnubLibrary" });  
 `
 ```
 
-Access the subsystem in C++:
+Access PubNub in C++:
 
 ```
 #include "Kismet/GameplayStatics.h"  
@@ -26,7 +26,7 @@ UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>(
 
 ```
 
-Example:
+Example call:
 
 ```
 `PubnubSubsystem->SubscribeToChannel("MyChannel");  
@@ -35,15 +35,15 @@ Example:
 
 ### Usage in Blueprints and C++
 
-## Add channels to a channel group - ChannelGroup entity[​](#add-channels-to-a-channel-group---channelgroup-entity)
+## Add channels to a channel group - ChannelGroup entity
 
 Available in entities: ChannelGroup
 
-Requires Stream Controller add-on (enable in the Admin Portal).
+Requires Stream Controller add-on (enable in Admin Portal).
 
-Adds a channel to a channel group. Maximum 200 channels per API call.
+Adds a channel to a channel group. Max 200 channels per API call.
 
-### Method(s)[​](#methods)
+### Method(s)
 
 ```
 1UPubnubChannelGroupEntity* ChannelGroupEntity = PubnubSubsystem->CreateChannelGroupEntity("my-channel-group");  
@@ -58,20 +58,24 @@ Adds a channel to a channel group. Maximum 200 channels per API call.
 
 Parameters:
 - Channel (FString): Channel to add.
-- OnAddChannelToGroupResponse (FOnAddChannelToGroupResponse): Result delegate. Or use FOnAddChannelToGroupResponseNative with a lambda.
+- OnAddChannelToGroupResponse (FOnAddChannelToGroupResponse): Result delegate.
+- Optional native callback: FOnAddChannelToGroupResponseNative (lambda).
 
-#### FOnAddChannelToGroupResponse[​](#fonaddchanneltogroupresponse)
+#### FOnAddChannelToGroupResponse
+
+Field:
 - Result (FPubnubOperationResult): Operation result.
 
-#### FOnAddChannelToGroupResponseNative[​](#fonaddchanneltogroupresponsenative)
+#### FOnAddChannelToGroupResponseNative
+
+Field:
 - Result (const FPubnubOperationResult&): Operation result.
 
-### Sample code[​](#sample-code)
+### Sample code
 
 - C++
 
-#### Actor.h[​](#actorh)
-  
+#### Actor.h
 
 ```
 1
@@ -79,8 +83,7 @@ Parameters:
 
 ```
 
-#### Actor.cpp[​](#actorcpp)
-  
+#### Actor.cpp
 
 ```
 1
@@ -88,17 +91,17 @@ Parameters:
 
 ```
 
-### Returns[​](#returns)
+### Returns
 
-Void. Delegate returns FOnAddChannelToGroupResponse.
+Void; result provided via FOnAddChannelToGroupResponse.
 
-### Other Examples[​](#other-examples)
+### Other Examples
 
-#### Add channels to a channel group with lambda[​](#add-channels-to-a-channel-group-with-lambda)
+#### Add channels to a channel group with lambda
 
 Use a lambda to handle the response.
 
-#### Actor.h[​](#actorh-1)
+#### Actor.h
 
 ```
 1
@@ -106,7 +109,7 @@ Use a lambda to handle the response.
 
 ```
 
-#### Actor.cpp[​](#actorcpp-1)
+#### Actor.cpp
 
 ```
 1
@@ -114,13 +117,11 @@ Use a lambda to handle the response.
 
 ```
 
-#### Add channels to a channel group with result struct[​](#add-channels-to-a-channel-group-with-result-struct)
+#### Add channels to a channel group with result struct
 
 Use the result struct to handle the response.
 
-##### Actor.h[​](#actorh-2)
-
-  
+##### Actor.h
 
 ```
 1
@@ -128,9 +129,7 @@ Use the result struct to handle the response.
 
 ```
 
-##### Actor.cpp[​](#actorcpp-2)
-
-  
+##### Actor.cpp
 
 ```
 1
@@ -138,13 +137,13 @@ Use the result struct to handle the response.
 
 ```
 
-## Add channels to a channel group - PubNub client[​](#add-channels-to-a-channel-group---pubnub-client)
+## Add channels to a channel group - PubNub client
 
-Requires Stream Controller add-on (enable in the Admin Portal).
+Requires Stream Controller add-on.
 
-Adds a channel to a channel group. Maximum 200 channels per API call.
+Adds a channel to a channel group. Max 200 channels per API call.
 
-### Method(s)[​](#methods-1)
+### Method(s)
 
 ```
 `1PubnubSubsystem->AddChannelToGroup(  
@@ -158,21 +157,25 @@ Adds a channel to a channel group. Maximum 200 channels per API call.
 Parameters:
 - Channel (FString): Channel to add.
 - ChannelGroup (FString): Target channel group.
-- OnAddChannelToGroupResponse (FOnAddChannelToGroupResponse): Result delegate. Or use FOnAddChannelToGroupResponseNative with a lambda.
+- OnAddChannelToGroupResponse (FOnAddChannelToGroupResponse): Result delegate.
+- Optional native callback: FOnAddChannelToGroupResponseNative (lambda).
 
-#### FOnAddChannelToGroupResponse[​](#fonaddchanneltogroupresponse-1)
+#### FOnAddChannelToGroupResponse
+
+Field:
 - Result (FPubnubOperationResult): Operation result.
 
-#### FOnAddChannelToGroupResponseNative[​](#fonaddchanneltogroupresponsenative-1)
+#### FOnAddChannelToGroupResponseNative
+
+Field:
 - Result (const FPubnubOperationResult&): Operation result.
 
-### Sample code[​](#sample-code-1)
+### Sample code
 
 - C++
 - Blueprint
 
-#### Actor.h[​](#actorh-3)
-  
+#### Actor.h
 
 ```
 1
@@ -180,8 +183,7 @@ Parameters:
 
 ```
 
-#### Actor.cpp[​](#actorcpp-3)
-  
+#### Actor.cpp
 
 ```
 1
@@ -189,17 +191,15 @@ Parameters:
 
 ```
 
-### Returns[​](#returns-1)
+### Returns
 
-No return value.
+No return value; result via delegate.
 
-### Other Examples[​](#other-examples-1)
+### Other Examples
 
-#### Add channels to a channel group with lambda[​](#add-channels-to-a-channel-group-with-lambda-1)
+#### Add channels to a channel group with lambda
 
-##### Actor.h[​](#actorh-4)
-
-  
+##### Actor.h
 
 ```
 1
@@ -207,9 +207,7 @@ No return value.
 
 ```
 
-##### Actor.cpp[​](#actorcpp-4)
-
-  
+##### Actor.cpp
 
 ```
 1
@@ -217,11 +215,9 @@ No return value.
 
 ```
 
-#### Add channels to a channel group with result struct[​](#add-channels-to-a-channel-group-with-result-struct-1)
+#### Add channels to a channel group with result struct
 
-##### Actor.h[​](#actorh-5)
-
-  
+##### Actor.h
 
 ```
 1
@@ -229,9 +225,7 @@ No return value.
 
 ```
 
-##### Actor.cpp[​](#actorcpp-5)
-
-  
+##### Actor.cpp
 
 ```
 1
@@ -239,15 +233,15 @@ No return value.
 
 ```
 
-## List channels in a channel group - ChannelGroup entity[​](#list-channels-in-a-channel-group---channelgroup-entity)
+## List channels in a channel group - ChannelGroup entity
 
 Available in entities: ChannelGroup
 
-Requires Stream Controller add-on (enable in the Admin Portal).
+Requires Stream Controller add-on.
 
 Lists all channels in a channel group.
 
-### Method(s)[​](#methods-2)
+### Method(s)
 
 ```
 1UPubnubChannelGroupEntity* ChannelGroupEntity = PubnubSubsystem->CreateChannelGroupEntity("my-channel-group");  
@@ -260,22 +254,26 @@ Lists all channels in a channel group.
 ```
 
 Parameters:
-- OnListChannelsResponse (FOnListChannelsFromGroupResponse): Result delegate. Or use FOnListChannelsFromGroupResponseNative with a lambda.
+- OnListChannelsResponse (FOnListChannelsFromGroupResponse): Result delegate.
+- Optional native callback: FOnListChannelsFromGroupResponseNative (lambda).
 
-#### FOnListChannelsFromGroupResponse[​](#fonlistchannelsfromgroupresponse)
+#### FOnListChannelsFromGroupResponse
+
+Fields:
 - Result (FPubnubOperationResult): Operation result.
-- Channels (TArray<FString>&): Channel names.
+- Channels (TArray<FString>&): Channel names in the group.
 
-#### FOnListChannelsFromGroupResponseNative[​](#fonlistchannelsfromgroupresponsenative)
+#### FOnListChannelsFromGroupResponseNative
+
+Fields:
 - Result (const FPubnubOperationResult&): Operation result.
-- Channels (const TArray<FString>&): Channel names.
+- Channels (const TArray<FString>&): Channel names in the group.
 
-### Sample code[​](#sample-code-2)
+### Sample code
 
 - C++
 
-#### Actor.h[​](#actorh-6)
-  
+#### Actor.h
 
 ```
 1
@@ -283,8 +281,7 @@ Parameters:
 
 ```
 
-#### Actor.cpp[​](#actorcpp-6)
-  
+#### Actor.cpp
 
 ```
 1
@@ -292,23 +289,15 @@ Parameters:
 
 ```
 
-### Returns[​](#returns-2)
+### Returns
 
-Void. Delegate returns FOnListChannelsFromGroupResponse.
+Void; result via FOnListChannelsFromGroupResponse.
 
-### Other Examples[​](#other-examples-2)
+### Other Examples
 
-#### List channels from a channel group with lambda[​](#list-channels-from-a-channel-group-with-lambda)
+#### List channels from a channel group with lambda
 
-#### Actor.h[​](#actorh-7)
-
-```
-1
-  
-
-```
-
-#### Actor.cpp[​](#actorcpp-7)
+#### Actor.h
 
 ```
 1
@@ -316,11 +305,7 @@ Void. Delegate returns FOnListChannelsFromGroupResponse.
 
 ```
 
-#### List channels from a channel group with result struct[​](#list-channels-from-a-channel-group-with-result-struct)
-
-##### Actor.h[​](#actorh-8)
-
-  
+#### Actor.cpp
 
 ```
 1
@@ -328,9 +313,9 @@ Void. Delegate returns FOnListChannelsFromGroupResponse.
 
 ```
 
-##### Actor.cpp[​](#actorcpp-8)
+#### List channels from a channel group with result struct
 
-  
+##### Actor.h
 
 ```
 1
@@ -338,13 +323,21 @@ Void. Delegate returns FOnListChannelsFromGroupResponse.
 
 ```
 
-## List channels in a channel group - PubNub client[​](#list-channels-in-a-channel-group---pubnub-client)
+##### Actor.cpp
 
-Requires Stream Controller add-on (enable in the Admin Portal).
+```
+1
+  
+
+```
+
+## List channels in a channel group - PubNub client
+
+Requires Stream Controller add-on.
 
 Lists all channels in a channel group.
 
-### Method(s)[​](#methods-3)
+### Method(s)
 
 ```
 `1PubnubSubsystem->ListChannelsFromGroup(  
@@ -355,24 +348,28 @@ Lists all channels in a channel group.
 ```
 
 Parameters:
-- ChannelGroup (FString): Channel group to query.
-- OnListChannelsResponse (FOnListChannelsFromGroupResponse): Result delegate. Or use FOnListChannelsFromGroupResponseNative with a lambda.
+- ChannelGroup (FString): Group to list.
+- OnListChannelsResponse (FOnListChannelsFromGroupResponse): Result delegate.
+- Optional native callback: FOnListChannelsFromGroupResponseNative (lambda).
 
-#### FOnListChannelsFromGroupResponse[​](#fonlistchannelsfromgroupresponse-1)
+#### FOnListChannelsFromGroupResponse
+
+Fields:
 - Result (FPubnubOperationResult): Operation result.
-- Channels (TArray<FString>&): Channel names.
+- Channels (TArray<FString>&): Channel names in the group.
 
-#### FOnListChannelsFromGroupResponseNative[​](#fonlistchannelsfromgroupresponsenative-1)
+#### FOnListChannelsFromGroupResponseNative
+
+Fields:
 - Result (const FPubnubOperationResult&): Operation result.
-- Channels (const TArray<FString>&): Channel names.
+- Channels (const TArray<FString>&): Channel names in the group.
 
-### Sample code[​](#sample-code-3)
+### Sample code
 
 - C++
 - Blueprint
 
-#### Actor.h[​](#actorh-9)
-  
+#### Actor.h
 
 ```
 1
@@ -380,8 +377,7 @@ Parameters:
 
 ```
 
-#### Actor.cpp[​](#actorcpp-9)
-  
+#### Actor.cpp
 
 ```
 1
@@ -389,24 +385,15 @@ Parameters:
 
 ```
 
-### Returns[​](#returns-3)
+### Returns
 
-Void. Delegate returns FOnListChannelsFromGroupResponse.
+Void; result via FOnListChannelsFromGroupResponse.
 
-#### FOnListChannelsFromGroupResponse[​](#fonlistchannelsfromgroupresponse-2)
+### Other Examples
 
-  
+#### List channels from a channel group with lambda
 
-- Result (FPubnubOperationResult): Operation result.
-- Channels (TArray<FString>&): Channel names.
-
-### Other Examples[​](#other-examples-3)
-
-#### List channels from a channel group with lambda[​](#list-channels-from-a-channel-group-with-lambda-1)
-
-#### Actor.h[​](#actorh-10)
-
-  
+#### Actor.h
 
 ```
 1
@@ -414,9 +401,7 @@ Void. Delegate returns FOnListChannelsFromGroupResponse.
 
 ```
 
-#### Actor.cpp[​](#actorcpp-10)
-
-  
+#### Actor.cpp
 
 ```
 1
@@ -424,15 +409,15 @@ Void. Delegate returns FOnListChannelsFromGroupResponse.
 
 ```
 
-## Remove channels from a channel group - ChannelGroup entity[​](#remove-channels-from-a-channel-group---channelgroup-entity)
+## Remove channels from a channel group - ChannelGroup entity
 
 Available in entities: ChannelGroup
 
-Requires Stream Controller add-on (enable in the Admin Portal).
+Requires Stream Controller add-on.
 
-Removes a channel from a channel group.
+Removes channels from a channel group.
 
-### Method(s)[​](#methods-4)
+### Method(s)
 
 ```
 1UPubnubChannelGroupEntity* ChannelGroupEntity = PubnubSubsystem->CreateChannelGroupEntity("my-channel-group");  
@@ -447,20 +432,24 @@ Removes a channel from a channel group.
 
 Parameters:
 - Channel (FString): Channel to remove.
-- OnRemoveChannelFromGroupResponse (FOnRemoveChannelFromGroupResponse): Result delegate. Or use FOnRemoveChannelFromGroupResponseNative with a lambda.
+- OnRemoveChannelFromGroupResponse (FOnRemoveChannelFromGroupResponse): Result delegate.
+- Optional native callback: FOnRemoveChannelFromGroupResponseNative (lambda).
 
-#### FOnRemoveChannelFromGroupResponse[​](#fonremovechannelfromgroupresponse)
+#### FOnRemoveChannelFromGroupResponse
+
+Field:
 - Result (FPubnubOperationResult): Operation result.
 
-#### FOnRemoveChannelFromGroupResponseNative[​](#fonremovechannelfromgroupresponsenative)
+#### FOnRemoveChannelFromGroupResponseNative
+
+Field:
 - Result (const FPubnubOperationResult&): Operation result.
 
-### Sample code[​](#sample-code-4)
+### Sample code
 
 - C++
 
-#### Actor.h[​](#actorh-11)
-  
+#### Actor.h
 
 ```
 1
@@ -468,8 +457,7 @@ Parameters:
 
 ```
 
-#### Actor.cpp[​](#actorcpp-11)
-  
+#### Actor.cpp
 
 ```
 1
@@ -477,23 +465,15 @@ Parameters:
 
 ```
 
-### Returns[​](#returns-4)
+### Returns
 
-Void. Delegate returns FOnRemoveChannelFromGroupResponse.
+Void; result via FOnRemoveChannelFromGroupResponse.
 
-### Other Examples[​](#other-examples-4)
+### Other Examples
 
-#### Remove channels from a channel group with lambda[​](#remove-channels-from-a-channel-group-with-lambda)
+#### Remove channels from a channel group with lambda
 
-#### Actor.h[​](#actorh-12)
-
-```
-1
-  
-
-```
-
-#### Actor.cpp[​](#actorcpp-12)
+#### Actor.h
 
 ```
 1
@@ -501,11 +481,7 @@ Void. Delegate returns FOnRemoveChannelFromGroupResponse.
 
 ```
 
-#### Remove channels from a channel group with result struct[​](#remove-channels-from-a-channel-group-with-result-struct)
-
-##### Actor.h[​](#actorh-13)
-
-  
+#### Actor.cpp
 
 ```
 1
@@ -513,9 +489,9 @@ Void. Delegate returns FOnRemoveChannelFromGroupResponse.
 
 ```
 
-##### Actor.cpp[​](#actorcpp-13)
+#### Remove channels from a channel group with result struct
 
-  
+##### Actor.h
 
 ```
 1
@@ -523,13 +499,21 @@ Void. Delegate returns FOnRemoveChannelFromGroupResponse.
 
 ```
 
-## Remove channels from a channel group - PubNub client[​](#remove-channels-from-a-channel-group---pubnub-client)
+##### Actor.cpp
 
-Requires Stream Controller add-on (enable in the Admin Portal).
+```
+1
+  
 
-Removes a channel from a channel group.
+```
 
-### Method(s)[​](#methods-5)
+## Remove channels from a channel group - PubNub client
+
+Requires Stream Controller add-on.
+
+Removes channels from a channel group.
+
+### Method(s)
 
 ```
 `1PubnubSubsystem->RemoveChannelFromGroup(  
@@ -543,21 +527,25 @@ Removes a channel from a channel group.
 Parameters:
 - ChannelGroup (FString): Group to remove from.
 - Channel (FString): Channel to remove.
-- OnRemoveChannelFromGroupResponse (FOnRemoveChannelFromGroupResponse): Result delegate. Or use FOnRemoveChannelFromGroupResponseNative with a lambda.
+- OnRemoveChannelFromGroupResponse (FOnRemoveChannelFromGroupResponse): Result delegate.
+- Optional native callback: FOnRemoveChannelFromGroupResponseNative (lambda).
 
-#### FOnRemoveChannelFromGroupResponse[​](#fonremovechannelfromgroupresponse-1)
+#### FOnRemoveChannelFromGroupResponse
+
+Field:
 - Result (FPubnubOperationResult): Operation result.
 
-#### FOnRemoveChannelFromGroupResponseNative[​](#fonremovechannelfromgroupresponsenative-1)
+#### FOnRemoveChannelFromGroupResponseNative
+
+Field:
 - Result (const FPubnubOperationResult&): Operation result.
 
-### Sample code[​](#sample-code-5)
+### Sample code
 
 - C++
 - Blueprint
 
-#### Actor.h[​](#actorh-14)
-  
+#### Actor.h
 
 ```
 1
@@ -565,8 +553,7 @@ Parameters:
 
 ```
 
-#### Actor.cpp[​](#actorcpp-14)
-  
+#### Actor.cpp
 
 ```
 1
@@ -574,17 +561,15 @@ Parameters:
 
 ```
 
-### Returns[​](#returns-5)
+### Returns
 
-No return value.
+No return value; result via delegate.
 
-### Other Examples[​](#other-examples-5)
+### Other Examples
 
-#### Remove channels from a channel group with lambda[​](#remove-channels-from-a-channel-group-with-lambda-1)
+#### Remove channels from a channel group with lambda
 
-#### Actor.h[​](#actorh-15)
-
-  
+#### Actor.h
 
 ```
 1
@@ -592,9 +577,7 @@ No return value.
 
 ```
 
-#### Actor.cpp[​](#actorcpp-15)
-
-  
+#### Actor.cpp
 
 ```
 1
@@ -602,11 +585,9 @@ No return value.
 
 ```
 
-#### Remove channels from a channel group with result struct[​](#remove-channels-from-a-channel-group-with-result-struct-1)
+#### Remove channels from a channel group with result struct
 
-#### Actor.h[​](#actorh-16)
-
-  
+#### Actor.h
 
 ```
 1
@@ -614,9 +595,7 @@ No return value.
 
 ```
 
-#### Actor.cpp[​](#actorcpp-16)
-
-  
+#### Actor.cpp
 
 ```
 1
@@ -624,15 +603,15 @@ No return value.
 
 ```
 
-## Delete a channel group - ChannelGroup entity[​](#delete-a-channel-group---channelgroup-entity)
+## Delete a channel group - ChannelGroup entity
 
 Available in entities: ChannelGroup
 
-Requires Stream Controller add-on (enable in the Admin Portal).
+Requires Stream Controller add-on.
 
-Deletes a channel group.
+Removes a channel group.
 
-### Method(s)[​](#methods-6)
+### Method(s)
 
 ```
 1UPubnubChannelGroupEntity* ChannelGroupEntity = PubnubSubsystem->CreateChannelGroupEntity("my-channel-group");  
@@ -645,20 +624,24 @@ Deletes a channel group.
 ```
 
 Parameters:
-- OnRemoveChannelGroupResponse (FOnRemoveChannelGroupResponse): Result delegate. Or use FOnRemoveChannelGroupResponseNative with a lambda.
+- OnRemoveChannelGroupResponse (FOnRemoveChannelGroupResponse): Result delegate.
+- Optional native callback: FOnRemoveChannelGroupResponseNative (lambda).
 
-#### FOnRemoveChannelGroupResponse[​](#fonremovechannelgroupresponse)
+#### FOnRemoveChannelGroupResponse
+
+Field:
 - Result (FPubnubOperationResult): Operation result.
 
-#### FOnRemoveChannelGroupResponseNative[​](#fonremovechannelgroupresponsenative)
+#### FOnRemoveChannelGroupResponseNative
+
+Field:
 - Result (const FPubnubOperationResult&): Operation result.
 
-### Sample code[​](#sample-code-6)
+### Sample code
 
 - C++
 
-#### Actor.h[​](#actorh-17)
-  
+#### Actor.h
 
 ```
 1
@@ -666,8 +649,7 @@ Parameters:
 
 ```
 
-#### Actor.cpp[​](#actorcpp-17)
-  
+#### Actor.cpp
 
 ```
 1
@@ -675,23 +657,15 @@ Parameters:
 
 ```
 
-### Returns[​](#returns-6)
+### Returns
 
-Void. Delegate returns FOnRemoveChannelGroupResponse.
+Void; result via FOnRemoveChannelGroupResponse.
 
-### Other Examples[​](#other-examples-6)
+### Other Examples
 
-#### Delete a channel group with lambda[​](#delete-a-channel-group-with-lambda)
+#### Delete a channel group with lambda
 
-#### Actor.h[​](#actorh-18)
-
-```
-1
-  
-
-```
-
-#### Actor.cpp[​](#actorcpp-18)
+#### Actor.h
 
 ```
 1
@@ -699,11 +673,7 @@ Void. Delegate returns FOnRemoveChannelGroupResponse.
 
 ```
 
-#### Delete a channel group with result struct[​](#delete-a-channel-group-with-result-struct)
-
-##### Actor.h[​](#actorh-19)
-
-  
+#### Actor.cpp
 
 ```
 1
@@ -711,9 +681,9 @@ Void. Delegate returns FOnRemoveChannelGroupResponse.
 
 ```
 
-##### Actor.cpp[​](#actorcpp-19)
+#### Delete a channel group with result struct
 
-  
+##### Actor.h
 
 ```
 1
@@ -721,13 +691,21 @@ Void. Delegate returns FOnRemoveChannelGroupResponse.
 
 ```
 
-## Delete a channel group - PubNub client[​](#delete-a-channel-group---pubnub-client)
+##### Actor.cpp
 
-Requires Stream Controller add-on (enable in the Admin Portal).
+```
+1
+  
 
-Deletes a channel group.
+```
 
-### Method(s)[​](#methods-7)
+## Delete a channel group - PubNub client
+
+Requires Stream Controller add-on.
+
+Removes a channel group.
+
+### Method(s)
 
 ```
 `1PubnubSubsystem->RemoveChannelGroup(  
@@ -738,22 +716,26 @@ Deletes a channel group.
 ```
 
 Parameters:
-- ChannelGroup (FString): Group to delete.
-- OnRemoveChannelGroupResponse (FOnRemoveChannelGroupResponse): Result delegate. Or use FOnRemoveChannelGroupResponseNative with a lambda.
+- ChannelGroup (FString): Group to remove.
+- OnRemoveChannelGroupResponse (FOnRemoveChannelGroupResponse): Result delegate.
+- Optional native callback: FOnRemoveChannelGroupResponseNative (lambda).
 
-#### FOnRemoveChannelGroupResponse[​](#fonremovechannelgroupresponse-1)
+#### FOnRemoveChannelGroupResponse
+
+Field:
 - Result (FPubnubOperationResult): Operation result.
 
-#### FOnRemoveChannelGroupResponseNative[​](#fonremovechannelgroupresponsenative-1)
+#### FOnRemoveChannelGroupResponseNative
+
+Field:
 - Result (const FPubnubOperationResult&): Operation result.
 
-### Sample code[​](#sample-code-7)
+### Sample code
 
 - C++
 - Blueprint
 
-#### Actor.h[​](#actorh-20)
-  
+#### Actor.h
 
 ```
 1
@@ -761,8 +743,7 @@ Parameters:
 
 ```
 
-#### Actor.cpp[​](#actorcpp-20)
-  
+#### Actor.cpp
 
 ```
 1
@@ -770,17 +751,15 @@ Parameters:
 
 ```
 
-### Returns[​](#returns-7)
+### Returns
 
-No return value.
+No return value; result via delegate.
 
-### Other Examples[​](#other-examples-7)
+### Other Examples
 
-#### Delete a channel group with lambda[​](#delete-a-channel-group-with-lambda-1)
+#### Delete a channel group with lambda
 
-#### Actor.h[​](#actorh-21)
-
-  
+#### Actor.h
 
 ```
 1
@@ -788,9 +767,7 @@ No return value.
 
 ```
 
-#### Actor.cpp[​](#actorcpp-21)
-
-  
+#### Actor.cpp
 
 ```
 1
@@ -798,11 +775,9 @@ No return value.
 
 ```
 
-#### Delete a channel group with result struct[​](#delete-a-channel-group-with-result-struct-1)
+#### Delete a channel group with result struct
 
-#### Actor.h[​](#actorh-22)
-
-  
+#### Actor.h
 
 ```
 1
@@ -810,9 +785,7 @@ No return value.
 
 ```
 
-#### Actor.cpp[​](#actorcpp-22)
-
-  
+#### Actor.cpp
 
 ```
 1
@@ -820,9 +793,9 @@ No return value.
 
 ```
 
-## Complete example[​](#complete-example)
+## Complete example
 
-#### ASample_GroupsFull.h[​](#asample_groupsfullh)
+#### ASample_GroupsFull.h
 
 ```
 1
@@ -830,9 +803,10 @@ No return value.
 
 ```
 
-#### ASample_GroupsFull.cpp[​](#asample_groupsfullcpp)
+#### ASample_GroupsFull.cpp
 
 ```
 1
 **
 ```
+Last updated on Sep 11, 2025**

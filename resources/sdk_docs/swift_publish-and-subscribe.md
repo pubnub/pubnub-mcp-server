@@ -1,31 +1,30 @@
 # Publish/Subscribe API for Swift Native SDK
 
-PubNub delivers messages worldwide in less than 30 ms. Send a message to one recipient or broadcast to thousands of subscribers.
-
-For concepts, see Connection Management and Publish Messages.
+Low-latency global messaging. See Connection Management and Publish Messages for concepts.
 
 ## Publish
 
-publish() asynchronously sends a message to all subscribers of a channel. Messages are replicated globally.
+`publish()` sends a message to all subscribers on a channel. Calls are asynchronous.
 
-Key details:
-- Initialize PubNub with publishKey.
-- You don't need to be subscribed to publish.
+Essential details:
+- Initialize with publishKey.
+- You can publish without subscribing.
 - You cannot publish to multiple channels simultaneously.
-- Enable TLS/SSL by setting ssl = true during initialization; you can also encrypt messages.
-- message and meta can be any Swift type conforming to JSONCodable. Strings support UTF‑8.
-- Don't JSON serialize message/meta; pass full objects and let the SDK handle serialization.
-- Max message size: 32 KiB (includes escaped characters and channel name). Aim for < 1,800 bytes for best performance. Exceeding limit returns Message Too Large.
-- Throughput: publish as fast as bandwidth allows; subscribers have an in-memory queue of 100 messages. A burst (e.g., 200 messages) may drop early messages if subscriber lags.
-- Optional customMessageType lets you label messages (e.g., text, action, poll).
-
-Best practices:
-- Publish to a channel serially (not concurrently).
-- Verify success (check Result.success) before sending the next message; on failure, retry.
-- Keep the in-memory queue under 100 messages to avoid drops.
-- Throttle bursts (e.g., ≤ 5 msg/s) to meet latency needs.
+- TLS/SSL: set ssl = true during initialization. Messages can be encrypted via CryptoModule.
+- message and meta accept any Swift type conforming to JSONCodable. Strings are UTF‑8.
+- Do not JSON-serialize message/meta; pass objects directly.
+- Max message size: 32 KiB (including escapes and channel). Target < 1,800 bytes for best performance. Oversize returns Message Too Large.
+- Soft throughput limits: in-memory subscriber queue holds 100 messages. Excess bursts may drop earlier messages if subscribers lag.
+- Optional customMessageType adds a business label (for example, text, action, poll).
+- Best practices:
+  - Publish serially.
+  - Verify success (Result.success) before sending next message; retry on failure.
+  - Keep in-memory queue under 100 messages.
+  - Throttle bursts (for example, ≤ 5 msg/sec) to meet latency targets.
 
 ### Method(s)
+
+To Publish a message use:
 
 ```
 `1func publish(  
@@ -44,18 +43,18 @@ Best practices:
 
 Parameters:
 - channel (String, required): Channel ID to publish to.
-- message (JSONCodable, required): Message payload.
-- customMessageType (String?, default nil): Case-sensitive 3–50 alphanumeric chars; dashes and underscores allowed; cannot start with special characters or pn_/pn-. Examples: text, action, poll.
-- shouldStore (Bool?, default nil): If true, store message in history.
-- storeTTL (Int?, default nil): Per-message TTL (hours) when shouldStore = true.
-  1) shouldStore = true and storeTTL = 0: store with no expiry.
-  2) shouldStore = true and storeTTL = X: store with expiry X hours.
-  3) shouldStore = false or not specified: not stored; storeTTL ignored.
-  4) If storeTTL not specified: falls back to key’s default expiry.
-- meta (JSONCodable?, default nil): Extra metadata to send with request.
-- shouldCompress (Bool, default false): If true, uses HTTP POST and compresses the message (payload in body).
-- custom (PubNub.RequestConfiguration, default PubNub.RequestConfiguration()): Per-request configuration.
-- completion ((Result<Timetoken, Error>) -> Void)?: Async result callback.
+- message (JSONCodable, required): The message payload.
+- customMessageType (String?, default nil): 3–50 chars, case-sensitive alphanumeric; dash/underscore allowed. Must not start with special chars or pn_/pn-. Examples: text, action, poll.
+- shouldStore (Bool?, default nil): If true, store in history.
+- storeTTL (Int?, default nil): Per-message TTL (hours) when stored.
+  1) shouldStore = true and storeTTL = 0: stored with no expiry.
+  2) shouldStore = true and storeTTL = X: stored with expiry X hours.
+  3) shouldStore = false or unspecified: not stored; storeTTL ignored.
+  4) If storeTTL unspecified, defaults to key-level expiry.
+- meta (JSONCodable?/AnyJSON?, default nil): Extra metadata.
+- shouldCompress (Bool, default false): Use POST and compress body.
+- custom requestConfig (PubNub.RequestConfiguration, default new): Per-request configuration.
+- completion ((Result<Timetoken, Error>) -> Void)?: Result of publish.
 
 #### Completion handler result
 
@@ -66,13 +65,17 @@ Parameters:
 
 #### Publish a message to a channel
 
+##### Reference code
+
 ```
 1
   
 
 ```
 
-Before running the publish example, subscribe to the same channel (via Debug Console or a separate script).
+##### Subscribe to the channel
+
+Before running publish, subscribe to the same channel (see Subscribe) or use the Debug Console.
 
 ### Other examples
 
@@ -132,9 +135,11 @@ Before running the publish example, subscribe to the same channel (via Debug Con
 
 ## Fire
 
-fire() sends a message to Functions event handlers and Illuminate on the target channel. It’s not replicated to subscribers and not stored in history.
+Sends a message to Functions event handlers and Illuminate on a channel. Not replicated to subscribers and not stored in history.
 
 ### Method(s)
+
+To Fire a message use:
 
 ```
 `1func fire(  
@@ -148,15 +153,15 @@ fire() sends a message to Functions event handlers and Illuminate on the target 
 ```
 
 Parameters:
-- channel (String, required)
-- message (JSONCodable, required)
-- meta (JSONCodable?, default nil)
-- custom (PubNub.RequestConfiguration, default PubNub.RequestConfiguration())
-- completion ((Result<Timetoken, Error>) -> Void)?
+- channel (String, required): Target channel.
+- message (JSONCodable, required): Payload to fire.
+- meta (JSONCodable?, default nil): Extra metadata.
+- custom requestConfig (PubNub.RequestConfiguration): Per-request configuration.
+- completion ((Result<Timetoken, Error>) -> Void)?: Result of fire.
 
 #### Completion handler result
 
-- Success: Timetoken of the published message.
+- Success: Timetoken of the message.
 - Failure: Error describing the failure.
 
 ### Sample code
@@ -171,11 +176,13 @@ Parameters:
 
 ## Signal
 
-signal() sends a lightweight signal to all channel subscribers.
+Sends a lightweight signal to all channel subscribers.
 
-- Payload limit: 64 bytes (payload only; not URI/headers). For larger payloads, contact support.
+- Default payload size limit: 64 bytes (payload only). Contact support for higher limits.
 
 ### Method(s)
+
+To Signal a message use:
 
 ```
 `1func signal(   
@@ -189,15 +196,15 @@ signal() sends a lightweight signal to all channel subscribers.
 ```
 
 Parameters:
-- channel (String, required)
-- message (JSONCodable, required)
+- channel (String, required): Channel ID.
+- message (JSONCodable, required): Payload to signal.
 - customMessageType (String?, default nil): Same rules as publish.
-- custom (PubNub.RequestConfiguration, default PubNub.RequestConfiguration())
-- completion ((Result<Timetoken, Error>) -> Void)?
+- custom requestConfig (PubNub.RequestConfiguration): Per-request configuration.
+- completion ((Result<Timetoken, Error>) -> Void)?: Result of signal.
 
 #### Completion handler result
 
-- Success: Timetoken of the published message.
+- Success: Timetoken of the message.
 - Failure: Error describing the failure.
 
 ### Sample code
@@ -212,26 +219,26 @@ Parameters:
 
 ## Subscribe
 
-Opens a TCP socket and listens for messages/events on specified entities. Set subscribeKey during initialization. Configure automaticRetry to reconnect and fetch available messages after a disconnect.
+Opens a socket to receive messages and events for entities. Initialize with subscribeKey.
 
-Concepts:
-- Subscriptions: see Subscriptions.
-- Subscribe via client or directly on entities:
-  - ChannelRepresentation
-  - ChannelGroupRepresentation
-  - UserMetadataRepresentation
-  - ChannelMetadataRepresentation
+- After subscribe(), client receives new messages. Configure automaticRetry to reconnect and fetch available messages after disconnect.
 
 ### Subscription scope
 
-- Subscription: scoped to a single entity (e.g., one channel).
+Subscriptions attach listeners for message/event types:
+
+- Subscription: scoped to a single entity (for example, channel).
 - SubscriptionSet: scoped to the client; includes one or more subscriptions.
 
-One listener receives all messages, signals, and events for subscribed entities. See Event listeners.
+One event listener receives all messages, signals, and events for subscribed entities. See Event listeners.
 
 ### Create a subscription
 
-Keep a strong reference to Subscription/SubscriptionSet to prevent ARC deallocation.
+Entity-level Subscription receives updates only for that entity. Use multiple subscriptions to handle channels differently.
+
+Keep a strong reference: Subscriptions must be retained to keep listening (ARC may deallocate otherwise).
+
+Create from an entity:
 
 ```
 `// Entity-based, local-scoped  
@@ -242,12 +249,15 @@ func subscription(
 `
 ```
 
-Parameters:
 - options (SubscriptionOptions): Subscription behavior configuration.
 
 ### Create a subscription set
 
-Keep a strong reference to Subscription/SubscriptionSet to prevent ARC deallocation.
+Client-level SubscriptionSet receives updates for multiple entities. Use for common handling across channels.
+
+Keep a strong reference: Must be retained to continue listening.
+
+Create from PubNub:
 
 ```
 `// Client-based, general-scoped  
@@ -260,18 +270,19 @@ func subscription(
 ```
 
 Parameters:
-- queue (DispatchQueue): Dispatch queue for events. Default: main.
-- entities (Collection<Subscribable>, required): One or more entities: ChannelRepresentation, ChannelGroupRepresentation, UserMetadataRepresentation, ChannelMetadataRepresentation.
+- queue (DispatchQueue): Dispatch queue for events (default: main).
+- entities (Collection<Subscribable>, required): One or more entities (ChannelRepresentation, ChannelGroupRepresentation, UserMetadataRepresentation, ChannelMetadataRepresentation).
 - options (SubscriptionOptions): Subscription behavior configuration.
 
-Add/remove sets: you can add/remove subscriptions to create new sets.
+Add/remove sets: You can add/remove subscriptions to build new sets (see examples).
 
 #### SubscriptionOptions
 
-Base class for options. Available subclass:
-- ReceivePresenceEvents: Receive presence updates for userIds. See Presence Events.
+- ReceivePresenceEvents: Deliver presence updates for userIds via listener streams. See Presence Events for details.
 
 ### Method(s)
+
+Subscription and SubscriptionSet share subscribe().
 
 #### Subscribe
 
@@ -280,8 +291,7 @@ Base class for options. Available subclass:
 `
 ```
 
-Parameters:
-- with (Timetoken?): Start from timetoken for best-effort cached message retrieval. Non–17-digit values are ignored.
+- with (Timetoken?): Start from a timetoken to retrieve any available cached messages (best-effort; non-17-digit values ignored).
 
 ##### Sample code
 
@@ -307,22 +317,24 @@ No return value.
 
 ## Entities
 
-Subscribable objects for real-time updates:
+Subscribable objects that emit real-time updates:
+
 - ChannelRepresentation
 - ChannelGroupRepresentation
 - UserMetadataRepresentation
 - ChannelMetadataRepresentation
 
-Create local entities from a PubNub instance:
+Create entities from PubNub:
 
 ### Create channels
+
+Returns ChannelRepresentation.
 
 ```
 `func channel(_ name: String) -> ChannelRepresentation  
 `
 ```
 
-Parameters:
 - channel (String, required): Channel ID.
 
 #### Sample code
@@ -335,12 +347,13 @@ Parameters:
 
 ### Create a channel group
 
+Returns ChannelGroupRepresentation.
+
 ```
 `func channelGroup(_ name: String) -> ChannelGroupRepresentation  
 `
 ```
 
-Parameters:
 - name (String, required): Channel group name.
 
 #### Sample code
@@ -353,12 +366,13 @@ Parameters:
 
 ### Create channel metadata
 
+Returns ChannelMetadataRepresentation.
+
 ```
 `func channelMetadata(_ name: String) -> ChannelMetadataRepresentation  
 `
 ```
 
-Parameters:
 - name (String, required): Channel metadata identifier.
 
 #### Sample code
@@ -371,12 +385,13 @@ Parameters:
 
 ### Create user metadata
 
+Returns UserMetadataRepresentation.
+
 ```
 `func userMetadata(_ name: String) -> UserMetadataRepresentation  
 `
 ```
 
-Parameters:
 - name (String, required): User metadata identifier.
 
 #### Sample code
@@ -389,9 +404,11 @@ Parameters:
 
 ## Event listeners
 
-Attach listeners to Subscription, SubscriptionSet, and (connection status only) the PubNub client. Use onEvent for multiple types or event-specific listeners.
+Attach listeners to Subscription, SubscriptionSet, and PubNub (connection status) to receive messages, signals, events.
 
 ### Add listeners
+
+You can implement multiple listeners via onEvent or register type-specific listeners (message, file, etc).
 
 #### Method(s)
 
@@ -445,7 +462,7 @@ Attach listeners to Subscription, SubscriptionSet, and (connection status only) 
 
 ### Add connection status listener
 
-Client scope: available only on the PubNub object.
+Client scope: Only on PubNub.
 
 #### Method(s)
 
@@ -468,7 +485,7 @@ Subscription status. See SDK statuses.
 
 ## Clone
 
-Create a clone of an existing subscription with the same state but empty event listeners.
+Create a clone of a subscription with same state but no listeners.
 
 ### Method(s)
 
@@ -490,7 +507,7 @@ Create a clone of an existing subscription with the same state but empty event l
 
 ### Returns
 
-New instance of the subscription object with an empty event dispatcher.
+A new subscription instance with an empty event dispatcher.
 
 ## Unsubscribe
 
@@ -517,7 +534,9 @@ None
 
 ## Unsubscribe all
 
-Client scope: available only on the PubNub object. Removes active subscriptions from all channels and clears the client’s list.
+Remove all active subscriptions for the client and clear the listening list.
+
+Client scope: Only on PubNub.
 
 ### Method(s)
 

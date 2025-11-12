@@ -1,34 +1,29 @@
-# Publish/Subscribe API for Dart SDK
+# Publish/Subscribe API for Dart SDK (Condensed)
 
-PubNub publishes globally in <30 ms. Publish to one or many subscribers.
-
-For concepts, see Connection Management and Publish Messages.
+For connection and publish concepts, see:
+- Connection Management
+- Publish Messages
 
 ## Publish
 
-`publish()` sends a message to all channel subscribers. PubNub replicates messages globally.
+`publish()` sends a message to all subscribers of a channel.
 
-- Prerequisites and limitations
-  - Initialize PubNub with publishKey.
-  - You don't need to be subscribed to publish.
-  - You cannot publish to multiple channels simultaneously.
-- Security
-  - Enable TLS/SSL with ssl: true at initialization. Optional message encryption via CryptoModule.
-- Message data
-  - Any JSON-serializable data (objects, arrays, numbers, strings, UTF‑8).
-  - Don't JSON serialize message or meta yourself; pass objects directly.
-- Size
-  - Max message size: 32 KiB (includes escaped characters and channel name). Aim for <1,800 bytes.
-  - Oversize messages return Message Too Large.
-- Publish rate
-  - Soft throughput limit; subscribers may drop if they can't keep up. In-memory queue stores only 100 messages.
-- Custom message type
-  - Optional customMessageType, e.g., text, action, poll.
-- Best practices
-  - Publish serially (not concurrently).
-  - Verify success code (e.g., [1,"Sent","136074940..."]) before sending next.
-  - On failure ([0,"blah","<timetoken>"]), retry.
-  - Keep queue <100 messages; throttle bursts (e.g., ≤5 msg/s).
+Key points:
+- Initialize PubNub with a publishKey.
+- You don’t need to be subscribed to publish.
+- You can’t publish to multiple channels simultaneously.
+- Enable TLS/SSL by setting `ssl: true` during initialization; optional message encryption is available.
+- Message payload must be JSON-serializable (objects, arrays, numbers, strings). Avoid special classes/functions. UTF‑8 strings are supported.
+- Don’t JSON-serialize `message` or `meta`; PubNub serializes automatically.
+- Max message size: 32 KiB (including escaped chars and channel). Aim for < ~1,800 bytes.
+- Throughput: publish as fast as bandwidth allows; soft limits apply if subscribers can’t keep up. Subscriber queue holds ~100 messages.
+- Optional `customMessageType` adds a business-specific label (for example, `text`, `action`, `poll`).
+
+Best practices:
+- Publish serially; wait for success response before sending the next message.
+- On failure, retry.
+- Keep in-memory queue under 100.
+- Throttle bursts (for example, <= 5 messages/sec) to meet latency goals.
 
 ### Method(s)
 
@@ -46,26 +41,21 @@ For concepts, see Connection Management and Publish Messages.
 `
 ```
 
-*  requiredParameterDescription`channel` *Type: `String`Default:  
-n/aDestination of the `message` (channel ID).`message` *Type: `Any`Default:  
-n/aThe payload.`keyset`Type: `Keyset`Default:  
-n/aOverride for the PubNub default keyset configuration.`using`Type: `String`Default:  
-n/aKeyset name from the `keysetStore` to be used for this method call.`meta`Type: `dynamic`Default:  
-Not setMetadata object which can be used with the filtering ability.`storeMessage`Type: `bool`Default:  
-Account defaultStore message in history.  
-If not specified, the decision depends on whether Message Persistence has been enabled for the key or not.`ttl`Type: `int`Default:  
-n/aSet a per message time to live in Message Persistence.  
-1. If `storeMessage = true`, and `ttl = 0`, the message is stored with no expiry time.  
-2. If `storeMessage = true` and `ttl = X` (`X` is an Integer value), the message is stored with an expiry time of `X` hours unless you have message retention set to `Unlimited` on your keyset configuration in the Admin Portal.  
-3. If `storeMessage = false`, the `ttl` parameter is ignored.  
-4. If `ttl` isn't specified, then expiration of the message defaults back to the expiry value for the key.`customMessageType`Type: `String`Default:  
-n/aA case-sensitive, alphanumeric string from 3 to 50 characters describing the business-specific label or category of the message. Dashes `-` and underscores `_` are allowed. The value cannot start with special characters or the string `pn_` or `pn-`.   
-   
- Examples: `text`, `action`, `poll`.
+Parameters:
+- channel (String, required): Destination channel ID.
+- message (Any, required): JSON-serializable payload.
+- keyset (Keyset, optional): Override default keyset.
+- using (String, optional): Named keyset from keysetStore.
+- meta (dynamic, optional): Metadata for message filtering.
+- storeMessage (bool, optional): Store in history; defaults to account settings.
+- ttl (int, optional): Per-message TTL (hours) when stored.
+  - storeMessage=true, ttl=0: no expiry.
+  - storeMessage=true, ttl=X: expires after X hours unless keyset retention is Unlimited.
+  - storeMessage=false: ttl ignored.
+  - unspecified: uses keyset default expiry.
+- customMessageType (String, optional): Case-sensitive 3–50 chars, alphanumeric plus - and _. Must not start with special chars or with pn_ / pn-. Examples: text, action, poll.
 
 ### Sample code
-
-##### Reference code
 
 Publish a message to a channel:
 
@@ -112,9 +102,9 @@ Publish a message to a channel:
 
 ### Returns
 
-The `publish()` operation returns a `PublishResult` which contains the following operations:
-
-MethodDescription`description`Type: `String`The description, for example `Sent`.`timetoken`Type: `int`Returns an `int` representation of the timetoken when the message was published.
+`PublishResult`:
+- description (String): e.g., Sent.
+- timetoken (int): Publish timetoken.
 
 ### Other examples
 
@@ -172,13 +162,13 @@ MethodDescription`description`Type: `String`The description, for example `Sent`.
 
 ## Signal
 
-The `signal()` function sends a signal to all subscribers of a channel.
+`signal()` sends a signal to all subscribers of a channel.
 
 - Payload size limit: 64 bytes (payload only). For larger payloads, contact support.
 
 ### Method(s)
 
-To Signal a message you can use the following method(s) in the Dart SDK:
+To Signal a message:
 
 ```
 `1pubnub.signal(  
@@ -191,9 +181,12 @@ To Signal a message you can use the following method(s) in the Dart SDK:
 `
 ```
 
-*  requiredParameterDescription`channel` *Type: `String`Destination of the `message` (channel ID).`message` *Type: `Any`The payload.`keyset`Type: `Keyset`Override for the PubNub default keyset configuration.`using`Type: `String`Keyset name from the `keysetStore` to be used for this method call.`customMessageType`Type: `String`A case-sensitive, alphanumeric string from 3 to 50 characters describing the business-specific label or category of the message. Dashes `-` and underscores `_` are allowed. The value cannot start with special characters or the string `pn_` or `pn-`.   
-   
- Examples: `text`, `action`, `poll`.
+Parameters:
+- channel (String, required): Destination channel ID.
+- message (Any, required): Payload (≤ 64 bytes).
+- keyset (Keyset, optional): Override default keyset.
+- using (String, optional): Named keyset from keysetStore.
+- customMessageType (String, optional): 3–50 chars; rules as in publish.
 
 ### Sample code
 
@@ -206,30 +199,25 @@ Signal a message to a channel:
 
 ### Response
 
-The `signal()` operation returns a `SignalResult` which contains the following operations:
-
-MethodDescription`description`Type: `String`The description, for example `Sent`.`timetoken`Type: `int`Returns an `int` representation of the timetoken when the signal was published.
+`SignalResult`:
+- description (String): e.g., Sent.
+- timetoken (int): Signal publish timetoken.
 
 ## Subscribe
 
 ### Receive messages
 
-Use event listeners to receive messages/signals/events for subscribed channels. See Subscription for adding listeners.
+Receive messages and events via event listeners from subscribed channels. See Subscription section for listener usage.
 
 ### Description
 
-Creates an open TCP socket and listens for messages on specified channels. Requires subscribeKey at initialization.
+Creates a connection to PubNub and listens on specified channels. Requires `subscribeKey` at initialization. New subscribers receive messages published after `subscribe()` completes.
 
-- New subscriptions receive messages published after subscribe() completes.
-- To auto-reconnect and retrieve missed messages after disconnects, set retryPolicy to RetryPolicy.linear during initialization.
+Reconnection: Set `retryPolicy` to `RetryPolicy.linear` during initialization to auto-reconnect and fetch missed messages.
 
-##### Unsubscribing from all channels
-
-Unsubscribing from all channels, then subscribing to new channels resets the last received timetoken and may cause message gaps.
+Unsubscribing from all channels resets the last-received timetoken and can cause message gaps.
 
 ### Method(s)
-
-To Subscribe to a channel you can use the following method(s) in the Dart SDK:
 
 ```
 `1pubnub.subscribe(  
@@ -243,9 +231,13 @@ To Subscribe to a channel you can use the following method(s) in the Dart SDK:
 `
 ```
 
-*  requiredParameterDescription`channels` *Type: `Set<String>``channels` to subscribe to. Either `channel` ID or `channelGroup` is required.`channelGroups` *Type: `Set<String>``channelGroups` to subscribe to. Either `channel` ID or `channelGroup` is required.`withPresence`Type: `bool`Also subscribe to related presence information.   
-  
- For information on how to receive presence events and what those events are, refer to [Presence Events](/docs/general/presence/presence-events#subscribe-to-presence-channel).`timetoken`Type: `Timetoken`Timetoken to start the subscription from.`keyset`Type: `Keyset`Override for the PubNub default keyset configuration.`using`Type: `String`Keyset name from the `keysetStore` to be used for this method call.
+Parameters:
+- channels (Set<String>, optional): Channels to subscribe to. Either channels or channelGroups required.
+- channelGroups (Set<String>, optional): Channel groups to subscribe to. Either channels or channelGroups required.
+- withPresence (bool, optional): Also subscribe to presence events. See Presence Events.
+- timetoken (Timetoken, optional): Start subscription from this timetoken.
+- keyset (Keyset, optional): Override default keyset.
+- using (String, optional): Named keyset from keysetStore.
 
 ### Sample code
 
@@ -259,28 +251,28 @@ Subscribe to a channel:
 
 ### Returns
 
-The `subscribe()` method returns a `Subscription`. For more information, refer to Subscription.
+`Subscription`. See Subscription below.
 
 ### Subscription
 
-A `Subscription` contains a Dart stream of messages from subscribed channel(s). Transform streams or add listeners via listen.
+A `Subscription` provides a Dart stream of messages from subscribed channels. Transform streams or add listeners via `listen`.
 
 ### Listeners
 
-For a list of available listeners, refer to the Event Listeners section.
+See Event Listeners in the configuration reference.
 
-##### Cancel
+#### Cancel
 
-Cancels the subscription and disposes internal streams. Subscription becomes unusable.
+Cancels the subscription and disposes internal streams.
 
-###### Method(s)
+##### Method(s)
 
 ```
 `1subscription.cancel();  
 `
 ```
 
-###### Sample code
+##### Sample code
 
 ```
 `1// var subscription = pubnub.subscribe(channels: {'my_channel'});  
@@ -289,26 +281,26 @@ Cancels the subscription and disposes internal streams. Subscription becomes unu
 `
 ```
 
-###### Returns
+##### Returns
 
-No return value.
+None.
 
-##### Dispose
+#### Dispose
 
 `dispose()` is an alias for `cancel()`.
 
-##### Subscribe
+#### Subscribe
 
-`subscribe()` is an alias for `resume()` with reconnection logic. If not intentionally paused, reconnects; otherwise resumes.
+`subscription.subscribe()` is an alias for `resume()` with reconnection logic.
 
-###### Method(s)
+##### Method(s)
 
 ```
 `1subscription.subscribe()  
 `
 ```
 
-###### Sample code
+##### Sample code
 
 ```
 `1var subscription = pubnub.subscription(channels: {'my_channel'});  
@@ -317,22 +309,22 @@ No return value.
 `
 ```
 
-##### Unsubscribe
+#### Unsubscribe
 
 `unsubscribe()` is an alias for `pause()`.
 
-##### Pause
+#### Pause
 
-Prevents the message and presence streams from emitting messages. Messages may be missed while paused. No-op if already paused.
+Prevents message and presence streams from emitting. Messages may be missed while paused. No-op if already paused.
 
-###### Method(s)
+##### Method(s)
 
 ```
 `1subscription.pause()   
 `
 ```
 
-###### Sample code
+##### Sample code
 
 ```
 `1var subscription = pubnub.subscribe(channels: {'my_channel'});  
@@ -341,22 +333,22 @@ Prevents the message and presence streams from emitting messages. Messages may b
 `
 ```
 
-###### Returns
+##### Returns
 
-No return value.
+None.
 
-##### Resume
+#### Resume
 
 Resumes a paused subscription. No-op if not paused.
 
-###### Method(s)
+##### Method(s)
 
 ```
 `1subscription.resume()   
 `
 ```
 
-###### Sample code
+##### Sample code
 
 ```
 `1// If subscription is paused  
@@ -364,22 +356,22 @@ Resumes a paused subscription. No-op if not paused.
 `
 ```
 
-###### Returns
+##### Returns
 
-No return value.
+None.
 
-##### Restore
+#### Restore
 
-Restores a subscription after an error without creating a new one.
+Restores a subscription after an error without creating a new subscription.
 
-###### Method(s)
+##### Method(s)
 
 ```
 `1subscription.restore()  
 `
 ```
 
-###### Sample code
+##### Sample code
 
 ```
 1var subscription = pubnub.subscribe(channels: {'my_channel'});  
@@ -398,9 +390,9 @@ Restores a subscription after an error without creating a new one.
 
 ```
 
-###### Returns
+##### Returns
 
-Returns `Future<void>` that completes when restored.
+`Future<void>` that completes on restore.
 
 ### Other examples
 
@@ -450,17 +442,11 @@ Cancels all existing subscriptions across all keysets.
 
 ```
 
-##### Unsubscribing from all channels
-
-Unsubscribing from all channels resets the last-received timetoken.
+Note: Unsubscribing from all channels resets the last-received timetoken.
 
 #### Subscribing to multiple channels
 
-Use Multiplexing to subscribe to more than one channel.
-
-##### Alternative subscription methods
-
-You can also use Wildcard Subscribe and Channel Groups (requires Stream Controller add-on enabled on your keyset in the Admin Portal).
+Multiplexing allows subscribing to multiple channels. Also see Wildcard Subscribe and Channel Groups (requires Stream Controller add-on enabled on your keyset).
 
 ```
 `1var subscription = pubnub.subscribe(channels: {'my_channel', 'channel1'});  
@@ -469,11 +455,7 @@ You can also use Wildcard Subscribe and Channel Groups (requires Stream Controll
 
 #### Subscribing to a presence channel
 
-##### Requires Presence
-
-Presence add-on must be enabled for your key in the Admin Portal. See Presence Events for details.
-
-Subscribe to presence for a given channel by setting withPresence: true.
+Requires Presence add-on enabled on your key. You can subscribe with `withPresence: true` or directly to the presence channel by appending `-pnpres` to the channel name.
 
 ```
 `1var subscription =  
@@ -590,7 +572,12 @@ Subscribe to presence for a given channel by setting withPresence: true.
 `
 ```
 
-When presence_deltas are enabled, interval messages may include joined, left, timed out arrays of changed UUIDs since the last interval.
+When a channel is in interval mode with `presence_deltas` enabled, interval messages may include:
+- joined
+- left
+- timed out
+
+Example:
 
 ```
 `1{  
@@ -611,7 +598,7 @@ When presence_deltas are enabled, interval messages may include joined, left, ti
 `
 ```
 
-If the interval payload exceeds ~30 KiB, joined/left/timeout fields are omitted and HereNowRefresh is true; perform a hereNow request for full presence.
+If the message exceeds ~30 KiB, the deltas are omitted and `HereNowRefresh: true` is set. Call `hereNow` to fetch the full list.
 
 ```
 `1{  
@@ -634,24 +621,21 @@ If the interval payload exceeds ~30 KiB, joined/left/timeout fields are omitted 
 
 #### Wildcard subscribe to channels
 
-##### Requires Stream Controller add-on
-
-Enable Stream Controller (Enable Wildcard Subscribe) in the Admin Portal.
-
-Wildcard subscribes allow subscribing to patterns like a.* for a.b, a.c, etc. Only the part after the dot is wildcarded.
+Requires Stream Controller add-on (Enable Wildcard Subscribe).
 
 ```
 `1var subscription = pubnub.subscribe(channels: {'foo.*'});  
 `
 ```
 
-##### Wildcard grants and revokes
-
-Only one level (a.*) is supported. Grants/revokes on * or a.b.* are treated as literal channel names. You can revoke with a.* only if you granted with a.*.
+Wildcard grants/revokes:
+- One level only (`a.*`).
+- Grants on `*` or `a.b.*` are treated as literal channel names `*` or `a.b.*`.
+- Revokes with wildcards work one level deep if initially granted with wildcards.
 
 #### Subscribe to a channel group
 
-##### Requires Stream Controller add-on
+Requires Stream Controller add-on.
 
 ```
 `1var subscription = pubnub.subscribe(channelGroups: {'cg1'});  
@@ -660,11 +644,9 @@ Only one level (a.*) is supported. Grants/revokes on * or a.b.* are treated as l
 
 #### Subscribe to the presence channel of a channel group
 
-##### Requires Stream Controller add-on
+Requires Stream Controller add-on.
 
 ```
 `1var subscription =**2    pubnub.subscribe(channelGroups: {'cg1', 'cg2'}, withPresence: true);  
 `
 ```
-
-Last updated on Oct 28, 2025**

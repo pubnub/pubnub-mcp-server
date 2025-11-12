@@ -1,22 +1,15 @@
 # Message Persistence API for Kotlin SDK
 
 ##### Breaking changes in v9.0.0
+Kotlin SDK v9.0.0 unifies Kotlin and Java SDKs, changes PubNub client instantiation, and updates async callbacks and emitted status events. Apps built with < 9.0.0 may be impacted. See the Java/Kotlin SDK migration guide.
 
-- Unifies Kotlin and Java SDKs, new PubNub client instantiation, updated async callbacks and [status events](/docs/sdks/kotlin/status-events).
-- Apps built with versions < 9.0.0 may be impacted. See [Java/Kotlin SDK migration guide](/docs/general/resources/migration-guides/java-kotlin-sdk-migration-guide).
-
-Message Persistence provides real-time access to stored messages (timestamped to 10ns, replicated across regions). Optional AES-256 encryption; see [Message Persistence](/docs/general/storage).
-
-Retention options: 1 day, 7 days, 30 days, 3 months, 6 months, 1 year, Unlimited.
-
-You can retrieve:
+Message Persistence stores timestamped messages (10ns precision) across multiple regions. Optional AES-256 encryption. Retention options: 1 day, 7 days, 30 days, 3 months, 6 months, 1 year, Unlimited. You can retrieve:
 - Messages
 - Message reactions
 - Files (via File Sharing API)
 
 ##### Request execution
-
-Most SDK methods return an Endpoint. You must call .sync() or .async() to execute.
+Most methods return an Endpoint you must execute with .sync() or .async().
 
 ```
 1val channel = pubnub.channel("channelName")  
@@ -29,31 +22,26 @@ Most SDK methods return an Endpoint. You must call .sync() or .async() to execut
 7        // Handle successful method result  
 8    }  
 9}  
-
 ```
 
 ## Batch history
 
 ##### Requires Message Persistence
+Enable in the Admin Portal.
 
-Enable in the [Admin Portal](https://admin.pubnub.com/). See how to [enable add-on features](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
+Fetch messages across multiple channels. Use includeMessageActions/includeActions to include message actions.
 
-Fetch historical messages from multiple channels. Use includeMessageActions (or includeActions) to include message actions.
-
-Ordering and range:
-- start only: returns messages older than start.
-- end only: returns messages from end and newer.
-- start and end: returns messages between them (inclusive of end).
+Time window rules:
+- start only: messages older than start (exclusive).
+- end only: messages from end (inclusive) and newer.
+- start and end: between start (exclusive) and end (inclusive).
 
 Limits:
 - Single channel: up to 100 messages.
 - Multiple channels (up to 500): up to 25 per channel.
-- For more, iterate and page using start.
+Page iteratively by adjusting start.
 
 ### Method(s)
-
-Use the following method(s) in the Kotlin SDK:
-
 ```
 `1pubnub.fetchMessages(  
 2    channels: ListString>,  
@@ -67,77 +55,58 @@ Use the following method(s) in the Kotlin SDK:
 ```
 
 Parameters:
-- requiredParameterDescription`channels` Type: `List<String>` Default: n/a
-  Channels to return history messages from.
-- `page` Type: `PNBoundedPage` Default: n/a
-  Paging object. Set limit (per-channel message count): 100 default/max if includeMessageActions = false; otherwise 25. Set start (exclusive) and end (inclusive).
-- `includeMeta` Type: `Boolean` Default: `false`
-  Include message metadata.
-- `includeMessageActions` Type: `Boolean` Default: `false`
-  Retrieve messages with message actions. If `true`, limited to one channel only.
-- `includeMessageType` Type: `Boolean` Default: `true`
-  Include message type.
-- `includeCustomMessageType` Type: `Boolean` Default: `false`
-  Retrieve custom message type. See [Retrieving Messages](/docs/general/storage#retrieve-messages).
+- channels (List<String>) — required. Channels to fetch from.
+- page (PNBoundedPage) — required. Pagination:
+  - limit: messages per channel. If includeMessageActions = false, default/max 100; otherwise 25.
+  - start: start of slice (exclusive).
+  - end: end of slice (inclusive).
+- includeMeta (Boolean, default false) — include message metadata.
+- includeMessageActions (Boolean, default false) — include message actions. When true, limited to one channel.
+- includeMessageType (Boolean, default true) — include message type.
+- includeCustomMessageType (Boolean, default false) — include custom message type.
 
 ### Sample code
-
 ##### Reference code
-
 ```
 1
   
-
 ```
 
 ### Returns
-
 fetchMessages() returns:
-- `channels` Type: `HashMap<String, List<PNFetchMessageItem>>`
-  Map of channels to lists of PNFetchMessageItem (see below).
-- `page` Type: `PNBoundedPage`
-  If present, more data is available; pass it to another fetchMessages call.
+- channels: HashMap<String, List<PNFetchMessageItem>> — map of channel to list of PNFetchMessageItem.
+- page: PNBoundedPage — if present, more data is available; pass it to fetch next page.
 
 #### PNFetchMessageItem
-
-- `message` Type: `JsonElement` Message payload.
-- `timetoken` Type: `Long` Message timetoken (always returned).
-- `meta` Type: `JsonElement?` Null if not requested; empty string if requested but none present.
-- `actions` Type: `Map<String, HashMap<String, List<Action>>>?`
-  Null if not requested. Key = action type; value = map of action value -> list of actions (UUIDs that posted the action). See Action.
-- `customMessageType` Type: `String` Custom message type.
+- message: JsonElement
+- timetoken: Long — always returned.
+- meta: JsonElement? — null if not requested; empty when requested but not present.
+- actions: Map<String, HashMap<String, List<Action>>>? — null if not requested. Outer key: action type. Inner key: action value. List contains actions (UUIDs) that posted the action.
+- customMessageType: String
 
 #### Action
-
-- `uuid` Type: `String` Publisher UUID.
-- `actionTimetoken` Type: `String` Publish timetoken of the action.
+- uuid: String — publisher UUID.
+- actionTimetoken: String — publish timetoken of the action.
 
 ### Other examples
 
 #### Paging history responses
-
 ```
 1
   
-
 ```
 
 ## Delete messages from history
 
 ##### Requires Message Persistence
+Enable in the Admin Portal.
 
-Enable in the [Admin Portal](https://admin.pubnub.com/). See how to [enable add-on features](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
-
-Remove messages from a channel’s history.
+Remove messages from a channel.
 
 ##### Required setting
-
 Enable Delete-From-History for your key and initialize the SDK with a secret key.
 
 ### Method(s)
-
-To deleteMessages() use:
-
 ```
 `1pubnub.deleteMessages(  
 2    channels:P ListString>,  
@@ -148,49 +117,37 @@ To deleteMessages() use:
 ```
 
 Parameters:
-- requiredParameterDescription`channels` Type: `List<String>` Default: n/a
-  Channels to delete from.
-- `start` Type: `Long` Default: n/a
-  Start timetoken (inclusive).
-- `end` Type: `Long` Default: n/a
-  End timetoken (exclusive).
+- channels (List<String>) — required. Channels to delete from.
+- start (Long) — required. Start of slice (inclusive).
+- end (Long) — required. End of slice (exclusive).
 
 ### Sample code
-
 ```
 1
   
-
 ```
 
 ### Other examples
 
 #### Delete specific message from history
-
-To delete a specific message, pass the publish timetoken (from publish result) in End and timetoken +/- 1 in Start. Example: publish timetoken 15526611838554310 → Start 15526611838554309, End 15526611838554310.
+To delete a specific message, use publish timetoken as End and timetoken +/- 1 as Start. Example: for 15526611838554310, use Start=15526611838554309 and End=15526611838554310.
 
 ```
 1
   
-
 ```
 
 ## Message counts
 
 ##### Requires Message Persistence
+Enable in the Admin Portal.
 
-Enable in the [Admin Portal](https://admin.pubnub.com/). See how to [enable add-on features](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
-
-Returns the number of messages published since given timetokens. Count includes messages with timetokens >= channelsTimetoken.
+Return the number of messages published since the given time. Count is messages with timetoken >= channelsTimetoken.
 
 ##### Unlimited message retention
-
 Only messages from the last 30 days are counted.
 
 ### Method(s)
-
-Use the following method(s) in the Kotlin SDK:
-
 ```
 `1pubnub.messageCounts(  
 2    channels: ListString>,  
@@ -200,46 +157,33 @@ Use the following method(s) in the Kotlin SDK:
 ```
 
 Parameters:
-- requiredParameterDescription`channels` Type: `List<String>` Default: n/a
-  Channels to fetch counts for.
-- requiredParameterDescription`channelsTimetoken` Type: `List<Long>` Default: n/a
-  Either a single timetoken for all channels or a list matching channels length exactly.
+- channels (List<String>) — required. Channels to count.
+- channelsTimetoken (List<Long>) — required. Single entry applies to all channels; otherwise list length must match channels.
 
 ### Sample code
-
 ```
 1
   
-
 ```
 
 ### Returns
-
-- `channels` Type: `Map<String, Long>`
-  Per-channel counts. Channels with no messages return 0. Channels with ≥10,000 messages return 10000.
+- channels: Map<String, Long> — counts per channel. 0 for none; 10000 when >= 10,000 messages.
 
 ### Other examples
-
 ```
 1
   
-
 ```
 
 ## History (deprecated)
 
 ##### Requires Message Persistence
-
-Enable in the [Admin Portal](https://admin.pubnub.com/). See support page on enabling add-ons.
+Enable in the Admin Portal.
 
 ##### Deprecated
-
-This method is deprecated and will be removed. Use fetchHistory() instead.
+Will be removed in a future version. Use fetchHistory() instead.
 
 ### Method(s)
-
-Use the following method(s) in the Kotlin SDK:
-
 ```
 `1pubnub.history(  
 2    channel: String,  
@@ -254,82 +198,60 @@ Use the following method(s) in the Kotlin SDK:
 ```
 
 Parameters:
-- requiredParameterDescription`channel` Type: `String` Default: n/a
-  Channel to return history from.
-- `reverse` Type: `Boolean` Default: `false`
-  Traverse from oldest to newest when true. Messages are returned sorted ascending by time; reverse affects which end is fetched first when more than count messages match.
-- `includeTimetoken` Type: `Boolean` Default: `false`
-  Include message timetokens.
-- `includeMeta` Type: `Boolean` Default: `false`
-  Include meta object if provided at publish time.
-- `start` Type: `Long` Default: n/a
-  Start timetoken (exclusive).
-- `end` Type: `Long` Default: n/a
-  End timetoken (inclusive).
-- `count` Type: `Int` Default: `100`
-  Number of messages to return.
+- channel (String) — required. Channel to fetch.
+- reverse (Boolean, default false) — traverse from oldest to newest when true. Messages are returned in ascending time. reverse determines which end of the interval to start from when more than count messages are present.
+- includeTimetoken (Boolean, default false) — include message timetokens.
+- includeMeta (Boolean, default false) — include meta object.
+- start (Long) — start of slice (exclusive).
+- end (Long) — end of slice (inclusive).
+- count (Int, default 100) — number of messages to return.
 
 ### Sample code
-
 Retrieve the last 100 messages on a channel:
-
 ```
 1
   
-
 ```
 
 ### Returns
-
-history() returns `PNHistoryResult`:
-- `messages` Type: `List<PNHistoryItemResult>` Messages.
-- `startTimetoken` Type: `Long`
-- `endTimetoken` Type: `Long`
+history() returns PNHistoryResult:
+- messages: List<PNHistoryItemResult>
+- startTimetoken: Long
+- endTimetoken: Long
 
 #### PNHistoryItemResult
-
-- `timetoken` Type: `Long?` Null if not requested.
-- `entry` Type: `JsonElement` Message payload.
-- `meta` Type: `JsonElement?` Null if not requested; empty string if requested but none present.
+- timetoken: Long? — null if not requested.
+- entry: JsonElement
+- meta: JsonElement? — null if not requested; empty when requested but not present.
 
 ### Other examples
 
 #### Use history() to retrieve the three oldest messages by retrieving from the time line in reverse
-
 ```
 1
   
-
 ```
 
 #### Use history() to retrieve messages newer than a given timetoken by paging from oldest message to newest message starting at a single point in time (exclusive)
-
 ```
 1
   
-
 ```
 
 #### Use history() to retrieve messages until a given timetoken by paging from newest message to oldest message until a specific end point in time (inclusive)
-
 ```
 1
   
-
 ```
 
 #### History paging example
-
 ```
 1
   
-
 ```
 
 #### Include timetoken in history response
-
 ```
 1
 **
 ```
-Last updated on Sep 3, 2025**

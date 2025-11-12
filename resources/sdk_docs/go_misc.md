@@ -1,10 +1,10 @@
 # Utility Methods API for Go SDK
 
-Utility methods that don't fit into other categories.
+The methods on this page are utility methods that don't fit into other categories.
 
 ## Create push payload
 
-Creates a push payload for use in endpoint calls.
+Creates a push payload for use in the appropriate endpoint calls.
 
 ### Method(s)
 
@@ -17,15 +17,11 @@ Creates a push payload for use in endpoint calls.
 `
 ```
 
-- SetAPNSPayload
-  - Type: pubnub.PNAPNSData — Set APNS payload. APNS devices receive data within the pn_apns key.
-  - Type: []pubnub.PNAPNS2Data — Set APNS2 payload. APNS devices receive data within the pn_push key.
-- SetFCMPayload
-  - Type: pubnub.PNFCMData — Set FCM payload. FCM devices receive data within the pn_gcm key.
-- SetCommonPayload
-  - Type: map[string]interface{} — Set common payload. Native PubNub subscribers receive the entire object, including pn_apns, pn_gcm, and common payload.
-- BuildPayload
-  - Builds the payload from set values. Returns map[string]interface{}.
+- SetAPNSPayload(data pubnub.PNAPNSData): Set APNS payload. Associated APNS devices receive only the data within the pn_apns key.
+- SetAPNSPayload(data []pubnub.PNAPNS2Data): Set APNS2 payload. Associated APNS devices receive only the data within the pn_push key.
+- SetFCMPayload(data pubnub.PNFCMData): Set FCM payload. Associated FCM devices receive only the data within the pn_fcm key.
+- SetCommonPayload(data map[string]interface{}): Set common payload. Native PubNub subscribers receive the entire object literal, including pn_apns, pn_fcm, and the common payload.
+- BuildPayload(): Builds the payload from the values set using the parameters. Returns map[string]interface{}.
 
 ### Sample code
 
@@ -39,6 +35,6 @@ Creates a push payload for use in endpoint calls.
 
 ### Response
 
-CreatePushPayload() returns a map[string]interface{} that can be passed to the Publish method's Message parameter.
+The CreatePushPayload() operation returns a map[string]interface{} which can be passed directly to the Publish method's Message parameter.
 
-Last updated on Oct 29, 2025
+Last updated on Nov 6, 2025

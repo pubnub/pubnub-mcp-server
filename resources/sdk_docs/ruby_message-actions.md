@@ -1,17 +1,21 @@
 # Message Actions API for Ruby SDK
 
-Use message actions to add/remove metadata on published messages (receipts, reactions, custom data). Clients can subscribe to channels to receive action events and fetch past actions from Message Persistence.
+Use message actions to add/remove metadata on published messages (receipts, reactions, custom data). Clients subscribe to channels to receive message action events and can fetch past actions from Message Persistence.
 
-- Reactions: Using Message Actions for emoji/social reactions.
-- Terminology: “Message Actions” is the low-level API; “Message Reactions” refers to the same API used for emoji reactions in Core/Chat SDKs.
+##### Reactions
+"Message Reactions" is a specific use of Message Actions for emoji/social reactions.
 
-## Add message action
+##### Message Actions vs. Message Reactions
+Message Actions is the low-level API for metadata (read receipts, delivery confirmations, custom data). Message Reactions refers to using Message Actions for emoji reactions. Same underlying API across Core and Chat SDKs.
 
-Requires Message Persistence (enable in Admin Portal).
+## Add message action[​](#add-message-action)
+
+##### Requires Message Persistence
+Requires Message Persistence enabled for your key in the Admin Portal.
 
 Add an action to a published message. The response includes the added action.
 
-### Method(s)
+### Method(s)[​](#methods)
 
 Use this Ruby method:
 
@@ -28,34 +32,16 @@ Use this Ruby method:
 ```
 
 Parameters:
-- channel
-  - Type: String
-  - Default: n/a
-  - Description: Channel name to add the message action to.
-- type
-  - Type: String
-  - Default: n/a
-  - Description: Message action type (max 15 characters).
-- value
-  - Type: String
-  - Default: n/a
-  - Description: Message action value.
-- message_timetoken
-  - Type: Integer
-  - Default: n/a
-  - Description: Timetoken of the target message.
-- http_sync
-  - Type: Boolean
-  - Default: false
-  - Description: When true, executes synchronously and returns an array of envelopes.
-- callback
-  - Type: Lambda accepting one parameter
-  - Default: n/a
-  - Description: Invoked for each envelope (for async calls, use value to retrieve the envelope).
+- channel (String, required, default: n/a): Channel name to add the message action to.
+- type (String, required, default: n/a): Message action type (max 15 characters).
+- value (String, required, default: n/a): Message action value.
+- message_timetoken (Integer, required, default: n/a): Timetoken of the target message.
+- http_sync (Boolean, optional, default: false): When true, executes synchronously and returns an array of envelopes.
+- callback (Lambda with one parameter, optional, default: n/a): Invoked for each envelope (for async calls, use value to retrieve the envelope).
 
-### Sample code
+### Sample code[​](#sample-code)
 
-Reference code
+##### Reference code
 
 ```
 1require 'pubnub'  
@@ -104,7 +90,7 @@ Reference code
 
 ```
 
-### Response
+### Response[​](#response)
 
 ```
 `1#  
@@ -124,13 +110,14 @@ Reference code
 `
 ```
 
-## Remove message action
+## Remove message action[​](#remove-message-action)
 
-Requires Message Persistence (enable in Admin Portal).
+##### Requires Message Persistence
+Requires Message Persistence enabled for your key in the Admin Portal.
 
 Remove a previously added action from a published message. The response is empty.
 
-### Method(s)
+### Method(s)[​](#methods-1)
 
 Use this Ruby method:
 
@@ -146,28 +133,13 @@ Use this Ruby method:
 ```
 
 Parameters:
-- channel
-  - Type: String
-  - Default: n/a
-  - Description: Channel name to remove the message action from.
-- message_timetoken
-  - Type: Integer
-  - Default: n/a
-  - Description: Timetoken of the target message.
-- action_timetoken
-  - Type: Integer
-  - Default: n/a
-  - Description: Timetoken of the message action to remove.
-- http_sync
-  - Type: Boolean
-  - Default: false
-  - Description: When true, executes synchronously and returns an array of envelopes.
-- callback
-  - Type: Lambda accepting one parameter
-  - Default: n/a
-  - Description: Invoked for each envelope (for async calls, use value to retrieve the envelope).
+- channel (String, required, default: n/a): Channel name to remove the message action from.
+- message_timetoken (Integer, required, default: n/a): Timetoken of the target message.
+- action_timetoken (Integer, required, default: n/a): Timetoken of the message action to remove.
+- http_sync (Boolean, optional, default: false): When true, executes synchronously and returns an array of envelopes.
+- callback (Lambda with one parameter, optional, default: n/a): Invoked for each envelope (for async calls, use value to retrieve the envelope).
 
-### Sample code
+### Sample code[​](#sample-code-1)
 
 ```
 `1pubnub.add_message_action(  
@@ -180,7 +152,7 @@ Parameters:
 `
 ```
 
-### Response
+### Response[​](#response-1)
 
 ```
 `1#  
@@ -193,13 +165,14 @@ Parameters:
 `
 ```
 
-## Get message actions
+## Get message actions[​](#get-message-actions)
 
-Requires Message Persistence (enable in Admin Portal).
+##### Requires Message Persistence
+Requires Message Persistence enabled for your key in the Admin Portal.
 
-Get a list of message actions in a channel. Response is sorted by action timetoken ascending.
+Get a list of message actions in a channel. Actions are sorted by action timetoken in ascending order.
 
-### Method(s)
+### Method(s)[​](#methods-2)
 
 Use this Ruby method:
 
@@ -216,32 +189,14 @@ Use this Ruby method:
 ```
 
 Parameters:
-- channel
-  - Type: String
-  - Default: n/a
-  - Description: Channel name to list message actions for.
-- start
-  - Type: Integer
-  - Default: n/a
-  - Description: Message action timetoken for the start of the range (exclusive).
-- end
-  - Type: Integer
-  - Default: n/a
-  - Description: Message action timetoken for the end of the range (inclusive).
-- limit
-  - Type: Integer
-  - Default: n/a
-  - Description: Number of message actions to return.
-- http_sync
-  - Type: Boolean
-  - Default: false
-  - Description: When true, executes synchronously and returns an array of envelopes.
-- callback
-  - Type: Lambda accepting one parameter
-  - Default: n/a
-  - Description: Invoked for each envelope (for async calls, use value to retrieve the envelope).
+- channel (String, required, default: n/a): Channel name to list message actions for.
+- start (Integer, optional, default: n/a): Action timetoken for the start of the range (exclusive).
+- end (Integer, optional, default: n/a): Action timetoken for the end of the range (inclusive).
+- limit (Integer, optional, default: n/a): Number of message actions to return.
+- http_sync (Boolean, optional, default: false): When true, executes synchronously and returns an array of envelopes.
+- callback (Lambda with one parameter, optional, default: n/a): Invoked for each envelope (for async calls, use value to retrieve the envelope).
 
-### Sample code
+### Sample code[​](#sample-code-2)
 
 ```
 `1pubnub.get_message_actions(  
@@ -254,7 +209,7 @@ Parameters:
 `
 ```
 
-### Response
+### Response[​](#response-2)
 
 ```
 `1#**2    @result = {  

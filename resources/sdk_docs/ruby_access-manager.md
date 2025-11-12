@@ -1,42 +1,35 @@
 # Access Manager v3 API for Ruby SDK
 
-Access Manager v3 issues time-limited tokens with embedded permissions for PubNub resources. Tokens can:
-- Limit access duration (ttl).
-- Target specific resources by name or RegEx pattern.
-- Carry mixed permissions in one request.
-- Be bound to a single authorized_user_id (UUID/userId).
-
-Requires:
-- Access Manager add-on enabled in Admin Portal.
-- Server-side use with Secret Key for granting.
+Access Manager grants time-limited tokens with embedded permissions to PubNub resources:
+- Time-bound (ttl)
+- Resource lists or RegEx patterns
+- Mixed permission levels in one request
+- Restrictable to a single authorized_user_id (UUID)
 
 User ID / UUID
-- UUID in APIs equals the userId you set during initialization.
-
-Resources and permissions
-- Channels: read, write, get, manage, update, join, delete
-- Channel groups: read, manage
-- UUIDs: get, update, delete
-- Spaces: read, write, get, manage, update, join, delete
-- Users: get, update, delete
-
-TTL
-- Required; minutes, 1–43,200 (30 days); no default.
-
-RegEx permissions
-- Use Pubnub::Permissions.pat to assign permissions by pattern.
-
-Authorized UUID
-- Set authorized_user_id to bind the token to one client UUID.
+- User ID is also referred to as UUID/uuid in some APIs and responses and holds the value of userId set during initialization.
 
 ## Grant token
 
-Requires Access Manager add-on and Secret Key.
+Requires:
+- Access Manager add-on enabled on the keyset (Admin Portal).
+- Initialization with a Secret Key.
 
-Generates a token with ttl, authorized_user_id, and permissions for channels, channel_groups, and uuids.
+Grants token permissions for:
+- channels
+- channel_groups
+- uuids (users' object metadata)
 
-### Method(s)
+Resource permissions:
+- channel: read, write, get, manage, update, join, delete
+- channel_group: read, manage
+- uuid: get, update, delete
 
+Token scope:
+- Only the authorized_user_id (if set) can use the token; invalid/unauthorized use returns HTTP 403.
+- ttl is required (1–43,200 minutes).
+
+Method(s)
 ```
 `1grant_token(  
 2  ttl: ttl,  
@@ -49,18 +42,17 @@ Generates a token with ttl, authorized_user_id, and permissions for channels, ch
 ```
 
 Parameters
-- ttl (Integer, required): Minutes token is valid. Min 1, max 43,200.
-- authorized_user_id (String): Single uuid authorized to use the token.
-- uuids (Hash): UUID metadata permissions as list or RegEx, e.g. {"uuid-1": Pubnub::Permissions.res(get: true, update: true, delete: true),"^uuid-2.$": Pubnub::Permissions.pat(...)}.
-- channels (Hash): Channel permissions as list or RegEx, e.g. {"channel-1": Pubnub::Permissions.res(read: true, write: true, manage: true, delete: true, get: true, update: true, join: true),"^channel-2.$": Pubnub::Permissions.pat(...)}.
-- channel_groups (Hash): Channel group permissions as list or RegEx, e.g. {"group-id-1": Pubnub::Permissions.res(read: true, manage: true),"^group-id-2.$": Pubnub::Permissions.pat(...)}.
-- meta (Object): Scalar-only extra metadata.
+- ttl (Integer, required): minutes token is valid; min 1, max 43,200 (30 days).
+- authorized_user_id (String): single uuid authorized to use the token.
+- uuids (Hash): uuid metadata permissions as list or RegEx pattern, e.g. {"uuid-1": Pubnub::Permissions.res(get: true, update: true, delete: true),"^uuid-2.$": Pubnub::Permissions.pat(...)}.
+- channels (Hash): channel permissions as list or RegEx pattern, e.g. {"channel-1": Pubnub::Permissions.res(read: true, write: true, manage: true, delete: true, get: true, update: true, join: true),"^channel-2.$": Pubnub::Permissions.pat(...)}.
+- channel_groups (Hash): channel group permissions as list or RegEx pattern, e.g. {"group-id-1": Pubnub::Permissions.res(read: true, manage: true),"^group-id-2.$": Pubnub::Permissions.pat(...)}.
+- meta (Object): scalar-only metadata to publish with the request.
 
 Required key/value mappings
-- Provide permissions for at least one uuid, channel, or channel_groups (list or RegEx).
+- Specify permissions for at least one uuid, channel, or channel_groups (list or RegEx).
 
-### Sample code
-
+Sample code
 ```
 1require 'pubnub'  
 2
@@ -109,8 +101,7 @@ Required key/value mappings
 38end  
 ```
 
-### Returns
-
+Returns
 ```
 `1#  
 2    @result = {  
@@ -126,10 +117,9 @@ Required key/value mappings
 `
 ```
 
-### Other examples
+Other examples
 
 Grant an authorized client different levels of access to various resources in a single call
-
 ```
 `1pubnub.grant_token(  
 2      ttl: 15,  
@@ -170,7 +160,6 @@ Grant an authorized client different levels of access to various resources in a 
 ```
 
 Grant an authorized client read access to multiple channels using RegEx
-
 ```
 `1pubnub.grant_token(  
 2      ttl: 15,  
@@ -185,7 +174,6 @@ Grant an authorized client read access to multiple channels using RegEx
 ```
 
 Grant an authorized client different levels of access to various resources and read access to channels using RegEx in a single call
-
 ```
 `1pubnub.grant_token(  
 2      ttl: 15,  
@@ -228,35 +216,40 @@ Grant an authorized client different levels of access to various resources and r
 `
 ```
 
-### Error responses
-
-HTTP 400 with details for invalid requests (e.g., RegEx, invalid timestamp, permissions).
+Error responses
+- HTTP 400 with details for invalid requests (e.g., RegEx, invalid timestamp, incorrect permissions). Returns error details in JSON.
 
 ## Grant token - spaces & users
 
 Requires Access Manager add-on.
 
-Generates a token for spaces and users with ttl, authorized_user_id, and permissions.
+Grants token permissions for:
+- spaces
+- users (other users' metadata)
 
-### Method(s)
+Resource permissions:
+- space: read, write, get, manage, update, join, delete
+- user: get, update, delete
 
+Token scope and ttl behavior as above.
+
+Method(s)
 ```
 `1grant_token(ttl: ttl, authorized_user_id: authorized_user_id, users_permissions: users, spaces_permissions: spaces)  
 `
 ```
 
 Parameters
-- ttl (Integer, required): Minutes token is valid. Min 1, max 43,200.
-- authorized_user_id (String): Single uuid authorized to use the token.
-- users_permissions (Hash): User permissions list or RegEx, e.g. {"user-1": Pubnub::Permissions.res(get: true, update: true, delete: true),"^user-2.$": Pubnub::Permissions.pat(...)}.
-- spaces_permissions (Hash): Space permissions list or RegEx, e.g. {"space-1": Pubnub::Permissions.res(read: true, write: true, manage: true, delete: true, get: true, update: true, join: true),"^space-2.$": Pubnub::Permissions.pat(...)}.
-- meta (Object): Scalar-only extra metadata.
+- ttl (Integer, required): minutes token is valid; min 1, max 43,200 (30 days).
+- authorized_user_id (String): single uuid authorized to use the token.
+- users_permissions (Hash): User permissions list or RegEx patterns, e.g. {"user-1": Pubnub::Permissions.res(get: true, update: true, delete: true),"^user-2.$": Pubnub::Permissions.pat(...)}.
+- spaces_permissions (Hash): Space permissions list or RegEx patterns, e.g. {"space-1": Pubnub::Permissions.res(read: true, write: true, manage: true, delete: true, get: true, update: true, join: true),"^space-2.$": Pubnub::Permissions.pat(...)}.
+- meta (Object): scalar-only metadata.
 
 Required key/value mappings
-- Provide permissions for at least one User or Space (list or RegEx).
+- Specify permissions for at least one User or Space (list or RegEx).
 
-### Sample code
-
+Sample code
 ```
 `1pubnub.grant_token(  
 2    ttl: 15,  
@@ -270,8 +263,7 @@ Required key/value mappings
 `
 ```
 
-### Returns
-
+Returns
 ```
 `1#  
 2    @result = {  
@@ -287,10 +279,9 @@ Required key/value mappings
 `
 ```
 
-### Other examples
+Other examples
 
 Grant an authorized client different levels of access to various resources in a single call
-
 ```
 `1pubnub.grant_token(  
 2      ttl: 15,  
@@ -326,7 +317,6 @@ Grant an authorized client different levels of access to various resources in a 
 ```
 
 Grant an authorized client read access to multiple spaces using RegEx
-
 ```
 `1pubnub.grant_token(  
 2      ttl: 15,  
@@ -341,7 +331,6 @@ Grant an authorized client read access to multiple spaces using RegEx
 ```
 
 Grant an authorized client different levels of access to various resources and read access to spaces using RegEx in a single call
-
 ```
 `1pubnub.grant_token(  
 2      ttl: 15,  
@@ -379,16 +368,18 @@ Grant an authorized client different levels of access to various resources and r
 `
 ```
 
-### Error responses
-
-HTTP 400 with details for invalid requests (e.g., RegEx, invalid timestamp, permissions).
+Error responses
+- HTTP 400 with details for invalid requests (e.g., RegEx, invalid timestamp, incorrect permissions). Returns error details in JSON.
 
 ## Revoke token
 
-Requires Access Manager add-on. Enable Revoke v3 Token in Admin Portal. Revokes a previously granted token. Use for tokens with ttl ≤ 30 days; for longer ttl, contact support.
+Requires:
+- Access Manager add-on.
+- Revoke v3 Token enabled on keyset (Admin Portal > ACCESS MANAGER).
 
-### Method(s)
+Revokes a valid token previously obtained via grant_token(). Use for tokens with ttl ≤ 30 days; for longer ttl, contact support.
 
+Method(s)
 ```
 `1revoke_token(  
 2   token: token  
@@ -397,17 +388,15 @@ Requires Access Manager add-on. Enable Revoke v3 Token in Admin Portal. Revokes 
 ```
 
 Parameters
-- token (String, required): Existing token with embedded permissions.
+- token (String, required): existing token to revoke.
 
-### Sample code
-
+Sample code
 ```
 `1pubnub.revoke_token("p0thisAkFl043rhDXisRGNoYW6han3Jwsample3KgQ3NwY6BDcGF0pERjaG3BjoERGOAeTyWGJI")  
 `
 ```
 
-### Returns
-
+Returns
 ```
 `1Pubnub::Envelope  
 2    @result = {  
@@ -422,17 +411,16 @@ Parameters
 `
 ```
 
-### Error Responses
+Error Responses
 - 400 Bad Request
 - 403 Forbidden
 - 503 Service Unavailable
 
 ## Parse token
 
-Decodes an existing token to inspect embedded permissions and ttl.
+Decodes a token and returns its embedded permissions and ttl. Useful for debugging.
 
-### Method(s)
-
+Method(s)
 ```
 `1parse_token(  
 2   token: token  
@@ -441,17 +429,15 @@ Decodes an existing token to inspect embedded permissions and ttl.
 ```
 
 Parameters
-- token (String, required): Current token with embedded permissions.
+- token (String, required): current token to parse.
 
-### Sample code
-
+Sample code
 ```
 `1pubnub.parse_token("p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI")  
 `
 ```
 
-### Returns
-
+Returns
 ```
 `1{  
 2    "v"=>2,  
@@ -489,29 +475,27 @@ Parameters
 `
 ```
 
-### Error Responses
-- Parsing errors may indicate a damaged token; request a new token.
+Error Responses
+- Parse errors may indicate a damaged token; request a new token.
 
 ## Set token
 
-Clients use this to update the authentication token granted by the server.
+Updates the authentication token on the client.
 
-### Method(s)
-
+Method(s)
 ```
 `1set_token(token: token)  
 `
 ```
 
 Parameters
-- token (String, required): Current token with embedded permissions.
+- token (String, required): current token.
 
-### Sample code
-
+Sample code
 ```
 `1pubnub.set_token("p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI")  
 `
 ```
 
-### Returns
-- No return value.
+Returns
+- No response value.

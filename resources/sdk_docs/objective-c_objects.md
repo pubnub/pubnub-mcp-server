@@ -1,16 +1,16 @@
-# App Context API for Objective-C SDK
+# App Context API for Objective-C SDK (Objects)
 
-App Context (Objects v2) provides serverless storage for user (UUID) and channel metadata, and association data (memberships/members). Events are triggered on set/update/remove. Re-setting identical data doesn't trigger events.
+App Context provides serverless storage for user and channel metadata and their membership associations, plus real-time change events (set, update, remove). Re-setting the same data doesn't trigger events.
 
-Note: Filtering expressions syntax is documented at /docs/general/metadata/filtering. Default pagination limit is 100 (max 100). Cursor-based pagination uses start/end tokens. Include fields are bitfields; set to 0 to reset defaults where applicable.
+Use the migration guide to upgrade from Objects v1.
 
 ## User
 
 ### Get metadata for all users
 
-Returns a paginated list of UUID Metadata objects, optionally including custom data.
+Returns a paginated list of UUID Metadata objects. Optionally include custom data.
 
-Methods
+#### Method(s)
 
 ```
 `1- (void)allUUIDMetadataWithRequest:(PNFetchAllUUIDMetadataRequest *)request   
@@ -18,15 +18,19 @@ Methods
 `
 ```
 
-PNFetchAllUUIDMetadataRequest parameters
-- sort: NSArray<NSString *> — Sort by id, name, updated with asc/desc (for example, name:asc).
-- includeFields: PNUUIDFields — Supported: PNUUIDTotalCountField (total count), PNUUIDCustomField (UUID custom), PNUUIDStatusField (UUID status), PNUUIDTypeField (UUID type). Default PNUUIDTotalCountField (set 0 to reset).
-- filter: NSString — Filtering expression.
-- start: NSString — Forward pagination cursor.
-- end: NSString — Backward pagination cursor (ignored if start is set).
-- limit: NSUInteger — Default/Max 100.
+- request (PNFetchAllUUIDMetadataRequest): Request object to fetch all UUID metadata.
+- block (PNFetchAllUUIDMetadataCompletionBlock): Completion block.
 
-Sample code
+#### PNFetchAllUUIDMetadataRequest
+
+- sort (NSArray<NSString *>): Sort by id, name, updated; add asc/desc (for example, {name: 'asc'}).
+- includeFields (PNUUIDFields): Bitfield of response fields. Supported: PNUUIDTotalCountField (total count), PNUUIDCustomField (UUID custom), PNUUIDStatusField (UUID status), PNUUIDTypeField (UUID type). Default: PNUUIDTotalCountField (set 0 to reset).
+- filter (NSString): Filter expression. See filtering.
+- start (NSString): Cursor for forward pagination.
+- end (NSString): Cursor for backward pagination; ignored if start is provided.
+- limit (NSUInteger): Number of objects to return. Default/Max: 100.
+
+#### Sample code
 
 ```
 1#import Foundation/Foundation.h>  
@@ -187,7 +191,7 @@ Sample code
 
 ```
 
-Response
+#### Response
 
 ```
 1@interface PNFetchAllUUIDMetadataData : PNServiceData  
@@ -228,8 +232,6 @@ Response
 
 ```
 
-Error response
-
 ```
 1@interface PNErrorData : PNServiceData  
 2
@@ -256,9 +258,9 @@ Error response
 
 ```
 
-Get metadata for all users (builder pattern)
+### Get metadata for all users (builder pattern)
 
-Methods
+#### Method(s)
 
 ```
 `1objects()  
@@ -274,13 +276,17 @@ Methods
 `
 ```
 
-Parameters
-- includeFields: PNUUIDFields — Supported: PNUUIDTotalCountField, PNUUIDCustomField, PNUUIDStatusField, PNUUIDTypeField. Default PNUUIDTotalCountField (set 0 to reset).
-- includeCount: BOOL — Default YES.
-- filter, sort, limit, start, end same as above.
-- block: PNFetchAllUUIDMetadataCompletionBlock.
+- includeFields (PNUUIDFields): Bitfield. PNUUIDTotalCountField (count), PNUUIDCustomField (custom), PNUUIDStatusField (status), PNUUIDTypeField (type). Default: PNUUIDTotalCountField (set 0 to reset).
+- includeCount (BOOL): Include total count. Default: YES.
+- filter (NSString): Filter expression.
+- sort (NSArray): Sort by id, name, updated with asc/desc.
+- limit (NSUInteger): Default/Max: 100.
+- start (NSString), end (NSString): Pagination; end ignored if start provided.
+- block (PNFetchAllUUIDMetadataCompletionBlock): Completion block.
 
-Sample code
+Note: Builder pattern; optional arguments can be omitted.
+
+#### Sample code
 
 ```
 `1self.client.objects().allUUIDMetadata()  
@@ -310,7 +316,7 @@ Sample code
 `
 ```
 
-Response
+#### Response
 
 ```
 1@interface PNFetchAllUUIDMetadataData : PNServiceData  
@@ -351,8 +357,6 @@ Response
 
 ```
 
-Error response
-
 ```
 1@interface PNErrorData : PNServiceData  
 2
@@ -381,9 +385,9 @@ Error response
 
 ### Get user metadata
 
-Returns metadata for the specified UUID.
+Returns metadata for a specific UUID. Optionally include custom data.
 
-Methods
+#### Method(s)
 
 ```
 `1- (void)uuidMetadataWithRequest:(PNFetchUUIDMetadataRequest *)request   
@@ -391,11 +395,15 @@ Methods
 `
 ```
 
-PNFetchUUIDMetadataRequest parameters
-- includeFields: PNUUIDFields — Supported: PNUUIDCustomField, PNUUIDStatusField, PNUUIDTypeField.
-- uuid: NSString — Defaults to configured PubNub client uuid when nil.
+- request (PNFetchUUIDMetadataRequest): Request object for fetching UUID metadata.
+- block (PNFetchUUIDMetadataCompletionBlock): Completion block.
 
-Sample code
+#### PNFetchUUIDMetadataRequest
+
+- includeFields (PNUUIDFields): Bitfield. Supported: PNUUIDCustomField, PNUUIDStatusField, PNUUIDTypeField.
+- uuid (NSString): Identifier to fetch; defaults to configured client uuid if nil.
+
+#### Sample code
 
 ```
 1PNFetchUUIDMetadataRequest *request = [PNFetchUUIDMetadataRequest requestWithUUID:@"uuid"];  
@@ -425,7 +433,7 @@ Sample code
 
 ```
 
-Response
+#### Response
 
 ```
 1@interface PNFetchUUIDMetadataData : PNServiceData  
@@ -439,7 +447,8 @@ Response
 7
   
 8@interface PNFetchUUIDMetadataResult : PNResult  
-9  
+9
+  
 10// Fetch UUID metadata request processed information.  
 11@property (nonatomic, readonly, strong) PNFetchUUIDMetadataData *data;  
 12
@@ -447,8 +456,6 @@ Response
 13@end  
 
 ```
-
-Error response
 
 ```
 1@interface PNErrorData : PNServiceData  
@@ -476,9 +483,9 @@ Error response
 
 ```
 
-Get user metadata (builder pattern)
+### Get user metadata (builder pattern)
 
-Methods
+#### Method(s)
 
 ```
 `1objects()  
@@ -489,12 +496,13 @@ Methods
 `
 ```
 
-Parameters
-- uuid: NSString — Defaults to configured PubNub client uuid.
-- includeFields: PNUUIDFields — Supported: PNUUIDCustomField, PNUUIDStatusField, PNUUIDTypeField.
-- block: PNFetchUUIDMetadataCompletionBlock.
+- uuid (NSString): UUID to fetch. Default: configured client uuid.
+- includeFields (PNUUIDFields): Bitfield. Supported: PNUUIDCustomField, PNUUIDStatusField, PNUUIDTypeField.
+- block (PNFetchUUIDMetadataCompletionBlock): Completion block.
 
-Sample code
+Note: Builder pattern; optional arguments can be omitted.
+
+#### Sample code
 
 ```
 `1self.client.objects().uuidMetadata()  
@@ -518,7 +526,7 @@ Sample code
 `
 ```
 
-Response
+#### Response
 
 ```
 1@interface PNFetchUUIDMetadataData : PNServiceData  
@@ -532,7 +540,8 @@ Response
 7
   
 8@interface PNFetchUUIDMetadataResult : PNResult  
-9  
+9
+  
 10// Fetch UUID metadata request processed information.  
 11@property (nonatomic, readonly, strong) PNFetchUUIDMetadataData *data;  
 12
@@ -540,8 +549,6 @@ Response
 13@end  
 
 ```
-
-Error response
 
 ```
 1@interface PNErrorData : PNServiceData  
@@ -571,9 +578,9 @@ Error response
 
 ### Set user metadata
 
-Sets metadata for a UUID. Partial updates of custom are unsupported; provide the full custom object to overwrite.
+Sets metadata for a UUID. Custom metadata is fully overwritten (no partial updates).
 
-Methods
+#### Method(s)
 
 ```
 `1- (void)setUUIDMetadataWithRequest:(PNSetUUIDMetadataRequest *)request   
@@ -581,19 +588,25 @@ Methods
 `
 ```
 
-PNSetUUIDMetadataRequest parameters
-- custom: NSDictionary — Additional attributes. Not filterable.
-- externalId: NSString — External identifier.
-- profileUrl: NSString — URL for profile.
-- includeFields: PNUUIDFields — Supported: PNUUIDCustomField, PNUUIDStatusField, PNUUIDTypeField.
-- email: NSString.
-- name: NSString.
-- uuid: NSString — Defaults to configured PubNub client uuid.
-- status: NSString — Custom user status.
-- type: NSString — Custom user type.
-- ifMatchesEtag: NSString — Optimistic concurrency; server returns 412 if mismatch.
+- request (PNSetUUIDMetadataRequest): Request to set UUID metadata.
+- block (PNSetUUIDMetadataCompletionBlock): Completion block.
 
-Sample code
+#### PNSetUUIDMetadataRequest
+
+- custom (NSDictionary): Additional attributes. Filtering doesn't support custom properties.
+- externalId (NSString): External service identifier.
+- profileUrl (NSString): Profile URL.
+- includeFields (PNUUIDFields): Bitfield. Supported: PNUUIDCustomField, PNUUIDStatusField, PNUUIDTypeField.
+- email (NSString): Email address.
+- name (NSString): Name to store for UUID.
+- uuid (NSString): UUID to set; defaults to client uuid if nil.
+- status (NSString): Custom user status.
+- type (NSString): Custom user type.
+- ifMatchesEtag (NSString): Conditional update using eTag; mismatches return HTTP 412.
+
+API limits: See REST API docs for maximum parameter lengths.
+
+#### Sample code
 
 ```
 1PNSetUUIDMetadataRequest *request = [PNSetUUIDMetadataRequest requestWithUUID:@"uuid"];  
@@ -623,7 +636,7 @@ Sample code
 
 ```
 
-Response
+#### Response
 
 ```
 1@interface PNSetUUIDMetadataData : PNServiceData  
@@ -640,15 +653,14 @@ Response
 9  
 10// Set UUID metadata request processed information.  
 11@property (nonatomic, readonly, strong) PNSetUUIDMetadataData *data;  
-12
-  
+12  
 13@end  
 
 ```
 
-Set user metadata (builder pattern)
+### Set user metadata (builder pattern)
 
-Methods
+#### Method(s)
 
 ```
 `1objects()  
@@ -664,11 +676,17 @@ Methods
 `
 ```
 
-Parameters
-- uuid, name, externalId, profileUrl, custom, email, includeFields as above.
-- block: PNSetUUIDMetadataCompletionBlock.
+API limits: See REST API docs.
 
-Sample code
+- uuid (NSString): UUID to associate metadata with. Default: configured client uuid.
+- name (NSString), externalId (NSString), profileUrl (NSString), email (NSString).
+- custom (NSDictionary): Additional info (not filterable).
+- includeFields (PNUUIDFields): PNUUIDCustomField, PNUUIDStatusField, PNUUIDTypeField.
+- block (PNSetUUIDMetadataCompletionBlock): Completion block.
+
+Note: Builder pattern; optional arguments can be omitted.
+
+#### Sample code
 
 ```
 `1self.client.objects().setUUIDMetadata()  
@@ -697,7 +715,7 @@ Sample code
 `
 ```
 
-Response
+#### Response
 
 ```
 1@interface PNSetUUIDMetadataData : PNServiceData  
@@ -714,17 +732,16 @@ Response
 9  
 10// Set UUID metadata request processed information.  
 11@property (nonatomic, readonly, strong) PNSetUUIDMetadataData *data;  
-12
-  
+12  
 13@end  
 
 ```
 
 ### Remove user metadata
 
-Removes metadata for the specified UUID.
+Removes metadata for a specified UUID.
 
-Methods
+#### Method(s)
 
 ```
 `1- (void)removeUUIDMetadataWithRequest:(PNRemoveUUIDMetadataRequest *)request   
@@ -732,10 +749,14 @@ Methods
 `
 ```
 
-PNRemoveUUIDMetadataRequest parameters
-- uuid: NSString — Defaults to configured PubNub client uuid.
+- request (PNRemoveUUIDMetadataRequest): Request to remove UUID metadata.
+- block (PNRemoveUUIDMetadataCompletionBlock): Completion block.
 
-Sample code
+#### PNRemoveUUIDMetadataRequest
+
+- uuid (NSString): UUID to remove; defaults to client uuid if nil.
+
+#### Sample code
 
 ```
 1PNRemoveUUIDMetadataRequest *request = [PNRemoveUUIDMetadataRequest requestWithUUID:@"uuid"];  
@@ -756,7 +777,7 @@ Sample code
 
 ```
 
-Response
+#### Response
 
 ```
 1@interface PNErrorData : PNServiceData  
@@ -784,9 +805,9 @@ Response
 
 ```
 
-Remove user metadata (builder pattern)
+### Remove user metadata (builder pattern)
 
-Methods
+#### Method(s)
 
 ```
 1objects()  
@@ -798,11 +819,12 @@ Methods
 
 ```
 
-Parameters
-- uuid: NSString — Defaults to configured PubNub client uuid.
-- block: PNRemoveUUIDMetadataCompletionBlock.
+- uuid (NSString): UUID whose metadata should be removed. Default: configured client uuid.
+- block (PNRemoveUUIDMetadataCompletionBlock): Completion block.
 
-Sample code
+Note: Builder pattern; optional arguments can be omitted.
+
+#### Sample code
 
 ```
 `1self.client.objects().removeUUIDMetadata()  
@@ -822,7 +844,7 @@ Sample code
 `
 ```
 
-Response
+#### Response
 
 ```
 1@interface PNErrorData : PNServiceData  
@@ -854,9 +876,9 @@ Response
 
 ### Get metadata for all channels
 
-Returns a paginated list of Channel Metadata objects.
+Returns a paginated list of Channel Metadata objects. Optionally include custom data.
 
-Methods
+#### Method(s)
 
 ```
 `1- (void)allChannelsMetadataWithRequest:(PNFetchAllChannelsMetadataRequest *)request   
@@ -864,15 +886,19 @@ Methods
 `
 ```
 
-PNFetchAllChannelsMetadataRequest parameters
-- includeFields: PNChannelFields — Supported: PNChannelTotalCountField (default), PNChannelCustomField, PNChannelStatusField, PNChannelTypeField. Default PNChannelTotalCountField (set 0 to reset).
-- sort: NSArray<NSString *> — id, name, updated with asc/desc.
-- filter: NSString.
-- start: NSString — Forward pagination cursor.
-- end: NSString — Backward pagination cursor (ignored if start is set).
-- limit: NSUInteger — Default/Max 100.
+- request (PNFetchAllChannelsMetadataRequest)
+- block (PNFetchAllChannelsMetadataCompletionBlock)
 
-Sample code
+#### PNFetchAllChannelsMetadataRequest
+
+- includeFields (PNChannelFields): Bitfield. PNChannelTotalCountField (count), PNChannelCustomField (custom), PNChannelStatusField (status), PNChannelTypeField (type). Default: PNChannelTotalCountField (set 0 to reset).
+- sort (NSArray<NSString *>): Sort id, name, updated; asc/desc.
+- filter (NSString): Filter expression.
+- start (NSString): Forward pagination cursor.
+- end (NSString): Backward pagination cursor; ignored if start provided.
+- limit (NSUInteger): Default/Max: 100.
+
+#### Sample code
 
 ```
 1PNFetchAllChannelsMetadataRequest *request = [PNFetchAllChannelsMetadataRequest new];  
@@ -905,7 +931,7 @@ Sample code
 
 ```
 
-Response
+#### Response
 
 ```
 1@interface PNFetchAllChannelsMetadataData : PNServiceData  
@@ -946,8 +972,6 @@ Response
 
 ```
 
-Error response
-
 ```
 1@interface PNErrorData : PNServiceData  
 2
@@ -974,9 +998,9 @@ Error response
 
 ```
 
-Get metadata for all channels (builder pattern)
+### Get metadata for all channels (builder pattern)
 
-Methods
+#### Method(s)
 
 ```
 `1objects()  
@@ -992,13 +1016,14 @@ Methods
 `
 ```
 
-Parameters
-- includeFields: PNChannelFields — Supported: PNChannelTotalCountField (default), PNChannelCustomField, PNChannelStatusField, PNChannelTypeField (set 0 to reset).
-- includeCount: BOOL — Default YES.
-- filter, sort, limit, start, end same as above.
-- block: PNFetchAllChannelsMetadataCompletionBlock.
+- includeFields (PNChannelFields): PNChannelTotalCountField, PNChannelCustomField, PNChannelStatusField, PNChannelTypeField. Default: PNChannelTotalCountField (set 0 to reset).
+- includeCount (BOOL): Default: YES.
+- filter (NSString), sort (NSArray), limit (NSUInteger, Default/Max 100), start/end (NSString).
+- block (PNFetchAllChannelsMetadataCompletionBlock)
 
-Sample code
+Note: Builder pattern; optional arguments can be omitted.
+
+#### Sample code
 
 ```
 `1self.client.objects().allChannelsMetadata()  
@@ -1027,7 +1052,7 @@ Sample code
 `
 ```
 
-Response
+#### Response
 
 ```
 1@interface PNFetchAllChannelsMetadataData : PNServiceData  
@@ -1067,8 +1092,6 @@ Response
 27@end  
 
 ```
-
-Error response
 
 ```
 1@interface PNErrorData : PNServiceData  
@@ -1098,7 +1121,9 @@ Error response
 
 ### Get channel metadata
 
-Methods
+Returns metadata for a specific channel.
+
+#### Method(s)
 
 ```
 `1- (void)channelMetadataWithRequest:(PNFetchChannelMetadataRequest *)request   
@@ -1106,11 +1131,15 @@ Methods
 `
 ```
 
-PNFetchChannelMetadataRequest parameters
-- includeFields: PNChannelFields — Supported: PNChannelCustomField, PNChannelStatusField, PNChannelTypeField.
-- channel: NSString — Target channel name.
+- request (PNFetchChannelMetadataRequest)
+- block (PNFetchChannelMetadataCompletionBlock)
 
-Sample code
+#### PNFetchChannelMetadataRequest
+
+- includeFields (PNChannelFields): PNChannelCustomField, PNChannelStatusField, PNChannelTypeField.
+- channel (NSString): Channel name to fetch.
+
+#### Sample code
 
 ```
 1PNFetchChannelMetadataRequest *request = [PNFetchChannelMetadataRequest requestWithChannel:@"channel"];  
@@ -1140,7 +1169,7 @@ Sample code
 
 ```
 
-Response
+#### Response
 
 ```
 1@interface PNFetchChannelMetadataData : PNServiceData  
@@ -1154,17 +1183,13 @@ Response
 7
   
 8@interface PNFetchChannelsMetadataResult : PNResult  
-9
-  
+9  
 10// Fetch channel metadata request processed information.  
 11@property (nonatomic, readonly, strong) PNFetchChannelMetadataData *data;  
-12
-  
+12  
 13@end  
 
 ```
-
-Error response
 
 ```
 1@interface PNErrorData : PNServiceData  
@@ -1192,9 +1217,9 @@ Error response
 
 ```
 
-Get channel metadata (builder pattern)
+### Get channel metadata (builder pattern)
 
-Methods
+#### Method(s)
 
 ```
 `1objects()  
@@ -1204,12 +1229,13 @@ Methods
 `
 ```
 
-Parameters
-- channel: NSString.
-- includeFields: PNChannelFields — Supported: PNChannelCustomField, PNChannelStatusField, PNChannelTypeField.
-- block: PNFetchChannelMetadataCompletionBlock.
+- channel (NSString): Channel to fetch.
+- includeFields (NSString): PNChannelCustomField, PNChannelStatusField, PNChannelTypeField.
+- block (PNFetchChannelMetadataCompletionBlock)
 
-Sample code
+Note: Builder pattern; optional arguments can be omitted.
+
+#### Sample code
 
 ```
 `1self.client.objects().channelMetadata(@"channel")  
@@ -1232,7 +1258,7 @@ Sample code
 `
 ```
 
-Response
+#### Response
 
 ```
 1@interface PNFetchChannelMetadataData : PNServiceData  
@@ -1246,17 +1272,13 @@ Response
 7
   
 8@interface PNFetchChannelsMetadataResult : PNResult  
-9
-  
+9  
 10// Fetch channel metadata request processed information.  
 11@property (nonatomic, readonly, strong) PNFetchChannelMetadataData *data;  
-12
-  
+12  
 13@end  
 
 ```
-
-Error response
 
 ```
 1@interface PNErrorData : PNServiceData  
@@ -1286,9 +1308,9 @@ Error response
 
 ### Set channel metadata
 
-Sets metadata for a channel. Partial updates of custom are unsupported; provide full custom object.
+Sets metadata for a channel. Custom metadata is fully overwritten (no partial updates).
 
-Methods
+#### Method(s)
 
 ```
 `1- (void)setChannelMetadataWithRequest:(PNSetChannelMetadataRequest *)request   
@@ -1296,17 +1318,23 @@ Methods
 `
 ```
 
-PNSetChannelMetadataRequest parameters
-- custom: NSDictionary — Additional attributes. Not filterable.
-- information: NSString — Description.
-- includeFields: PNChannelFields — Supported: PNChannelCustomField, PNChannelStatusField, PNChannelTypeField.
-- name: NSString.
-- channel: NSString — Channel name.
-- status: NSString — Custom channel status.
-- type: NSString — Custom channel type.
-- ifMatchesEtag: NSString — Optimistic concurrency.
+- request (PNSetChannelMetadataRequest)
+- block (PNSetChannelMetadataCompletionBlock)
 
-Sample code
+#### PNSetChannelMetadataRequest
+
+- custom (NSDictionary): Additional attributes; not filterable.
+- information (NSString): Description.
+- includeFields (PNChannelFields): PNChannelCustomField, PNChannelStatusField, PNChannelTypeField.
+- name (NSString): Channel name (display name).
+- channel (NSString): Channel ID to set.
+- status (NSString): Custom channel status.
+- type (NSString): Custom channel type.
+- ifMatchesEtag (NSString): Conditional update using eTag (HTTP 412 on mismatch).
+
+API limits: See REST API docs.
+
+#### Sample code
 
 ```
 1PNSetChannelMetadataRequest *request = [PNSetChannelMetadataRequest requestWithChannel:@"channel"];  
@@ -1335,7 +1363,7 @@ Sample code
 
 ```
 
-Response
+#### Response
 
 ```
 1@interface PNSetChannelMetadataData : PNServiceData  
@@ -1352,13 +1380,14 @@ Response
 9  
 10// Set channel metadata request processed information.  
 11@property (nonatomic, readonly, strong) PNSetChannelMetadataData *data;  
-12
-  
+12  
 13@end  
 
 ```
 
-Other examples
+#### Other examples
+
+##### Iteratively update existing metadata
 
 ```
 1#import Foundation/Foundation.h>  
@@ -1439,9 +1468,9 @@ Other examples
 
 ```
 
-Set channel metadata (builder pattern)
+### Set channel metadata (builder pattern)
 
-Methods
+#### Method(s)
 
 ```
 `1objects()  
@@ -1455,11 +1484,16 @@ Methods
 `
 ```
 
-Parameters
-- channel, name, information, custom, includeFields as above.
-- block: PNSetChannelMetadataCompletionBlock.
+API limits: See REST API docs.
 
-Sample code
+- channel (NSString), name (NSString), information (NSString).
+- custom (NSDictionary): Not filterable.
+- includeFields (PNChannelFields): PNChannelCustomField, PNChannelStatusField, PNChannelTypeField.
+- block (PNSetChannelMetadataCompletionBlock)
+
+Note: Builder pattern; optional arguments can be omitted.
+
+#### Sample code
 
 ```
 `1self.client.objects().setChannelMetadata(@"channel")  
@@ -1485,7 +1519,7 @@ Sample code
 `
 ```
 
-Response
+#### Response
 
 ```
 1@interface PNSetChannelMetadataData : PNServiceData  
@@ -1502,17 +1536,16 @@ Response
 9  
 10// Set channel metadata request processed information.  
 11@property (nonatomic, readonly, strong) PNSetChannelMetadataData *data;  
-12
-  
+12  
 13@end  
 
 ```
 
 ### Remove channel metadata
 
-Removes metadata for a channel.
+Removes metadata for a specified channel.
 
-Methods
+#### Method(s)
 
 ```
 `1- (void)removeChannelMetadataWithRequest:(PNRemoveChannelMetadataRequest *)request   
@@ -1520,10 +1553,14 @@ Methods
 `
 ```
 
-PNRemoveChannelMetadataRequest parameters
-- channel: NSString.
+- request (PNRemoveChannelMetadataRequest)
+- block (PNRemoveChannelMetadataCompletionBlock)
 
-Sample code
+#### PNRemoveChannelMetadataRequest
+
+- channel (NSString): Channel name to remove metadata from.
+
+#### Sample code
 
 ```
 1PNRemoveChannelMetadataRequest *request = [PNRemoveChannelMetadataRequest requestWithChannel:@"channel"];  
@@ -1544,7 +1581,7 @@ Sample code
 
 ```
 
-Response
+#### Response
 
 ```
 1@interface PNErrorData : PNServiceData  
@@ -1572,9 +1609,9 @@ Response
 
 ```
 
-Remove channel metadata (builder pattern)
+### Remove channel metadata (builder pattern)
 
-Methods
+#### Method(s)
 
 ```
 `1objects()  
@@ -1583,11 +1620,12 @@ Methods
 `
 ```
 
-Parameters
-- channel: NSString.
-- block: PNRemoveChannelMetadataCompletionBlock.
+- channel (NSString): Channel to remove metadata from.
+- block (PNRemoveChannelMetadataCompletionBlock)
 
-Sample code
+Note: Builder pattern; optional arguments can be omitted.
+
+#### Sample code
 
 ```
 `1self.client.objects().removeChannelMetadata(@"channel")  
@@ -1606,7 +1644,7 @@ Sample code
 `
 ```
 
-Response
+#### Response
 
 ```
 1@interface PNErrorData : PNServiceData  
@@ -1638,9 +1676,9 @@ Response
 
 ### Get channel memberships
 
-Returns a list of channel memberships for a UUID.
+Returns a list of channel memberships for a UUID (not subscriptions).
 
-Methods
+#### Method(s)
 
 ```
 `1- (void)membershipsWithRequest:(PNFetchMembershipsRequest *)request   
@@ -1648,15 +1686,18 @@ Methods
 `
 ```
 
-PNFetchMembershipsRequest parameters
-- sort: NSArray<NSString *> — id, name, updated with asc/desc.
-- includeFields: PNMembershipFields — Supported: PNMembershipsTotalCountField (default), PNMembershipCustomField, PNMembershipStatusField, PNMembershipTypeField, PNMembershipChannelField, PNMembershipChannelCustomField, PNMembershipChannelStatusField, PNMembershipChannelTypeField. Default PNMembershipsTotalCountField (set 0 to reset).
-- filter: NSString.
-- start: NSString — Forward cursor.
-- end: NSString — Backward cursor (ignored if start is set).
-- limit: NSUInteger — Default/Max 100.
+- request (PNFetchMembershipsRequest)
+- block (PNFetchMembershipsCompletionBlock)
 
-Sample code
+#### PNFetchMembershipsRequest
+
+- sort (NSArray<NSString *>): Sort id, name, updated; asc/desc.
+- includeFields (PNMembershipFields): Bitfield. PNMembershipsTotalCountField, PNMembershipCustomField, PNMembershipStatusField, PNMembershipTypeField, PNMembershipChannelField, PNMembershipChannelCustomField, PNMembershipChannelStatusField, PNMembershipChannelTypeField. Default: PNMembershipsTotalCountField (set 0 to reset).
+- filter (NSString): Filter expression.
+- start/end (NSString): Pagination; end ignored if start provided.
+- limit (NSUInteger): Default/Max: 100.
+
+#### Sample code
 
 ```
 1PNFetchMembershipsRequest *request = [PNFetchMembershipsRequest requestWithUUID:@"uuid"];  
@@ -1692,7 +1733,7 @@ Sample code
 
 ```
 
-Response
+#### Response
 
 ```
 1@interface PNFetchMembershipsData : PNServiceData  
@@ -1734,8 +1775,6 @@ Response
 
 ```
 
-Error response
-
 ```
 1@interface PNErrorData : PNServiceData  
 2
@@ -1762,9 +1801,9 @@ Error response
 
 ```
 
-Get channel memberships (builder pattern)
+### Get channel memberships (builder pattern)
 
-Methods
+#### Method(s)
 
 ```
 `1objects()  
@@ -1781,13 +1820,15 @@ Methods
 `
 ```
 
-Parameters
-- uuid: NSString — Target UUID (defaults to configured UUID if applicable).
-- includeFields: PNMembershipFields — Supported: PNMembershipsTotalCountField (default), PNMembershipCustomField, PNMembershipStatusField, PNMembershipTypeField, PNMembershipChannelField, PNMembershipChannelCustomField, PNMembershipChannelStatusField, PNMembershipChannelTypeField (set 0 to reset).
-- includeCount: BOOL — Default YES.
-- filter, sort, limit, start, end, block as above.
+- uuid (NSString): UUID whose memberships to fetch.
+- includeFields (PNMembershipFields): See above; Default: PNMembershipsTotalCountField (set 0 to reset).
+- includeCount (BOOL): Default: YES.
+- filter (NSString), sort (NSArray), limit (NSUInteger), start/end (NSString).
+- block (PNFetchMembershipsCompletionBlock)
 
-Sample code
+Note: Builder pattern; optional arguments can be omitted.
+
+#### Sample code
 
 ```
 `1self.client.objects().memberships()  
@@ -1817,7 +1858,7 @@ Sample code
 `
 ```
 
-Response
+#### Response
 
 ```
 1@interface PNFetchMembershipsData : PNServiceData  
@@ -1858,8 +1899,6 @@ Response
 28@end  
 
 ```
-
-Error response
 
 ```
 1@interface PNErrorData : PNServiceData  
@@ -1891,7 +1930,7 @@ Error response
 
 Sets memberships for a UUID.
 
-Methods
+#### Method(s)
 
 ```
 `1- (void)setMembershipsWithRequest:(PNSetMembershipsRequest *)request   
@@ -1899,15 +1938,18 @@ Methods
 `
 ```
 
-PNSetMembershipsRequest parameters
-- sort: NSArray<NSString *> — id, name, updated asc/desc.
-- includeFields: PNMembershipFields — Supported: PNMembershipsTotalCountField, PNMembershipCustomField, PNMembershipStatusField, PNMembershipTypeField, PNMembershipChannelField, PNMembershipChannelCustomField, PNMembershipChannelStatusField, PNMembershipChannelTypeField.
-- filter: NSString.
-- start: NSString — Forward cursor.
-- end: NSString — Backward cursor (ignored if start is set).
-- limit: NSUInteger — Default/Max 100.
+- request (PNSetMembershipsRequest)
+- block (PNManageMembershipsCompletionBlock)
 
-Sample code
+#### PNSetMembershipsRequest
+
+- sort (NSArray<NSString *>): Sort id, name, updated; asc/desc.
+- includeFields (PNMembershipFields): PNMembershipsTotalCountField, PNMembershipCustomField, PNMembershipStatusField, PNMembershipTypeField, PNMembershipChannelField, PNMembershipChannelCustomField, PNMembershipChannelStatusField, PNMembershipChannelTypeField.
+- filter (NSString), start/end (NSString), limit (NSUInteger).
+
+API limits: See REST API docs.
+
+#### Sample code
 
 ```
 1NSArrayNSDictionary *> *channels = @[  
@@ -1950,7 +1992,7 @@ Sample code
 
 ```
 
-Response
+#### Response
 
 ```
 1@interface PNManageMembershipsData : PNServiceData  
@@ -1992,9 +2034,9 @@ Response
 
 ```
 
-Set channel memberships (builder pattern)
+### Set channel memberships (builder pattern)
 
-Methods
+#### Method(s)
 
 ```
 `1objects()  
@@ -2012,12 +2054,17 @@ Methods
 `
 ```
 
-Parameters
-- uuid: NSString — Defaults to configured UUID.
-- channels: NSArray<NSDictionary *> — Each entry: channel and optional custom/status/type.
-- includeFields/includeCount/filter/sort/limit/start/end/block as above.
+API limits: See REST API docs.
 
-Sample code
+- uuid (NSString): Default: configured client uuid.
+- channels (NSArray<NSDictionary *>): Each includes channel and optional custom; simple types only.
+- includeFields (PNMembershipFields): See above.
+- includeCount (BOOL): Default: YES.
+- filter, sort, limit (Default/Max 100), start/end, block.
+
+Note: Builder pattern; optional arguments can be omitted.
+
+#### Sample code
 
 ```
 1NSArrayNSDictionary *> *channels = @[  
@@ -2058,7 +2105,7 @@ Sample code
 
 ```
 
-Response
+#### Response
 
 ```
 1@interface PNManageMembershipsData : PNServiceData  
@@ -2104,7 +2151,7 @@ Response
 
 Removes memberships for a UUID.
 
-Methods
+#### Method(s)
 
 ```
 `1- (void)removeMembershipsWithRequest:(PNRemoveMembershipsRequest *)request   
@@ -2112,10 +2159,14 @@ Methods
 `
 ```
 
-PNRemoveMembershipsRequest parameters
-- sort/includeFields/filter/start/end/limit as in Set Memberships.
+- request (PNRemoveMembershipsRequest)
+- block (PNManageMembershipsCompletionBlock)
 
-Sample code
+#### PNRemoveMembershipsRequest
+
+- sort (NSArray<NSString *>), includeFields (PNMembershipFields), filter (NSString), start/end (NSString), limit (NSUInteger). Field support same as Set Memberships.
+
+#### Sample code
 
 ```
 1NSArrayNSString *> *channels = @[@"channel1", @"channel2"];  
@@ -2152,7 +2203,7 @@ Sample code
 
 ```
 
-Response
+#### Response
 
 ```
 1@interface PNManageMembershipsData : PNServiceData  
@@ -2194,9 +2245,9 @@ Response
 
 ```
 
-Remove channel memberships (builder pattern)
+### Remove channel memberships (builder pattern)
 
-Methods
+#### Method(s)
 
 ```
 `1objects()  
@@ -2214,10 +2265,15 @@ Methods
 `
 ```
 
-Parameters
-- uuid/channels/includeFields/includeCount/filter/sort/limit/start/end/block as above.
+- uuid (NSString): Default: configured client uuid.
+- channels (NSArray<NSString *>): Channels to remove membership from.
+- includeFields (PNMembershipFields): See above.
+- includeCount (BOOL): Default: YES.
+- filter, sort, limit (Default/Max 100), start/end, block.
 
-Sample code
+Note: Builder pattern; optional arguments can be omitted.
+
+#### Sample code
 
 ```
 `1self.client.objects().removeMemberships()  
@@ -2248,7 +2304,7 @@ Sample code
 `
 ```
 
-Response
+#### Response
 
 ```
 1@interface PNManageMembershipsData : PNServiceData  
@@ -2292,9 +2348,9 @@ Response
 
 ### Manage channel memberships
 
-Sets and removes memberships for a UUID in one request.
+Set and remove channel memberships for a UUID.
 
-Methods
+#### Method(s)
 
 ```
 `1- (void)manageMembershipsWithRequest:(PNManageMembershipsRequest *)request   
@@ -2302,12 +2358,16 @@ Methods
 `
 ```
 
-PNManageMembershipsRequest parameters
-- setChannels: NSArray<NSDictionary *> — Each entry with channel and optional custom.
-- removeChannels: NSArray<NSString *> — Channels to remove.
-- sort/includeFields/filter/start/end/limit as above.
+- request (PNManageMembershipsRequest)
+- block (PNManageMembershipsCompletionBlock)
 
-Sample code
+#### PNManageMembershipsRequest
+
+- setChannels (NSArray<NSDictionary *>): Channels to set with optional custom.
+- removeChannels (NSArray<NSString *>): Channels to remove.
+- sort (NSArray<NSString *>), includeFields (PNMembershipFields), filter (NSString), start/end (NSString), limit (NSUInteger).
+
+#### Sample code
 
 ```
 1PNManageMembershipsRequest *request = [PNManageMembershipsRequest requestWithUUID:@"uuid"];  
@@ -2346,7 +2406,7 @@ Sample code
 
 ```
 
-Response
+#### Response
 
 ```
 1@interface PNManageMembershipsData : PNServiceData  
@@ -2388,9 +2448,9 @@ Response
 
 ```
 
-Manage channel memberships (builder pattern)
+### Manage channel memberships (builder pattern)
 
-Methods
+#### Method(s)
 
 ```
 `1objects()  
@@ -2409,10 +2469,14 @@ Methods
 `
 ```
 
-Parameters
-- uuid/set/remove/includeFields/includeCount/filter/sort/limit/start/end/block as above.
+- uuid (NSString): Default: configured client uuid.
+- set (NSArray<NSDictionary *>): Channels to set with optional custom.
+- remove (NSArray<NSString *>): Channels to remove.
+- includeFields, includeCount (Default: YES), filter, sort, limit (Default/Max 100), start/end, block.
 
-Sample code
+Note: Builder pattern; optional arguments can be omitted.
+
+#### Sample code
 
 ```
 1NSArrayNSDictionary *> *setChannels = @[  
@@ -2450,7 +2514,7 @@ Sample code
 
 ```
 
-Response
+#### Response
 
 ```
 1@interface PNManageMembershipsData : PNServiceData  
@@ -2496,9 +2560,9 @@ Response
 
 ### Get channel members
 
-Returns a list of members (UUIDs) in a channel; can include UUID metadata.
+Returns a list of members in a channel. Optionally include user metadata.
 
-Methods
+#### Method(s)
 
 ```
 `1- (void)channelMembersWithRequest:(PNFetchChannelMembersRequest *)request   
@@ -2506,15 +2570,16 @@ Methods
 `
 ```
 
-PNFetchChannelMembersRequest parameters
-- sort: NSArray<NSString *> — id, name, updated asc/desc.
-- includeFields: PNChannelMemberFields — Supported: PNChannelMembersTotalCountField (default), PNChannelMemberCustomField, PNChannelMemberStatusField, PNChannelMemberTypeField, PNChannelMemberUUIDField, PNChannelMemberUUIDCustomField, PNChannelMemberUUIDStatusField, PNChannelMemberUUIDTypeField. Default can be reset to 0.
-- filter: NSString.
-- start: NSString — Forward cursor.
-- end: NSString — Backward cursor (ignored if start is set).
-- limit: NSUInteger — Default/Max 100.
+- request (PNFetchChannelMembersRequest)
+- block (PNFetchChannelMembersCompletionBlock)
 
-Sample code
+#### PNFetchChannelMembersRequest
+
+- sort (NSArray<NSString *>): Sort id, name, updated; asc/desc.
+- includeFields (PNChannelMemberFields): Bitfield. PNChannelMembersTotalCountField, PNChannelMemberCustomField, PNChannelMemberStatusField, PNChannelMemberTypeField, PNChannelMemberUUIDField, PNChannelMemberUUIDCustomField, PNChannelMemberUUIDStatusField, PNChannelMemberUUIDTypeField. Default: PNChannelMembersTotalCountField (set 0 to reset).
+- filter (NSString), start/end (NSString), limit (NSUInteger).
+
+#### Sample code
 
 ```
 1PNFetchChannelMembersRequest *request = [PNFetchChannelMembersRequest requestWithChannel:@"channel"];  
@@ -2550,7 +2615,7 @@ Sample code
 
 ```
 
-Response
+#### Response
 
 ```
 1@interface PNFetchChannelMembersData : PNServiceData  
@@ -2592,8 +2657,6 @@ Response
 
 ```
 
-Error response
-
 ```
 1@interface PNErrorData : PNServiceData  
 2
@@ -2620,9 +2683,9 @@ Error response
 
 ```
 
-Get channel members (builder pattern)
+### Get channel members (builder pattern)
 
-Methods
+#### Method(s)
 
 ```
 `1objects()  
@@ -2638,11 +2701,14 @@ Methods
 `
 ```
 
-Parameters
-- channel: NSString.
-- includeFields/includeCount/filter/sort/limit/start/end/block as above.
+- channel (NSString): Channel to fetch from.
+- includeFields (PNChannelMemberFields): See above; Default: PNChannelMembersTotalCountField (set 0 to reset).
+- includeCount (BOOL): Default: YES.
+- filter, sort, limit, start/end, block.
 
-Sample code
+Note: Builder pattern; optional arguments can be omitted.
+
+#### Sample code
 
 ```
 `1self.client.objects().channelMembers(@"channel")  
@@ -2671,7 +2737,7 @@ Sample code
 `
 ```
 
-Response
+#### Response
 
 ```
 1@interface PNFetchChannelMembersData : PNServiceData  
@@ -2712,8 +2778,6 @@ Response
 28@end  
 
 ```
-
-Error response
 
 ```
 1@interface PNErrorData : PNServiceData  
@@ -2745,7 +2809,7 @@ Error response
 
 Sets members in a channel.
 
-Methods
+#### Method(s)
 
 ```
 `1- (void)setChannelMembersWithRequest:(PNSetChannelMembersRequest *)request   
@@ -2753,10 +2817,16 @@ Methods
 `
 ```
 
-PNSetMembersRequest parameters
-- sort/includeFields/filter/start/end/limit as in fetch channel members.
+- request (PNSetChannelMembersRequest)
+- block (PNManageChannelMembersCompletionBlock)
 
-Sample code
+#### PNSetMembersRequest
+
+- sort (NSArray<NSString *>), includeFields (PNChannelMemberFields), filter (NSString), start/end (NSString), limit (NSUInteger). Fields supported: PNChannelMembersTotalCountField, PNChannelMemberCustomField, PNChannelMemberStatusField, PNChannelMemberTypeField, PNChannelMemberUUIDField, PNChannelMemberUUIDCustomField, PNChannelMemberUUIDStatusField, PNChannelMemberUUIDTypeField. Default: PNChannelMembersTotalCountField (set 0 to reset).
+
+API limits: See REST API docs.
+
+#### Sample code
 
 ```
 1NSArrayNSDictionary *> *uuids = @[  
@@ -2798,7 +2868,7 @@ Sample code
 
 ```
 
-Response
+#### Response
 
 ```
 1@interface PNManageChannelMembersData : PNServiceData  
@@ -2840,9 +2910,9 @@ Response
 
 ```
 
-Set channel members (builder pattern)
+### Set channel members (builder pattern)
 
-Methods
+#### Method(s)
 
 ```
 `1objects()  
@@ -2859,10 +2929,17 @@ Methods
 `
 ```
 
-Parameters
-- channel, uuids (each with uuid and optional custom/status/type), includeFields/includeCount/filter/sort/limit/start/end/block as above.
+API limits: See REST API docs.
 
-Sample code
+- channel (NSString)
+- uuids (NSArray<NSDictionary *>): Each item includes uuid and optional custom (simple types only).
+- includeFields (PNChannelMemberFields): See above; Default can be reset by setting to 0.
+- includeCount (BOOL): Default: YES.
+- filter, sort, limit (Default/Max 100), start/end, block.
+
+Note: Builder pattern; optional arguments can be omitted.
+
+#### Sample code
 
 ```
 1NSArrayNSDictionary *> *uuids = @[  
@@ -2902,7 +2979,7 @@ Sample code
 
 ```
 
-Response
+#### Response
 
 ```
 1@interface PNManageChannelMembersData : PNServiceData  
@@ -2948,7 +3025,7 @@ Response
 
 Removes members from a channel.
 
-Methods
+#### Method(s)
 
 ```
 `1- (void)removeChannelMembersWithRequest:(PNRemoveChannelMembersRequest *)request   
@@ -2956,10 +3033,14 @@ Methods
 `
 ```
 
-PNRemoveChannelMembersRequest parameters
-- sort/includeFields/filter/start/end/limit as in set channel members.
+- request (PNRemoveChannelMembersRequest)
+- block (PNManageChannelMembersCompletionBlock)
 
-Sample code
+#### PNRemoveChannelMembersRequest
+
+- sort (NSArray<NSString *>), includeFields (PNChannelMemberFields), filter (NSString), start/end (NSString), limit (NSUInteger). Same field support as Set Channel Members.
+
+#### Sample code
 
 ```
 1NSArrayNSString *> *uuids = @[@"uuid3", @"uuid4"];  
@@ -2993,7 +3074,7 @@ Sample code
 
 ```
 
-Response
+#### Response
 
 ```
 1@interface PNManageChannelMembersData : PNServiceData  
@@ -3035,9 +3116,9 @@ Response
 
 ```
 
-Remove channel members (builder pattern)
+### Remove channel members (builder pattern)
 
-Methods
+#### Method(s)
 
 ```
 `1objects()  
@@ -3054,10 +3135,15 @@ Methods
 `
 ```
 
-Parameters
-- channel/uuids/includeFields/includeCount/filter/sort/limit/start/end/block as above.
+- channel (NSString): Channel name.
+- uuids (NSArray<NSString *>): UUIDs to remove.
+- includeFields (PNChannelMemberFields): See above; Default can be reset by 0.
+- includeCount (BOOL): Default: YES.
+- filter, sort, limit (Default/Max 100), start/end, block.
 
-Sample code
+Note: Builder pattern; optional arguments can be omitted.
+
+#### Sample code
 
 ```
 `1self.client.objects().removeChannelMembers(@"channel")  
@@ -3087,7 +3173,7 @@ Sample code
 `
 ```
 
-Response
+#### Response
 
 ```
 1@interface PNManageChannelMembersData : PNServiceData  
@@ -3131,9 +3217,9 @@ Response
 
 ### Manage channel members
 
-Adds/removes members in a single request.
+Set and remove channel members (UUIDs) for a channel.
 
-Methods
+#### Method(s)
 
 ```
 `1- (void)manageChannelMembersWithRequest:(PNManageChannelMembersRequest *)request   
@@ -3141,12 +3227,16 @@ Methods
 `
 ```
 
-PNManageChannelMembersRequest parameters
-- setMembers: NSArray<NSDictionary *> — Each with uuid and optional custom.
-- removeMembers: NSArray<NSString *> — UUIDs to remove.
-- sort/includeFields/filter/start/end/limit as above.
+- request (PNManageChannelMembersRequest)
+- block (PNManageChannelMembersCompletionBlock)
 
-Sample code
+#### PNManageChannelMembersRequest
+
+- setMembers (NSArray<NSDictionary *>): UUIDs to add with optional custom.
+- removeMembers (NSArray<NSString *>): UUIDs to remove.
+- sort (NSArray<NSString *>), includeFields (PNChannelMemberFields), filter (NSString), start/end (NSString), limit (NSUInteger).
+
+#### Sample code
 
 ```
 1PNManageChannelMembersRequest *request = [PNManageChannelMembersRequest requestWithChannel:@"channel"];  
@@ -3185,7 +3275,7 @@ Sample code
 
 ```
 
-Response
+#### Response
 
 ```
 1@interface PNManageChannelMembersData : PNServiceData  
@@ -3227,9 +3317,9 @@ Response
 
 ```
 
-Manage channel members (builder pattern)
+### Manage channel members (builder pattern)
 
-Methods
+#### Method(s)
 
 ```
 `1objects()  
@@ -3247,10 +3337,14 @@ Methods
 `
 ```
 
-Parameters
-- channel/set/remove/includeFields/includeCount/filter/sort/limit/start/end/block as above.
+- channel (NSString)
+- set (NSArray<NSDictionary *>): UUIDs to add with optional custom.
+- remove (NSArray<NSString *>): UUIDs to remove.
+- includeFields (PNChannelMemberFields), includeCount (BOOL; default false in text here), filter, sort, limit (Default/Max 100), start/end, block.
 
-Sample code
+Note: Builder pattern; optional arguments can be omitted.
+
+#### Sample code
 
 ```
 1NSArrayNSDictionary *> *setMembers = @[  
@@ -3287,7 +3381,7 @@ Sample code
 
 ```
 
-Response
+#### Response
 
 ```
 1@interface PNManageChannelMembersData : PNServiceData  

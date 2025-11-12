@@ -1,16 +1,20 @@
 # Presence API for JavaScript SDK
 
-Presence lets you track online/offline users and their custom state:
-- Joins/leaves on channels
-- Channel occupancy
+Presence tracks online/offline users and lets you store custom state. Presence shows:
+- Joins/leaves
+- Occupancy (user count per channel)
 - Channels a UUID is subscribed to
-- Presence state
+- Presence state per user
 
-Supported async patterns: Callbacks, Promises, and Async/Await (recommended). Use try...catch to receive error status.
+To learn more, see Presence overview and Presence Events.
+
+Supported async patterns: Callbacks, Promises, and Async/Await (recommended). With Async/Await, add try...catch to receive error status.
 
 ## Here now
 
-Requires Presence add-on enabled for your key in the Admin Portal. Returns current channel state: UUIDs subscribed and total occupancy. Cache: 3 seconds.
+Requires Presence add-on enabled in Admin Portal. Returns current state of channels, including UUID list and occupancy. Cache: 3 seconds.
+
+For presence events, see Presence Events.
 
 ### Method(s)
 
@@ -20,30 +24,36 @@ Requires Presence add-on enabled for your key in the Admin Portal. Returns curre
 3    channelGroups: Arraystring> ,  
 4    includeUUIDs: boolean ,  
 5    includeState: boolean ,  
-6    limit: number  
-7}); PromiseHereNowResponse>  
+6    limit: number ,  
+7    offset: number  
+8}); PromiseHereNowResponse>  
 `
 ```
 
 Parameters:
-- channels (array<string>): Channel names for occupancy results. Either channels or channelGroups required.
-- channelGroups (array<string>): Channel Group(s) to query. Either channels or channelGroups required. Wildcards not supported.
-- includeUUIDs (boolean, default true): If false, UUIDs aren’t returned.
-- includeState (boolean, default false): If true, subscriber state is returned.
-- limit (number, default 1000): Max occupants returned per channel (max 1000).
+- channels (array<string>): Channel names to return occupancy results. Required if channelGroups not provided.
+- channelGroups (array<string>): Channel Groups to query. Required if channels not provided. Wildcards not supported.
+- includeUUIDs (boolean, default: true): Set to false to omit UUIDs in the response.
+- includeState (boolean, default: false): Set to true to include subscriber state.
+- limit (number, default: 1000): Max occupants per channel; range 0–1000. Use 0 for occupancy-only without user details.
+- offset (number): Zero-based starting index for pagination; requires limit > 0. Only sent when offset > 0.
 
 ### Sample code
+
+Reference code: Self-contained snippet with imports and console logging.
 
 #### Get a list of UUIDs subscribed to channel
 
 ```
 1
   
+
 ```
 
 ```
 1
   
+
 ```
 
 ### Response
@@ -66,6 +76,7 @@ Requires Presence add-on enabled.
 ```
 1
   
+
 ```
 
 ##### Example response
@@ -107,15 +118,19 @@ Requires Presence add-on enabled.
 33        }  
 34    }  
 35}  
+
 ```
 
 #### Return occupancy only
 
-Requires Presence add-on enabled. To return only occupancy for a single channel, set includeUUIDs and includeState to false.
+Requires Presence add-on enabled.
+
+Set includeUUIDs and includeState to false to return occupancy only:
 
 ```
 1
   
+
 ```
 
 ##### Example response
@@ -141,6 +156,7 @@ Requires Presence add-on enabled. To return only occupancy for a single channel,
 17        }  
 18    }  
 19}  
+
 ```
 
 #### Channel group usage
@@ -150,6 +166,7 @@ Requires Presence add-on enabled.
 ```
 1
   
+
 ```
 
 ##### Example response
@@ -194,6 +211,7 @@ Requires Presence add-on enabled.
 36        }  
 37    }  
 38}  
+
 ```
 
 #### Sample code with promises
@@ -203,6 +221,7 @@ Requires Presence add-on enabled.
 ```
 1
   
+
 ```
 
 ## Where now
@@ -213,6 +232,8 @@ Timeout events: If the app restarts (or page refreshes) within the heartbeat win
 
 ### Method(s)
 
+To call whereNow:
+
 ```
 `1pubnub.whereNow({  
 2    uuid: string  
@@ -220,8 +241,8 @@ Timeout events: If the app restarts (or page refreshes) within the heartbeat win
 `
 ```
 
-Parameters:
-- uuid (string, default current uuid): UUID to return channel list for.
+Parameter:
+- uuid (string, default: current uuid): UUID to return channel list for.
 
 ### Sample code
 
@@ -230,6 +251,7 @@ Parameters:
 ```
 1
   
+
 ```
 
 ### Response
@@ -247,11 +269,12 @@ Parameters:
 9{  
 10    "channels": ["ch1", "ch2"]  
 11}  
+
 ```
 
 ## User state
 
-Requires Presence add-on enabled. Clients can set dynamic custom state (score, game state, location) on one or more channels while subscribed. State is not persisted and is lost on disconnect.
+Requires Presence add-on enabled. Clients can set dynamic custom state (score, game state, location) per channel while subscribed. State isn’t persisted and is lost when disconnected. See Presence State.
 
 ### Method(s)
 
@@ -267,9 +290,9 @@ Requires Presence add-on enabled. Clients can set dynamic custom state (score, g
 ```
 
 Parameters:
-- channels (Array): Either channels or channelGroups is required. Channels on which to set state.
-- channelGroups (Array): Either channels or channelGroups is required. Channel Group on which to set state.
-- state (any): JSON object with key/value pairs (int, float, string). No nesting. Keys prefixed with pn are reserved. If state is undefined, returns current state for the specified uuid. Existing keys are overwritten. Delete keys by setting value to null.
+- channels (Array): Channels to set state. Provide either channels or channelGroups.
+- channelGroups (Array): Channel Groups to set state. Provide either channels or channelGroups.
+- state (any): JSON object of key/value pairs (int, float, string). No nested objects. Keys starting with pn are reserved. If state is undefined, current state for the UUID is returned. Existing keys are overwritten; set value to null to delete.
 
 #### Get state
 
@@ -283,9 +306,9 @@ Parameters:
 ```
 
 Parameters:
-- uuid (String, default current uuid): Subscriber UUID to get current state.
-- channels (Array): Either channels or channelGroups is required. Channels to get state for.
-- channelGroups (Array): Either channels or channelGroups is required. Channel Group to get state for.
+- uuid (string, default: current uuid): Subscriber UUID to get state for.
+- channels (Array): Channels to get state. Provide either channels or channelGroups.
+- channelGroups (Array): Channel Groups to get state. Provide either channels or channelGroups.
 
 ### Sample code
 
@@ -294,6 +317,7 @@ Parameters:
 ```
 1
   
+
 ```
 
 #### Get state
@@ -301,6 +325,7 @@ Parameters:
 ```
 1
   
+
 ```
 
 ### Response
@@ -322,6 +347,7 @@ Parameters:
 11        me: 'typing'  
 12    }  
 13}  
+
 ```
 
 #### Get state
@@ -342,4 +368,5 @@ Parameters:
 13        }  
 14    }  
 15}  
+
 ```

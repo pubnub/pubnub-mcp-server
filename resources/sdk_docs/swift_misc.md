@@ -1,19 +1,19 @@
 # Utility Methods API for Swift Native SDK
 
-Utility methods that control subscription connectivity.
+Utility methods that don't fit into other categories.
 
-## Disconnect
+## Disconnect[​](#disconnect)
 
 Stops subscriptions in progress.
 
-### Methods
+### Methods[​](#methods)
 
 ```
 `1func disconnect( )  
 `
 ```
 
-### Sample code
+### Sample code[​](#sample-code)
 
 ```
 1
@@ -21,24 +21,28 @@ Stops subscriptions in progress.
 
 ```
 
-## Reconnect
+## Reconnect[​](#reconnect)
 
-Forces the SDK to attempt reconnection to PubNub. Optionally resumes at a specific timetoken.
+Forces the SDK to try and reach PubNub.
 
-### Method(s)
+### Method(s)[​](#methods-1)
 
 ```
 `1func reconnect(at timetoken: Timetoken? = nil)  
 `
 ```
 
-- Parameters:
-  - timetoken: Timetoken? = nil — Timetoken at which to resume subscription.
+Parameters:
+- at
+  - Type: Timetoken
+  - Default: n/a
+  - Description: The timetoken to reconnect the subscribe at.
 
-### Sample code
+### Sample code[​](#sample-code-1)
 
 ```
 1
 **
 ```
+
 Last updated on Sep 3, 2025**

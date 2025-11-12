@@ -1,18 +1,12 @@
 # Message Actions API for Kotlin SDK
 
 ##### Breaking changes in v9.0.0
+PubNub Kotlin SDK v9.0.0 unifies Kotlin and [Java](/docs/sdks/java) SDKs, changes client instantiation, async callbacks, and [status events](/docs/sdks/kotlin/status-events). Applications on versions < 9.0.0 may be impacted. See the [Java/Kotlin SDK migration guide](/docs/general/resources/migration-guides/java-kotlin-sdk-migration-guide).
 
-PubNub Kotlin SDK version 9.0.0 unifies the codebases for Kotlin and [Java](/docs/sdks/java) SDKs, introduces a new way of instantiating the PubNub client, and changes asynchronous API callbacks and emitted [status events](/docs/sdks/kotlin/status-events). These changes can impact applications built with previous versions (< `9.0.0` ) of the Kotlin SDK.
-
-For more details about what has changed, refer to [Java/Kotlin SDK migration guide](/docs/general/resources/migration-guides/java-kotlin-sdk-migration-guide).
-
-Use message actions to add or remove metadata on published messages (for example, receipts and reactions). Clients subscribe to a channel to receive message action events and can fetch past message actions from Message Persistence.
+Use Message Actions to add/remove metadata on published messages (receipts, reactions). Subscribe to channels to receive action events, and fetch past actions from Message Persistence.
 
 ##### Request execution
-
-Most PubNub Kotlin SDK method invocations return an Endpoint object, which allows you to decide whether to perform the operation synchronously or asynchronously.
-
-You must invoke the `.sync()` or `.async()` method on the Endpoint to execute the request, or the operation will not be performed.
+Most methods return an Endpoint. You must call .sync() or .async() to execute.
 
 ```
 1val channel = pubnub.channel("channelName")  
@@ -28,23 +22,16 @@ You must invoke the `.sync()` or `.async()` method on the Endpoint to execute th
 ```
 
 ##### Reactions
+“Message Reactions” are a specific use of Message Actions for emoji/social reactions. The same API underlies “Message Reactions” in [Core](/docs/sdks) and [Chat](/docs/chat/overview) SDKs.
 
-"Message Reactions" is a specific application of the Message Actions API for emoji or social reactions.
-
-##### Message Actions vs. Message Reactions
-
-Message Actions is the flexible, low-level API for adding any metadata to messages (read receipts, delivery confirmations, custom data), while Message Reactions specifically refers to using Message Actions for emoji/social reactions. In PubNub [Core](/docs/sdks) and [Chat](/docs/chat/overview) SDKs, the same underlying Message Actions API is referred to as Message Reactions when used for emoji reactions.
-
-## Add message action[​](#add-message-action)
+## Add message action
 
 ##### Requires Message Persistence
-
-Enable Message Persistence for your key in the [Admin Portal](https://admin.pubnub.com/) as described in the [support article](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
+Enable Message Persistence in the [Admin Portal](https://admin.pubnub.com/) per this [support article](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
 
 Add an action to a published message. The response includes the added action.
 
-### Method(s)[​](#methods)
-
+### Method(s)
 Use this Kotlin method:
 
 ```
@@ -55,12 +42,14 @@ Use this Kotlin method:
 `
 ```
 
-- channel Type: String — Channel name to add the message action to.
-- messageAction Type: PNMessageAction — Message action payload (type, value, message timetoken).
+Parameters:
+- channel (String): Channel name to add the message action to.
+- messageAction (PNMessageAction): Message action payload (type, value, message timetoken).
 
-### Sample code[​](#sample-code)
+### Sample code
 
 ##### Reference code
+This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
 
 ```
 1
@@ -68,32 +57,27 @@ Use this Kotlin method:
 
 ```
 
-### Returns[​](#returns)
+### Returns
+PNAddMessageActionResult:
+- type (String): Message action type.
+- value (String): Message action value.
+- uuid (String): Publisher of the message action.
+- actionTimetoken (String): Timestamp when the action was created.
+- messageTimetoken (Long): Timetoken of the message the action belongs to.
 
-The addMessageAction() operation returns a PNAddMessageActionResult:
+#### PNMessageAction
+- type (String): Message action type.
+- value (String): Message action value.
+- messageTimetoken (Long): Timetoken of the target message.
 
-- type Type: String — Message action type.
-- value Type: String — Message action value.
-- uuid Type: String — Publisher of the message action.
-- actionTimetoken Type: String — Timestamp when the message action was created.
-- messageTimetoken Type: Long — Timestamp when the target message was created.
-
-#### PNMessageAction[​](#pnmessageaction)
-
-- type Type: String — Message action type.
-- value Type: String — Message action value.
-- messageTimetoken Type: Long — Timetoken of the target message.
-
-## Remove message action[​](#remove-message-action)
+## Remove message action
 
 ##### Requires Message Persistence
+Enable Message Persistence in the [Admin Portal](https://admin.pubnub.com/) per this [support article](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
 
-Enable Message Persistence for your key in the [Admin Portal](https://admin.pubnub.com/) as described in the [support article](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
+Remove a previously added action. The response is empty.
 
-Remove a previously added action from a published message. The response is empty.
-
-### Method(s)[​](#methods-1)
-
+### Method(s)
 Use this Kotlin method:
 
 ```
@@ -105,32 +89,29 @@ Use this Kotlin method:
 `
 ```
 
-- channel Type: String — Channel name to remove the message action from.
-- messageTimetoken Type: Long — Timetoken of the target message.
-- actionTimetoken Type: Long — Timetoken of the message action to remove.
+Parameters:
+- channel (String): Channel name to remove the action from.
+- messageTimetoken (Long): Timetoken of the target message.
+- actionTimetoken (Long): Timetoken of the message action to remove.
 
-### Sample code[​](#sample-code-1)
-
+### Sample code
 ```
 1
   
 
 ```
 
-### Returns[​](#returns-1)
+### Returns
+No actionable data.
 
-The removeMessageAction() operation returns no actionable data.
-
-## Get message actions[​](#get-message-actions)
+## Get message actions
 
 ##### Requires Message Persistence
+Enable Message Persistence in the [Admin Portal](https://admin.pubnub.com/) per this [support article](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
 
-Enable Message Persistence for your key in the [Admin Portal](https://admin.pubnub.com/) as described in the [support article](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
+Get a list of message actions for a channel. Sorted by action timetoken ascending.
 
-Get a list of message actions in a channel. The response sorts actions by the action timetoken in ascending order.
-
-### Method(s)[​](#methods-2)
-
+### Method(s)
 Use this Kotlin method:
 
 ```
@@ -141,32 +122,29 @@ Use this Kotlin method:
 `
 ```
 
-- channel Type: String — Channel name to list message actions for.
-- page Type: PNBoundedPage — Paging object. Set limit to specify the number of actions to return (default/maximum is 100). Use start and end to set range boundaries (results are < start and ≥ end).
+Parameters:
+- channel (String): Channel name to list message actions for.
+- page (PNBoundedPage): Paging object. limit specifies number of actions (default/maximum 100). Use start and end to set range boundaries (results are < start and ≥ end).
 
-### Sample code[​](#sample-code-2)
-
+### Sample code
 ```
 1
   
 
 ```
 
-### Returns[​](#returns-2)
+### Returns
+List of PNGetMessageActionsResult?:
+- type (String): Message action type.
+- value (String): Message action value.
+- uuid (String): Publisher of the message action.
+- actionTimetoken (String): Timestamp when the action was created.
+- messageTimetoken (Long): Timetoken of the message the action belongs to.
+- page (PNBoundedPage): If present, more data is available. Pass to another getMessageActions call to retrieve remaining data.
 
-The getMessageActions() operation returns a list of PNGetMessageActionsResult? objects:
+### Other examples
 
-- type Type: String — Message action type.
-- value Type: String — Message action value.
-- uuid Type: String — Publisher of the message action.
-- actionTimetoken Type: String — Timestamp when the message action was created.
-- messageTimetoken Type: Long — Timestamp when the target message was created.
-- page Type: PNBoundedPage — If present, more data is available. Pass it to another getMessageActions call to retrieve remaining data.
-
-### Other examples[​](#other-examples)
-
-#### Fetch messages with paging[​](#fetch-messages-with-paging)
-
+#### Fetch messages with paging
 ```
 1
 **

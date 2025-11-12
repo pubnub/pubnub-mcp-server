@@ -1,23 +1,16 @@
-# Access Manager v3 API for Python SDK (Condensed)
+# Access Manager v3 API for Python SDK
 
-Access Manager lets servers (initialized with a Secret Key) grant clients time-limited tokens with embedded permissions for PubNub resources using resource lists or RegEx patterns, and optional restriction to a single authorized user.
+Access Manager enforces security controls for client access to PubNub resources by issuing time-limited tokens with embedded permissions. Tokens can target specific resources (by ID or RegEx pattern) and can be restricted to a single authorized client (authorized UUID/user).
 
-Resources:
-- Channels, channel groups, and UUIDs (users’ object metadata)
-- Spaces and users (alternate model)
-
-Token options:
-- TTL (minutes, required, 1–43,200)
-- Authorized user (authorized_uuid or authorized_user)
-- Resource lists and/or RegEx patterns
-- Mixed permissions in a single request
-
-Unauthorized or invalid tokens return HTTP 403.
+- Supports lists or RegEx patterns per resource.
+- Supports multiple resources and differing permission levels in one request.
+- Tokens are valid for a TTL you define and can be optionally restricted to a single authorized UUID/user.
 
 ##### Request execution and return values
-Synchronous: .sync() returns Envelope with:
-- Envelope.result (type depends on API)
-- Envelope.status (PnStatus)
+
+Choose synchronous or asynchronous execution.
+
+`.sync()` returns an `Envelope` with `Envelope.result` (type varies) and `Envelope.status` (`PnStatus`).
 
 ```
 `1pubnub.publish() \  
@@ -27,7 +20,7 @@ Synchronous: .sync() returns Envelope with:
 `
 ```
 
-Asynchronous: .pn_async(callback) returns None and invokes callback(result, status).
+`.pn_async(callback)` returns `None` and invokes your callback with `result` and `status`.
 
 ```
 1def my_callback_function(result, status):  
@@ -38,39 +31,36 @@ Asynchronous: .pn_async(callback) returns None and invokes callback(result, stat
 5    .channel("myChannel") \  
 6    .message("Hello from PubNub Python SDK") \  
 7    .pn_async(my_callback_function)  
+
 ```
 
 ##### User ID / UUID
-User ID may be referred to as UUID/uuid in APIs; it holds the value set as userId during initialization.
+
+User ID is also referred to as `UUID/uuid` in some APIs and responses and holds the value of the `userId` set during initialization.
 
 ## Grant token
 
-Requires:
-- Access Manager add-on enabled (Admin Portal)
-- Secret Key in SDK initialization
+##### Requires Access Manager add-on
 
-Generates a token with ttl, authorized_uuid, and permissions on:
-- channels
-- groups
-- uuids
+Enable the Access Manager add-on for your key in the Admin Portal.
 
-Only authorized_uuid (if set) can use the token.
+##### Requires Secret Key authentication
 
-Permissions per resource:
-- channels: read, write, get, manage, update, join, delete
-- groups: read, manage
-- uuids: get, update, delete
+Initialize your server-side SDK with a Secret Key to grant permissions.
 
-TTL:
-- Required; minutes the token is valid (1–43,200). No default.
+`grant_token()` issues a token with TTL, optional `authorized_uuid`, and permissions on resources:
 
-RegEx:
-- Grant by pattern using pattern definitions.
-
-Authorized UUID:
-- If omitted, any UUID can use the token. Set it to prevent impersonation.
+- Resources: `channels`, `groups`, `uuids`
+- Permissions by resource:
+  - channels: read, write, get, manage, update, join, delete
+  - groups: read, manage
+  - uuids: get, update, delete
+- TTL: required; minutes; min 1, max 43,200 (30 days)
+- RegEx patterns: specify permissions by pattern using `pattern`
+- Authorized UUID: restrict token to a single client UUID
 
 ### Method(s)
+
 ```
 `1grant_token() \  
 2    .ttl(int) \  
@@ -82,19 +72,23 @@ Authorized UUID:
 `
 ```
 
-Parameters:
-- ttl (Number, required): Minutes token is valid. Min 1, max 43,200.
-- meta (Dictionary): Scalar values only; arrays/objects not supported.
-- authorized_uuid (Str): Single uuid authorized to use the token.
-- channels (list<Channel>): Channel grants list or RegEx pattern.
-- groups (list<Group>): Channel group grants list or RegEx pattern.
-- uuids (list<UUID>): UUID grants list or RegEx pattern.
+- ttl (Number, required): minutes token is valid; 1–43,200.
+- meta (Dictionary): scalar values only.
+- authorized_uuid (Str): single UUID authorized to use the token.
+- channels (list<Channel>): channel grants (list or RegEx pattern).
+- groups (list<Group>): channel group grants (list or RegEx pattern).
+- uuids (list<UUID>): uuid grants (list or RegEx pattern).
 
-Required: At least one permission for uuid, channel, or group (list or RegEx).
+##### Required key/value mappings
+
+Specify permissions for at least one uuid, channel, or group (list or RegEx).
 
 ### Sample code
 
-Reference code (Builder Pattern and Named Arguments):
+##### Reference code
+
+- Builder Pattern
+- Named Arguments
 
 ```
 1import os  
@@ -150,8 +144,9 @@ Reference code (Builder Pattern and Named Arguments):
   
 42if __name__ == "__main__":  
 43    main()  
-```
 
+```
+show all 43 lines
 ```
 1import os  
 2from pubnub.pnconfiguration import PNConfiguration  
@@ -179,31 +174,41 @@ Reference code (Builder Pattern and Named Arguments):
 20def main():  
 21    # Configuration for PubNub instance  
 22    pn_config = PNConfiguration()  
-23  
+23
+  
 24    # Only configure what's necessary  
 25    pn_config.publish_key = os.getenv('PUBLISH_KEY', 'demo')  
 26    pn_config.subscribe_key = os.getenv('SUBSCRIBE_KEY', 'demo')  
 27    pn_config.secret_key = os.getenv('SECRET_KEY', 'my_secret_key')  
 28    pn_config.user_id = os.getenv('USER_ID', 'my_custom_user_id')  
-29  
+29
+  
 30    # Initialize PubNub client  
 31    pubnub = PubNub(pn_config)  
-32  
+32
+  
 33    try:  
 34        # Grant token using named arguments  
 35        token = grant_pubnub_token(pubnub)  
 36        print(f"Granted token: {token}")  
-37  
+37
+  
 38    except PubNubException as e:  
 39        print(f"Error: {e}")  
-40  
-41  
+40
+  
+41
+  
 42if __name__ == "__main__":  
 43    main()  
 44
+  
+
 ```
+show all 44 lines
 
 ### Returns
+
 ```
 `1{"token":"p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI"}  
 `
@@ -211,7 +216,8 @@ Reference code (Builder Pattern and Named Arguments):
 
 ### Other examples
 
-Grant different levels to various resources in one call:
+#### Grant an authorized client different levels of access to various resources in a single call
+
 ```
 1from pubnub.models.consumer.v3.channel import Channel  
 2from pubnub.models.consumer.v3.group import Group  
@@ -238,9 +244,14 @@ Grant different levels to various resources in one call:
 22    .authorized_uuid("my-authorized-uuid") \  
 23    .ttl(15) \  
 24    .sync()  
-```
+25
+  
 
-Grant read access to multiple channels using RegEx:
+```
+show all 25 lines
+
+#### Grant an authorized client read access to multiple channels using RegEx
+
 ```
 `1envelope = pubnub.grant_token() \  
 2    .channels(Channel.pattern("channel-[A-Za-z0-9]").read()) \  
@@ -250,7 +261,8 @@ Grant read access to multiple channels using RegEx:
 `
 ```
 
-Combine resource lists and channel RegEx:
+#### Grant an authorized client different levels of access to various resources and read access to channels using RegEx in a single call
+
 ```
 1from pubnub.models.consumer.v3.channel import Channel  
 2from pubnub.models.consumer.v3.group import Group  
@@ -278,28 +290,32 @@ Combine resource lists and channel RegEx:
 23    .authorized_uuid("my-authorized-uuid") \  
 24    .ttl(15) \  
 25    .sync()  
+
 ```
+show all 25 lines
 
 ### Error responses
-HTTP 400 with details for invalid requests (e.g., RegEx issues, invalid timestamp, incorrect permissions). Details are in the envelope object.
+
+HTTP 400 for invalid requests (bad RegEx, invalid timestamp, incorrect permissions). Details in the `envelope`.
 
 ## Grant token - spaces & users
 
-Requires Access Manager add-on.
+##### Requires Access Manager add-on
 
-Generates a token with ttl, authorized_user, and permissions on:
-- spaces
-- users
+Enable the Access Manager add-on for your key in the Admin Portal.
 
-Only authorized_user (if set) can use the token.
+`grantToken()`/`grant_token()` issues a token with TTL, optional `authorized_user`, and permissions on:
 
-Permissions per resource:
-- space: read, write, get, manage, update, join, delete
-- user: get, update, delete
-
-TTL and RegEx rules are the same as above. Setting authorized_user restricts token usage to that userId.
+- Resources: `spaces`, `users`
+- Permissions by resource:
+  - space: read, write, get, manage, update, join, delete
+  - user: get, update, delete
+- TTL: required; minutes; min 1, max 43,200 (30 days)
+- RegEx patterns: specify permissions by pattern using `patterns`
+- Authorized user ID: restrict token to a single `userId`
 
 ### Method(s)
+
 ```
 `1grant_token() \  
 2    .ttl(Integer) \  
@@ -310,18 +326,21 @@ TTL and RegEx rules are the same as above. Setting authorized_user restricts tok
 `
 ```
 
-Parameters:
-- ttl (Integer, required): Minutes token is valid. Min 1, max 43,200.
-- meta (Dictionary): Scalar values only.
-- authorized_user (String): Single user_id authorized to use the token.
-- spaces (list<Space>): Space permissions (list or RegEx).
-- users (list<User>): User permissions (list or RegEx).
+- ttl (Integer, required): minutes token is valid; 1–43,200.
+- meta (Dictionary): scalar values only.
+- authorized_user (String): single `user_id` authorized to use the token.
+- spaces (list<Space>): Space permissions (list or RegEx patterns).
+- users (list<User>): User permissions (list or RegEx patterns).
 
-Required: At least one permission for a User or Space.
+##### Required key/value mappings
+
+Specify permissions for at least one User or Space (list or RegEx).
 
 ### Sample code
 
-Builder Pattern and Named Arguments:
+- Builder Pattern
+- Named Arguments
+
 ```
 `1envelope = pubnub.grant_token() \  
 2    .authorized_user('some_user_id')\  
@@ -342,9 +361,11 @@ Builder Pattern and Named Arguments:
 5
   
 6print(f'Token granted: {grant.result.get_token()}')  
+
 ```
 
 ### Returns
+
 ```
 `1{"token":"p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI"}  
 `
@@ -352,7 +373,8 @@ Builder Pattern and Named Arguments:
 
 ### Other examples
 
-Grant varying access to spaces and users:
+#### Grant an authorized client different levels of access to various resources in a single call
+
 ```
 1from pubnub.models.consumer.v3.space import Space  
 2from pubnub.models.consumer.v3.user import User  
@@ -374,9 +396,12 @@ Grant varying access to spaces and users:
 17    .users(users)  
 18    .authorized_user("my-authorized-uuid")  
 19    .sync()  
-```
 
-Grant read access to multiple spaces using RegEx:
+```
+show all 19 lines
+
+#### Grant an authorized client read access to multiple spaces using RegEx
+
 ```
 `1envelope = pubnub.grant_token()  
 2    .spaces(Space.pattern("space-[A-Za-z0-9]").read())  
@@ -386,7 +411,8 @@ Grant read access to multiple spaces using RegEx:
 `
 ```
 
-Combine resource lists and space RegEx:
+#### Grant an authorized client different levels of access to various resources and read access to spaces using RegEx in a single call
+
 ```
 1from pubnub.models.consumer.v3.space import Space  
 2from pubnub.models.consumer.v3.user import User  
@@ -410,68 +436,83 @@ Combine resource lists and space RegEx:
 19    .users(users)  
 20    .authorized_user("my-authorized-userId")  
 21    .sync()  
+
 ```
+show all 21 lines
 
 ### Error responses
-HTTP 400 with details for invalid requests (e.g., RegEx issues, invalid timestamp, incorrect permissions).
+
+HTTP 400 for invalid requests (bad RegEx, invalid timestamp, incorrect permissions). Details in the `envelope`.
 
 ## Revoke token
 
-Requires:
-- Access Manager add-on
-- Revoke v3 Token feature enabled (Admin Portal)
+##### Requires Access Manager add-on
 
-Disables an existing token previously granted by grant_token(). Recommended for tokens with ttl ≤ 30 days; contact support for longer.
+Enable the Access Manager add-on.
+
+##### Enable token revoke
+
+In the Admin Portal, enable “Revoke v3 Token” on your keyset.
+
+`revoke_token()` disables an existing valid token previously obtained via `grant_token()`. Use for tokens with TTL ≤ 30 days; for longer TTLs, contact support.
 
 ### Method(s)
+
 ```
 `1revoke_token(String)  
 `
 ```
 
-Parameters:
-- token (String, required): Existing token to revoke.
+- token (String, required): existing token to revoke.
 
 ### Sample code
+
 ```
 `1pubnub.revoke_token("p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI")  
 `
 ```
 
 ### Returns
-Envelope with:
+
+`Envelope` with:
 - result: PNRevokeTokenResult
 - status: PNStatus
 
-PNRevokeTokenResult:
+#### PNRevokeTokenResult
+
 ```
 `1Revoke token success with status: 200  
 `
 ```
 
 ### Error Responses
-Possible: 400 Bad Request, 403 Forbidden, 503 Service Unavailable.
+
+- 400 Bad Request
+- 403 Forbidden
+- 503 Service Unavailable
 
 ## Parse token
 
-Decodes a token into its embedded permissions and TTL.
+`parse_token()` decodes a token and returns its embedded permissions and TTL.
 
 ### Method(s)
+
 ```
 `1parse_token(String)  
 `
 ```
 
-Parameters:
-- token (String, required): Token to decode.
+- token (String, required): token to decode.
 
 ### Sample code
+
 ```
 `1pubnub.parse_token("p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI")  
 `
 ```
 
 ### Returns
+
 ```
 `1{  
 2   "version":2,  
@@ -551,30 +592,34 @@ Parameters:
 76}  
 `
 ```
+show all 76 lines
 
 ### Error Responses
-Errors may indicate a damaged token; request a new token from the server.
+
+If parsing fails, the token may be damaged; request a new one.
 
 ## Set token
 
-Used by clients to update the authentication token.
+`set_token()` is used by client devices to set/update the current authentication token.
 
 ### Method(s)
+
 ```
 `1set_token(String)  
 `
 ```
 
-Parameters:
-- token (String, required): Token with embedded permissions.
+- token (String, required): current token with embedded permissions.
 
 ### Sample code
+
 ```
 `1pubnub.set_token("p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI")  
 `
 ```
 
 ### Returns
+
 No return value.
 
 Last updated on Sep 3, 2025
