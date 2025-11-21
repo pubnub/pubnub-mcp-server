@@ -1,47 +1,43 @@
-# Java API & SDK Docs 12.0.0
+# Java API & SDK Docs 12.0.1
 
 ##### Breaking changes in v9.0.0
 
-- Unified Java and [Kotlin](/docs/sdks/kotlin) SDKs, new client instantiation, updated async callbacks and [status events](/docs/sdks/java/status-events).
-- Apps built with versions < 9.0.0 may be impacted.
-- See the [Java/Kotlin SDK migration guide](/docs/general/resources/migration-guides/java-kotlin-sdk-migration-guide).
+PubNub Java SDK v9.0.0 unifies the Java and [Kotlin](/docs/sdks/kotlin) SDKs, introduces a new client instantiation approach, and changes asynchronous API callbacks and [status events](/docs/sdks/java/status-events). Apps built with versions < 9.0.0 may be impacted. See the [Java/Kotlin SDK migration guide](/docs/general/resources/migration-guides/java-kotlin-sdk-migration-guide).
 
-This guide shows core PubNub usage in Java:
-- Setting up a connection
-- Sending messages
-- Receiving messages in real time
+This guide shows how to:
+- Set up a connection
+- Send messages
+- Receive messages in real time
 
-## Overview[​](#overview)
+## Overview
 
-Use the PubNub Java SDK to configure the client, add event listeners, subscribe to channels, and publish messages.
+Use the Java SDK to integrate PubNub real-time messaging in your Java app: initialize the client, configure listeners, subscribe to channels, and publish messages.
 
 ##### Chat applications
 
 For mobile chat, see [Kotlin Chat SDK](/docs/chat/kotlin-chat-sdk).
 
-## Prerequisites[​](#prerequisites)
+## Prerequisites
 
-- Java knowledge
-- IntelliJ IDEA or Eclipse
 - Java 8+
+- Java IDE (IntelliJ IDEA, Eclipse, etc.)
 - PubNub account and keys
 
-## Setup[​](#setup)
+## Setup
 
-### Get your PubNub keys[​](#get-your-pubnub-keys)
+### Get your PubNub keys
 
 - [Sign in](https://admin.pubnub.com/#/login) or [create an account](https://admin.pubnub.com/#/signup).
-- Create an app or use an existing one.
-- Get publish and subscribe keys from the app dashboard.
-- Use separate keysets for dev/prod.
+- Create an app and keyset.
+- Get your publish and subscribe keys from the Admin Portal. Use separate keysets for dev/prod when possible.
 
-### Install the SDK[​](#install-the-sdk)
+### Install the SDK
 
 ##### SDK version
 
 Use the latest SDK version.
 
-#### Maven[​](#maven)
+#### Maven
 
 Add to `pom.xml`:
 
@@ -49,21 +45,21 @@ Add to `pom.xml`:
 `1dependency>  
 2  groupId>com.pubnubgroupId>  
 3  artifactId>pubnub-gsonartifactId>  
-4  version>12.0.0version>  
+4  version>12.0.1version>  
 5dependency>  
 `
 ```
 
-#### Gradle[​](#gradle)
+#### Gradle
 
 Add to `build.gradle`:
 
 ```
-`1implementation group: 'com.pubnub', name: 'pubnub-gson', version: '12.0.0'  
+`1implementation group: 'com.pubnub', name: 'pubnub-gson', version: '12.0.1'  
 `
 ```
 
-#### Source code[​](#source-code)
+#### Source code
 
 Clone the [GitHub repository](https://github.com/pubnub/kotlin):
 
@@ -72,47 +68,42 @@ Clone the [GitHub repository](https://github.com/pubnub/kotlin):
 `
 ```
 
-## Steps[​](#steps)
+## Steps
 
-### Initialize PubNub[​](#initialize-pubnub)
+### Initialize PubNub
 
-Replace demo keys with your app’s publish/subscribe keys.
+Create a class (for example, `App.java`) and initialize PubNub using your publish/subscribe keys.
 
 ```
 1
   
-
 ```
 
 ##### PNConfiguration class in Java
 
-From 10.0.0+, import `com.pubnub.api.java.v2.PNConfiguration`. See [Configuration](/docs/sdks/java/api-reference/configuration).
+From Java SDK v10.0.0+, import `com.pubnub.api.java.v2.PNConfiguration`. See [Configuration](/docs/sdks/java/api-reference/configuration).
 
-### Set up event listeners[​](#set-up-event-listeners)
+### Set up event listeners
 
-Add listeners to handle:
-- Status events (connection/operational changes)
-- Messages and presence events
+Configure listeners for status changes and incoming events/messages.
 
 ```
 1
   
-
 ```
 
 See [Listeners](/docs/sdks/java/api-reference/configuration#event-listeners).
 
-### Create a subscription[​](#create-a-subscription)
+### Create a subscription
 
 Subscribe to a channel to receive messages in real time:
 
 ```
 1
   
-
 ```
 
-Subscribe to multiple channels with a subscription set:
+Subscribe to multiple channels using a subscription set:
 
 ```
 1import java.util.Set;  
@@ -130,21 +121,17 @@ Subscribe to multiple channels with a subscription set:
   
 12// Subscribe to all channels in the set  
 13subscriptionSet.subscribe();  
-
 ```
 
 See [Subscribe](/docs/sdks/java/api-reference/publish-and-subscribe#subscribe).
 
-### Publish messages[​](#publish-messages)
+### Publish messages
 
-Messages must be JSON-serializable and ≤ 32 KiB.
-
-Publish to a channel:
+Messages are JSON-serializable data (objects, arrays, integers, strings) up to 32 KiB. Publish to a channel using `publish()`:
 
 ```
 1
   
-
 ```
 
 With options:
@@ -162,9 +149,13 @@ With options:
 
 See [Publish and Subscribe](/docs/sdks/java/api-reference/publish-and-subscribe).
 
-### Run the app[​](#run-the-app)
+### Run the app
 
-You should see output similar to:
+1. $1
+2. $1
+3. $1
+
+Expected output:
 
 ```
 `1PubNub initialized successfully  
@@ -178,62 +169,54 @@ You should see output similar to:
 `
 ```
 
-Add a delay to prevent the application from exiting immediately:
+Add a delay to keep the app running:
 
 ```
 1
   
-
 ```
 
-## Complete example[​](#complete-example)
+## Complete example
 
 ```
 1
   
-
 ```
 
-### Troubleshooting[​](#troubleshooting)
+### Troubleshooting
 
-No connection message
-- Check internet connection.
-- Verify publish/subscribe keys.
-- Ensure firewall isn’t blocking PubNub.
-
-Message not received
-- Confirm subscribed channel names.
-- Check for publish errors.
-- Wait for delivery.
-- Verify message listener setup.
-
-Build errors
-- Confirm PubNub dependency is added.
-- Use Java 8+.
-- Check imports and package names (v2 classes).
-
-Gson deserialization errors
-- Ensure message structure matches expected.
-- Use try/catch for JSON parsing.
-
-Thread exceptions
-- Don’t block the main thread.
-- Handle InterruptedException with Thread.sleep().
-- Consider an executor service for complex apps.
+- No connection message:
+  - Check internet connectivity.
+  - Verify publish/subscribe keys.
+  - Ensure firewall allows PubNub connections.
+- Message not received:
+  - Confirm correct channel subscription.
+  - Check for publish errors.
+  - Wait for delivery; ensure listener is set.
+- Build errors:
+  - Confirm dependency added.
+  - Use Java 8+.
+  - Verify imports and v2 package names.
+- Gson deserialization errors:
+  - Ensure message structure matches parsing.
+  - Use try/catch around JSON parsing.
+- Thread exceptions:
+  - Avoid blocking the main thread.
+  - Handle InterruptedException.
+  - Consider executor services.
 
 ##### More troubleshooting tips
 
 See [Troubleshooting](/docs/sdks/java/troubleshooting).
 
-## Next steps[​](#next-steps)
+## Next steps
 
 - Try [Presence](/docs/sdks/java/api-reference/presence).
-- Implement [Message Persistence](/docs/sdks/java/api-reference/storage-and-playback).
-- Use [Access Manager](/docs/sdks/java/api-reference/access-manager).
-- Explore [Channel Groups](/docs/sdks/java/api-reference/channel-groups).
-- See more samples on [GitHub](https://github.com/pubnub/kotlin).
+- Use [Message Persistence](/docs/sdks/java/api-reference/storage-and-playback).
+- Secure with [Access Manager](/docs/sdks/java/api-reference/access-manager).
+- Organize with [Channel Groups](/docs/sdks/java/api-reference/channel-groups).
+- Explore code samples in the [GitHub repository](https://github.com/pubnub/kotlin).
 - Read the [SDK reference](/docs/sdks/java/api-reference/configuration).
 - Visit the [support portal](https://support.pubnub.com/).
-- Ask the AI assistant.
 
 Last updated on Sep 3, 2025

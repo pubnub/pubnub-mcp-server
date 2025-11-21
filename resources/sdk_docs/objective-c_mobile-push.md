@@ -1,22 +1,18 @@
 # Mobile Push Notifications API for Objective-C SDK
 
-Connect PubNub publishing to Apple APNs and Google FCM push services. Enable the Mobile Push Notifications add-on for your key in the Admin Portal.
+Connect PubNub publishing to APNs (iOS) and FCM (Android).
 
-APNs version support:
-- Use PNAPNSPush for legacy binary APNs.
-- Use PNAPNS2Push for HTTP/2 APNs.
-
-Token types:
-- APNs/APNs2: NSData
-- FCM: NSString
-
-APNs2-only fields:
-- environment: PNAPNSDevelopment or PNAPNSProduction
-- topic: app bundle identifier
+- Enable the Mobile Push Notifications add-on for your key in the Admin Portal.
+- APNs support: HTTP/2 (APNs2) and legacy binary. Set pushType accordingly:
+  - PNAPNS2Push (HTTP/2)
+  - PNAPNSPush (legacy)
+  - PNFCMPush (FCM)
 
 ## Add a device to a push notifications channel
 
-Enable mobile push notifications on channels.
+Enable push notifications on channels for a device token.
+
+##### Requires Mobile Push Notifications add-on
 
 ### Method(s)
 
@@ -26,9 +22,10 @@ Enable mobile push notifications on channels.
 3                         andCompletion:(nullable PNPushNotificationsStateModificationCompletionBlock)block;  
 `
 ```
-- channels: NSArray<NSString *> - Channels to enable.
-- pushToken: NSData - Device push token (APNs/APNs2).
-- block: PNPushNotificationsStateModificationCompletionBlock.
+
+- channels: NSArray<NSString *> — Channels to enable.
+- pushToken: NSData — Device push token.
+- block: PNPushNotificationsStateModificationCompletionBlock — Completion.
 
 ```
 `1- (void)addPushNotificationsOnChannels:(NSArrayNSString *> *)channels   
@@ -37,11 +34,12 @@ Enable mobile push notifications on channels.
 4                         andCompletion:(nullable PNPushNotificationsStateModificationCompletionBlock)block;  
 `
 ```
-- channels: NSArray<NSString *> - Channels to enable.
-- pushToken: id (NSString for FCM).
-- pushType: PNPushType - Accepted: 
-  - PNFCMPush - Firebase Cloud Messaging (Google Cloud Messaging)
-- block: PNPushNotificationsStateModificationCompletionCompletion block.
+
+- channels: NSArray<NSString *> — Channels to enable.
+- pushToken: id — Device token (NSString).
+- pushType: PNPushType — Accepted:
+  - PNFCMPush
+- block: PNPushNotificationsStateModificationCompletionBlock — Completion.
 
 ```
 `1- (void)addPushNotificationsOnChannels:(NSArrayNSString *> *)channels   
@@ -52,13 +50,14 @@ Enable mobile push notifications on channels.
 6                         andCompletion:(nullable PNPushNotificationsStateModificationCompletionBlock)block;  
 `
 ```
-- channels: NSArray<NSString *> - Channels to enable.
-- pushToken: id (NSData for APNs2).
-- pushType: PNPushType - Accepted:
-  - PNAPNS2Push - Apple Push Notification service over HTTP/2
-- environment: PNAPNSEnvironment (APNs2 only).
-- topic: NSString - APNs topic (bundle identifier).
-- block: PNPushNotificationsStateModificationCompletionCompletion block.
+
+- channels: NSArray<NSString *> — Channels to enable.
+- pushToken: id — Device token (NSData).
+- pushType: PNPushType — Accepted:
+  - PNAPNS2Push
+- environment: PNAPNSEnvironment — APNs environment (APNs2 only).
+- topic: NSString — APNs topic (bundle identifier).
+- block: PNPushNotificationsStateModificationCompletionBlock — Completion.
 
 ### Sample code
 
@@ -240,7 +239,9 @@ Example for method no. 3
 
 ## Add a device to a push notifications channel (builder pattern)
 
-Enable mobile push notifications on channels.
+Enable push notifications on channels using the builder.
+
+##### Requires Mobile Push Notifications add-on
 
 ### Method(s)
 
@@ -257,15 +258,16 @@ Enable mobile push notifications on channels.
 8    .performWithCompletion(nullable PNPushNotificationsStateModificationCompletionBlock);  
 `
 ```
-- channels: NSArray<NSString *> - Channels to enable.
-- token: id (NSData for APNs2).
-- pushType: PNPushType - Accepted:
-  - PNAPNS2Push - Apple Push Notification service over HTTP/2
-- environment: PNAPNSEnvironment (APNs2 only).
-- topic: NSString - APNs topic.
-- block: PNPushNotificationsStateModificationCompletionCompletion block.
 
-Note: Builder pattern; optional arguments may be omitted.
+- channels: NSArray<NSString *> — Channels to enable.
+- token: id — Device token (NSData).
+- pushType: PNPushType — Accepted:
+  - PNAPNS2Push
+- environment: PNAPNSEnvironment — APNs environment (APNs2 only).
+- topic: NSString — APNs topic (bundle identifier).
+- block: PNPushNotificationsStateModificationCompletionBlock — Completion.
+
+Note: Builder pattern; optional args can be omitted.
 
 #### FCM token
 
@@ -279,11 +281,12 @@ Note: Builder pattern; optional arguments may be omitted.
   
 
 ```
-- channels: NSArray<NSString *> - Channels to enable.
-- fcmToken: NSString - FCM device token.
-- completion: PNPushNotificationsStateModificationCompletionBlock.
 
-Note: Builder pattern; optional arguments may be omitted.
+- channels: NSArray<NSString *> — Channels to enable.
+- fcmToken: NSString — FCM device push token.
+- completion: PNPushNotificationsStateModificationCompletionBlock — Completion.
+
+Note: Builder pattern; optional args can be omitted.
 
 ### Sample code
 
@@ -363,7 +366,9 @@ Note: Builder pattern; optional arguments may be omitted.
 
 ## List push notifications channels for a device (builder pattern)
 
-List channels with push enabled for a device token.
+List channels with push notifications enabled for a device token.
+
+##### Requires Mobile Push Notifications add-on
 
 ### Method(s)
 
@@ -372,8 +377,9 @@ List channels with push enabled for a device token.
 2                                                andCompletion:(PNPushNotificationsStateAuditCompletionBlock)block;  
 `
 ```
-- pushToken: NSData - Device push token.
-- block: PNPushNotificationsStateAuditCompletionBlock - Completion with result and status.
+
+- pushToken: NSData — Device push token.
+- block: PNPushNotificationsStateAuditCompletionBlock — Completion with result and status.
 
 ```
 `1- (void)pushNotificationEnabledChannelsForDeviceWithPushToken:(id)pushToken   
@@ -381,10 +387,11 @@ List channels with push enabled for a device token.
 3                                                andCompletion:(PNPushNotificationsStateAuditCompletionBlock)block;  
 `
 ```
-- pushToken: id (NSString for FCM).
-- pushType: PNPushType - Accepted:
-  - PNFCMPush - Firebase Cloud Messaging (Google Cloud Messaging)
-- block: PNPushNotificationsStateAuditCompletionBlock.
+
+- pushToken: id — Device token/identifier (NSString).
+- pushType: PNPushType — Accepted:
+  - PNFCMPush
+- block: PNPushNotificationsStateAuditCompletionBlock — Completion.
 
 ```
 `1- (void)pushNotificationEnabledChannelsForDeviceWithPushToken:(id)pushToken   
@@ -394,12 +401,13 @@ List channels with push enabled for a device token.
 5                                                andCompletion:(PNPushNotificationsStateAuditCompletionBlock)block;  
 `
 ```
-- pushToken: id - NSData for PNAPNS2Push/PNAPNSPush; NSString for others.
-- pushType: PNPushType - Accepted:
-  - PNAPNS2Push - Apple Push Notification service over HTTP/2
-- environment: PNAPNSEnvironment (APNs2 only).
-- topic: NSString - APNs topic.
-- block: PNPushNotificationsStateAuditCompletionBlock.
+
+- pushToken: id — NSData for PNAPNS2Push/PNAPNSPush; NSString for others (based on pushType).
+- pushType: PNPushType — Accepted:
+  - PNAPNS2Push
+- environment: PNAPNSEnvironment — APNs environment (APNs2 only).
+- topic: NSString — APNs topic (bundle identifier).
+- block: PNPushNotificationsStateAuditCompletionBlock — Completion.
 
 ### Sample code
 
@@ -444,12 +452,10 @@ List channels with push enabled for a device token.
 7
   
 8@interface PNAPNSEnabledChannelsResult : PNResult  
-9
-  
+9  
 10// APNS enabled channels audit request processed information.  
 11@property (nonatomic, readonly, strong) PNAPNSEnabledChannelsData *data;  
-12
-  
+12  
 13@end  
 
 ```
@@ -532,7 +538,9 @@ Example for method no. 3
 
 ## List channels for device (builder pattern)
 
-Request channels with push enabled for the specified token.
+Request channels with enabled push for a device token.
+
+##### Requires Mobile Push Notifications add-on
 
 ### Method(s)
 
@@ -550,14 +558,15 @@ Request channels with push enabled for the specified token.
   
 
 ```
-- token: id (NSData).
-- pushType: PNPushType - Accepted:
-  - PNAPNS2Push - Apple Push Notification service over HTTP/2
-- environment: PNAPNSEnvironment.
-- topic: NSString - APNs topic.
-- block: PNPushNotificationsStateAuditCompletionBlock.
 
-Note: Builder pattern; optional arguments may be omitted.
+- token: id — Device token (NSData).
+- pushType: PNPushType — Accepted:
+  - PNAPNS2Push
+- environment: PNAPNSEnvironment — APNs environment (APNs2 only).
+- topic: NSString — APNs topic (bundle identifier).
+- block: PNPushNotificationsStateAuditCompletionBlock — Completion.
+
+Note: Builder pattern; optional args can be omitted.
 
 #### FCM token
 
@@ -568,10 +577,11 @@ Note: Builder pattern; optional arguments may be omitted.
 4    .performWithCompletion(PNPushNotificationsStateModificationCompletionBlock);  
 `
 ```
-- fcmToken: NSString.
-- completion: PNPushNotificationsStateAuditCompletionBlock (result and status).
 
-Note: Builder pattern; optional arguments may be omitted.
+- fcmToken: NSString — FCM device push token.
+- completion: PNPushNotificationsStateAuditCompletionBlock — Completion (result and status).
+
+Note: Builder pattern; optional args can be omitted.
 
 ### Sample code
 
@@ -675,7 +685,9 @@ Error response:
 
 ## Remove device from channel
 
-Disable mobile push notifications on specified channels.
+Disable push notifications on specified channels.
+
+##### Requires Mobile Push Notifications add-on
 
 ### Method(s)
 
@@ -685,9 +697,10 @@ Disable mobile push notifications on specified channels.
 3                              andCompletion:(nullable PNPushNotificationsStateModificationCompletionBlock)block;  
 `
 ```
-- channels: NSArray<NSString *> - Channels to disable; if empty, disables all.
-- pushToken: NSData (APNs/APNs2).
-- block: PNPushNotificationsStateModificationCompletionBlock.
+
+- channels: NSArray<NSString *> — Channels to disable (empty disables all).
+- pushToken: NSData — Device push token.
+- block: PNPushNotificationsStateModificationCompletionBlock — Completion.
 
 ```
 `1- (void)removePushNotificationsFromChannels:(NSArrayNSString *> *)channels   
@@ -696,11 +709,12 @@ Disable mobile push notifications on specified channels.
 4                              andCompletion:(nullable PNPushNotificationsStateModificationCompletionBlock)block;  
 `
 ```
-- channels: NSArray<NSString *> - Channels to disable.
-- pushToken: id (NSString for FCM).
-- pushType: PNPushType - Accepted:
-  - PNFCMPush - Firebase Cloud Messaging (Google Cloud Messaging)
-- block: PNPushNotificationsStateModificationCompletionBlock.
+
+- channels: NSArray<NSString *> — Channels to disable.
+- pushToken: id — Device token (NSString).
+- pushType: PNPushType — Accepted:
+  - PNFCMPush
+- block: PNPushNotificationsStateModificationCompletionBlock — Completion.
 
 ```
 `1- (void)removePushNotificationsFromChannels:(NSArrayNSString *> *)channels   
@@ -711,13 +725,14 @@ Disable mobile push notifications on specified channels.
 6                              andCompletion:(nullable PNPushNotificationsStateModificationCompletionBlock)block;  
 `
 ```
-- channels: NSArray<NSString *> - Channels to disable.
-- pushToken: id (NSData for APNs2).
-- pushType: PNPushType - Accepted:
-  - PNAPNS2Push - Apple Push Notification service over HTTP/2
-- environment: PNAPNSEnvironment (APNs2 only).
-- topic: NSString - APNs topic.
-- block: PNPushNotificationsStateModificationCompletionBlock.
+
+- channels: NSArray<NSString *> — Channels to disable.
+- pushToken: id — Device token (NSData).
+- pushType: PNPushType — Accepted:
+  - PNAPNS2Push
+- environment: PNAPNSEnvironment — APNs environment (APNs2 only).
+- topic: NSString — APNs topic (bundle identifier).
+- block: PNPushNotificationsStateModificationCompletionBlock — Completion.
 
 ### Sample code
 
@@ -830,7 +845,9 @@ Example for method no. 3
 
 ## Remove a device from push notifications channels (builder pattern)
 
-Disable mobile push notifications on specified channels.
+Disable push notifications on a set of channels using the builder.
+
+##### Requires Mobile Push Notifications add-on
 
 ### Method(s)
 
@@ -847,15 +864,16 @@ Disable mobile push notifications on specified channels.
 8    .performWithCompletion(nullable PNPushNotificationsStateModificationCompletionBlock);  
 `
 ```
-- channels: NSArray<NSString *> - Channels to disable.
-- token: id (NSData for APNs2).
-- pushType: PNPushType - Accepted:
-  - PNAPNS2Push - Apple Push Notification service over HTTP/2
-- environment: PNAPNSEnvironment (APNs2 only).
-- topic: NSString - APNs topic.
-- block: PNPushNotificationsStateModificationCompletionCompletion block.
 
-Note: Builder pattern; optional arguments may be omitted.
+- channels: NSArray<NSString *> — Channels to disable.
+- token: id — Device token (NSData).
+- pushType: PNPushType — Accepted:
+  - PNAPNS2Push
+- environment: PNAPNSEnvironment — APNs environment (APNs2 only).
+- topic: NSString — APNs topic (bundle identifier).
+- block: PNPushNotificationsStateModificationCompletionBlock — Completion.
+
+Note: Builder pattern; optional args can be omitted.
 
 #### FCM token
 
@@ -867,11 +885,12 @@ Note: Builder pattern; optional arguments may be omitted.
 5    .performWithCompletion(PNPushNotificationsStateModificationCompletionBlock);  
 `
 ```
-- channels: NSArray<NSString *> - Channels to disable; if empty, disables all.
-- fcmToken: NSString.
-- completion: PNPushNotificationsStateAuditCompletionBlock.
 
-Note: Builder pattern; optional arguments may be omitted.
+- channels: NSArray<NSString *> — Channels to disable (empty disables all).
+- fcmToken: NSString — FCM device push token.
+- completion: PNPushNotificationsStateAuditCompletionBlock — Completion.
+
+Note: Builder pattern; optional args can be omitted.
 
 ### Sample code
 
@@ -950,9 +969,11 @@ Note: Builder pattern; optional arguments may be omitted.
 
 ```
 
-## Remove a device from all push notifications channels (builder pattern)
+## Remove a device from all push notifications channels
 
-Disable mobile push notifications from all channels for the specified token.
+Disable push notifications from all channels for a device token.
+
+##### Requires Mobile Push Notifications add-on
 
 ### Method(s)
 
@@ -961,8 +982,9 @@ Disable mobile push notifications from all channels for the specified token.
 2                                            andCompletion:(nullable PNPushNotificationsStateModificationCompletionBlock)block  
 `
 ```
-- pushToken: NSData.
-- block: PNPushNotificationsStateModificationCompletionBlock.
+
+- pushToken: NSData — Device push token.
+- block: PNPushNotificationsStateModificationCompletionBlock — Completion.
 
 ```
 `1- (void)removeAllPushNotificationsFromDeviceWithPushToken:(id)pushToken   
@@ -970,10 +992,11 @@ Disable mobile push notifications from all channels for the specified token.
 3                                            andCompletion:(nullable PNPushNotificationsStateModificationCompletionBlock)block;  
 `
 ```
-- pushToken: id (NSString for FCM).
-- pushType: PNPushType - Accepted:
-  - PNFCMPush - Firebase Cloud Messaging (Google Cloud Messaging)
-- block: PNPushNotificationsStateModificationCompletionBlock.
+
+- pushToken: id — Device token (NSString).
+- pushType: PNPushType — Accepted:
+  - PNFCMPush
+- block: PNPushNotificationsStateModificationCompletionBlock — Completion.
 
 ```
 `1- (void)removeAllPushNotificationsFromDeviceWithPushToken:(id)pushToken   
@@ -983,13 +1006,14 @@ Disable mobile push notifications from all channels for the specified token.
 5                                            andCompletion:(nullable PNPushNotificationsStateModificationCompletionBlock)block;  
 `
 ```
-- channels: NSArray<NSString *> - List of channel names to disable.
-- pushToken: id (NSData for APNs2).
-- pushType: PNPushType - Accepted:
-  - PNAPNS2Push - Apple Push Notification service over HTTP/2
-- environment: PNAPNSEnvironment (APNs2 only).
-- topic: NSString - APNs topic.
-- block: PNPushNotificationsStateModificationCompletionBlock.
+
+- channels: NSArray<NSString *> — List of channels to disable.
+- pushToken: id — Device token (NSData).
+- pushType: PNPushType — Accepted:
+  - PNAPNS2Push
+- environment: PNAPNSEnvironment — APNs environment (APNs2 only).
+- topic: NSString — APNs topic (bundle identifier).
+- block: PNPushNotificationsStateModificationCompletionBlock — Completion.
 
 ### Sample code
 
@@ -1038,13 +1062,16 @@ Disable mobile push notifications from all channels for the specified token.
 7
   
 8@interface PNAcknowledgmentStatus : PNErrorStatus  
-9  
+9
+  
 10// Whether status object represent error or not.  
 11@property (nonatomic, readonly, assign, getter = isError) BOOL error;  
-12  
+12
+  
 13// Additional information related to error status object.  
 14@property (nonatomic, readonly, strong) PNErrorData *errorData;  
-15  
+15
+  
 16@end  
 
 ```
@@ -1105,6 +1132,10 @@ Example for method no. 3
 
 ## Remove all mobile push notifications (builder pattern)
 
+Disable all push notifications for a device using the builder.
+
+##### Requires Mobile Push Notifications add-on
+
 ### Method(s)
 
 ```
@@ -1117,15 +1148,16 @@ Example for method no. 3
 7    .performWithCompletion(nullable PNPushNotificationsStateModificationCompletionBlock);  
 `
 ```
-- token: id - NSData for PNAPNS2Push; otherwise NSString.
-- pushType: PNPushType - Accepted:
-  - PNAPNS2Push - Apple Push Notification service over HTTP/2
-  - PNFCMPush - Firebase Cloud Messaging (Google Cloud Messaging)
-- environment: PNAPNSEnvironment (APNs2 only).
-- topic: NSString - APNs topic.
-- block: PNPushNotificationsStateModificationCompletionCompletion block.
 
-Note: Builder pattern; optional arguments may be omitted.
+- token: id — Device token (NSData for PNAPNS2Push, otherwise NSString).
+- pushType: PNPushType — Accepted:
+  - PNAPNS2Push
+  - PNFCMPush
+- environment: PNAPNSEnvironment — APNs environment (APNs2 only).
+- topic: NSString — APNs topic (bundle identifier).
+- block: PNPushNotificationsStateModificationCompletionBlock — Completion.
+
+Note: Builder pattern; optional args can be omitted.
 
 ### Sample code
 

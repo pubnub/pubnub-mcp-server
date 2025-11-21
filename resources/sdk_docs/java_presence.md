@@ -1,27 +1,26 @@
 # Presence API for Java SDK
 
 ##### Breaking changes in v9.0.0
-PubNub Java SDK 9.0.0 unifies Java and Kotlin SDKs, changes client instantiation, async API callbacks, and emitted status events. Apps using versions < 9.0.0 may be impacted. See Java/Kotlin SDK migration guide.
 
-Presence lets you:
-- Detect join/leave events
-- Get occupancy counts per channel
-- See which channels a UUID is subscribed to
-- Manage per-user presence state
+PubNub Java SDK 9.0.0 unifies Java and Kotlin SDKs, changes client instantiation, and updates asynchronous API callbacks and emitted status events. Apps built with versions < 9.0.0 may be affected. See Java/Kotlin SDK migration guide.
 
-See Presence overview and Presence Events for more context.
+Presence tracks online/offline users, occupancy, channel subscriptions, and presence state. See Presence overview.
 
-## Here now
+## Here now[​](#here-now)
 
 ##### Requires Presence
-Presence add-on must be enabled for your key in the Admin Portal.
+
+Enable the Presence add-on in the Admin Portal. To receive presence events, see Presence Events.
 
 Returns current channel state: list of UUIDs and total occupancy.
 
 ##### Cache
+
 3-second response cache.
 
-### Method(s)
+### Method(s)[​](#methods)
+
+To call Here Now use:
 
 ```
 `1this.pubnub.hereNow()  
@@ -35,76 +34,130 @@ Returns current channel state: list of UUIDs and total occupancy.
 ```
 
 Parameters:
-- channels (Array): Channels to query.
-- channelGroups (Arrays): Channel groups to query. Wildcards not supported.
-- includeState (Boolean, default false): Include user presence state.
-- includeUUIDs (Boolean, default true): Include connected client UUIDs.
-- limit (int, default 1000): Max occupants per channel. Range 0–1000. 0 returns only occupancy counts (server omits UUIDs entirely).
-- offset (Integer, default null): Zero-based index for pagination. Must be >= 0. Requires limit > 0.
-- async (Consumer<Result>): Consumer of a Result of type PNHereNowResult.
+- channels
+  - Type: Array
+  - Default: n/a
+  - Channels to get here-now details.
+- channelGroups
+  - Type: Arrays
+  - Default: n/a
+  - Channel groups to get here-now details. Wildcards not supported.
+- includeState
+  - Type: Boolean
+  - Default: false
+  - Include presence state of users for channels/channelGroups.
+- includeUUIDs
+  - Type: Boolean
+  - Default: true
+  - Include UUIDs of connected clients.
+- limit
+  - Type: int
+  - Default: 1000
+  - Max occupants per channel. Valid 0–1000. Server enforces 1000 and rejects out-of-range. Use 0 for occupancy-only (UUIDs omitted).
+- offset
+  - Type: Integer
+  - Default: null
+  - Zero-based start index for pagination. Requires limit > 0. Must be >= 0.
+- async
+  - Type: Consumer<Result>
+  - Consumer of a Result of type PNHereNowResult.
 
-### Sample code
+### Sample code[​](#sample-code)
 
 ##### Reference code
 
-#### Get a list of UUIDs subscribed to channel
+#### Get a list of UUIDs subscribed to channel[​](#get-a-list-of-uuids-subscribed-to-channel)
 
 ```
 1
   
-```
-
-### Returns
-
-PNHereNowResult:
-- getTotalChannels(): Int — total channels.
-- getTotalOccupancy(): Int — total occupancy.
-- getChannels(): Map<String, PNHereNowChannelData> — per-channel data.
-
-#### PNHereNowChannelData
-- getChannelName(): String
-- getOccupancy(): Int
-- getOccupants(): List<PNHereNowOccupantData>
-
-#### PNHereNowOccupantData
-- getUuid(): String
-- getState(): Object
-
-### Other examples
-
-#### Returning state
 
 ```
-1
-  
-```
 
-#### Return occupancy only
-You can return only the occupancy information for a single channel by specifying the channel and setting UUIDs to false:
+### Returns[​](#returns)
 
-```
-1
-  
-```
+hereNow() returns PNHereNowResult:
 
-#### Here now for channel groups
+- getTotalChannels()
+  - Type: Int
+  - Total channels.
+- getTotalOccupancy()
+  - Type: Int
+  - Total occupancy.
+- getChannels()
+  - Type: Map<String, PNHereNowChannelData>
+  - Per-channel data.
 
-```
-1
-  
-```
+#### PNHereNowChannelData[​](#pnherenowchanneldata)
 
-## Where now
+- getChannelName()
+  - Type: String
+  - Channel name.
+- getOccupancy()
+  - Type: Int
+  - Channel occupancy.
+- getOccupants()
+  - Type: List<PNHereNowOccupantData>
+  - List of occupants.
+
+#### PNHereNowOccupantData[​](#pnherenowoccupantdata)
+
+- getUuid()
+  - Type: String
+  - User UUID.
+- getState()
+  - Type: Object
+  - User state.
+
+### Other examples[​](#other-examples)
+
+#### Returning state[​](#returning-state)
 
 ##### Requires Presence
-Presence add-on must be enabled for your key in the Admin Portal.
+
+Enable the Presence add-on in the Admin Portal. See Presence Events.
+
+```
+1
+  
+
+```
+
+#### Return occupancy only[​](#return-occupancy-only)
+
+##### Requires Presence
+
+Enable the Presence add-on in the Admin Portal. See Presence Events.
+
+Return only occupancy for a single channel by specifying the channel and setting UUIDs to false:
+
+```
+1
+  
+
+```
+
+#### Here now for channel groups[​](#here-now-for-channel-groups)
+
+```
+1
+  
+
+```
+
+## Where now[​](#where-now)
+
+##### Requires Presence
+
+Enable the Presence add-on in the Admin Portal. See Presence Events.
 
 Returns the list of channels a UUID is subscribed to.
 
 ##### Timeout events
-If the app restarts (or the page refreshes) within the heartbeat window, no timeout event is generated.
 
-### Method(s)
+If the app restarts within the heartbeat window, no timeout event is generated.
+
+### Method(s)[​](#methods-1)
 
 ```
 `1pubnub.whereNow()  
@@ -113,45 +166,58 @@ If the app restarts (or the page refreshes) within the heartbeat window, no time
 ```
 
 Parameters:
-- uuid (String): UUID to query.
-- async (Command): Execute as async.
+- uuid
+  - Type: String
+  - UUID to query.
+- async
+  - Type: Command
+  - Execute as async.
 
-### Sample code
+### Sample code[​](#sample-code-1)
 
-#### Get a list of channels a UUID is subscribed to
+Define the uuid and callback to receive data.
 
-```
-1
-  
-```
-
-### Returns
-
-PNWhereNowResult:
-- getChannels(): List<String> — channels where the UUID is present.
-
-### Other examples
-
-#### Obtain information about the current list of channels of some other UUID
+#### Get a list of channels a UUID is subscribed to[​](#get-a-list-of-channels-a-uuid-is-subscribed-to)
 
 ```
 1
   
+
 ```
 
-## User state
+### Returns[​](#returns-1)
+
+whereNow() returns PNWhereNowResult:
+
+- getChannels()
+  - Type: List<String>
+  - Channels where the UUID is present.
+
+### Other examples[​](#other-examples-1)
+
+#### Obtain information about the current list of channels of some other UUID[​](#obtain-information-about-the-current-list-of-channels-of-some-other-uuid)
+
+```
+1
+  
+
+```
+
+## User state[​](#user-state)
 
 ##### Requires Presence
-Presence add-on must be enabled for your key in the Admin Portal.
 
-Clients can set dynamic custom state (score, game state, location) per channel while subscribed. State is not persisted; it is lost on disconnect. See Presence State.
+Enable the Presence add-on in the Admin Portal. See Presence Events.
+
+Clients can set dynamic custom state (for example, score, game state, location) per channel while subscribed. State isn’t persisted; it’s lost on disconnect. See Presence State.
 
 ##### Presence state format
+
 Presence state must be a JsonObject (or POJO serializable to JsonObject).
 
-### Method(s)
+### Method(s)[​](#methods-2)
 
-#### Set state
+#### Set state[​](#set-state)
 
 ```
 `1this.pubnub.setPresenceState()  
@@ -163,13 +229,23 @@ Presence state must be a JsonObject (or POJO serializable to JsonObject).
 ```
 
 Parameters:
-- channels (Array): Channels to set state on.
-- channelGroups (Array): Channel groups to set state on.
-- state (HashMap): State to set.
-- uuid (String): UUID to target.
-- async (Consumer<Result>): Consumer of a Result of type PNSetStateResult.
+- channels
+  - Type: Array
+  - Channels to set state.
+- channelGroups
+  - Type: Array
+  - Channel groups to set state.
+- state
+  - Type: HashMap
+  - State to set.
+- uuid
+  - Type: String
+  - UUID to set state for.
+- async
+  - Type: Consumer<Result>
+  - Consumer of a Result of type PNSetStateResult.
 
-#### Get state
+#### Get state[​](#get-state)
 
 ```
 `1this.pubnub.getPresenceState()  
@@ -180,42 +256,57 @@ Parameters:
 ```
 
 Parameters:
-- channels (Arrays): Channels to fetch state for.
-- channelGroups (Arrays): Channel groups to fetch state for.
-- uuid (String): UUID.
-- async (Consumer<Result>): Consumer of a Result of type PNGetStateResult.
+- channels
+  - Type: Arrays
+  - Channel name(s) to fetch state.
+- channelGroups
+  - Type: Arrays
+  - Channel group name(s) to fetch state.
+- uuid
+  - Type: String
+  - UUID.
+- async
+  - Type: Consumer<Result>
+  - Consumer of a Result of type PNGetStateResult.
 
-### Sample code
+### Sample code[​](#sample-code-2)
 
-#### Set state
-
-```
-1
-  
-```
-
-#### Get state
-
-```
-1
-  
-```
-
-### Returns
-
-setPresenceState() → PNSetStateResult:
-- getState(): Map<String, Object> — map of UUIDs and states.
-
-getPresenceState() → PNGetStateResult:
-- getStateByUUID(): Map<String, Object> — map of UUIDs and states.
-
-### Other examples
-
-#### Set state for channels in channel group
+#### Set state[​](#set-state-1)
 
 ```
 1
   
+
+```
+
+#### Get state[​](#get-state-1)
+
+```
+1
+  
+
+```
+
+### Returns[​](#returns-2)
+
+setPresenceState() returns PNSetStateResult:
+- getState()
+  - Type: Map<String, Object>
+  - Map of UUIDs and user states.
+
+getPresenceState() returns PNGetStateResult:
+- getStateByUUID()
+  - Type: Map<String, Object>
+  - Map of UUIDs and user states.
+
+### Other examples[​](#other-examples-2)
+
+#### Set state for channels in channel group[​](#set-state-for-channels-in-channel-group)
+
+```
+1
+  
+
 ```
 
 The above code would return the following response to the client:
@@ -224,3 +315,4 @@ The above code would return the following response to the client:
 1
 **
 ```
+Last updated on Oct 21, 2025**

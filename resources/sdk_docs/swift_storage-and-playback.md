@@ -1,20 +1,28 @@
 # Message Persistence API for Swift Native SDK
 
-Message Persistence provides real-time access to stored, timestamped messages (10 ns resolution) across multiple regions/AZs, with optional AES-256 encryption. Retention is configurable per key: 1 day, 7 days, 30 days, 3 months, 6 months, 1 year, or Unlimited. You can retrieve messages, message reactions, and files (via File Sharing API).
+Message Persistence provides real-time access to stored messages, timestamped to ~10 ns and replicated across regions. You can enable AES-256 encryption for stored messages. Retention options: 1 day, 7 days, 30 days, 3 months, 6 months, 1 year, or Unlimited. You can retrieve:
+- Messages
+- Message reactions
+- Files (using the File Sharing API)
 
 ## Fetch history
 
-Requires Message Persistence enabled for your key in the Admin Portal.
+Requires Message Persistence to be enabled for your key in the Admin Portal.
 
 Fetch historical messages from one or more channels. Use includeMessageActions to include message actions.
 
-Ordering and bounds:
-- start only: returns messages older than start timetoken.
-- end only: returns messages from end timetoken and newer.
-- start and end: returns messages between bounds (inclusive of end).
-- Limits: up to 100 messages on a single channel; or up to 500 channels with 25 messages per channel. Pagination via iterative updates to start.
+Ordering and range:
+- start only: returns messages older than start.
+- end only: returns messages from end and newer.
+- start and end: returns messages between them (inclusive of end).
+
+Limits and paging:
+- Up to 100 messages from a single channel, or 25 per channel across up to 500 channels.
+- Page by iteratively updating the start timetoken.
 
 ### Method(s)
+
+Use the following method(s) in the Swift SDK:
 
 ```
 `1func fetchMessageHistory(  
@@ -32,23 +40,23 @@ Ordering and bounds:
 ```
 
 Parameters:
-- for (required) — Type: [String]. List of channels to fetch (max 500).
-- includeActions — Type: Bool, Default: false. Include Message Actions. When true, only a single channel is allowed.
-- includeMeta — Type: Bool, Default: false. Include message metadata.
-- includeUUID — Type: Bool, Default: true. Include sender user ID.
-- includeMessageType — Type: Bool, Default: true. Include PubNub message type (see Retrieving Messages).
-- includeCustomMessageType — Type: Bool, Default: false. Include custom message type (see Retrieving Messages).
-- page — Type: PubNubBoundedPage?, Default: PubNubBoundedPageBase(). Use to paginate by time bounds; set limit: max 100 (single channel), 25 (multi-channel), and 25 when includeActions is true.
-- custom — Type: PubNub.RequestConfiguration, Default: PubNub.RequestConfiguration(). Per-request configuration overrides.
-- completion — Type: ((Result<(messagesByChannel: [String: [PubNubMessage]], next: PubNubBoundedPage?), Error>) -> Void)?, Default: nil.
+- for [String] (required): Channels to fetch from. Max 500 channels.
+- includeActions Bool = false: If true, includes Message Actions. When true, limited to a single channel.
+- includeMeta Bool = false: If true, includes message meta.
+- includeUUID Bool = true: If true, includes sender user ID.
+- includeMessageType Bool = true: Include PubNub message type. See Retrieving Messages.
+- includeCustomMessageType Bool = false: Include custom message type. See Retrieving Messages.
+- page PubNubBoundedPage? = PubNubBoundedPageBase(): Paging and limits. limit max: 100 (single channel), 25 (multiple channels), and 25 when includeActions is true.
+- custom PubNub.RequestConfiguration = PubNub.RequestConfiguration(): Per-request configuration override.
+- completion ((Result<(messagesByChannel: [String: [PubNubMessage]], next: PubNubBoundedPage?), Error>) -> Void)? = nil
 
 Truncated response:
-- If truncated, a next page cursor is returned; make iterative calls, adjusting parameters.
+- If truncated, a next page cursor is returned. Make iterative calls adjusting parameters.
 
 #### Completion handler result
 
 Success:
-- Returns dictionary of channels mapped to message lists, and next page cursor when available.
+- Dictionary of channels mapped to message lists and a next page cursor (when available).
 
 ```
 1public protocol PubNubMessage {  
@@ -127,63 +135,59 @@ Success:
 ```
 
 Failure:
-- Returns an Error describing the failure.
+- Error describing the failure.
 
 ### Sample code
 
-Reference code (self-contained; logging omitted):
+Reference code
+
+Retrieve the last message on a channel:
 
 ```
 1
   
-
 ```
 
 ### Other examples
 
-Retrieve messages newer or equal than a given timetoken:
+#### Retrieve messages newer or equal than a given timetoken
 
 ```
 1
   
-
 ```
 
-Retrieve messages older than a specific timetoken:
-
-```
-1
-  
-
-```
-
-Retrieve the last 10 messages on channelSwift, otherChannel, and myChannel:
+#### Retrieve messages older than a specific timetoken
 
 ```
 1
   
-
 ```
 
-Retrieve messages and their metadata:
-
-```
-1
-  
-
-```
-
-Retrieve messages and their message action data:
+#### Retrieve the last 10 messages on channelSwift, otherChannel, and myChannel
 
 ```
 1
   
+```
 
+#### Retrieve messages and their metadata
+
+```
+1
+  
+```
+
+#### Retrieve messages and their message action data
+
+```
+1
+  
 ```
 
 ## Delete messages from history
 
-Requires Message Persistence enabled for your key.
+Requires Message Persistence to be enabled for your key in the Admin Portal.
 
 Removes messages from the history of a specific channel.
 
@@ -191,6 +195,8 @@ Required setting:
 - Enable Delete-From-History in key settings and initialize with a secret key.
 
 ### Method(s)
+
+To Delete Messages from History use:
 
 ```
 `1func deleteMessageHistory(  
@@ -204,46 +210,44 @@ Required setting:
 ```
 
 Parameters:
-- from (required) — Type: String. Channel to delete messages from.
-- start — Type: Timetoken?, Default: nil. Start of time slice (inclusive).
-- end — Type: Timetoken?, Default: nil. End of time slice (exclusive).
-- custom — Type: PubNub.RequestConfiguration, Default: PubNub.RequestConfiguration(). Per-request configuration overrides.
-- completion — Type: ((Result<Void, Error>) -> Void)?, Default: nil.
+- from String (required): Channel to delete from.
+- start Timetoken? = nil: Start of time slice (inclusive).
+- end Timetoken? = nil: End of time slice (exclusive).
+- custom PubNub.RequestConfiguration = PubNub.RequestConfiguration(): Per-request configuration override.
+- completion ((Result<Void, Error>) -> Void)? = nil
 
 #### Completion handler result
 
 Success:
-- Void.
+- Void indicating success.
 
 Failure:
-- Error.
+- Error describing the failure.
 
 ### Sample code
 
 ```
 1
   
-
 ```
 
 ### Other examples
 
-Delete specific message from history:
+#### Delete specific message from history
 
 ```
 1
   
-
 ```
 
 ## Message counts
 
-Requires Message Persistence enabled for your key.
+Requires Message Persistence to be enabled for your key in the Admin Portal.
 
-Returns the number of messages published since the provided timetoken (count includes messages with timetoken ≥ provided value).
+Returns the number of messages published since a given timetoken (counts messages with timetoken ≥ provided value).
 
 Unlimited message retention:
-- For keys with unlimited retention enabled, only messages from the last 30 days are considered.
+- For keys with unlimited retention, this method considers only messages published in the last 30 days.
 
 ### Method(s)
 
@@ -257,9 +261,9 @@ Unlimited message retention:
 ```
 
 Parameters:
-- channels (required) — Type: [String: Timetoken]. Map of channel to its timetoken.
-- custom — Type: PubNub.RequestConfiguration, Default: PubNub.RequestConfiguration(). Per-request configuration overrides.
-- completion — Type: ((Result<[String: Int], Error>) -> Void)?, Default: nil.
+- channels [String: Timetoken] (required): Map of channels to timetokens.
+- custom PubNub.RequestConfiguration = PubNub.RequestConfiguration(): Per-request configuration override.
+- completion ((Result<[String: Int], Error>) -> Void)? = nil
 
 ```
 `1func messageCounts(  
@@ -272,38 +276,36 @@ Parameters:
 ```
 
 Parameters:
-- channels (required) — Type: [String]. Channels to get message counts for.
-- timetoken — Type: Timetoken, Default: 1. Timetoken applied to all channels in the list.
-- custom — Type: PubNub.RequestConfiguration, Default: PubNub.RequestConfiguration().
-- completion — Type: ((Result<[String: Int], Error>) -> Void)?, Default: nil.
+- channels [String] (required): Channels to get counts for.
+- timetoken Timetoken = 1: Timetoken used for all channels.
+- custom PubNub.RequestConfiguration = PubNub.RequestConfiguration(): Per-request configuration override.
+- completion ((Result<[String: Int], Error>) -> Void)? = nil
 
 #### Completion handler result
 
 Success:
-- Dictionary mapping channel to message count.
+- Dictionary of channels mapped to their message count.
 
 Failure:
-- Error.
+- Error describing the failure.
 
 ### Sample code
 
 ```
 1
   
-
 ```
 
 ### Other examples
 
-Retrieve message counts for multiple channels with the same timetoken 15526611838554310:
+#### Retrieve message counts for multiple channels with the same timetoken 15526611838554310
 
 ```
 1
   
-
 ```
 
-Retrieve message counts for multiple channels with different timetokens:
+#### Retrieve message counts for multiple channels with different timetokens
 
 ```
 1

@@ -1,12 +1,16 @@
 # Channel Groups API for Objective-C SDK
 
-Channel groups bundle many channels under a single name. You can subscribe to a channel group, but you can’t publish to it; publish to individual channels instead.
+Channel groups bundle thousands of channels under a named group. You can subscribe to a channel group (receive messages from its channels), but you cannot publish to a group—publish to channels directly.
 
-Requires Stream Controller add-on: Enable for your key in the Admin Portal. See support page for enabling add-ons.
+##### Channel group operations
+- Subscribe to channel groups; publishing must target individual channels.
 
 ## Add channels to a channel group
 
-Adds channels to a group.
+##### Requires Stream Controller add-on
+Enable the Stream Controller add-on for your key in the PubNub Admin Portal. See support docs for enabling add-ons.
+
+Adds channels to a channel group.
 
 ### Method(s)
 
@@ -18,9 +22,9 @@ Adds channels to a group.
 ```
 
 Parameters:
-- channels (NSArray): Channel names to add to the group.
+- channels (NSArray): List of channel names to add to the group.
 - group (NSString): Target channel group name.
-- block (PNChannelGroupChangeCompletionBlock): Completion block with request status.
+- block (PNChannelGroupChangeCompletionBlock): Completion block; receives request processing status indicating success or error.
 
 ### Sample code
 
@@ -79,7 +83,10 @@ Parameters:
 
 ## List channels in a channel group
 
-Returns channels in the specified group.
+##### Requires Stream Controller add-on
+Enable the Stream Controller add-on for your key in the Admin Portal. See support docs for enabling add-ons.
+
+Lists all channels in a channel group.
 
 ### Method(s)
 
@@ -90,8 +97,10 @@ Returns channels in the specified group.
 ```
 
 Parameters:
-- group (NSString): Group from which to fetch channels.
-- block: Completion block with result (channels list) and status on error.
+- group (NSString): Channel group to audit.
+- block (PNClientChannelsForGroupRequestHandlingBlock): Completion block with:
+  - result (on success): result.data.channels contains channel list.
+  - status (on error): error status.
 
 ### Sample code
 
@@ -141,8 +150,7 @@ Parameters:
 7
   
 8@interface PNChannelGroupChannelsResult : PNResult  
-9
-  
+9  
 10// Stores reference on channel group's channels list audit request processing information.  
 11@property (nonatomic, nonnull, readonly, strong) PNChannelGroupChannelsData *data;  
 12
@@ -152,7 +160,10 @@ Parameters:
 
 ## Remove channels from a channel group
 
-Removes specified channels from a group.
+##### Requires Stream Controller add-on
+Enable the Stream Controller add-on for your key in the Admin Portal. See support docs for enabling add-ons.
+
+Removes channels from a channel group.
 
 ### Method(s)
 
@@ -164,9 +175,9 @@ Removes specified channels from a group.
 ```
 
 Parameters:
-- channels (NSArray): Channel names to remove. If empty list passed whole channel group will be removed.
-- group (NSString): Group from which to remove channels.
-- block (PNChannelGroupChangeCompletionBlock): Completion block with request status.
+- channels (NSArray): Channel names to remove. If empty list passed, the whole channel group will be removed.
+- group (NSString): Channel group from which to remove channels.
+- block (PNChannelGroupChangeCompletionBlock): Completion block; receives request processing status.
 
 ### Sample code
 
@@ -213,7 +224,10 @@ Parameters:
 
 ## Delete a channel group
 
-Removes all channels from a group (deletes the group).
+##### Requires Stream Controller add-on
+Enable the Stream Controller add-on for your key in the Admin Portal. See support docs for enabling add-ons.
+
+Deletes a channel group.
 
 ### Method(s)
 
@@ -224,12 +238,12 @@ Removes all channels from a group (deletes the group).
 ```
 
 Parameters:
-- group (NSString): Group name to remove.
-- block (PNChannelGroupChangeCompletionBlock): Completion block with request status.
+- group (NSString): Group from which all channels should be removed.
+- block (PNChannelGroupChangeCompletionBlock): Completion block; receives request processing status.
 
 ### Sample code
 
-Deleting Channel Group:
+Deleting Channel Group :
 
 ```
 `1NSString *channelGroup = @"family";  
@@ -267,5 +281,3 @@ Deleting Channel Group:
 2
 **3@end  
 ```
-
-Last updated on Sep 3, 2025**

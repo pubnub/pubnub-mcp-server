@@ -1,33 +1,40 @@
-# Access Manager v3 API for Unity SDK (Condensed)
+# Access Manager v3 API for Unity SDK
 
-Access Manager secures client access to PubNub resources by issuing time-limited tokens with embedded permissions. Tokens can target individual resources or RegEx patterns and can restrict use to a specific client UUID.
+Access Manager enforces client access control to PubNub resources using server-issued, time-limited tokens with embedded permissions. Tokens can target individual resources or RegEx patterns and can bundle different permission levels for multiple resources in a single request. You can restrict a token to a single client via authorizedUuid.
 
-- Supports: per-resource permissions, single-call mixed permissions, TTL, RegEx patterns, authorized UUID binding.
-- Resources: Channels, Channel Groups, UUIDs (user metadata).
-- User ID / UUID: Some APIs refer to UUID/uuid; its value is the userId you set during initialization.
+User ID / UUID
+- User ID may be referred to as UUID/uuid in APIs and responses but holds the value of the userId set during initialization.
 
 ## Grant token
 
-Requires:
-- Access Manager add-on enabled in Admin Portal.
-- Secret Key initialization for the granting server SDK instance.
+Requires Access Manager add-on
+Requires Secret Key authentication (initialize with Secret Key on your keyset).
 
-Generates a token with TTL, AuthorizedUuid, and permissions for Channels, ChannelGroups, and Uuids. Only the AuthorizedUuid (if set) can use the token. Unauthorized or invalid token requests return 403.
+Generates a time-limited token with:
+- TTL (required, in minutes)
+- AuthorizedUuid (optional but recommended for security)
+- Permissions for:
+  - Channels
+  - ChannelGroups
+  - Uuids (users’ object metadata)
 
-Permissions by resource:
+Only AuthorizedUuid can use the token. Unauthorized or invalid tokens result in HTTP 403.
+
+Permissions per resource
 - Channels: read, write, get, manage, update, join, delete
 - Groups: read, manage
 - Uuids: get, update, delete
+For mapping to API operations, see Manage Permissions with Access Manager v3.
 
-TTL:
-- Required for every grant.
-- Minutes; min 1, max 43,200 (30 days); no default.
+TTL
+- Required; minutes the token remains valid.
+- Minimum 1; maximum 43,200 (30 days). No default.
 
-RegEx patterns:
-- Use Patterns to apply permissions to resources matching a RegEx.
+Patterns (RegEx)
+- Grant permissions using RegEx patterns for each resource type.
 
-Authorized UUID:
-- Restricts token to a single client UUID; recommended to prevent impersonation.
+AuthorizedUuid
+- Restrict token usage to a specific UUID; otherwise, any UUID can use it.
 
 ### Method(s)
 
@@ -43,41 +50,42 @@ Authorized UUID:
 `
 ```
 
-Parameters:
-- TTL (int, required): Minutes token is valid. Min 1, max 43,200.
-- Meta (Dictionary<string, object>): Scalar-only metadata; no arrays/objects.
-- AuthorizedUuid (string): Single UUID allowed to use the token.
-- Resources (PNTokenResources): Explicit permissions for channels, channel groups, UUID metadata.
-- Patterns (PNTokenPatterns): RegEx-based permissions for channels, channel groups, UUID metadata.
-- QueryParam (Dictionary<string, object>): Extra query params for debugging.
-- Execute (System.Action of PNAccessManagerTokenResult, PNStatus).
-- ExecuteAsync: Returns Task<PNResult<PNAccessManagerTokenResult>>.
+Parameters
+- TTL (int) — Required. Minutes token is valid. Min 1; Max 43,200.
+- Meta (Dictionary<string, object>) — Extra scalar-only metadata (no arrays/objects).
+- AuthorizedUuid (string) — Single UUID authorized to use the token.
+- Resources (PNTokenResources) — Channel, group, and UUID permissions.
+- Patterns (PNTokenPatterns) — Permissions applied to resources matching RegEx patterns.
+- QueryParam (Dictionary<string, object>) — Additional query string params (debug).
+- Execute (System.Action) — Callback with PNAccessManagerTokenResult.
+- ExecuteAsync — Returns Task<PNResult<PNAccessManagerTokenResult>>.
 
-PNTokenResources:
+PNTokenResources
 - Channels: Dictionary<string, PNTokenAuthValues>
 - ChannelGroups: Dictionary<string, PNTokenAuthValues>
 - Uuids: Dictionary<string, PNTokenAuthValues>
 
-PNTokenPatterns:
+PNTokenPatterns
 - Channels: Dictionary<string, PNTokenAuthValues>
 - ChannelGroups: Dictionary<string, PNTokenAuthValues>
 - Uuids: Dictionary<string, PNTokenAuthValues>
 
-PNTokenAuthValues:
-- Read (bool): Subscribe, History, Presence
-- Write (bool): Publish
-- Manage (bool): Channel Groups, App Context
-- Delete (bool): History, App Context
-- Get (bool): App Context
-- Update (bool): App Context
-- Join (bool): App Context
+PNTokenAuthValues (bool flags)
+- Read (Subscribe, History, Presence)
+- Write (Publish)
+- Manage (Channel Groups, App Context)
+- Delete (History, App Context)
+- Get (App Context)
+- Update (App Context)
+- Join (App Context)
 
-Required:
-- Provide at least one permission mapping for a UUID, channel, or group (resources or patterns).
+Required key/value mappings
+- Specify permissions for at least one UUID, channel, or group (resources or patterns).
 
 ### Sample code
 
-Reference code:
+Reference code (ready to run, includes imports and console logging):
+
 ```
 1
   
@@ -87,39 +95,37 @@ Reference code:
 ### Returns
 
 GrantToken() returns PNResult<PNAccessManagerTokenResult>:
-- Result (PNAccessManagerTokenResult): Contains:
-  - Token (String): Current token with embedded permissions.
+- Result (PNAccessManagerTokenResult)
+- Status (PNStatus)
+
+PNAccessManagerTokenResult
+- Token (string): current token with embedded permissions.
+
 ```
-`1{ "Token":"p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI"}  
+`1{ "Token":"p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdY IGOAeTyWGJI"}  
 `
 ```
-- Status (PNStatus)
 
 ### Other examples
 
-Grant an authorized client different levels of access to various resources in a single call:
-- Grants my-authorized-uuid:
-  - Read access to channel-a, channel-group-b, and get to uuid-c.
-  - Read/write access to channel-b, channel-c, channel-d, and get/update to uuid-d.
+Grant an authorized client different levels of access to various resources in a single call
+
 ```
 1
   
 
 ```
 
-Grant an authorized client read access to multiple channels using RegEx:
-- Grants my-authorized-uuid read access to channels matching channel-[A-Za-z0-9].
+Grant an authorized client read access to multiple channels using RegEx
+
 ```
 1
   
 
 ```
 
-Grant different access to various resources and read RegEx channels in a single call:
-- Grants my-authorized-uuid:
-  - Read access to channel-a, channel-group-b, and get to uuid-c.
-  - Read/write access to channel-b, channel-c, channel-d, and get/update to uuid-d.
-  - Read access to channels matching channel-[A-Za-z0-9].
+Grant an authorized client different levels of access to various resources and read access to channels using RegEx in a single call
+
 ```
 1
   
@@ -128,15 +134,15 @@ Grant different access to various resources and read RegEx channels in a single 
 
 ### Error responses
 
-Invalid requests return HTTP 400 with details (e.g., RegEx issue, invalid timestamp, incorrect permissions).
+HTTP 400 with details for invalid requests (e.g., RegEx, invalid timestamp, or permission issues).
 
 ## Revoke token
 
-Requires:
-- Access Manager add-on enabled.
-- Revoke v3 Token enabled in Admin Portal (ACCESS MANAGER section).
+Requires Access Manager add-on
 
-RevokeToken() disables an existing token previously obtained with GrantToken(). Use for tokens with TTL ≤ 30 days; for longer TTL, contact support.
+Enable token revoke in Admin Portal (ACCESS MANAGER → Revoke v3 Token).
+
+RevokeToken() disables a valid token (previously granted). Use for tokens with TTL ≤ 30 days; for longer TTLs, contact support.
 
 ### Method(s)
 
@@ -148,11 +154,11 @@ RevokeToken() disables an existing token previously obtained with GrantToken(). 
 `
 ```
 
-Parameters:
-- Token (string, required): Existing token to revoke.
-- QueryParam (Dictionary<string, object>): Debug query params.
-- Execute (System.Action of PNAccessManagerRevokeTokenResult).
-- ExecuteAsync: Returns Task<PNResult<PNAccessManagerRevokeTokenResult>>.
+Parameters
+- Token (string) — Existing token to revoke.
+- QueryParam (Dictionary<string, object>) — Additional query string params (debug).
+- Execute (System.Action) — Callback with PNAccessManagerRevokeTokenResult.
+- ExecuteAsync — Returns Task<PNResult<PNAccessManagerRevokeTokenResult>>.
 
 ### Sample code
 
@@ -165,19 +171,18 @@ Parameters:
 ### Returns
 
 RevokeToken() returns PNResult<PNAccessManagerRevokeTokenResult>:
-- Result: Empty PNAccessManagerRevokeTokenResult on success.
-- Status: PNStatus
+- Result (PNAccessManagerRevokeTokenResult) — Empty object on success.
+- Status (PNStatus)
 
 ### Error Responses
 
-Possible errors:
 - 400 Bad Request
 - 403 Forbidden
 - 503 Service Unavailable
 
 ## Parse token
 
-ParseToken() decodes a token to inspect embedded permissions and TTL for debugging.
+ParseToken() decodes a token and returns embedded permissions and details (useful for debugging and TTL checks).
 
 ### Method(s)
 
@@ -186,8 +191,8 @@ ParseToken() decodes a token to inspect embedded permissions and TTL for debuggi
 `
 ```
 
-Parameter:
-- token (String, required): Token to decode.
+Parameter
+- token (String) — Current token with embedded permissions.
 
 ### Sample code
 
@@ -205,36 +210,36 @@ Parameter:
 
 ```
 
-TokenContents:
-- Resources (TokenResources): Explicit resource permissions.
-- Patterns (TokenPatterns): RegEx-based permissions.
-- Meta (Dictionary<string, object>): Scalar-only metadata.
-- Signature (string): HMAC+SHA256, signed by PubNub.
-- Version (int): Token structure version.
-- Timestamp (long): Token creation time (server-generated).
-- TTL (int): Minutes valid; min 1, max 43,200.
-- AuthorizedUUID (string): Single UUID authorized to use the token.
+TokenContents
+- Resources (TokenResources) — Resource permissions (by sequence).
+- Patterns (TokenPatterns) — Permissions expressed as RegEx.
+- Meta (Dictionary<string, object>) — Extra scalar-only metadata.
+- Signature (string) — HMAC+SHA256 signed with PubNub confidential key.
+- Version (int) — Token structure version.
+- Timestamp (long) — Server time when token was created.
+- TTL (int) — Minutes valid; min 1, max 43,200.
+- AuthorizedUUID (string) — Sole UUID authorized to use the token.
 
-TokenResources:
+TokenResources
 - Channels: Dictionary<string, TokenAuthValues>
 - Groups: Dictionary<string, TokenAuthValues>
-- UUIDs: Dictionary<string, TokenAuthValues> (Objects v2)
+- UUIDs: Dictionary<string, TokenAuthValues> (used in Objects v2 operations)
 
-TokenPatterns:
+TokenPatterns
 - Channels: Dictionary<string, TokenAuthValues>
 - Groups: Dictionary<string, TokenAuthValues>
-- UUIDs: Dictionary<string, TokenAuthValues> (Objects v2)
+- UUIDs: Dictionary<string, TokenAuthValues> (used in Objects v2 operations)
 
-TokenAuthValues:
-- Read (bool), Write (bool), Manage (bool), Delete (bool), Get (bool), Update (bool), Join (bool)
+TokenAuthValues (bool flags)
+- Read, Write, Manage, Delete, Get, Update, Join
 
 ### Error Responses
 
-Parsing errors may indicate a damaged token; request a new one from the server.
+If parsing fails, the token might be damaged; request a new one from the server.
 
 ## Set token
 
-SetAuthToken() is used by clients to update the authentication token received from the server.
+SetAuthToken() updates the client's current authentication token.
 
 ### Method(s)
 
@@ -243,8 +248,8 @@ SetAuthToken() is used by clients to update the authentication token received fr
 `
 ```
 
-Parameter:
-- token (String, required): Token with embedded permissions.
+Parameter
+- token (String) — Current token with embedded permissions.
 
 ### Sample code
 
@@ -260,22 +265,26 @@ No return value.
 
 ## Grant token - spaces & users (deprecated)
 
-Deprecated resources: Spaces and Users (metadata). Use Channels/Groups/UUIDs (above). Requires Access Manager add-on.
+Requires Access Manager add-on
 
-GrantToken() creates a token with TTL, AuthorizedUserId, and permissions for Spaces and Users.
+Generates a token with TTL, AuthorizedUserId, and permissions for:
+- Spaces
+- Users (user metadata)
 
-Permissions:
+Only AuthorizedUserId can use the token. Unauthorized/invalid usage returns HTTP 403.
+
+Permissions - spaces & users
 - Spaces: read, write, get, manage, update, join, delete
 - Users: get, update, delete
 
-TTL:
-- Required; minutes; max 43,200.
+TTL - spaces & users
+- Required; minutes. Max 43,200 (30 days).
 
-RegEx:
-- Use Patterns for RegEx-based permissions.
+RegEx - spaces & users
+- Grant permissions using RegEx patterns.
 
-Authorized user ID:
-- Restrict token to a single AuthorizedUserId to prevent impersonation.
+Authorized user ID - spaces & users
+- Restrict token usage to a single AuthorizedUserId.
 
 ### Method(s) - spaces & users (deprecated)
 
@@ -291,29 +300,29 @@ Authorized user ID:
 `
 ```
 
-Parameters:
-- TTL (int, required): Minutes; min 1, max 43,200.
-- Meta (Dictionary<string, object>): Scalar-only metadata.
-- AuthorizedUserId (string): Single user authorized to use token.
-- Resources (PNTokenResources): Space and User permissions.
-- Patterns (PNTokenPatterns): RegEx-based Space/User permissions.
-- QueryParam (Dictionary<string, object>): Debug query params.
-- Execute (PNCallback/System.Action of PNAccessManagerTokenResult).
-- ExecuteAsync: Returns Task<PNResult<PNAccessManagerTokenResult>>.
+Parameters
+- TTL (int) — Required. Min 1; Max 43,200.
+- Meta (Dictionary<string, object>) — Extra scalar-only metadata.
+- AuthorizedUserId (string) — Single Uuid authorized to use the token.
+- Resources (PNTokenResources)
+- Patterns (PNTokenPatterns)
+- QueryParam (Dictionary<string, object>)
+- Execute (PNCallback) — System.Action of type PNAccessManagerTokenResult.
+- ExecuteAsync — Returns Task<PNResult<PNAccessManagerTokenResult>>.
 
-PNTokenResources:
+PNTokenResources
 - Spaces: Dictionary<string, PNTokenAuthValues>
 - Users: Dictionary<string, PNTokenAuthValues>
 
-PNTokenPatterns:
+PNTokenPatterns
 - Spaces: Dictionary<string, PNTokenAuthValues>
 - Users: Dictionary<string, PNTokenAuthValues>
 
-PNTokenAuthValues:
-- Read, Write, Manage, Delete, Get, Update, Join (bools)
+PNTokenAuthValues (bool flags)
+- Read, Write, Manage, Delete, Get, Update, Join
 
-Required:
-- Provide at least one Space or User permission (resource or pattern).
+Required key/value mappings
+- Specify permissions for at least one User or Space (resources or patterns).
 
 ### Sample code - spaces & users (deprecated)
 
@@ -325,39 +334,38 @@ Required:
 
 ### Returns - spaces & users (deprecated)
 
-Returns PNResult<PNAccessManagerTokenResult>:
-- Result (PNAccessManagerTokenResult): Contains Token (String)
+GrantToken() returns PNResult<PNAccessManagerTokenResult>:
+- Result (PNAccessManagerTokenResult)
+- Status (PNStatus)
+
+PNAccessManagerTokenResult
+- Token (string): current token with embedded permissions.
+
 ```
 `1{ "Token":"p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI"}  
 `
 ```
-- Status (PNStatus)
 
 ### Other examples - spaces & users (deprecated)
 
-Grant mixed access in a single call:
-- Grants my-authorized-userId:
-  - Read access to space-a and get to userId-c.
-  - Read/write access to space-b, space-c, space-d, and get/update to userId-d.
+Grant an authorized client different levels of access to various resources in a single call
+
 ```
 1
   
 
 ```
 
-Grant read access to multiple spaces using RegEx:
-- Grants my-authorized-userId read access to spaces matching space-[A-Za-z0-9].
+Grant an authorized client read access to multiple spaces using RegEx
+
 ```
 1
   
 
 ```
 
-Grant mixed access and RegEx-based read in one call:
-- Grants my-authorized-userId:
-  - Read access to space-a and userId-c.
-  - Read/write access to space-b, space-c, space-d, and get/update to userId-d.
-  - Read access to spaces matching space-[A-Za-z0-9].
+Grant an authorized client different levels of access to various resources and read access to spaces using RegEx in a single call
+
 ```
 1
   
@@ -366,6 +374,4 @@ Grant mixed access and RegEx-based read in one call:
 
 ### Error Responses - spaces & users (deprecated)
 
-Invalid requests return 400 with details (e.g., RegEx, timestamp, permissions).
-
-Last updated on Sep 3, 2025
+HTTP 400 with details for missing/incorrect arguments (e.g., RegEx, timestamp, permissions).

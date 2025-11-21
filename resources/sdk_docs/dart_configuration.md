@@ -1,10 +1,10 @@
 # Configuration API for Dart SDK
 
-Dart complete API reference for building real-time applications on PubNub, including basic usage and sample code.
+Dart API reference for configuring PubNub for real-time apps. Keep code blocks, parameters, and critical details.
 
 ## Configuration
 
-Create configurations for different subscribe keys using a Keyset object. Use KeysetStore to store your Keysets. Ensure names are unique; only one keyset can be the default.
+Create configurations for different subscribe keys using a Keyset. Use KeysetStore to store your Keysets. Names must be unique; only one default keyset is allowed.
 
 ### Method(s)
 
@@ -20,19 +20,40 @@ Create configurations for different subscribe keys using a Keyset object. Use Ke
 ```
 
 Keyset properties:
-- subscribeKey (String, required): subscribeKey from the Admin Portal.
-- publishKey (String): publishKey from the Admin Portal (required if publishing).
-- secretKey (String): used for administrative tasks. Keep secure; server-side only.
-- authKey (String): used with Access Manager for restricted requests.
-- userId (String, required): unique UTF-8 identifier (up to 92 alphanumeric chars). Must be set to connect.
-- cipherKey (String, deprecated): pass to crypto instead. If set, encrypts all communications.
-- UUID (String, deprecated): use userId instead.
+- subscribeKey
+  - Type: String
+  - Default: n/a
+  - Your subscribeKey from the Admin Portal.
+- publishKey
+  - Type: String
+  - Default: n/a
+  - Required for publishing.
+- secretKey
+  - Type: String
+  - Default: n/a
+  - Used for administrative tasks (server-side only).
+- authKey
+  - Type: String
+  - Default: n/a
+  - Used with Access Manager for restricted requests.
+- userId
+  - Type: String
+  - Default: n/a
+  - Required unique identifier (UTF-8, up to 92 alphanumeric characters). Must be set to connect.
+- cipherKey
+  - Type: String
+  - Default: n/a
+  - Deprecated here; pass via crypto instead. If provided, all communications are encrypted.
+- UUID
+  - Type: String
+  - Default: n/a
+  - Deprecated; use userId instead.
 
 ### Sample code
 
 ##### Required User ID
 
-Always set the userId to uniquely identify the user or device that connects to PubNub. Persist it for the lifetime of the user/device.
+Always set userId to uniquely identify the user/device. Persist it for the lifetime of the user/device.
 
 ```
 1import 'package:pubnub/pubnub.dart';  
@@ -54,11 +75,15 @@ Always set the userId to uniquely identify the user or device that connects to P
 
 ## Initialization
 
-Instantiate PubNub with a default Keyset. Keyset resolution:
+Add the SDK via Getting Started. Instantiate PubNub with a default Keyset.
+
+### Description
+
+Keyset resolution:
 - If provided, the keyset parameter is used.
 - Otherwise, the method uses the using parameter.
-- Otherwise, the method uses the default keyset.
-- If no default keyset is defined, the method throws an error.
+- Otherwise, the default keyset is used.
+- If no default keyset is defined, an error is thrown.
 
 ### Methods
 
@@ -72,24 +97,36 @@ Instantiate PubNub with a default Keyset. Keyset resolution:
 `
 ```
 
-Parameters:
-- defaultKeyset (Keyset): default keyset to use.
-- networking (INetworkingModule, default: NetworkingModule): configure custom origin, SSL, and subscribe retry policy.
-  - Default subscribe retry policy: RetryPolicy.exponential.
-  - Available:
+Constructor arguments:
+- defaultKeyset
+  - Type: Keyset
+  - Default: n/a
+  - The default keyset to use.
+- networking
+  - Type: INetworkingModule
+  - Default: NetworkingModule
+  - Configure custom origin, SSL, and subscribe retry policy.
+  - Default retry policy: RetryPolicy.exponential (subscribe only).
+  - RetryPolicy options:
     - RetryPolicy.none()
     - RetryPolicy.linear({backoff, maxRetries, maximumDelay})
     - RetryPolicy.exponential({maxRetries, maximumDelay})
-- parser (IParserModule, default: ParserModule): parsing module.
-- crypto (ICryptoModule, default: CryptoModule): encryption/decryption for messages/files. Takes cipherKey. See cryptoModule.
+- parser
+  - Type: IParserModule
+  - Default: ParserModule
+  - Parser for data.
+- crypto
+  - Type: ICryptoModule
+  - Default: CryptoModule
+  - Encrypts/decrypts messages/files; takes cipherKey. See cryptoModule.
 
 #### cryptoModule
 
-Encrypts/decrypts messages and files. From 4.2.4 onward, you can configure algorithms. Two options:
-- Legacy 128-bit encryption (default if cipherKey is set and cryptoModule not set).
-- Recommended 256-bit AES-CBC.
+Encrypts/decrypts messages and files. From 4.2.4, algorithms can be configured. Options: legacy 128-bit and recommended 256-bit AES-CBC. If cryptoModule is not set but cipherKey is set in config, legacy encryption is used. For full setup and examples, see Encryption.
 
-For details and utilities, see Encryption docs.
+##### Legacy encryption with 128-bit cipher key entropy
+
+No change needed to keep legacy. To use 256-bit AES-CBC, explicitly set it in PubNub config.
 
 ### Sample code
 
@@ -114,7 +151,7 @@ For details and utilities, see Encryption docs.
 
 ### Returns
 
-PubNub instance for invoking APIs like publish(), subscribe(), etc.
+A PubNub instance for invoking APIs like publish(), subscribe(), etc.
 
 ### Other examples
 
@@ -140,6 +177,8 @@ PubNub instance for invoking APIs like publish(), subscribe(), etc.
 
 #### Initialization with custom origin
 
+Route all traffic through example.com:
+
 ```
 `1final pubnub = PubNub(  
 2  defaultKeyset: myKeyset,  
@@ -160,7 +199,7 @@ PubNub instance for invoking APIs like publish(), subscribe(), etc.
 
 #### Initializing with Access Manager
 
-Requires Access Manager add-on. Keep secretKey secure; use only on secure server-side platforms. Initializing with secretKey grants root Access Manager permissions.
+Requires Access Manager add-on. Secure your secretKey (server-side only). Initializing with secretKey grants root permissions for Access Manager operations:
 
 ```
 `1final pubnub = PubNub(  
@@ -173,16 +212,7 @@ Requires Access Manager add-on. Keep secretKey secure; use only on secure server
 
 ## Event listeners
 
-Listeners notify connectivity status, message, and presence via a Subscription.
-
-### Listeners
-
-Available:
-- message
-- signal
-- objects
-- messageAction
-- file
+Use listeners for connectivity status, messages, presence, etc. Requires a Subscription.
 
 ```
 1subscription.messages.listen((envelope) {  
@@ -247,7 +277,7 @@ Available:
 
 ## userID
 
-Set/get a user ID on the fly.
+Set/get a user ID.
 
 ### Methods
 
@@ -257,7 +287,9 @@ Set/get a user ID on the fly.
 `
 ```
 
-- userId (String): User ID to be used as a device identifier.
+- userId
+  - Type: String
+  - User ID to be used as device identifier.
 
 ### Sample code
 
@@ -275,7 +307,7 @@ Set/get a user ID on the fly.
 
 ## Authentication key
 
-Setter and getter for users' authentication key.
+Setter/getter for users' authentication key.
 
 ### Method(s)
 
@@ -287,7 +319,9 @@ Setter and getter for users' authentication key.
 `
 ```
 
-- authKey (String): If Access Manager is utilized, client uses this in all restricted requests.
+- authKey
+  - Type: String
+  - Used for restricted requests when Access Manager is enabled.
 
 ### Sample code
 
@@ -302,7 +336,7 @@ Setter and getter for users' authentication key.
 
 ## Filter expression
 
-Requires Stream Controller add-on. Apply a server-side filter to only receive messages that match the filter.
+Requires Stream Controller add-on. Server-side filtering to deliver only messages matching the filter.
 
 ### Method(s)
 
@@ -312,7 +346,9 @@ Requires Stream Controller add-on. Apply a server-side filter to only receive me
 `
 ```
 
-- filterExpression (String): PSV2 feature to subscribe with a custom filter expression.
+- filterExpression
+  - Type: String
+  - PSV2 feature to subscribe with a custom filter expression.
 
 ### Sample code
 
@@ -328,13 +364,11 @@ Requires Stream Controller add-on. Apply a server-side filter to only receive me
 
 ## Handling disconnects
 
-The client may disconnect due to network conditions. By default, the client reconnects exponentially for subscribe connections only. Non-subscribe requests never retry.
+Client may disconnect due to network issues. By default, subscribe connections use exponential reconnection only.
 
 ### Retry policy
 
-Configure subscribe retries via NetworkingModule. Set at PubNub construction time.
-
-Default: exponential retry for subscribe operations. Retries occur on network-related diagnostics (host down, lookup failed, timeouts, unknown HTTP exceptions). maxRetries applies to all except timeouts. Use RetryPolicy.none() to disable all retries (including subscribe).
+Configure subscribe retry behavior via NetworkingModule. Non-subscribe requests never retry. Set the policy at PubNub construction time.
 
 ```
 `1var pubnub = PubNub(  
@@ -344,13 +378,14 @@ Default: exponential retry for subscribe operations. Retries occur on network-re
 ```
 
 Available policies:
-- RetryPolicy.exponential({int? maxRetries, int? maximumDelay});
+- RetryPolicy.exponential({int? maxRetries, int? maximumDelay})
 - RetryPolicy.linear({int? backoff, int? maxRetries, int? maximumDelay})
+- RetryPolicy.none()
 
 Arguments:
-- maximumDelay (int): Max milliseconds to wait before a retry.
-- backoff (int): Linear backoff in milliseconds.
-- maxRetries (int): Max number of retries.
+- maximumDelay (int): Max milliseconds to wait before retry.
+- backoff (int): Milliseconds added per retry (plus jitter) for linear.
+- maxRetries (int): Maximum retries. Use none() to disable all retries.
 
 #### Examples
 

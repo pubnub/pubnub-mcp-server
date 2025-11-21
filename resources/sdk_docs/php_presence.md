@@ -1,20 +1,22 @@
 # Presence API for PHP SDK
 
-Presence tracks who is online/offline and stores custom state information:
+Presence tracks online/offline users and custom state:
 - Join/leave events per channel
-- Channel occupancy (user count)
-- Channels a user/UUID is subscribed to
+- Occupancy (user counts) per channel
+- Channels a user/device is subscribed to
 - Presence state per user
 
-Requires Presence add-on enabled for your key in the Admin Portal. For events, see Presence Events. Learn more in Presence overview.
+Requires Presence: Enable the Presence add-on for your key in the Admin Portal. See Presence Events for how to receive presence events.
 
-## Here now
+## Here now[​](#here-now)
 
-Returns current state of channels: subscribed UUIDs and occupancy count.
+Returns the current state of channels: unique UUIDs subscribed and total occupancy.
 
-- Cache: 3 seconds
+Cache: 3-second response cache time.
 
-### Method(s)
+### Method(s)[​](#methods)
+
+To call Here Now, use:
 
 ```
 `1$pubnub->hereNow()  
@@ -28,45 +30,41 @@ Returns current state of channels: subscribed UUIDs and occupancy count.
 `
 ```
 
-Parameters:
-- channels (String|Array, required): Channels to query.
-- channelGroups (String|Array): Channel groups to query. Wildcards not supported.
-- includeState (Boolean, default: false): Include presence states of users.
-- includeUuids (Boolean, default: true): Include UUIDs of connected clients.
-- limit (Integer, default: 1000): Max occupants per channel, 0–1000. Use 0 for occupancy-only.
-- offset (Integer): Zero-based start index for pagination. Must be >= 0. Requires limit > 0.
+- channels  
+  Type: String|Array  
+  Default: n/a  
+  The channels to get the here now details.
 
-### Sample code
+- channelGroups  
+  Type: String|Array  
+  Default: n/a  
+  The channel groups to get the here now details. Wildcards are not supported.
 
-#### Get a list of UUIDs subscribed to channel
+- includeState  
+  Type: Boolean  
+  Default: false  
+  If true, the response will include the presence states of the users for channels/channelGroups.
 
-Reference code:
+- includeUuids  
+  Type: Boolean  
+  Default: true  
+  If true, the response will include the UUIDs of the connected clients.
 
-```
-1
-  
+- limit  
+  Type: Integer  
+  Default: 1000  
+  Maximum number of occupants to return per channel. Valid range: 0-1000. Use 0 to get occupancy counts without user details.
 
-```
+- offset  
+  Type: Integer  
+  Default: n/a  
+  Zero-based starting index for pagination. Returns occupants starting from this position in the list. Must be >= 0. Requires limit > 0. Use with limit to paginate through large occupant lists.
 
-### Response
+### Sample code[​](#sample-code)
 
-hereNow() returns PNHereNowResult:
-- getTotalChannels() (Integer): Total channels.
-- getTotalOccupancy() (Integer): Total occupancy.
-- getChannels() (Array): Array of PNHereNowChannelData per channel.
+#### Get a list of UUIDs subscribed to channel[​](#get-a-list-of-uuids-subscribed-to-channel)
 
-PNHereNowChannelData:
-- getChannelName() (String): Channel name.
-- getOccupancy() (Integer): Channel occupancy.
-- getOccupants() (Array): Array of PNHereNowOccupantData.
-
-PNHereNowOccupantData:
-- getUuid() (String): User UUID.
-- getState() (Array): User state.
-
-### Other examples
-
-#### Returning state
+##### Reference code
 
 ```
 1
@@ -74,7 +72,57 @@ PNHereNowOccupantData:
 
 ```
 
-Example response
+### Response[​](#response)
+
+The hereNow() operation returns a PNHereNowResult with:
+
+- getTotalChannels()  
+  Type: Integer  
+  Total Channels.
+
+- getTotalOccupancy()  
+  Type: Integer  
+  Total Occupancy.
+
+- getChannels()  
+  Type: Array  
+  An array with values of PNHereNowChannelData for each channel.
+
+#### PNHereNowChannelData[​](#pnherenowchanneldata)
+
+- getChannelName()  
+  Type: String  
+  Channel name.
+
+- getOccupancy()  
+  Type: Integer  
+  Occupancy of the channel.
+
+- getOccupants()  
+  Type: Array  
+  An array of PNHereNowOccupantData.
+
+#### PNHereNowOccupantData[​](#pnherenowoccupantdata)
+
+- getUuid()  
+  Type: String  
+  UUID of the user.
+
+- getState()  
+  Type: Array  
+  State of the user.
+
+### Other examples[​](#other-examples)
+
+#### Returning state[​](#returning-state)
+
+```
+1
+  
+
+```
+
+##### Example response[​](#example-response)
 
 ```
 `1PubNub\Models\Consumer\Presence\PNHereNowResult Object(  
@@ -110,9 +158,9 @@ Example response
 `
 ```
 
-#### Return occupancy only
+#### Return occupancy only[​](#return-occupancy-only)
 
-Return only occupancy for a channel by setting includeUuids to false.
+You can return only the occupancy information for a single channel by specifying the channel and setting UUIDs to false:
 
 ```
 1
@@ -120,7 +168,7 @@ Return only occupancy for a channel by setting includeUuids to false.
 
 ```
 
-Example response
+##### Example response[​](#example-response-1)
 
 ```
 `1PubNub\Models\Consumer\Presence\PNHereNowResult Object(  
@@ -156,7 +204,7 @@ Example response
 `
 ```
 
-#### Here now for channel groups
+#### Here now for channel groups[​](#here-now-for-channel-groups)
 
 ```
 1
@@ -164,7 +212,7 @@ Example response
 
 ```
 
-Example response
+##### Example response[​](#example-response-2)
 
 ```
 `1(  
@@ -198,13 +246,13 @@ Example response
 `
 ```
 
-## Where now
+## Where now[​](#where-now)
 
-Returns list of channels a UUID is subscribed to.
+Returns the list of channels a UUID is subscribed to.
 
-- Timeout events: If the app restarts (or page refreshes) within the heartbeat window, no timeout event is generated.
+Timeout events: If the app restarts (or the page refreshes) within the heartbeat window, no timeout event is generated.
 
-### Method(s)
+### Method(s)[​](#methods-1)
 
 ```
 `1$pubnub->whereNow()  
@@ -213,10 +261,12 @@ Returns list of channels a UUID is subscribed to.
 `
 ```
 
-Parameters:
-- uuid (String, required): UUID to inspect.
+- uuid  
+  Type: String  
+  Default: n/a  
+  Uuid of the user we want to spy on.
 
-### Sample code
+### Sample code[​](#sample-code-1)
 
 ```
 1
@@ -224,12 +274,12 @@ Parameters:
 
 ```
 
-### Rest response from server
+### Rest response from server[​](#rest-response-from-server)
 
-Returns channels array for the uuid:
-- channels: ["String", ...] — List of channels the uuid is subscribed to.
+The whereNow() function returns a list of channels a uuid is subscribed to.
+- channels:["String","String", ... ,"String"] - List of channels a uuid is subscribed to.
 
-Example response
+#### Example response[​](#example-response-3)
 
 ```
 `1{  
@@ -242,7 +292,7 @@ Example response
 `
 ```
 
-### Other examples
+### Other examples[​](#other-examples-1)
 
 ```
 1
@@ -250,11 +300,11 @@ Example response
 
 ```
 
-## User state
+## User state[​](#user-state)
 
-Clients can set dynamic custom state (for example, score or location) per channel while subscribed. State is not persisted and is lost on disconnect. See Presence State.
+Clients can set a dynamic custom state (score, game state, location) for users on one or more channels; state persists only while subscribed and is lost on disconnect. See Presence State.
 
-### Method(s)
+### Method(s)[​](#methods-2)
 
 Set State:
 
@@ -267,10 +317,17 @@ Set State:
 `
 ```
 
-Parameters:
-- channels (String|Array): Channels to set state.
-- channelGroups (String|Array): Channel groups to set state.
-- state (Array): State map to set.
+- channels  
+  Type: String|Array  
+  channels to set state.
+
+- channelGroups  
+  Type: String|Array  
+  channel groups to set state.
+
+- state  
+  Type: Array  
+  State to set.
 
 Get state:
 
@@ -283,14 +340,21 @@ Get state:
 `
 ```
 
-Parameters:
-- channels (String|Array): Channels to get state.
-- channelGroups (String|Array): Channel groups to get state.
-- uuid (String): UUID to fetch state for.
+- channels  
+  Type: String|Array  
+  channels to get state.
 
-### Sample code
+- channelGroups  
+  Type: String|Array  
+  channel groups to get state.
 
-#### Set state
+- uuid  
+  Type: String  
+  uuid
+
+### Sample code[​](#sample-code-2)
+
+#### Set state[​](#set-state)
 
 ```
 1
@@ -298,7 +362,7 @@ Parameters:
 
 ```
 
-#### Get state
+#### Get state[​](#get-state)
 
 ```
 1
@@ -306,19 +370,25 @@ Parameters:
 
 ```
 
-### Response
+### Response[​](#response-1)
 
-setState() returns PNSetStateResult:
-- setState() (Array): UUIDs and user states.
+setState() returns PNSetStateResult with:
+- setState()  
+  Type: Array  
+  Array of UUIDs and the user states.
 
-getState() returns PNGetStateResult:
-- getChannels() (Array): Channels and user states.
+getState() returns PNGetStateResult with:
+- getChannels()  
+  Type: Array  
+  Array of channels and the user states.
 
-### Other examples
+### Other examples[​](#other-examples-2)
 
-#### Set state for channels in a channel group
+#### Set state for channels in a channel group[​](#set-state-for-channels-in-a-channel-group)
 
 ```
 1
 **
 ```
+
+Last updated on Nov 10, 2025**

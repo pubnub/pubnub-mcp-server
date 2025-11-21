@@ -1,19 +1,18 @@
 # Utility Methods API for Python SDK
 
-Utility methods that support connection management and subscription inspection.
+Utility methods for PubNub Python SDK.
 
 ## Disconnect
 
 Force the SDK to stop all requests to PubNub when there are active subscribe channels.
+- Arguments: None
 
-### Methods
+### Method(s)
 
 ```
 `1disconnect()  
 `
 ```
-
-- Takes no arguments.
 
 ### Sample code
 
@@ -58,22 +57,21 @@ Force the SDK to stop all requests to PubNub when there are active subscribe cha
 
 ## Reconnect
 
-Force the SDK to try reaching PubNub again.
+Force the SDK to try to reach PubNub again.
+- Arguments: None
 
-### Methods
+### Method(s)
 
 ```
 `1pubnub.reconnect()  
 `
 ```
 
-- Takes no arguments.
-
 ## Get subscribed channels
 
 Return all subscribed channels as a list.
 
-### Methods
+### Method(s)
 
 `pubnub.get_subscribed_channels()`
 
@@ -99,7 +97,7 @@ Return all subscribed channels as a list.
 
 Return all subscribed channel groups as a list.
 
-### Methods
+### Method(s)
 
 `pubnub.get_subscribed_channel_groups()`
 

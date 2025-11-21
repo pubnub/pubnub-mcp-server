@@ -1,12 +1,13 @@
 # File Sharing API for Kotlin SDK
 
 ##### Breaking changes in v9.0.0
-PubNub Kotlin SDK v9.0.0 unifies Kotlin and Java SDKs, introduces a new client instantiation, and changes async callbacks and emitted status events. These changes can impact apps built with versions < 9.0.0. See the Java/Kotlin SDK migration guide for details.
+- Kotlin SDK 9.0.0 unifies Kotlin and Java SDKs, changes client instantiation, async callbacks, and status events.
+- Apps built with < 9.0.0 may need updates. See Java/Kotlin SDK migration guide.
 
 You can upload/share files up to 5 MB. When a file is uploaded to a channel, subscribers receive a file event with file ID, filename, and optional description.
 
 ##### Request execution
-Most Kotlin SDK methods return an Endpoint. You must call .sync() or .async() to execute, otherwise the operation will not run.
+Most SDK methods return an Endpoint. You must call .sync() or .async() to execute.
 
 ```
 1val channel = pubnub.channel("channelName")  
@@ -19,13 +20,13 @@ Most Kotlin SDK methods return an Endpoint. You must call .sync() or .async() to
 7        // Handle successful method result  
 8    }  
 9}  
+
 ```
 
-## Send file
+## Send file[​](#send-file)
+Uploads a file to a channel and publishes a file message (internally calls publishFileMessage).
 
-Upload a file to a channel. This performs preparation, upload to storage, then publishes a file message on the channel using publishFileMessage.
-
-### Method(s)
+### Method(s)[​](#methods)
 ```
 `1pubnub.sendFile(  
 2    channel: String,  
@@ -41,19 +42,19 @@ Upload a file to a channel. This performs preparation, upload to storage, then p
 ```
 
 Parameters:
-- channel (String, required): Channel for the file.
+- channel (String, required): Target channel.
 - fileName (String, required): Name of the file to send.
-- inputStream (InputStream, required): Input stream with file content.
-- message (Any?, optional): Message to send along with the file.
-- meta (Any?, optional): Metadata object usable with filtering.
-- ttl (Int?, optional): How long the message should be stored in channel storage.
-- shouldStore (Boolean?, optional, default: true): Whether to store the published file message in channel history.
-- customMessageType (String, required): Case-sensitive alphanumeric label (3–50 chars). Dashes and underscores allowed. Cannot start with special chars or pn_ / pn- (e.g., text, action, poll).
+- inputStream (InputStream, required): File content.
+- message (Any?, optional): Message payload to send with the file.
+- meta (Any?, optional): Metadata for message filtering.
+- ttl (Int?, optional): How long the message is stored.
+- shouldStore (Boolean?, optional, default true): Store the file message in history.
+- customMessageType (String, required): Case-sensitive, 3–50 chars, alphanumeric with - and _. Cannot start with special chars or pn_/pn-. Examples: text, action, poll.
 
 Deprecated parameter:
-- cipherKey: Deprecated. Configure the crypto module instead. If provided, it overrides the crypto module and uses legacy 128-bit cipher key encryption.
+- cipherKey is deprecated. Configure the crypto module on your PubNub instance instead. Passing cipherKey overrides the module and uses legacy 128-bit encryption.
 
-### Sample code
+### Sample code[​](#sample-code)
 ##### Reference code
 ```
 1
@@ -61,7 +62,7 @@ Deprecated parameter:
 
 ```
 
-### Response
+### Response[​](#response)
 ```
 `1{  
 2  "timetoken": 15957709330808500,  
@@ -74,21 +75,20 @@ Deprecated parameter:
 `
 ```
 
-### Returns
-PNFileUploadResult
-- timetoken (Long): Timetoken when the message was published.
-- status (Int): Remote call return code.
+### Returns[​](#returns)
+sendFile() returns PNFileUploadResult:
+- timetoken (Long): Message publish timetoken.
+- status (Int): Remote call status code.
 - file (PNBaseFile): Uploaded file info.
 
-PNBaseFile
-- id (Long): Id of the uploaded file.
-- name (String): Name of the uploaded file.
+PNBaseFile:
+- id (Long): Uploaded file ID.
+- name (String): Uploaded file name.
 
-## List channel files
+## List channel files[​](#list-channel-files)
+Retrieves a paginated list of files uploaded to a channel.
 
-Retrieve a list of files uploaded to a channel.
-
-### Method(s)
+### Method(s)[​](#methods-1)
 ```
 `1pubnub.listFiles()  
 2    channel: String,  
@@ -99,18 +99,18 @@ Retrieve a list of files uploaded to a channel.
 ```
 
 Parameters:
-- channel (String, required): Channel to get list of files.
-- limit (Int, optional, default: 100): Number of files to return (1–100).
-- next (String?, optional): Position token for forward pagination.
+- channel (String, required): Channel to list files from.
+- limit (Int, optional, default 100, min 1, max 100): Number of files to return.
+- next (String?, optional): Token for forward pagination.
 
-### Sample code
+### Sample code[​](#sample-code-1)
 ```
 1
   
 
 ```
 
-### Response
+### Response[​](#response-1)
 ```
 `1{  
 2  "data":[  
@@ -128,25 +128,24 @@ Parameters:
 `
 ```
 
-### Returns
-PNListFilesResult
-- timetoken (Long): Timetoken when the message was published.
-- status (Int): Remote call return code.
-- next (String): Token for forward pagination.
+### Returns[​](#returns-1)
+listFiles() returns PNListFilesResult:
+- timetoken (Long): Message publish timetoken.
+- status (Int): Status code.
+- next (String): Pagination token for next page.
 - count (Int): Number of files returned.
-- data (List<PNUploadedFile>): List of channel files.
+- data (List<PNUploadedFile>): Files.
 
-PNUploadedFile
-- id (Long): Id of the uploaded file.
-- name (String): Name of the uploaded file.
-- size (Int): Size of the uploaded file.
-- created (String): Time of creation.
+PNUploadedFile:
+- id (Long): File ID.
+- name (String): File name.
+- size (Int): File size.
+- created (String): Creation time.
 
-## Get file URL
+## Get file URL[​](#get-file-url)
+Generates a download URL for a file.
 
-Generate a URL to download a file from a channel.
-
-### Method(s)
+### Method(s)[​](#methods-2)
 ```
 `1pubnub.getFileUrl(  
 2    channel: String,  
@@ -157,18 +156,18 @@ Generate a URL to download a file from a channel.
 ```
 
 Parameters:
-- channel (String, required): Channel to which the file was uploaded.
+- channel (String, required): Channel containing the file.
 - fileName (String, required): Stored file name.
-- fileId (String, required): Unique identifier assigned during upload.
+- fileId (String, required): File ID from upload.
 
-### Sample code
+### Sample code[​](#sample-code-2)
 ```
 1
   
 
 ```
 
-### Response
+### Response[​](#response-2)
 ```
 `1{  
 2    "url" : http://ps.pndsn.com/v1/files/demo/channels/my_channel/files/fileID/cat_picture.jpg?pnsdk=PubNub-kotlin-Unified/4.32.0&timestamp=1595771548&uuid=someUuid  
@@ -176,15 +175,14 @@ Parameters:
 `
 ```
 
-### Returns
-PNFileUrlResult
-- url (String): Download URL for the requested file.
+### Returns[​](#returns-2)
+getFileUrl() returns PNFileUrlResult:
+- url (String): Download URL.
 
-## Download file
+## Download file[​](#download-file)
+Downloads a file by channel, name, and ID.
 
-Download a specific file.
-
-### Method(s)
+### Method(s)[​](#methods-3)
 ```
 `1pubnub.downloadFile(  
 2    channel: String,  
@@ -195,21 +193,21 @@ Download a specific file.
 ```
 
 Parameters:
-- channel (String, required): Channel to which the file was uploaded.
+- channel (String, required): Channel containing the file.
 - fileName (String, required): Stored file name.
-- fileId (String, required): Unique identifier assigned during upload.
+- fileId (String, required): File ID from upload.
 
 Deprecated parameter:
-- cipherKey: Deprecated. Configure the crypto module instead. If provided, it overrides the crypto module and uses legacy 128-bit cipher key encryption.
+- cipherKey is deprecated. Use the crypto module instead. Passing cipherKey overrides the module and uses legacy 128-bit encryption.
 
-### Sample code
+### Sample code[​](#sample-code-3)
 ```
 1
   
 
 ```
 
-### Response
+### Response[​](#response-3)
 ```
 `1{  
 2    "fileName": "cat_picture.jpg",  
@@ -218,16 +216,15 @@ Deprecated parameter:
 `
 ```
 
-### Returns
-PNDownloadFileResult
-- fileName (string): Name of the downloaded file.
-- byteStream (InputStream): Stream containing file bytes.
+### Returns[​](#returns-3)
+downloadFile() returns PNDownloadFileResult:
+- fileName (string): Downloaded file name.
+- byteStream (InputStream): File bytes.
 
-## Delete file
+## Delete file[​](#delete-file)
+Deletes a file from a channel.
 
-Delete a file from a channel.
-
-### Method(s)
+### Method(s)[​](#methods-4)
 ```
 `1pubnub.deleteFile(  
 2    channel: String,  
@@ -238,18 +235,18 @@ Delete a file from a channel.
 ```
 
 Parameters:
-- channel (String, required): Channel from which to delete.
+- channel (String, required): Channel to delete from.
 - fileName (String, required): File name to delete.
-- fileId (String, required): Unique identifier of the file to delete.
+- fileId (String, required): File ID to delete.
 
-### Sample code
+### Sample code[​](#sample-code-4)
 ```
 1
   
 
 ```
 
-### Response
+### Response[​](#response-4)
 ```
 `1{  
 2    "status": 200  
@@ -257,15 +254,14 @@ Parameters:
 `
 ```
 
-### Returns
-PNDeleteFileResult
+### Returns[​](#returns-4)
+deleteFile() returns PNDeleteFileResult:
 - Status (int): Status code.
 
-## Publish file message
+## Publish file message[​](#publish-file-message)
+Publishes a message about an already-uploaded file to a channel. Called internally by sendFile. Use directly if sendFile fails after upload (status.operation === PNPublishFileMessageOperation) to resend the file message without re-uploading.
 
-Publish the uploaded file message to a channel. Called internally by sendFile after upload. Use directly to retry publishing if sendFile fails with PNPublishFileMessageOperation.
-
-### Method(s)
+### Method(s)[​](#methods-5)
 ```
 `1pubnub.publishFileMessage(  
 2    channel: String,  
@@ -282,31 +278,33 @@ Publish the uploaded file message to a channel. Called internally by sendFile af
 Parameters:
 - channel (String, required): Channel to publish the file message.
 - fileName (String, required): File name.
-- fileId (String, required): Unique file identifier.
+- fileId (String, required): File ID.
 - message (Any?, optional): Payload.
 - meta (Any?, optional): Metadata for filtering.
-- shouldStore (Boolean, optional, default: true): Store in history. Set false to skip; otherwise follows key retention.
-- customMessageType (String, required): Case-sensitive alphanumeric label (3–50 chars). Dashes and underscores allowed. Cannot start with special chars or pn_ / pn- (e.g., text, action, poll).
+- shouldStore (Boolean, default true): Store in history; set false to skip.
+- customMessageType (String, required): Case-sensitive, 3–50 chars, alphanumeric with - and _. Cannot start with special chars or pn_/pn-. Examples: text, action, poll.
 
-### Sample code
+### Sample code[​](#sample-code-5)
 ```
 1
   
 
 ```
 
-### Response
+### Response[​](#response-5)
 ```
 `1[1, "Sent", "17483548017978763"]  
 `
 ```
 
-### Returns
-PNFileUploadResult
-- timetoken (Long): Timetoken at which the message was published.
-- status (Int): Remote call return code.
+### Returns[​](#returns-5)
+publishFileMessage() returns PNFileUploadResult:
+- timetoken (Long): Message publish timetoken.
+- status (Int): Remote call status code.
 - file (PNBaseFile): Uploaded file information.
 
-PNBaseFile
-- id (Long): Unique identifier of the uploaded file
+PNBaseFile:
+- id (Long): Unique identifier of the uploaded file.
 - name (String): Name of the uploaded file
+
+Last updated on Sep 3, 2025

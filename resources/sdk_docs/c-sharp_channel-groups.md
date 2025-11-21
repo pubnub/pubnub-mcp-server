@@ -1,10 +1,10 @@
 # Channel Groups API for C# SDK
 
-Channel groups bundle many channels under a single name for subscription. You can't publish to a channel group—publish to individual channels instead.
+Channel groups bundle many channels under a single name. You can subscribe to a channel group to receive messages from its member channels. You can't publish to a channel group; publish to individual channels.
 
 ##### Request execution
 
-Use try/catch with the C# SDK. Invalid parameters throw exceptions. If the server request fails, details are in the returned status.
+Use try/catch with the C# SDK. Invalid parameters throw exceptions. If a request reaches the server but fails, error details are in the returned status.
 
 ```
 1try  
@@ -16,22 +16,26 @@ Use try/catch with the C# SDK. Invalid parameters throw exceptions. If the serve
 7
   
 8    PNStatus status = publishResponse.Status;  
-9  
+9
+  
 10    Console.WriteLine("Server status code : " + status.StatusCode.ToString());  
 11}  
 12catch (Exception ex)  
 13{  
 14    Console.WriteLine($"Request can't be executed due to error: {ex.Message}");  
 15}  
+
 ```
 
 ## Add channels to a channel group
 
-##### Requires Stream Controller add-on
+Requires Stream Controller add-on. Enable via Admin Portal. See support page for enabling add-ons.
 
-Adds channels to a channel group. Maximum 200 channels per API call.
+Adds channels to a channel group.
 
 ### Method(s)
+
+Maximum 200 channels per API call.
 
 ```
 `1pubnub.AddChannelsToChannelGroup()  
@@ -41,35 +45,33 @@ Adds channels to a channel group. Maximum 200 channels per API call.
 `
 ```
 
-- ChannelGroup (required) — Type: string. Channel group to add channels to.
-- Channels (required) — Type: Array. Channels to add.
-- QueryParam — Type: Dictionary<string, object>. Name/value query params for debug.
-- Async — Type: PNCallback of type PNChannelGroupsAddChannelResult. Deprecated; use ExecuteAsync.
-- Execute — Type: PNCallback of type PNChannelGroupsAddChannelResult. Deprecated; use ExecuteAsync.
-- ExecuteAsync — Type: None. Returns PNResult<PNChannelGroupsAddChannelResult>.
+Parameters:
+- ChannelGroup (required) Type: string — Channel group to add channels to.
+- Channels (required) Type: Array — Channels to add.
+- QueryParam Type: Dictionary<string, object> — Name/value pairs appended as query params for debugging.
+- Async Type: PNCallback of type PNChannelGroupsAddChannelResult. Deprecated; use ExecuteAsync.
+- Execute Type: PNCallback of type PNChannelGroupsAddChannelResult. Deprecated; use ExecuteAsync.
+- ExecuteAsync Type: None — Returns PNResult<PNChannelGroupsAddChannelResult>.
 
 ### Sample code
 
-##### Reference code
+#### Add channels
 
 ```
 1
   
+
 ```
 
 ### Returns
 
-PNResult<PNChannelGroupsAddChannelResult>:
-- Result — PNChannelGroupsAddChannelResult (empty object).
-- Status — PNStatus.
-
-PNChannelGroupsAddChannelResult:
-- PNChannelGroupsAddChannelResult — Object. Empty.
-- PNStatus — Object. Request status with error info if any.
+AddChannelsToChannelGroup() returns PNResult<PNChannelGroupsAddChannelResult>:
+- Result: PNChannelGroupsAddChannelResult — empty object.
+- Status: PNStatus.
 
 ## List channels in a channel group
 
-##### Requires Stream Controller add-on
+Requires Stream Controller add-on. Enable via Admin Portal. See support page for enabling add-ons.
 
 Lists all channels in a channel group.
 
@@ -82,11 +84,12 @@ Lists all channels in a channel group.
 `
 ```
 
-- ChannelGroup (required) — Type: string. Group for which to list channels.
-- QueryParam — Type: Dictionary<string, object>. Name/value query params for debug.
-- Async — Type: PNCallback of type PNChannelGroupsAllChannelsResult. Deprecated; use ExecuteAsync.
-- Execute — Type: PNCallback of type PNChannelGroupsAllChannelsResult. Deprecated; use ExecuteAsync.
-- ExecuteAsync — Type: None. Returns PNResult<PNChannelGroupsAllChannelsResult>.
+Parameters:
+- ChannelGroup (required) Type: string — Channel group to list.
+- QueryParam Type: Dictionary<string, object> — Name/value pairs appended as query params for debugging.
+- Async Type: PNCallback of type PNChannelGroupsAllChannelsResult. Deprecated; use ExecuteAsync.
+- Execute Type: PNCallback of type PNChannelGroupsAllChannelsResult. Deprecated; use ExecuteAsync.
+- ExecuteAsync Type: None — Returns PNResult<PNChannelGroupsAllChannelsResult>.
 
 ### Sample code
 
@@ -95,20 +98,18 @@ Lists all channels in a channel group.
 ```
 1
   
+
 ```
 
 ### Returns
 
-PNResult<PNChannelGroupsAllChannelsResult>:
-- Result — PNChannelGroupsAllChannelsResult.
-- Status — PNStatus.
-
-PNChannelGroupsAllChannelsResult:
-- Channels — List<string>. Channels in the group.
+ListChannelsForChannelGroup() returns PNResult<PNChannelGroupsAllChannelsResult>:
+- Result: PNChannelGroupsAllChannelsResult — contains Channels: List<string>.
+- Status: PNStatus.
 
 ## Remove channels from a channel group
 
-##### Requires Stream Controller add-on
+Requires Stream Controller add-on. Enable via Admin Portal. See support page for enabling add-ons.
 
 Removes channels from a channel group.
 
@@ -122,12 +123,13 @@ Removes channels from a channel group.
 `
 ```
 
-- ChannelGroup (required) — Type: string. Group to remove channels from.
-- Channels (required) — Type: Array. Channels to remove.
-- QueryParam — Type: Dictionary<string, object>. Name/value query params for debug.
-- Async — Type: PNCallback of type PNChannelGroupsRemoveChannelResult. Deprecated; use ExecuteAsync.
-- Execute — Type: PNCallback of type PNChannelGroupsRemoveChannelResult. Deprecated; use ExecuteAsync.
-- ExecuteAsync — Type: None. Returns PNResult<PNChannelGroupsRemoveChannelResult>.
+Parameters:
+- ChannelGroup (required) Type: string — Channel group to remove channels from.
+- Channels (required) Type: Array — Channels to remove.
+- QueryParam Type: Dictionary<string, object> — Name/value pairs appended as query params for debugging.
+- Async Type: PNCallback of type PNChannelGroupsRemoveChannelResult. Deprecated; use ExecuteAsync.
+- Execute Type: PNCallback of type PNChannelGroupsRemoveChannelResult. Deprecated; use ExecuteAsync.
+- ExecuteAsync Type: None — Returns PNResult<PNChannelGroupsRemoveChannelResult>.
 
 ### Sample code
 
@@ -136,20 +138,18 @@ Removes channels from a channel group.
 ```
 1
   
+
 ```
 
 ### Returns
 
-PNResult<PNChannelGroupsRemoveChannelResult>:
-- Result — PNChannelGroupsRemoveChannelResult (empty object).
-- Status — PNStatus.
-
-PNChannelGroupsRemoveChannelResult:
-- PNChannelGroupsRemoveChannelResult — Object. Empty.
+RemoveChannelsFromChannelGroup() returns PNResult<PNChannelGroupsRemoveChannelResult>:
+- Result: PNChannelGroupsRemoveChannelResult — empty object.
+- Status: PNStatus.
 
 ## Delete a channel group
 
-##### Requires Stream Controller add-on
+Requires Stream Controller add-on. Enable via Admin Portal. See support page for enabling add-ons.
 
 Deletes a channel group.
 
@@ -162,11 +162,12 @@ Deletes a channel group.
 `
 ```
 
-- ChannelGroup (required) — Type: string. Group to delete.
-- QueryParam — Type: Dictionary<string, object>. Name/value query params for debug.
-- Async — Type: PNCallback of type PNChannelGroupsDeleteGroupResult. Deprecated; use ExecuteAsync.
-- Execute — Type: PNCallback of type PNChannelGroupsDeleteGroupResult. Deprecated; use ExecuteAsync.
-- ExecuteAsync — Type: None. Returns PNResult<PNChannelGroupsAllChannelsResult>.
+Parameters:
+- ChannelGroup (required) Type: string — Channel group to delete.
+- QueryParam Type: Dictionary<string, object> — Name/value pairs appended as query params for debugging.
+- Async Type: PNCallback of type PNChannelGroupsDeleteGroupResult. Deprecated; use ExecuteAsync.
+- Execute Type: PNCallback of type PNChannelGroupsDeleteGroupResult. Deprecated; use ExecuteAsync.
+- ExecuteAsync Type: None — Returns PNResult<PNChannelGroupsAllChannelsResult>.
 
 ### Sample code
 
@@ -175,6 +176,7 @@ Deletes a channel group.
 ```
 1
   
+
 ```
 
 ### Response
@@ -188,4 +190,4 @@ Deletes a channel group.
 `
 ```
 
-Last updated on Sep 3, 2025
+Last updated on Sep 3, 2025**

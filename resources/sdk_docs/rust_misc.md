@@ -1,56 +1,64 @@
 # Utility Methods API for Rust SDK
 
-Utility methods that don't fit into other categories.
+Utility methods that don't fit other categories.
 
-## Disconnect
+## Disconnect[​](#disconnect)
 
-Disconnect from PubNub and pause real-time updates from all data streams. Saves a cursor of the last received message. Reversible by reconnecting.
+Disconnect from PubNub and pause listening for real-time updates. Saves a cursor of the last received message. Reversible via reconnect.
 
 ##### Client scope
+
 This method is only available on the PubNub object.
 
-### Method(s)
+### Method(s)[​](#methods)
+
 ```
 `1pubnub.disconnect()  
 `
 ```
 
-### Sample code
+### Sample code[​](#sample-code)
+
 ```
 `1pubnub.disconnect();  
 `
 ```
 
-### Returns
+### Returns[​](#returns)
+
 None
 
-## Reconnect
+## Reconnect[​](#reconnect)
 
-Reconnect to PubNub and resume real-time updates from all data streams. Uses the saved cursor for best-effort message catch-up between disconnect and reconnect.
+Reconnect to PubNub and resume listening. Uses the last saved cursor for best-effort message catch-up between disconnect and reconnect.
 
 ##### Client scope
+
 This method is only available on the PubNub object.
 
-### Method(s)
+### Method(s)[​](#methods-1)
+
 ```
 `1pubnub.reconnect(cursor: OptionSubscriptionCursor>)  
 `
 ```
 
 - Parameter: cursor
-  - Type: `Option<SubscriptionCursor>`
-  - Default: Cursor of the last received message before `disconnect()` was called.
-  - Behavior: Cursor from which to return any available cached messages (best-effort; not guaranteed).
-  - Structure: `SubscriptionCursor { timetoken: String, region: u32 }`
-  - Pass `None` if not needed.
+  - Type: Option<SubscriptionCursor>
+  - Default: Cursor of the last received message before disconnect() was called
+  - Purpose: Return any available cached messages since disconnect (best-effort; not guaranteed)
+  - Structure: SubscriptionCursor{timetoken: String, region: u32}
+  - Pass None if not needed.
 
-### Sample code
+### Sample code[​](#sample-code-1)
+
 ```
 `1pubnub.reconnect(None);  
 `
 ```
 
-### Returns
+### Returns[​](#returns-1)
+
 None
 
 Last updated on Jul 15, 2025

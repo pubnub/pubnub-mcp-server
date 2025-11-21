@@ -1,10 +1,12 @@
 # Mobile Push Notifications API for C# SDK
 
-Connect PubNub publishing to FCM (Android) and APNs (iOS). Learn more: Mobile Push Notifications.
+Connect PubNub publishing to third-party push services: Google Android FCM (Firebase Cloud Messaging) and Apple iOS APNs (Apple Push Notification service).
+
+To learn more, read about [Mobile Push Notifications](/docs/general/push/send).
 
 ##### Request execution
 
-Use try/catch. Invalid parameters throw exceptions. Server/network failures return details in status.
+Use `try`/`catch` with the C# SDK. Invalid parameters throw exceptions. Server/network failures return error details in `status`.
 
 ```
 1try  
@@ -16,21 +18,20 @@ Use try/catch. Invalid parameters throw exceptions. Server/network failures retu
 7
   
 8    PNStatus status = publishResponse.Status;  
-9
-  
+9  
 10    Console.WriteLine("Server status code : " + status.StatusCode.ToString());  
 11}  
 12catch (Exception ex)  
 13{  
 14    Console.WriteLine($"Request can't be executed due to error: {ex.Message}");  
 15}  
-
 ```
 
 ## Add a device to a push notifications channel
 
 ##### Requires Mobile Push Notifications add-on
-Enable Mobile Push Notifications for your key in the Admin Portal.
+
+Enable Mobile Push Notifications for your key in the [Admin Portal](https://admin.pubnub.com/).
 
 Enable mobile push notifications on a set of channels.
 
@@ -47,38 +48,34 @@ Enable mobile push notifications on a set of channels.
 `
 ```
 
-Parameters:
-- PushType (PNPushType) – Push type. One of: PNPushType.FCM or PNPushType.APNS2.
-- Channels (Array) – Channels to enable for push notifications.
-- DeviceId (string) – Device ID (push token).
-- Environment (PushEnvironment) – APNs environment: Development or Production.
-- Topic (string) – APNs topic (bundle identifier).
-- QueryParam (Dictionary<string, object>) – Query string parameters.
-- Async (PNCallback) – Deprecated; prefer ExecuteAsync.
-- Execute (PNCallback) – Callback of type PNPushAddChannelResult.
-- ExecuteAsync – Returns PNResult<PNPushAddChannelResult>.
+- PushType (required). Type: PNPushType. One of: `PNPushType.FCM`, `PNPushType.APNS2`.
+- Channels (required). Type: Array. Channels to enable for push notifications.
+- DeviceId (required). Type: string. Device ID (push token).
+- Environment. Type: PushEnvironment. APNs environment (`Development`, `Production`).
+- Topic. Type: string. APNs topic (bundle identifier).
+- QueryParam. Type: Dictionary<string, object>. Name/value pairs to send as query parameters.
+- Async. Type: PNCallback. Deprecated; prefer `ExecuteAsync`.
+- Execute. Type: PNCallback. Callback of type `PNPushAddChannelResult`.
+- ExecuteAsync. Type: None. Returns `PNResult<PNPushAddChannelResult>`.
 
 ### Sample code
-
-##### Reference code
-Use this pattern when adapting other examples in this document.
 
 #### Add device to channel
 
 ```
 1
   
-
 ```
 
 ### Returns
 
-No payload. Check status.isError() on the status object.
+No payload is returned. Check `status.isError()` on the status object.
 
 ## List push notifications channels for a device
 
 ##### Requires Mobile Push Notifications add-on
-Enable Mobile Push Notifications for your key in the Admin Portal.
+
+Enable Mobile Push Notifications for your key in the [Admin Portal](https://admin.pubnub.com/).
 
 Get all channels with push notifications for the specified push token.
 
@@ -94,15 +91,14 @@ Get all channels with push notifications for the specified push token.
 `
 ```
 
-Parameters:
-- DeviceId (string) – Device ID (push token).
-- PushType (PNPushType) – PNPushType.FCM or PNPushType.APNS2.
-- Environment (PushEnvironment) – APNs environment: Development or Production.
-- Topic (string) – APNs topic (bundle identifier).
-- QueryParam (Dictionary<string, object>) – Query string parameters.
-- Async (PNCallback) – Deprecated; prefer ExecuteAsync.
-- Execute (PNCallback) – Callback of type PNPushListProvisionsResult.
-- ExecuteAsync – Returns PNResult<PNPushListProvisionsResult>.
+- DeviceId (required). Type: string. Device ID (push token).
+- PushType (required). Type: PNPushType. One of: `PNPushType.FCM`, `PNPushType.APNS2`.
+- Environment. Type: PushEnvironment. APNs environment (`Development`, `Production`).
+- Topic. Type: string. APNs topic (bundle identifier).
+- QueryParam. Type: Dictionary<string, object>. Name/value pairs to send as query parameters.
+- Async. Type: PNCallback. Deprecated; prefer `ExecuteAsync`.
+- Execute. Type: PNCallback. Callback of type `PNPushListProvisionsResult`.
+- ExecuteAsync. Type: None. Returns `PNResult<PNPushListProvisionsResult>`.
 
 ### Sample code
 
@@ -111,18 +107,18 @@ Parameters:
 ```
 1
   
-
 ```
 
 ### Returns
 
-PNPushListProvisionsResult with:
-- Channels (List<string>) – Channels associated with push notifications.
+`PNPushListProvisionsResult` with:
+- Channels. Type: List<string>. Channels associated with push notifications.
 
 ## Remove a device from push notifications channels
 
 ##### Requires Mobile Push Notifications add-on
-Enable Mobile Push Notifications for your key in the Admin Portal.
+
+Enable Mobile Push Notifications for your key in the [Admin Portal](https://admin.pubnub.com/).
 
 Disable push notifications on selected channels.
 
@@ -139,16 +135,15 @@ Disable push notifications on selected channels.
 `
 ```
 
-Parameters:
-- DeviceId (string) – Device ID (push token).
-- Channels (Array) – Channels to disable for push notifications.
-- PushType (PNPushType) – PNPushType.FCM or PNPushType.APNS2.
-- Environment (PushEnvironment) – APNs environment: Development or Production.
-- Topic (string) – APNs topic (bundle identifier).
-- QueryParam (Dictionary<string, object>) – Query string parameters.
-- Async (PNCallback) – Deprecated; prefer ExecuteAsync.
-- Execute (PNCallback) – Callback of type PNPushRemoveChannelResult.
-- ExecuteAsync – Returns PNResult<PNPushRemoveChannelResult>.
+- DeviceId (required). Type: string. Device ID (push token).
+- Channels (required). Type: Array. Channels to disable for push notifications.
+- PushType (required). Type: PNPushType. One of: `PNPushType.FCM`, `PNPushType.APNS2`.
+- Environment. Type: PushEnvironment. APNs environment (`Development`, `Production`).
+- Topic. Type: string. APNs topic (bundle identifier).
+- QueryParam. Type: Dictionary<string, object>. Name/value pairs to send as query parameters.
+- Async. Type: PNCallback. Deprecated; prefer `ExecuteAsync`.
+- Execute. Type: PNCallback. Callback of type `PNPushRemoveChannelResult`.
+- ExecuteAsync. Type: None. Returns `PNResult<PNPushRemoveChannelResult>`.
 
 ### Sample code
 
@@ -157,17 +152,17 @@ Parameters:
 ```
 1
   
-
 ```
 
 ### Returns
 
-No payload. Check status.isError() on the status object.
+No payload is returned. Check `status.isError()` on the status object.
 
 ## Remove a device from all push notifications channels
 
 ##### Requires Mobile Push Notifications add-on
-Enable Mobile Push Notifications for your key in the Admin Portal.
+
+Enable Mobile Push Notifications for your key in the [Admin Portal](https://admin.pubnub.com/).
 
 Disable push notifications from all channels registered for the specified push token.
 
@@ -183,15 +178,14 @@ Disable push notifications from all channels registered for the specified push t
 `
 ```
 
-Parameters:
-- DeviceId (string) – Device ID (push token).
-- PushType (PNPushType) – PNPushType.FCM or PNPushType.APNS2.
-- Environment (PushEnvironment) – APNs environment: Development or Production.
-- Topic (string) – APNs topic (bundle identifier).
-- QueryParam (Dictionary<string, object>) – Query string parameters.
-- Async (PNCallback) – Deprecated; prefer ExecuteAsync.
-- Execute (PNCallback) – Callback of type PNPushRemoveAllChannelsResult.
-- ExecuteAsync – Returns PNResult<PNPushRemoveAllChannelsResult>.
+- DeviceId (required). Type: string. Device ID (push token).
+- PushType (required). Type: PNPushType. One of: `PNPushType.FCM`, `PNPushType.APNS2`.
+- Environment. Type: PushEnvironment. APNs environment (`Development`, `Production`).
+- Topic. Type: string. APNs topic (bundle identifier).
+- QueryParam. Type: Dictionary<string, object>. Name/value pairs to send as query parameters.
+- Async. Type: PNCallback. Deprecated; prefer `ExecuteAsync`.
+- Execute. Type: PNCallback. Callback of type `PNPushRemoveAllChannelsResult`.
+- ExecuteAsync. Type: None. Returns `PNResult<PNPushRemoveAllChannelsResult>`.
 
 ### Sample code
 
@@ -200,11 +194,12 @@ Parameters:
 ```
 1
   
-
 ```
 
 ### Returns
 
-PNPushRemoveAllChannelsResult with:
-- PNPushRemoveAllChannelsResult (object) – Empty object on success.
-- PNStatus (object) – Request status (error or success).
+Returns `PNPushRemoveAllChannelsResult` with:
+- PNPushRemoveAllChannelsResult. Type: Object. Empty object on success.
+- PNStatus. Type: Object. Request status (error or success).
+
+Last updated on Oct 28, 2025

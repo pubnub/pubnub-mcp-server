@@ -1,17 +1,20 @@
 # Message Actions API for Java SDK
 
 ##### Breaking changes in v9.0.0
-Java SDK v9.0.0 unifies Java and Kotlin SDK codebases, changes client instantiation, and updates asynchronous API callbacks and emitted status events. Apps built with versions < 9.0.0 may be impacted. See the Java/Kotlin SDK migration guide.
+Java SDK v9.0.0 unifies Java and Kotlin SDKs, changes client instantiation, async callbacks, and emitted status events. Apps built with versions < 9.0.0 may be impacted. See Java/Kotlin SDK migration guide.
 
-Use Message Actions to add or remove metadata on published messages (receipts, reactions). Subscribe to channels to receive action events. Fetch past actions from Message Persistence on demand or with original messages.
+Use Message Actions to add/remove metadata on published messages (receipts, reactions). Subscribe to channels to receive action events. You can fetch past actions from Message Persistence.
 
 ##### Reactions
-Message Reactions are a specific use of Message Actions for emoji/social reactions. Core and Chat SDKs may refer to this same API as “Message Reactions.”
+“Message Reactions” is a specific use of Message Actions for emoji/social reactions.
+
+##### Message Actions vs. Message Reactions
+Message Actions is the low-level API for attaching metadata (read receipts, confirmations, custom data). “Message Reactions” is the same API used for emoji reactions (terminology differs by use case).
 
 ## Add message action[​](#add-message-action)
 
 ##### Requires Message Persistence
-Enable Message Persistence for your key in the Admin Portal as described in the support article.
+Enable Message Persistence for your key in the Admin Portal.
 
 Add an action to a published message. The response includes the added action.
 
@@ -25,11 +28,12 @@ Use this Java method:
 ```
 
 Parameters:
-- channel — Type: String. Channel name to add the message action to.
-- messageAction — Type: PNMessageAction. Message action payload (type, value, message timetoken).
-- async — Type: Consumer<Result>. Callback of type PNAddMessageActionResult.
+- channel (String): Channel to add the message action to.
+- messageAction (PNMessageAction): Action payload (type, value, message timetoken).
+- async (Consumer<Result>): Callback of type PNAddMessageActionResult.
 
 ### Sample code[​](#sample-code)
+
 ##### Reference code
 This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
 ```
@@ -39,22 +43,22 @@ This example is a self-contained code snippet ready to be run. It includes neces
 ```
 
 ### Returns[​](#returns)
-addMessageAction() returns PNAddMessageActionResult with:
-- getType() — Type: String. Message action type.
-- getValue() — Type: String. Message action value.
-- getUuid() — Type: String. Publisher of the message action.
-- getActionTimetoken() — Type: Long. Timestamp when the message action was created.
-- getMessageTimetoken() — Type: Long. Timestamp when the related message was created.
+addMessageAction() returns PNAddMessageActionResult:
+- getType(): String — Message action type.
+- getValue(): String — Message action value.
+- getUuid(): String — Publisher of the message action.
+- getActionTimetoken(): Long — When the action was created.
+- getMessageTimetoken(): Long — Timetoken of the message the action belongs to.
 
 #### PNMessageAction[​](#pnmessageaction)
-- setType() — Type: String. Message action type.
-- setValue() — Type: String. Message action value.
-- setMessageTimetoken() — Type: Long. Timetoken of the target message.
+- setType(String): Message action type.
+- setValue(String): Message action value.
+- setMessageTimetoken(Long): Timetoken of the target message.
 
 ## Remove message action[​](#remove-message-action)
 
 ##### Requires Message Persistence
-Enable Message Persistence for your key in the Admin Portal as described in the support article.
+Enable Message Persistence for your key in the Admin Portal.
 
 Remove a previously added action from a published message. The response is empty.
 
@@ -69,10 +73,10 @@ Use this Java method:
 ```
 
 Parameters:
-- channel — Type: String. Channel name to remove the message action from.
-- messageTimetoken — Type: Long. Timetoken of the target message.
-- actionTimetoken — Type: Long. Timetoken of the message action to remove.
-- async — Type: Consumer<Result>. Callback of type PNRemoveMessageActionResult.
+- channel (String): Channel to remove the action from.
+- messageTimetoken (Long): Timetoken of the target message.
+- actionTimetoken (Long): Timetoken of the action to remove.
+- async (Consumer<Result>): Callback of type PNRemoveMessageActionResult.
 
 ### Sample code[​](#sample-code-1)
 ```
@@ -87,12 +91,12 @@ removeMessageAction() returns no actionable data.
 ## Get message actions[​](#get-message-actions)
 
 ##### Requires Message Persistence
-Enable Message Persistence for your key in the Admin Portal as described in the support article.
+Enable Message Persistence for your key in the Admin Portal.
 
-Get a list of message actions in a channel. Actions are sorted by action timetoken in ascending order.
+Get a list of message actions in a channel. Actions are sorted by action timetoken ascending.
 
 ##### Truncated response
-If the response is truncated, a more property is returned with additional parameters. Make iterative calls adjusting parameters to fetch more actions.
+Responses may be truncated. If so, a more property is returned with additional parameters. Send iterative calls, adjusting parameters to fetch more actions.
 
 ### Method(s)[​](#methods-2)
 Use this Java method:
@@ -106,11 +110,11 @@ Use this Java method:
 ```
 
 Parameters:
-- channel — Type: String. Default: n/a. Channel name to list message actions for.
-- start — Type: Long. Default: n/a. Message action timetoken for the start of the range (exclusive).
-- end — Type: Long. Default: n/a. Message action timetoken for the end of the range (inclusive).
-- limit — Type: Integer. Default: 100. Maximum: 100. Maximum number of actions to return.
-- async — Type: Consumer<Result>. Default: n/a. Callback of type PNGetMessageActionsResult.
+- channel (String): Channel to list actions for.
+- start (Long): Start action timetoken (exclusive).
+- end (Long): End action timetoken (inclusive).
+- limit (Integer): Max actions to return. Default/Max 100.
+- async (Consumer<Result>): Callback of type PNGetMessageActionsResult.
 
 ### Sample code[​](#sample-code-2)
 ```
@@ -120,12 +124,12 @@ Parameters:
 ```
 
 ### Returns[​](#returns-2)
-getMessageActions() returns a list of PNGetMessageActionsResult objects with:
-- getType() — Type: String. Message action type.
-- getValue() — Type: String. Message action value.
-- getUuid() — Type: String. Publisher of the message action.
-- getActionTimetoken() — Type: Long. Timestamp when the message action was created.
-- getMessageTimetoken() — Type: Long. Timestamp when the related message was created.
+getMessageActions() returns a list of PNGetMessageActionsResult:
+- getType(): String — Message action type.
+- getValue(): String — Message action value.
+- getUuid(): String — Publisher of the message action.
+- getActionTimetoken(): Long — When the action was created.
+- getMessageTimetoken(): Long — Timetoken of the message the action belongs to.
 
 ### Other examples[​](#other-examples)
 

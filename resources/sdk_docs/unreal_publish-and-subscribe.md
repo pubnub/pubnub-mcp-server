@@ -1,21 +1,15 @@
 # Publish/Subscribe API for Unreal SDK
 
-Use PubNub via Blueprints or C++.
+Use PubNub via Blueprints (Pubnub Subsystem node) or C++.
 
-In Blueprints, start with the Pubnub Subsystem node.
-
-In C++, add a dependency to PubnubLibrary:
-
-In your IDE, navigate to `Source/_{YourProject}_/_{YourProject}_.Build.cs` and add a dependency to `PubnubLibrary`.
+Add C++ dependency in Build.cs:
 
 ```
 `PrivateDependencyModuleNames.AddRange(new string[] { "PubnubLibrary" });  
 `
 ```
 
-Compile and run the project.
-
-In C++, use the PubNub SDK as any other Game Instance Subsystem.
+Access subsystem in C++:
 
 ```
 #include "Kismet/GameplayStatics.h"  
@@ -27,52 +21,42 @@ UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>(
 
 ```
 
-Call SDK functions from `PubnubSubsystem`, for example:
+Example:
 
 ```
 `PubnubSubsystem->SubscribeToChannel("MyChannel");  
 `
 ```
 
-### Usage in Blueprints and C++
+## Publish - Channel entity
 
-PubNub delivers messages worldwide in less than 30 ms. Send a message to one recipient or broadcast to thousands of subscribers.
-
-For conceptual details, see Connection Management and Publish Messages.
-
-## Publish - Channel entity[​](#publish---channel-entity)
-
-Available in entities
-- Channel
+Available in entities: Channel
 
 `PublishMessage()` sends a message to all channel subscribers.
 
 - Prerequisites and limitations
-  - Initialize with `publishKey`.
+  - Initialize with publishKey.
   - Create a Channel entity to publish to.
-  - Publishing does not require subscription.
-  - Can't publish to multiple channels simultaneously.
+  - Subscription to the channel is not required to publish.
+  - Cannot publish to multiple channels simultaneously.
 - Security
-  - Use TLS/SSL during initialization. You can also encrypt messages.
+  - Use TLS/SSL during initialization; encryption supported.
 - Message data
-  - Payload must be JSON-serializable (objects, arrays, numbers, strings). Avoid special classes/functions. UTF‑8 strings supported.
-  - Don't JSON serialize
-    - Do not pre-serialize `message` or `meta`. Pass full objects; SDK serializes automatically.
+  - JSON-serializable data (objects, arrays, integers, strings). UTF‑8 strings.
+  - Don't JSON serialize the message or meta; SDK handles serialization.
 - Size
-  - Max message size: 32 KiB (includes escaped characters and channel name). Target < 1,800 bytes for best performance.
-  - Messages over limit return `Message Too Large`.
+  - Max 32 KiB (includes escaped chars and channel). Aim under ~1,800 bytes.
 - Publish rate
-  - Publish as fast as bandwidth allows; soft throughput limits apply (in-memory queue ~100).
+  - Soft throughput limit; in-memory subscriber queue of 100 messages.
 - Custom message type
-  - Optional `CustomMessageType` (for example, `text`, `action`, `poll`).
+  - Optional CustomMessageType (for example: text, action, poll).
 - Best practices
-  - Publish serially; verify success code (e.g., `[1,"Sent","136074940..."]`).
-  - Publish next message only after success; on failure (`[0,"blah","<timetoken>"]`), retry.
-  - Keep queue under 100; throttle bursts (e.g., <= 5 msgs/sec).
+  - Publish serially; verify success; retry on failure.
+  - Keep queue under 100; throttle bursts (e.g., ≤5 msg/s).
 
-### Method(s)[​](#methods)
+### Method(s)
 
-Create a Channel entity, then publish:
+To publish to a channel, first create a Channel entity.
 
 ```
 1UPubnubChannelEntity* ChannelEntity = PubnubSubsystem->CreateChannelEntity("my-channel");  
@@ -86,33 +70,33 @@ Create a Channel entity, then publish:
 
 ```
 
-- Parameters
-  - Message (required) Type: FString — String or JSON-formatted string with serialized data.
-  - OnPublishMessageResponse Type: FOnPublishMessageResponse — Result delegate. Native callback: FOnPublishMessageResponseNative.
-  - PublishSettings Type: FPubnubPublishSettings — Publish configuration.
+Parameters:
+- Message (FString): Message to publish; literal or JSON-formatted string.
+- OnPublishMessageResponse (FOnPublishMessageResponse): Delegate for result. Also supports FOnPublishMessageResponseNative.
+- PublishSettings (FPubnubPublishSettings): Publish configuration.
 
-#### FPubnubPublishSettings[​](#fpubnubpublishsettings)
+#### FPubnubPublishSettings
 
-- StoreInHistory Type: bool — Store message for History (default true).
-- Ttl Type: int — TTL in hours; defaults to key’s retention period.
-- MetaData Type: FString — JSON object for message filtering.
-- PublishMethod Type: EPubnubPublishMethod — HTTP method:
+- StoreInHistory (bool): Store message for History API. Default true.
+- Ttl (int): Time-to-live in hours; defaults to key’s retention if not set.
+- MetaData (FString): JSON object for additional metadata (for filtering).
+- PublishMethod (EPubnubPublishMethod): HTTP method:
   - PPM_SendViaGET
   - PPM_SendViaPOST
   - PPM_UsePATCH
   - PPM_SendViaPOSTwithGZIP
   - PPM_UsePATCHwithGZIP
   - PPM_UseDELETE
-- Replicate Type: bool — If true, replicates to subscribers; if false, only Functions receive.
-- CustomMessageType Type: FString — 3–50 char case-sensitive alphanumeric label; dashes and underscores allowed; cannot start with special chars or with pn_ / pn-. Examples: text, action, poll.
+- Replicate (bool): If true, deliver to all subscribers; if false, to Functions only.
+- CustomMessageType (FString): 3–50 chars, case-sensitive, alphanumeric, allows - and _. Cannot start with special chars or pn_/pn-. Examples: text, action, poll.
 
-### Sample code[​](#sample-code)
+### Sample code
 
-#### Publish a message to a channel[​](#publish-a-message-to-a-channel)
+#### Publish a message to a channel
 
 - C++
 
-#### Actor.h[​](#actorh)
+#### Actor.h
   
 
 ```
@@ -121,7 +105,7 @@ Create a Channel entity, then publish:
 
 ```
 
-#### Actor.cpp[​](#actorcpp)
+#### Actor.cpp
   
 
 ```
@@ -130,49 +114,48 @@ Create a Channel entity, then publish:
 
 ```
 
-Before running the publish example, subscribe to the same channel.
+Before running, subscribe to the same channel.
 
-### Returns[​](#returns)
+### Returns
 
-Void; result provided via FOnPublishMessageResponse.
+Void; result provided via FOnPublishMessageResponse delegate.
 
-#### FOnPublishMessageResponse[​](#fonpublishmessageresponse)
+#### FOnPublishMessageResponse
 
-- Result FPubnubOperationResult — Operation result.
-- PublishedMessage FPubnubMessageData — Operation result data.
+- Result (FPubnubOperationResult): Operation result.
+- PublishedMessage (FPubnubMessageData): Result payload.
 
-#### FPubnubMessageData[​](#fpubnubmessagedata)
+#### FPubnubMessageData
 
-- Message FString — The message.
-- Channel FString — Published channel.
-- UserID FString — Publisher info.
-- Timetoken FString — Publish timetoken.
-- Metadata FString — Message metadata, as published.
-- MessageType EPubnubMessageType — Message type (signal, published, etc.).
-- CustomMessageType FString — User-provided type.
-- MatchOrGroup FString — Subscription match or channel group.
-- region int — Region (usually not relevant).
-- flags int — Flags.
+- Message (FString): The message.
+- Channel (FString): Target channel.
+- UserID (FString): Publisher info.
+- Timetoken (FString): Publish timetoken.
+- Metadata (FString): Published metadata.
+- MessageType (EPubnubMessageType): Signal, published, etc.
+- CustomMessageType (FString): User-provided type.
+- MatchOrGroup (FString): Subscription match or group.
+- region (int): Message region.
+- flags (int): Message flags.
 
-#### EPubnubMessageType[​](#epubnubmessagetype)
+#### EPubnubMessageType
 
-- PMT_Signal — Received as signal.
-- PMT_Published — Published message.
-- PMT_Action — Message action.
-- PMT_Objects — Objects-related.
-- PMT_Files — Files-related.
+- PMT_Signal
+- PMT_Published
+- PMT_Action
+- PMT_Objects
+- PMT_Files
 
-#### FOnPublishMessageResponseNative[​](#fonpublishmessageresponsenative)
+#### FOnPublishMessageResponseNative
 
-- Result const FPubnubOperationResult& — Operation result.
-- PublishedMessage const FPubnubMessageData& — Operation result data.
+- Result (const FPubnubOperationResult&)
+- PublishedMessage (const FPubnubMessageData&)
 
-### Other examples[​](#other-examples)
+### Other examples
 
-#### Publish a message with settings[​](#publish-a-message-with-settings)
+#### Publish a message with settings
 
-##### Actor.h[​](#actorh-1)
-
+##### Actor.h
   
 
 ```
@@ -181,8 +164,7 @@ Void; result provided via FOnPublishMessageResponse.
 
 ```
 
-##### Actor.cpp[​](#actorcpp-1)
-
+##### Actor.cpp
   
 
 ```
@@ -191,10 +173,9 @@ Void; result provided via FOnPublishMessageResponse.
 
 ```
 
-#### Publish a message with result[​](#publish-a-message-with-result)
+#### Publish a message with result
 
-##### Actor.h[​](#actorh-2)
-
+##### Actor.h
   
 
 ```
@@ -203,8 +184,7 @@ Void; result provided via FOnPublishMessageResponse.
 
 ```
 
-##### Actor.cpp[​](#actorcpp-2)
-
+##### Actor.cpp
   
 
 ```
@@ -213,11 +193,17 @@ Void; result provided via FOnPublishMessageResponse.
 
 ```
 
-## Publish - PubNub client[​](#publish---pubnub-client)
+## Publish - PubNub client
 
-`PublishMessage()` sends a message to all channel subscribers. Same constraints as entity-based publish (keys, JSON, size limits, rate limits, custom types, best practices).
+`PublishMessage()` sends a message to all channel subscribers.
 
-### Method(s)[​](#methods-1)
+- Prerequisites and limitations
+  - Initialize with publishKey.
+  - No need to be subscribed.
+  - Cannot publish to multiple channels simultaneously.
+- Security, message data, size, rate, custom type, best practices: same as Channel entity publish.
+
+### Method(s)
 
 ```
 `1PubnubSubsystem->PublishMessage(  
@@ -229,20 +215,20 @@ Void; result provided via FOnPublishMessageResponse.
 `
 ```
 
-- Parameters
-  - Channel (required) Type: FString — Channel ID to send to.
-  - Message (required) Type: FString — String or JSON-formatted string.
-  - OnPublishMessageResponse Type: FOnPublishMessageResponse — Result delegate. Native: FOnPublishMessageResponseNative.
-  - PublishSettings Type: FPubnubPublishSettings — Configuration.
+Parameters:
+- Channel (FString): Channel ID.
+- Message (FString): Literal or JSON-formatted string.
+- OnPublishMessageResponse (FOnPublishMessageResponse): Delegate for result. Also supports FOnPublishMessageResponseNative.
+- PublishSettings (FPubnubPublishSettings): Publish configuration.
 
-### Sample code[​](#sample-code-1)
+### Sample code
 
-#### Publish a message to a channel[​](#publish-a-message-to-a-channel-1)
+#### Publish a message to a channel
 
 - C++
 - Blueprint
 
-#### Actor.h[​](#actorh-3)
+#### Actor.h
   
 
 ```
@@ -251,7 +237,7 @@ Void; result provided via FOnPublishMessageResponse.
 
 ```
 
-#### Actor.cpp[​](#actorcpp-3)
+#### Actor.cpp
   
 
 ```
@@ -260,16 +246,15 @@ Void; result provided via FOnPublishMessageResponse.
 
 ```
 
-### Returns[​](#returns-1)
+### Returns
 
 Void; result via FOnPublishMessageResponse.
 
-### Other examples[​](#other-examples-1)
+### Other examples
 
-#### Publish a message with settings[​](#publish-a-message-with-settings-1)
+#### Publish a message with settings
 
-##### Actor.h[​](#actorh-4)
-
+##### Actor.h
   
 
 ```
@@ -278,8 +263,7 @@ Void; result via FOnPublishMessageResponse.
 
 ```
 
-##### Actor.cpp[​](#actorcpp-4)
-
+##### Actor.cpp
   
 
 ```
@@ -288,10 +272,9 @@ Void; result via FOnPublishMessageResponse.
 
 ```
 
-#### Publish a message with result[​](#publish-a-message-with-result-1)
+#### Publish a message with result
 
-##### Actor.h[​](#actorh-5)
-
+##### Actor.h
   
 
 ```
@@ -300,8 +283,7 @@ Void; result via FOnPublishMessageResponse.
 
 ```
 
-##### Actor.cpp[​](#actorcpp-5)
-
+##### Actor.cpp
   
 
 ```
@@ -310,28 +292,26 @@ Void; result via FOnPublishMessageResponse.
 
 ```
 
-## Signal - Channel entity[​](#signal---channel-entity)
+## Signal - Channel entity
 
-Available in entities
-- Channel
+Available in entities: Channel
 
-`Signal()` sends a lightweight signal to all subscribers.
+`Signal()` sends a signal to all channel subscribers.
 
 - Prerequisites and limitations
-  - Initialize with `publishKey`.
-  - Create the Channel entity to signal to.
-  - Payload size limit: 64 bytes (payload only). For larger payloads, contact support.
-- Signal vs. Message
-  - Payload size: Signal 64B; Message up to 32KB.
-  - Cost: Signals cost less.
-  - Persistence: Signals not persisted; Messages can be persisted.
-  - Push notifications: Signals cannot; Messages can.
-  - Use cases: Signals for non-critical data (e.g., geolocation); Messages for broader use.
-  - Metadata: Signals do not support; Messages do.
-- Channel separation
-  - Send signals and messages on separate channels for better recovery.
+  - Initialize with publishKey.
+  - Create a Channel entity to signal to.
+  - Payload size limited to 64 bytes (payload only). Contact support for higher.
+- Signal vs. Message (key differences)
+  - Payload size: 64B vs 32KB
+  - Cost: signals cheaper
+  - Persistence: signals not stored; messages can be persisted
+  - Push: signals can’t trigger push; messages can
+  - Use cases: signals for non-critical (e.g., geolocation)
+  - Metadata: signals don’t support; messages do
+- Channel separation: use separate channels for signals vs messages.
 
-### Method(s)[​](#methods-2)
+### Method(s)
 
 ```
 1UPubnubChannelEntity* ChannelEntity = PubnubSubsystem->CreateChannelEntity("my-channel");  
@@ -345,22 +325,22 @@ Available in entities
 
 ```
 
-- Parameters
-  - Message (required) Type: FString — String or JSON-formatted string.
-  - OnSignalResponse Type: FOnSignalResponse — Result delegate. Native: FOnSignalResponseNative.
-  - SignalSettings Type: FPubnubSignalSettings — Signal configuration.
+Parameters:
+- Message (FString): Literal or JSON-formatted string.
+- OnSignalResponse (FOnSignalResponse): Delegate for result. Also supports FOnSignalResponseNative.
+- SignalSettings (FPubnubSignalSettings): Signal configuration.
 
-#### FPubnubSignalSettings[​](#fpubnubsignalsettings)
+#### FPubnubSignalSettings
 
-- CustomMessageType Type: FString — 3–50 char case-sensitive alphanumeric label; dashes/underscores allowed; cannot start with special chars or pn_ / pn-. Examples: text, action, poll.
+- CustomMessageType (FString): 3–50 chars, case-sensitive, alphanumeric, allows - and _. Cannot start with special chars or pn_/pn-. Examples: text, action, poll.
 
-### Sample code[​](#sample-code-2)
+### Sample code
 
-#### Signal a message to a channel[​](#signal-a-message-to-a-channel)
+#### Signal a message to a channel
 
 - C++
 
-#### Actor.h[​](#actorh-6)
+#### Actor.h
   
 
 ```
@@ -369,7 +349,7 @@ Available in entities
 
 ```
 
-#### Actor.cpp[​](#actorcpp-6)
+#### Actor.cpp
   
 
 ```
@@ -378,26 +358,25 @@ Available in entities
 
 ```
 
-### Returns[​](#returns-2)
+### Returns
 
-Result via FOnSignalResponse.
+Delegate returns FOnSignalResponse.
 
-#### FOnSignalResponse[​](#fonsignalresponse)
+#### FOnSignalResponse
 
-- Result FPubnubOperationResult — Operation result.
-- SignalMessage FPubnubMessageData — Operation result data.
+- Result (FPubnubOperationResult)
+- SignalMessage (FPubnubMessageData)
 
-#### FOnSignalResponseNative[​](#fonsignalresponsenative)
+#### FOnSignalResponseNative
 
-- Result const FPubnubOperationResult& — Operation result.
-- SignalMessage const FPubnubMessageData& — Operation result data.
+- Result (const FPubnubOperationResult&)
+- SignalMessage (const FPubnubMessageData&)
 
-### Other examples[​](#other-examples-2)
+### Other examples
 
-#### Signal with custom message type[​](#signal-with-custom-message-type)
+#### Signal with custom message type
 
-##### Actor.h[​](#actorh-7)
-
+##### Actor.h
   
 
 ```
@@ -406,8 +385,7 @@ Result via FOnSignalResponse.
 
 ```
 
-##### Actor.cpp[​](#actorcpp-7)
-
+##### Actor.cpp
   
 
 ```
@@ -416,21 +394,20 @@ Result via FOnSignalResponse.
 
 ```
 
-## Signal - PubNub client[​](#signal---pubnub-client)
+## Signal - PubNub client
 
-Not recommended; prefer entity-based Signal.
+Not recommended; use entity-based Signal.
 
-`Signal()` sends a signal to all subscribers of a channel. Payload limit 64 bytes (payload only).
+`Signal()` sends a signal to all subscribers of a channel.
 
 - Prerequisites and limitations
-  - Initialize with `publishKey`.
-  - Payload limit: 64 bytes.
-- Signal vs. Message
-  - Same characteristics as above (size, cost, persistence, push, use cases, metadata).
-- Channel separation
-  - Keep signals and messages on separate channels.
+  - Initialize with publishKey.
+  - 64-byte payload limit (payload only).
 
-### Method(s)[​](#methods-3)
+- Signal vs. Message: see above.
+- Channel separation: use separate channels.
+
+### Method(s)
 
 ```
 `1PubnubSubsystem->Signal(  
@@ -442,20 +419,20 @@ Not recommended; prefer entity-based Signal.
 `
 ```
 
-- Parameters
-  - Channel (required) Type: FString — Channel ID to send to.
-  - Message (required) Type: FString — String or JSON-formatted string.
-  - OnSignalResponse Type: FOnSignalResponse — Result delegate. Native: FOnSignalResponseNative.
-  - SignalSettings Type: FPubnubSignalSettings — Configuration.
+Parameters:
+- Channel (FString): Channel ID.
+- Message (FString): Literal or JSON-formatted string.
+- OnSignalResponse (FOnSignalResponse): Delegate for result. Also supports FOnSignalResponseNative.
+- SignalSettings (FPubnubSignalSettings): Signal configuration.
 
-### Sample code[​](#sample-code-3)
+### Sample code
 
-#### Signal a message to a channel[​](#signal-a-message-to-a-channel-1)
+#### Signal a message to a channel
 
 - C++
 - Blueprint
 
-#### Actor.h[​](#actorh-8)
+#### Actor.h
   
 
 ```
@@ -464,7 +441,7 @@ Not recommended; prefer entity-based Signal.
 
 ```
 
-#### Actor.cpp[​](#actorcpp-8)
+#### Actor.cpp
   
 
 ```
@@ -473,16 +450,15 @@ Not recommended; prefer entity-based Signal.
 
 ```
 
-### Returns[​](#returns-3)
+### Returns
 
 Void; result via FOnSignalResponse.
 
-### Other examples[​](#other-examples-3)
+### Other examples
 
-#### Signal with custom message type[​](#signal-with-custom-message-type-1)
+#### Signal with custom message type
 
-##### Actor.h[​](#actorh-9)
-
+##### Actor.h
   
 
 ```
@@ -491,8 +467,7 @@ Void; result via FOnSignalResponse.
 
 ```
 
-##### Actor.cpp[​](#actorcpp-9)
-
+##### Actor.cpp
   
 
 ```
@@ -501,29 +476,24 @@ Void; result via FOnSignalResponse.
 
 ```
 
-## Subscribe[​](#subscribe)
+## Subscribe
 
-Subscribe opens a TCP socket and listens for messages and events. Set `SubscribeKey` during initialization.
+Opens a TCP socket and listens for messages/events. Set SubscribeKey during initialization.
 
-Conceptual overview
-- Subscriptions deliver messages/events via listeners.
-- Subscribe using PubNub client or entities:
-  - Channel
-  - ChannelGroup
-  - UserMetadata
-  - ChannelMetadata
+Entities:
+- Channel
+- ChannelGroup
+- UserMetadata
+- ChannelMetadata
 
-After `Subscribe()`, client receives new messages. Configure reconnection on the subsystem.
+### Subscription scope
 
-### Subscription scope[​](#subscription-scope)
+- Subscription: created from an entity; scoped to that entity.
+- SubscriptionSet: created from the client; scoped to client; can include multiple subscriptions.
 
-- Subscription — created from an entity; scoped to that entity.
-- SubscriptionSet — created from PubNub client; scoped to client; can include multiple subscriptions.
+### Create a subscription
 
-### Create a subscription[​](#create-a-subscription)
-
-Managing subscription lifecycle
-- Subscription lives independently from entity and must be managed separately.
+Subscription’s lifecycle is independent of the entity.
 
 ```
 1// Create entity  
@@ -535,48 +505,46 @@ Managing subscription lifecycle
 
 ```
 
-- Parameters
-  - SubscribeSettings Type: FPubnubSubscribeSettings — Subscription configuration.
+Parameters:
+- SubscribeSettings (FPubnubSubscribeSettings): Subscription configuration.
 
-#### FPubnubSubscribeSettings[​](#fpubnubsubscribesettings)
+#### FPubnubSubscribeSettings
 
-- ReceivePresenceEvents Type: bool — Subscribe to presence events.
+- ReceivePresenceEvents (bool): Subscribe to presence events.
 
-### Create a subscription set[​](#create-a-subscription-set)
+### Create a subscription set
 
-Managing subscription lifecycle
-- Subscription object lives independently from entity.
+SubscriptionSet lifecycle is independent.
 
-A SubscriptionSet lets you receive messages/events for all entities in the set.
-
-#### From channel or channel group names[​](#from-channel-or-channel-group-names)
+#### From channel or channel group names
 
 ```
 `1PubnubSubsystem->CreateSubscriptionSet(Channels, ChannelGroups, SubscriptionSettings);  
 `
 ```
 
-- Parameters
-  - Channels Type: TArray<FString> — Channel names.
-  - ChannelGroups Type: TArray<FString> — Channel group names.
-  - SubscriptionSettings Type: FPubnubSubscribeSettings — Configuration.
+Parameters:
+- Channels (TArray<FString>)
+- ChannelGroups (TArray<FString>)
+- SubscriptionSettings (FPubnubSubscribeSettings)
 
-#### From entities[​](#from-entities)
+#### From entities
 
 ```
 `1PubnubSubsystem->CreateSubscriptionSetFromEntities(Entities, SubscriptionSettings);  
 `
 ```
 
-- Parameters
-  - Entities (required) Type: TArray<UPubnubBaseEntity*> — Entities to include.
-  - SubscriptionSettings Type: FPubnubSubscribeSettings — Configuration.
+Parameters:
+- Entities (TArray<UPubnubBaseEntity*>)
+- SubscriptionSettings (FPubnubSubscribeSettings)
 
-### Method(s)[​](#methods-4)
+### Method(s)
 
-Subscription and SubscriptionSet share the same methods:
+- Subscribe
+- Subscribe with timetoken
 
-#### Subscribe[​](#subscribe-1)
+#### Subscribe
 
 ```
 `1// Subscribe to start receiving messages  
@@ -586,13 +554,13 @@ Subscription and SubscriptionSet share the same methods:
 `
 ```
 
-#### Sample code[​](#sample-code-4)
+#### Sample code
 
-##### Subscribe to a channel[​](#subscribe-to-a-channel)
+##### Subscribe to a channel
 
 - C++
 
-###### Actor.h[​](#actorh-10)
+###### Actor.h
   
 
 ```
@@ -601,7 +569,7 @@ Subscription and SubscriptionSet share the same methods:
 
 ```
 
-###### Actor.cpp[​](#actorcpp-10)
+###### Actor.cpp
   
 
 ```
@@ -610,9 +578,7 @@ Subscription and SubscriptionSet share the same methods:
 
 ```
 
-#### Subscribe with timetoken[​](#subscribe-with-timetoken)
-
-Receive messages from a specific timetoken.
+#### Subscribe with timetoken
 
 ```
 1// Subscribe with timetoken  
@@ -624,14 +590,12 @@ Receive messages from a specific timetoken.
 
 ```
 
-##### FPubnubSubscriptionCursor[​](#fpubnubsubscriptioncursor)
+##### FPubnubSubscriptionCursor
 
-| Parameter  Type | Required | Description |
-| :---------- | :-------- | :------- | :------ |
-| `Timetoken` | `FString` | Yes      | Timetoken from which messages should be retrieved.  |
-| `Region`    | `int`     | No  | Region of the messages. Set automatically; typically not required to set.   |
+- Timetoken (FString, required): Start time.
+- Region (int, optional): Set automatically.
 
-#### Add subscriptions[​](#add-subscriptions)
+#### Add subscriptions
 
 ```
 `1// Add individual subscription to set  
@@ -640,7 +604,7 @@ Receive messages from a specific timetoken.
 `
 ```
 
-#### Remove subscriptions[​](#remove-subscriptions)
+#### Remove subscriptions
 
 ```
 `1// Remove subscription from set  
@@ -648,7 +612,7 @@ Receive messages from a specific timetoken.
 `
 ```
 
-#### Merge subscription sets[​](#merge-subscription-sets)
+#### Merge subscription sets
 
 ```
 `1// Merge subscription sets  
@@ -656,7 +620,7 @@ Receive messages from a specific timetoken.
 `
 ```
 
-#### Remove subscription sets[​](#remove-subscription-sets)
+#### Remove subscription sets
 
 ```
 `1// Remove subscription set from another set  
@@ -664,141 +628,127 @@ Receive messages from a specific timetoken.
 `
 ```
 
-### Other examples[​](#other-examples-4)
+### Other examples
 
-#### Subscribe to a channel group[​](#subscribe-to-a-channel-group)
+#### Subscribe to a channel group
 
-##### Actor.h[​](#actorh-11)
-
+##### Actor.h
 ```
 1
   
 
 ```
 
-##### Actor.cpp[​](#actorcpp-11)
-
+##### Actor.cpp
 ```
 1
   
 
 ```
 
-#### Subscribe to channel metadata[​](#subscribe-to-channel-metadata)
+#### Subscribe to channel metadata
 
-##### Actor.h[​](#actorh-12)
-
+##### Actor.h
 ```
 1
   
 
 ```
 
-##### Actor.cpp[​](#actorcpp-12)
-
+##### Actor.cpp
 ```
 1
   
 
 ```
 
-#### Subscribe to user metadata[​](#subscribe-to-user-metadata)
+#### Subscribe to user metadata
 
-##### Actor.h[​](#actorh-13)
-
+##### Actor.h
 ```
 1
   
 
 ```
 
-##### Actor.cpp[​](#actorcpp-13)
-
+##### Actor.cpp
 ```
 1
   
 
 ```
 
-#### Create subscription set from names[​](#create-subscription-set-from-names)
+#### Create subscription set from names
 
-##### Actor.h[​](#actorh-14)
-
+##### Actor.h
 ```
 1
   
 
 ```
 
-##### Actor.cpp[​](#actorcpp-14)
-
+##### Actor.cpp
 ```
 1
   
 
 ```
 
-#### Create subscription set from entities[​](#create-subscription-set-from-entities)
+#### Create subscription set from entities
 
-##### Actor.h[​](#actorh-15)
-
+##### Actor.h
 ```
 1
   
 
 ```
 
-##### Actor.cpp[​](#actorcpp-15)
-
+##### Actor.cpp
 ```
 1
   
 
 ```
 
-#### Manage subscriptions in a set[​](#manage-subscriptions-in-a-set)
+#### Manage subscriptions in a set
 
-##### Actor.h[​](#actorh-16)
-
+##### Actor.h
 ```
 1
   
 
 ```
 
-##### Actor.cpp[​](#actorcpp-16)
-
+##### Actor.cpp
 ```
 1
   
 
 ```
 
-#### Merge subscription sets[​](#merge-subscription-sets-1)
+#### Merge subscription sets
 
-##### Actor.h[​](#actorh-17)
-
+##### Actor.h
 ```
 1
   
 
 ```
 
-##### Actor.cpp[​](#actorcpp-17)
-
+##### Actor.cpp
 ```
 1
   
 
 ```
 
-## Event listeners[​](#event-listeners)
+## Event listeners
 
-Attach listeners to Subscription or SubscriptionSet to receive messages, signals, and events. A single listener can catch all types.
+Attach listeners to Subscription or SubscriptionSet to receive messages, signals, presence, objects, and message actions.
 
-### Add listeners[​](#add-listeners)
+### Add listeners
 
-#### Handle multiple event types[​](#handle-multiple-event-types)
+#### Handle multiple event types
 
 ```
 1// Add message listener  
@@ -826,7 +776,7 @@ Attach listeners to Subscription or SubscriptionSet to receive messages, signals
 
 ```
 
-#### Handle one event type with native callbacks[​](#handle-one-event-type-with-native-callbacks)
+#### Handle one event type with native callbacks
 
 ```
 1// Add native callback listeners  
@@ -841,7 +791,7 @@ Attach listeners to Subscription or SubscriptionSet to receive messages, signals
 
 ```
 
-#### Remove event listener[​](#remove-event-listener)
+#### Remove event listener
 
 ```
 1// Remove specific listener  
@@ -853,11 +803,11 @@ Attach listeners to Subscription or SubscriptionSet to receive messages, signals
 
 ```
 
-### Add connection status listener[​](#add-connection-status-listener)
+### Add connection status listener
 
-Client scope — available only on PubNub object.
+Client scope: Only on PubnubSubsystem.
 
-#### Method(s)[​](#methods-5)
+#### Method(s)
 
 ```
 `1// Add subscription status listener  
@@ -865,11 +815,11 @@ Client scope — available only on PubNub object.
 `
 ```
 
-#### Sample code[​](#sample-code-5)
+#### Sample code
 
 - C++
 
-#### Actor.h[​](#actorh-18)
+#### Actor.h
   
 
 ```
@@ -879,7 +829,7 @@ Client scope — available only on PubNub object.
 ```
   
 
-#### Actor.cpp[​](#actorcpp-18)
+#### Actor.cpp
   
 
 ```
@@ -888,87 +838,79 @@ Client scope — available only on PubNub object.
 
 ```
 
-### Other examples[​](#other-examples-5)
+### Other examples
 
-#### Subscribe with all event listeners[​](#subscribe-with-all-event-listeners)
+#### Subscribe with all event listeners
 
-##### Actor.h[​](#actorh-19)
-
+##### Actor.h
 ```
 1
   
 
 ```
 
-##### Actor.cpp[​](#actorcpp-19)
-
+##### Actor.cpp
 ```
 1
   
 
 ```
 
-#### Add message listener with lambda[​](#add-message-listener-with-lambda)
+#### Add message listener with lambda
 
-##### Actor.h[​](#actorh-20)
-
+##### Actor.h
 ```
 1
   
 
 ```
 
-##### Actor.cpp[​](#actorcpp-20)
-
+##### Actor.cpp
 ```
 1
   
 
 ```
 
-#### Add error listener[​](#add-error-listener)
+#### Add error listener
 
-##### Actor.h[​](#actorh-21)
-
+##### Actor.h
 ```
 1
   
 
 ```
 
-##### Actor.cpp[​](#actorcpp-21)
-
+##### Actor.cpp
 ```
 1
   
 
 ```
 
-#### Add error listener with lambda[​](#add-error-listener-with-lambda)
+#### Add error listener with lambda
 
-##### Actor.h[​](#actorh-22)
-
+##### Actor.h
 ```
 1
   
 
 ```
 
-##### Actor.cpp[​](#actorcpp-22)
-
+##### Actor.cpp
 ```
 1
   
 
 ```
 
-#### Returns[​](#returns-4)
+#### Returns
 
-Emits subscription status updates depending on network connection.
+Emits various subscription statuses (see SDK Connection Lifecycle docs).
 
-#### Other examples[​](#other-examples-6)
+#### Other examples
 
-##### Add connection status listener with lambda[​](#add-connection-status-listener-with-lambda)
+##### Add connection status listener with lambda
 
 ```
 `1// Add subscription status listener with lambda  
@@ -978,11 +920,11 @@ Emits subscription status updates depending on network connection.
 `
 ```
 
-## Unsubscribe[​](#unsubscribe)
+## Unsubscribe
 
-Stop receiving real-time updates from a Subscription or SubscriptionSet.
+Stop receiving updates from a Subscription or SubscriptionSet.
 
-### Method(s)[​](#methods-6)
+### Method(s)
 
 ```
 1// Unsubscribe from a subscription  
@@ -994,9 +936,9 @@ Stop receiving real-time updates from a Subscription or SubscriptionSet.
 
 ```
 
-### Sample code[​](#sample-code-6)
+### Sample code
 
-#### Unsubscribe from a subscription[​](#unsubscribe-from-a-subscription)
+#### Unsubscribe from a subscription
 
 ```
 `1// Unsubscribe from a subscription  
@@ -1004,7 +946,7 @@ Stop receiving real-time updates from a Subscription or SubscriptionSet.
 `
 ```
 
-#### Unsubscribe from a subscription set[​](#unsubscribe-from-a-subscription-set)
+#### Unsubscribe from a subscription set
 
 ```
 `1// Unsubscribe from all entities in the set  
@@ -1012,32 +954,32 @@ Stop receiving real-time updates from a Subscription or SubscriptionSet.
 `
 ```
 
-### Returns[​](#returns-5)
+### Returns
 
 None
 
-## Unsubscribe all[​](#unsubscribe-all)
+## Unsubscribe all
 
-Stop receiving real-time updates from all listeners and remove their associated entities.
+Stop receiving updates from all listeners and remove associated entities.
 
-Client scope — only on PubNubSubsystem.
+Client scope: Only on PubnubSubsystem.
 
-### Method(s)[​](#methods-7)
+### Method(s)
 
 ```
 `1PubnubSubsystem->UnsubscribeFromAll(FOnSubscribeOperationResponse OnUnsubscribeFromAllResponse);  
 `
 ```
 
-- Parameters
-  - OnUnsubscribeFromAllResponse Type: FOnSubscribeOperationResponse — Result delegate. Native: FOnSubscribeOperationResponseNative.
+Parameters:
+- OnUnsubscribeFromAllResponse (FOnSubscribeOperationResponse): Delegate for result. Also supports FOnSubscribeOperationResponseNative.
 
-### Sample code[​](#sample-code-7)
+### Sample code
 
 - C++
 - Blueprint
 
-#### Actor.h[​](#actorh-23)
+#### Actor.h
   
 
 ```
@@ -1046,7 +988,7 @@ Client scope — only on PubNubSubsystem.
 
 ```
 
-#### Actor.cpp[​](#actorcpp-23)
+#### Actor.cpp
   
 
 ```
@@ -1055,6 +997,6 @@ Client scope — only on PubNubSubsystem.
 
 ```
 
-### Returns[​](#returns-6)
+### Returns
 
 No return value.

@@ -1,17 +1,17 @@
-# App Context API for Swift Native SDK
+# App Context API for Swift Native SDK (Objects v2)
 
-App Context (formerly Objects v2) provides serverless storage for user, channel, and membership metadata, plus real-time change events. To upgrade from Objects v1, see the migration guide.
+App Context provides serverless storage for user and channel metadata and their membership associations, plus real-time events on changes. For Objects v1 upgrades, see the migration guide.
 
-##### UUID and User ID
-`PubNubUUIDMetadataBase` is deprecated and is a typealias for `PubNubUserMetadataBase`.
+Note: PubNubUUIDMetadataBase is deprecated; it aliases PubNubUserMetadataBase.
 
 ## User
 
 ### Get metadata for all users
 
-Returns a paginated list of user metadata objects, optionally including the custom data object.
+Returns a paginated list of user metadata objects (optionally including custom data).
 
 #### Method(s)
+
 ```
 `1func allUserMetadata(  
 2    include: PubNub.UserIncludeFields = PubNub.UserIncludeFields(),  
@@ -25,28 +25,25 @@ Returns a paginated list of user metadata objects, optionally including the cust
 `
 ```
 
-Parameters:
-- include (Type: PubNub.UserIncludeFields, Default: PubNub.UserIncludeFields()): Include additional fields.
-- filter (Type: String?, Default: nil): Filter expression. See filtering docs.
-- sort (Type: [PubNub.ObjectSortField], Default: []): Sort by `.id`, `.name`, `.type`, `.status`, `.updated`.
-- limit (Type: Int?, Default: 100): Page size.
-- page (Type: PubNubHashedPage?, Default: PubNub.Page()): Cursor-based paging object (`next`/`start`, `end`).
-- custom (Type: PubNub.RequestConfiguration, Default: PubNub.RequestConfiguration()): Per-request configuration.
-- completion (Type: ((Result<(users: [PubNubUserMetadata], next: PubNubHashedPage?), Error>) -> Void)?, Default: nil)
+- include: PubNub.UserIncludeFields, default PubNub.UserIncludeFields(). Additional fields to include.
+- filter: String?, default nil. Filter expression (see filtering docs).
+- sort: [PubNub.ObjectSortField], default []. Valid: .id, .name, .type, .status, .updated.
+- limit: Int?, default 100. Page size.
+- page: PubNubHashedPage?, default PubNub.Page(). Cursor-based pagination.
+- custom: PubNub.RequestConfiguration, default PubNub.RequestConfiguration().
+- completion: ((Result<(users: [PubNubUserMetadata], next: PubNubHashedPage?), Error>) -> Void)?, default nil.
 
 #### UserIncludeFields
-Controls which fields to include in user responses.
 
-PropertyDescription`custom`Type: `Bool`Default:  
-`true`Whether to include the custom dictionary for the user metadata object`type`Type: `Bool`Default:  
-`true`Whether to include the type field for the user metadata object`status`Type: `Bool`Default:  
-`true`Whether to include the status field for the user metadata object`totalCount`Type: `Bool`Default:  
-`true`Whether to include the total count of how many user objects are available
+- custom: Bool, default true. Include custom dictionary.
+- type: Bool, default true. Include type field.
+- status: Bool, default true. Include status field.
+- totalCount: Bool, default true. Include total count.
 
 #### Completion handler result
 
-##### Success
-Tuple of `[PubNubUserMetadata]` and next `PubNubHashedPage` (if any).
+Success: Tuple of [PubNubUserMetadata] and next PubNubHashedPage (if any).
+
 ```
 1public protocol PubNubUserMetadata {  
 2
@@ -92,7 +89,6 @@ Tuple of `[PubNubUserMetadata]` and next `PubNubHashedPage` (if any).
 32}  
 
 ```
-show all 32 lines
 
 ```
 1public protocol PubNubHashedPage {  
@@ -112,23 +108,21 @@ show all 32 lines
 
 ```
 
-##### Failure
-An Error describing the failure.
+Failure: Error.
 
 #### Sample code
 
-##### Reference code
 ```
 1
   
-
 ```
 
 ### Get user metadata
 
-Returns metadata for the specified user.
+Returns user metadata by ID (optionally including custom data).
 
 #### Method(s)
+
 ```
 `1func fetchUserMetadata(  
 2    _ metadataId: String?,  
@@ -139,16 +133,15 @@ Returns metadata for the specified user.
 `
 ```
 
-Parameters:
-- metadataId (Type: String, Required): Unique User Metadata ID. If not supplied, falls back to request/default configuration.
-- include (Type: PubNub.UserIncludeFields, Default: PubNub.UserIncludeFields()): Include additional fields.
-- custom (Type: PubNub.RequestConfiguration, Default: PubNub.RequestConfiguration()): Per-request configuration.
-- completion (Type: ((Result<PubNubUserMetadata, Error>) -> Void)?, Default: nil)
+- metadataId: String (required). Unique User Metadata ID. If not supplied, uses request/default configuration.
+- include: PubNub.UserIncludeFields, default PubNub.UserIncludeFields().
+- custom: PubNub.RequestConfiguration, default PubNub.RequestConfiguration().
+- completion: ((Result<PubNubUserMetadata, Error>) -> Void)?, default nil.
 
 #### Completion handler result
 
-##### Success
-The `PubNubUserMetadata` object:
+Success: PubNubUserMetadata.
+
 ```
 1public protocol PubNubUserMetadata {  
 2
@@ -194,23 +187,27 @@ The `PubNubUserMetadata` object:
 32}  
 
 ```
-show all 32 lines
 
-##### Failure
-An Error describing the failure.
+Failure: Error.
 
 #### Sample code
+
 ```
 1
   
-
 ```
 
 ### Set user metadata
 
-Sets metadata for a user. Note: Custom metadata sent here overwrites the existing value.
+Overwrites full custom metadata; partial updates are not supported.
+
+Unsupported partial updates of custom metadata:
+1. $1
+2. $1
+3. $1
 
 #### Method(s)
+
 ```
 `1func setUserMetadata(  
 2    _ metadata: PubNubUserMetadata,  
@@ -222,20 +219,18 @@ Sets metadata for a user. Note: Custom metadata sent here overwrites the existin
 `
 ```
 
-Parameters:
-- metadata (Type: PubNubUserMetadata, Required): Metadata to set.
-- ifMatchesEtag (Type: String, Optional): Perform update only if eTag matches (HTTP 412 on mismatch).
-- include (Type: PubNub.UserIncludeFields, Default: PubNub.UserIncludeFields()): Include additional fields.
-- custom (Type: PubNub.RequestConfiguration, Default: PubNub.RequestConfiguration()): Per-request configuration.
-- completion (Type: ((Result<PubNubUserMetadata, Error>) -> Void)?, Default: nil)
+- metadata: PubNubUserMetadata (required). User metadata to set.
+- ifMatchesEtag: String. Conditional update using eTag; mismatches return HTTP 412.
+- include: PubNub.UserIncludeFields, default PubNub.UserIncludeFields().
+- custom: PubNub.RequestConfiguration, default PubNub.RequestConfiguration().
+- completion: ((Result<PubNubUserMetadata, Error>) -> Void)?, default nil.
 
-##### API limits
-See REST API docs for parameter length limits.
+API limits: See REST API docs for maximum parameter lengths.
 
 #### Completion handler result
 
-##### Success
-The `PubNubUserMetadata` object:
+Success: PubNubUserMetadata.
+
 ```
 1public protocol PubNubUserMetadata {  
 2
@@ -281,16 +276,14 @@ The `PubNubUserMetadata` object:
 32}  
 
 ```
-show all 32 lines
 
-##### Failure
-An Error describing the failure.
+Failure: Error.
 
 #### Sample code
+
 ```
 1
   
-
 ```
 
 ### Remove user metadata
@@ -298,6 +291,7 @@ An Error describing the failure.
 Removes metadata for a specified UUID.
 
 #### Method(s)
+
 ```
 `1func removeUserMetadata(  
 2    _ metadataId: String?,  
@@ -307,33 +301,30 @@ Removes metadata for a specified UUID.
 `
 ```
 
-Parameters:
-- metadataId (Type: String, Required): Unique User Metadata ID. If not supplied, falls back to request/default configuration.
-- custom (Type: PubNub.RequestConfiguration, Default: PubNub.RequestConfiguration()): Per-request configuration.
-- completion (Type: ((Result<String, Error>) -> Void)?, Default: nil)
+- metadataId: String (required). Unique User Metadata ID. If not supplied, uses request/default configuration.
+- custom: PubNub.RequestConfiguration, default PubNub.RequestConfiguration().
+- completion: ((Result<String, Error>) -> Void)?, default nil.
 
 #### Completion handler result
 
-##### Success
-The removed user identifier.
-
-##### Failure
-An Error describing the failure.
+Success: Removed user ID.  
+Failure: Error.
 
 #### Sample code
+
 ```
 1
   
-
 ```
 
 ## Channel
 
 ### Get metadata for all channels
 
-Returns a paginated list of channel metadata objects, optionally including the custom data object.
+Returns a paginated list of channel metadata objects (optionally including custom data).
 
 #### Method(s)
+
 ```
 `1func allChannelMetadata(  
 2    include: PubNub.IncludeFields = PubNub.IncludeFields(),  
@@ -347,19 +338,18 @@ Returns a paginated list of channel metadata objects, optionally including the c
 `
 ```
 
-Parameters:
-- include (Type: PubNub.IncludeFields, Default: PubNub.IncludeFields()): Include additional fields.
-- filter (Type: String?, Default: nil): Filter expression. See filtering docs.
-- sort (Type: [PubNub.ObjectSortField], Default: []): Sort by `.id`, `.name`, `.type`, `.status`, `.updated`.
-- limit (Type: Int?, Default: 100): Page size.
-- page (Type: PubNubHashedPage?, Default: PubNub.Page()): Cursor-based paging.
-- custom (Type: PubNub.RequestConfiguration, Default: PubNub.RequestConfiguration()): Per-request configuration.
-- completion (Type: ((Result<(channels: [PubNubChannelMetadata], next: PubNubHashedPage?), Error>) -> Void)?, Default: nil)
+- include: PubNub.IncludeFields, default PubNub.IncludeFields().
+- filter: String?, default nil. Filter expression.
+- sort: [PubNub.ObjectSortField], default []. Valid: .id, .name, .type, .status, .updated.
+- limit: Int?, default 100.
+- page: PubNubHashedPage?, default PubNub.Page().
+- custom: PubNub.RequestConfiguration, default PubNub.RequestConfiguration().
+- completion: ((Result<(channels: [PubNubChannelMetadata], next: PubNubHashedPage?), Error>) -> Void)?, default nil.
 
 #### Completion handler result
 
-##### Success
-Tuple of `[PubNubChannelMetadata]` and next `PubNubHashedPage` (if any).
+Success: Tuple of [PubNubChannelMetadata] and next PubNubHashedPage (if any).
+
 ```
 1public protocol PubNubChannelMetadata {  
 2
@@ -396,7 +386,6 @@ Tuple of `[PubNubChannelMetadata]` and next `PubNubHashedPage` (if any).
 26}  
 
 ```
-show all 26 lines
 
 ```
 1public protocol PubNubHashedPage {  
@@ -416,21 +405,21 @@ show all 26 lines
 
 ```
 
-##### Failure
-An Error describing the failure.
+Failure: Error.
 
 #### Sample code
+
 ```
 1
   
-
 ```
 
 ### Get channel metadata
 
-Returns metadata for the specified channel.
+Returns channel metadata by ID (optionally including custom data).
 
 #### Method(s)
+
 ```
 `1func fetchChannelMetadata(  
 2    _ metadataId: String?,  
@@ -441,25 +430,22 @@ Returns metadata for the specified channel.
 `
 ```
 
-Parameters:
-- channel (Type: String, Required): Unique Channel Metadata ID. If not supplied, falls back to request/default configuration.
-- include (Type: PubNub.ChannelIncludeFields, Default: PubNub.ChannelIncludeFields()): Include additional fields.
-- custom (Type: PubNub.RequestConfiguration, Default: PubNub.RequestConfiguration()): Per-request configuration.
-- completion (Type: ((Result<PubNubChannelMetadata, Error>) -> Void)?, Default: nil)
+- channel: String (required). Unique Channel Metadata ID. If not supplied, uses request/default configuration.
+- include: PubNub.ChannelIncludeFields, default PubNub.ChannelIncludeFields().
+- custom: PubNub.RequestConfiguration, default PubNub.RequestConfiguration().
+- completion: ((Result<PubNubChannelMetadata, Error>) -> Void)?, default nil.
 
 #### ChannelIncludeFields
-Controls which fields to include in channel responses.
 
-PropertyDescription`custom`Type: `Bool`Default:  
-`true`Whether to include the custom dictionary for the channel metadata object`type`Type: `Bool`Default:  
-`true`Whether to include the type field for the channel metadata object`status`Type: `Bool`Default:  
-`true`Whether to include the status field for the channel metadata object`totalCount`Type: `Bool`Default:  
-`true`Whether to include the total count of how many channel objects are available
+- custom: Bool, default true. Include custom dictionary.
+- type: Bool, default true. Include type field.
+- status: Bool, default true. Include status field.
+- totalCount: Bool, default true. Include total count.
 
 #### Completion handler result
 
-##### Success
-The `PubNubChannelMetadata` object:
+Success: PubNubChannelMetadata.
+
 ```
 1public protocol PubNubChannelMetadata {  
 2
@@ -496,23 +482,27 @@ The `PubNubChannelMetadata` object:
 26}  
 
 ```
-show all 26 lines
 
-##### Failure
-An Error describing the failure.
+Failure: Error.
 
 #### Sample code
+
 ```
 1
   
-
 ```
 
 ### Set channel metadata
 
-Sets metadata for a channel. Note: Custom metadata sent here overwrites the existing value.
+Overwrites full custom metadata; partial updates are not supported.
+
+Unsupported partial updates of custom metadata:
+1. $1
+2. $1
+3. $1
 
 #### Method(s)
+
 ```
 `1func setChannelMetadata(  
 2    _ metadata: PubNubChannelMetadata,  
@@ -524,20 +514,18 @@ Sets metadata for a channel. Note: Custom metadata sent here overwrites the exis
 `
 ```
 
-Parameters:
-- metadata (Type: PubNubChannelMetadata, Required): Metadata to set.
-- ifMatchesEtag (Type: String, Optional): Perform update only if eTag matches (HTTP 412 on mismatch).
-- include (Type: PubNub.ChannelIncludeFields, Default: PubNub.ChannelIncludeFields()): Include additional fields.
-- custom (Type: PubNub.RequestConfiguration, Default: PubNub.RequestConfiguration()): Per-request configuration.
-- completion (Type: ((Result<PubNubChannelMetadata, Error>) -> Void)?, Default: nil)
+- metadata: PubNubChannelMetadata (required).
+- ifMatchesEtag: String. Conditional update using eTag; mismatches return HTTP 412.
+- include: PubNub.ChannelIncludeFields, default PubNub.ChannelIncludeFields().
+- custom: PubNub.RequestConfiguration, default PubNub.RequestConfiguration().
+- completion: ((Result<PubNubChannelMetadata, Error>) -> Void)?, default nil.
 
-##### API limits
-See REST API docs for parameter length limits.
+API limits: See REST API docs for maximum parameter lengths.
 
 #### Completion handler result
 
-##### Success
-The `PubNubChannelMetadata` object:
+Success: PubNubChannelMetadata.
+
 ```
 1public protocol PubNubChannelMetadata {  
 2
@@ -574,32 +562,31 @@ The `PubNubChannelMetadata` object:
 26}  
 
 ```
-show all 26 lines
 
-##### Failure
-An Error describing the failure.
+Failure: Error.
 
 #### Sample code
+
 ```
 1
   
-
 ```
 
 #### Other examples
 
 ##### Iteratively update existing metadata
+
 ```
 1
   
-
 ```
 
 ### Remove channel metadata
 
-Removes the metadata from a specified channel.
+Removes metadata for a specified channel.
 
 #### Method(s)
+
 ```
 `1func removeChannelMetadata(  
 2    _ metadataId: String?,  
@@ -609,24 +596,20 @@ Removes the metadata from a specified channel.
 `
 ```
 
-Parameters:
-- channel (Type: String, Required): Unique Channel Metadata ID. If not supplied, falls back to request/default configuration.
-- custom (Type: PubNub.RequestConfiguration, Default: PubNub.RequestConfiguration()): Per-request configuration.
-- completion (Type: ((Result<PubNubChannelMetadata, Error>) -> Void)?, Default: nil)
+- channel: String (required). Unique Channel Metadata ID. If not supplied, uses request/default configuration.
+- custom: PubNub.RequestConfiguration, default PubNub.RequestConfiguration().
+- completion: ((Result<PubNubChannelMetadata, Error>) -> Void)?, default nil.
 
 #### Completion handler result
 
-##### Success
-The removed channel identifier.
-
-##### Failure
-An Error describing the failure.
+Success: Removed channel ID.  
+Failure: Error.
 
 #### Sample code
+
 ```
 1
   
-
 ```
 
 ## Channel memberships
@@ -636,6 +619,7 @@ An Error describing the failure.
 Returns a list of channel memberships for a user (not subscriptions).
 
 #### Method(s)
+
 ```
 `1func fetchMemberships(  
 2    userId: String?,  
@@ -650,33 +634,30 @@ Returns a list of channel memberships for a user (not subscriptions).
 `
 ```
 
-Parameters:
-- userId (Type: String, Required): Unique User Metadata ID. If not supplied, falls back to request/default configuration.
-- include (Type: PubNub.MembershipInclude, Default: PubNub.MembershipInclude()): Include additional fields.
-- filter (Type: String?, Default: nil): Filter expression. See filtering docs.
-- sort (Type: [PubNub.MembershipSortField], Default: []): Sort by `.object(.id)`, `.object(.name)`, `.object(.type)`, `.object(.status)`, `.object(.updated)`, `.type`, `.status`, `.updated`.
-- limit (Type: Int?, Default: 100): Page size.
-- page (Type: PubNubHashedPage?, Default: PubNub.Page()): Cursor-based paging.
-- custom (Type: PubNub.RequestConfiguration, Default: PubNub.RequestConfiguration()): Per-request configuration.
-- completion (Type: ((Result<(memberships: [PubNubMembershipMetadata], next: PubNubHashedPageBase?), Error>) -> Void)?, Default: nil)
+- userId: String (required). Unique User Metadata ID. If not supplied, uses request/default configuration.
+- include: PubNub.MembershipInclude, default PubNub.MembershipInclude().
+- filter: String?, default nil. Filter expression.
+- sort: [PubNub.MembershipSortField], default []. Valid: .object(.id/.name/.type/.status/.updated), .type, .status, .updated.
+- limit: Int?, default 100.
+- page: PubNubHashedPage?, default PubNub.Page().
+- custom: PubNub.RequestConfiguration, default PubNub.RequestConfiguration().
+- completion: ((Result<(memberships: [PubNubMembershipMetadata], next: PubNubHashedPageBase?), Error>) -> Void)?, default nil.
 
 #### MembershipInclude
-Controls which fields to include for user memberships (channels a user belongs to).
 
-PropertyDescription`customFields`Type: `Bool`Default:  
-`true`Whether to include the custom dictionary for the membership object`channelFields`Type: `Bool`Default:  
-`false`Whether to include the full PubNubChannelMetadata instance in the membership`typeField`Type: `Bool`Default:  
-`true`Whether to include the type field of the membership object`statusField`Type: `Bool`Default:  
-`true`Whether to include the status field of the membership object`channelTypeField`Type: `Bool`Default:  
-`false`Whether to include the type field of the associated channel metadata`channelStatusField`Type: `Bool`Default:  
-`false`Whether to include the status field of the associated channel metadata`channelCustomFields`Type: `Bool`Default:  
-`false`Whether to include the custom dictionary of the associated channel metadata`totalCount`Type: `Bool`Default:  
-`false`Whether to include the total count of how many membership objects are available
+- customFields: Bool, default true. Include membership custom dictionary.
+- channelFields: Bool, default false. Include full PubNubChannelMetadata in membership.
+- typeField: Bool, default true. Include membership type.
+- statusField: Bool, default true. Include membership status.
+- channelTypeField: Bool, default false. Include channel metadata type.
+- channelStatusField: Bool, default false. Include channel metadata status.
+- channelCustomFields: Bool, default false. Include channel metadata custom dictionary.
+- totalCount: Bool, default false. Include total count.
 
 #### Completion handler result
 
-##### Success
-Tuple of `[PubNubMembershipMetadata]` and next `PubNubHashedPage` (if any).
+Success: Tuple of [PubNubMembershipMetadata] and next PubNubHashedPage (if any).
+
 ```
 1public protocol PubNubMembershipMetadata {  
 2
@@ -717,7 +698,6 @@ Tuple of `[PubNubMembershipMetadata]` and next `PubNubHashedPage` (if any).
 29}  
 
 ```
-show all 29 lines
 
 ```
 1public protocol PubNubHashedPage {  
@@ -737,21 +717,22 @@ show all 29 lines
 
 ```
 
-##### Failure
-An Error describing the failure.
+Failure: Error.
 
 #### Sample code
+
 - Fetch and handle user channel memberships.
+
 ```
 1
   
-
 ```
+
 - Return sorted channel memberships for the given user ID.
+
 ```
 1
   
-
 ```
 
 ### Set channel memberships
@@ -759,6 +740,7 @@ An Error describing the failure.
 Sets channel memberships for a user.
 
 #### Method(s)
+
 ```
 `1func setMemberships(  
 2    userId metadataId: String?,  
@@ -774,24 +756,16 @@ Sets channel memberships for a user.
 `
 ```
 
-Parameters:
-- userId (Type: String, Required): Unique User Metadata ID. If not supplied, falls back to request/default configuration.
-- channels (Type: [PubNubMembershipMetadata], Required): Memberships with `PubNubChannelMetadata` or `channelMetadataId`.
-- include (Type: PubNub.MembershipInclude, Default: PubNub.MembershipInclude()): Include additional fields.
-- filter (Type: String?, Default: nil): Filter expression. See filtering docs.
-- sort (Type: [PubNub.MembershipSortField], Default: []): Sort by `.object(.id)`, `.object(.name)`, `.object(.type)`, `.object(.status)`, `.object(.updated)`, `.type`, `.status`, `.updated`.
-- limit (Type: Int?, Default: 100)
-- page (Type: PubNubHashedPage?, Default: PubNub.Page())
-- custom (Type: PubNub.RequestConfiguration, Default: PubNub.RequestConfiguration())
-- completion (Type: ((Result<(memberships: [PubNubMembershipMetadata], next: PubNubHashedPageBase?), Error>) -> Void)?, Default: nil)
+- userId: String (required). Unique User Metadata ID. If not supplied, uses request/default configuration.
+- channels: [PubNubMembershipMetadata] (required). Each includes PubNubChannelMetadata or channelMetadataId.
+- include, filter, sort, limit, page, custom, completion: same as fetchMemberships.
 
-##### API limits
-See REST API docs for parameter length limits.
+API limits: See REST API docs for maximum parameter lengths.
 
 #### Completion handler result
 
-##### Success
-Tuple of `[PubNubMembershipMetadata]` and next `PubNubHashedPage` (if any).
+Success: Tuple of [PubNubMembershipMetadata] and next PubNubHashedPage (if any).
+
 ```
 1public protocol PubNubMembershipMetadata {  
 2
@@ -832,7 +806,6 @@ Tuple of `[PubNubMembershipMetadata]` and next `PubNubHashedPage` (if any).
 29}  
 
 ```
-show all 29 lines
 
 ```
 1public protocol PubNubHashedPage {  
@@ -852,14 +825,13 @@ show all 29 lines
 
 ```
 
-##### Failure
-An Error describing the failure.
+Failure: Error.
 
 #### Sample code
+
 ```
 1
   
-
 ```
 
 ### Remove channel memberships
@@ -867,6 +839,7 @@ An Error describing the failure.
 Removes channel memberships for a user.
 
 #### Method(s)
+
 ```
 `1func removeMemberships(  
 2    userId metadataId: String?,  
@@ -882,15 +855,14 @@ Removes channel memberships for a user.
 `
 ```
 
-Parameters:
-- userId (Type: String, Required): Unique User Metadata ID. If not supplied, falls back to request/default configuration.
-- channels (Type: [PubNubMembershipMetadata], Required): Memberships with `PubNubChannelMetadata` or `channelMetadataId`.
-- include, filter, sort, limit, page, custom, completion: Same as Set channel memberships.
+- userId: String (required).
+- channels: [PubNubMembershipMetadata] (required). Each includes PubNubChannelMetadata or channelMetadataId.
+- include, filter, sort, limit, page, custom, completion: same as fetchMemberships.
 
 #### Completion handler result
 
-##### Success
-Tuple of `[PubNubMembershipMetadata]` and next `PubNubHashedPage` (if any).
+Success: Tuple of [PubNubMembershipMetadata] and next PubNubHashedPage (if any).
+
 ```
 1public protocol PubNubMembershipMetadata {  
 2
@@ -931,7 +903,6 @@ Tuple of `[PubNubMembershipMetadata]` and next `PubNubHashedPage` (if any).
 29}  
 
 ```
-show all 29 lines
 
 ```
 1public protocol PubNubHashedPage {  
@@ -951,23 +922,23 @@ show all 29 lines
 
 ```
 
-##### Failure
-An Error describing the failure.
+Failure: Error.
 
 #### Sample code
+
 ```
 1
   
-
 ```
 
 ## Channel members
 
 ### Get channel members
 
-Returns a list of members in a channel, including user metadata when available.
+Returns a list of members in a channel, including user metadata if stored.
 
 #### Method(s)
+
 ```
 `1func fetchMembers(  
 2    channel: String?,  
@@ -982,33 +953,30 @@ Returns a list of members in a channel, including user metadata when available.
 `
 ```
 
-Parameters:
-- channel (Type: String, Required): Unique Channel Metadata ID.
-- include (Type: PubNub.MemberInclude, Default: PubNub.MemberInclude()): Include additional fields.
-- filter (Type: String?, Default: nil): Filter expression. See filtering docs.
-- sort (Type: [PubNub.MembershipSortField], Default: []): Sort by `.object(.id)`, `.object(.name)`, `.object(.type)`, `.object(.status)`, `.object(.updated)`, `.type`, `.status`, `.updated`.
-- limit (Type: Int?, Default: 100)
-- page (Type: PubNubHashedPage?, Default: PubNub.Page())
-- custom (Type: PubNub.RequestConfiguration, Default: PubNub.RequestConfiguration())
-- completion (Type: ((Result<(memberships: [PubNubMembershipMetadata], next: PubNubHashedPageBase?), Error>) -> Void)?, Default: nil)
+- channel: String (required). Unique Channel Metadata ID.
+- include: PubNub.MemberInclude, default PubNub.MemberInclude().
+- filter: String?, default nil.
+- sort: [PubNub.MembershipSortField], default []. Valid: .object(.id/.name/.type/.status/.updated), .type, .status, .updated.
+- limit: Int?, default 100.
+- page: PubNubHashedPage?, default PubNub.Page().
+- custom: PubNub.RequestConfiguration, default PubNub.RequestConfiguration().
+- completion: ((Result<(memberships: [PubNubMembershipMetadata], next: PubNubHashedPageBase?), Error>) -> Void)?, default nil.
 
 #### MemberInclude
-Controls which fields to include for channel members (users in a channel).
 
-PropertyDescription`customFields`Type: `Bool`Default:  
-`true`Whether to include the custom dictionary for the membership object`uuidFields`Type: `Bool`Default:  
-`false`Whether to include the full PubNubUserMetadata instance in the membership`statusField`Type: `Bool`Default:  
-`true`Whether to include the status field of the membership object`typeField`Type: `Bool`Default:  
-`true`Whether to include the type field of the membership object`uuidTypeField`Type: `Bool`Default:  
-`false`Whether to include the type field of the associated user metadata`uuidStatusField`Type: `Bool`Default:  
-`false`Whether to include the status field of the associated user metadata`uuidCustomFields`Type: `Bool`Default:  
-`false`Whether to include the custom dictionary of the associated user metadata`totalCount`Type: `Bool`Default:  
-`false`Whether to include the total count of how many member objects are available
+- customFields: Bool, default true. Include membership custom dictionary.
+- uuidFields: Bool, default false. Include full PubNubUserMetadata in membership.
+- statusField: Bool, default true. Include membership status.
+- typeField: Bool, default true. Include membership type.
+- uuidTypeField: Bool, default false. Include user metadata type.
+- uuidStatusField: Bool, default false. Include user metadata status.
+- uuidCustomFields: Bool, default false. Include user metadata custom dictionary.
+- totalCount: Bool, default false. Include total count.
 
 #### Completion handler result
 
-##### Success
-Tuple of `[PubNubMembershipMetadata]` and next `PubNubHashedPage` (if any).
+Success: Tuple of [PubNubMembershipMetadata] and next PubNubHashedPage (if any).
+
 ```
 1public protocol PubNubMembershipMetadata {  
 2
@@ -1049,7 +1017,6 @@ Tuple of `[PubNubMembershipMetadata]` and next `PubNubHashedPage` (if any).
 29}  
 
 ```
-show all 29 lines
 
 ```
 1public protocol PubNubHashedPage {  
@@ -1069,14 +1036,13 @@ show all 29 lines
 
 ```
 
-##### Failure
-An Error describing the failure.
+Failure: Error.
 
 #### Sample code
+
 ```
 1
   
-
 ```
 
 ### Set channel members
@@ -1084,6 +1050,7 @@ An Error describing the failure.
 Sets members in a channel.
 
 #### Method(s)
+
 ```
 `1func setMembers(  
 2    channel metadataId: String,  
@@ -1099,18 +1066,16 @@ Sets members in a channel.
 `
 ```
 
-Parameters:
-- channel (Type: String, Required): Channel identifier.
-- users (Type: [PubNubMembershipMetadata], Required): Memberships with `PubNubUserMetadata` or `userMetadataId`.
-- include, filter, sort, limit, page, custom, completion: Same as Fetch members.
+- channel: String (required). Channel identifier.
+- users: [PubNubMembershipMetadata] (required). Each includes PubNubUserMetadata or userMetadataId.
+- include, filter, sort, limit, page, custom, completion: as above.
 
-##### API limits
-See REST API docs for parameter length limits.
+API limits: See REST API docs for maximum parameter lengths.
 
 #### Completion handler result
 
-##### Success
-Tuple of `[PubNubMembershipMetadata]` and next `PubNubHashedPage` (if any).
+Success: Tuple of [PubNubMembershipMetadata] and next PubNubHashedPage (if any).
+
 ```
 1public protocol PubNubMembershipMetadata {  
 2
@@ -1151,7 +1116,6 @@ Tuple of `[PubNubMembershipMetadata]` and next `PubNubHashedPage` (if any).
 29}  
 
 ```
-show all 29 lines
 
 ```
 1public protocol PubNubHashedPage {  
@@ -1171,14 +1135,13 @@ show all 29 lines
 
 ```
 
-##### Failure
-An Error describing the failure.
+Failure: Error.
 
 #### Sample code
+
 ```
 1
   
-
 ```
 
 ### Remove channel members
@@ -1186,6 +1149,7 @@ An Error describing the failure.
 Removes members from a channel.
 
 #### Method(s)
+
 ```
 `1func removeMembers(  
 2    channel metadataId: String,  
@@ -1201,15 +1165,14 @@ Removes members from a channel.
 `
 ```
 
-Parameters:
-- channel (Type: String, Required): Channel identifier.
-- uuids (Type: [PubNubMembershipMetadata], Required): Memberships with `PubNubUserMetadata` or `userMetadataId`.
-- include, filter, sort, limit, page, custom, completion: Same as Set channel members.
+- channel: String (required). Channel identifier.
+- uuids: [PubNubMembershipMetadata] (required). Each includes PubNubUserMetadata or userMetadataId.
+- include, filter, sort, limit, page, custom, completion: as above.
 
 #### Completion handler result
 
-##### Success
-Tuple of `[PubNubMembershipMetadata]` and next `PubNubHashedPage` (if any).
+Success: Tuple of [PubNubMembershipMetadata] and next PubNubHashedPage (if any).
+
 ```
 1public protocol PubNubMembershipMetadata {  
 2
@@ -1250,7 +1213,6 @@ Tuple of `[PubNubMembershipMetadata]` and next `PubNubHashedPage` (if any).
 29}  
 
 ```
-show all 29 lines
 
 ```
 1public protocol PubNubHashedPage {  
@@ -1270,10 +1232,10 @@ show all 29 lines
 
 ```
 
-##### Failure
-An Error describing the failure.
+Failure: Error.
 
 #### Sample code
+
 ```
 1
 **

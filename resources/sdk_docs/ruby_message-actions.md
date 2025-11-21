@@ -1,17 +1,17 @@
 # Message Actions API for Ruby SDK
 
-Use message actions to add/remove metadata on published messages (receipts, reactions, custom data). Clients subscribe to channels to receive message action events and can fetch past actions from Message Persistence.
+Use Message Actions to add or remove metadata on published messages (for example, receipts or reactions). Clients can subscribe to channels to receive action events and fetch past actions from Message Persistence or alongside original messages.
 
 ##### Reactions
-"Message Reactions" is a specific use of Message Actions for emoji/social reactions.
+"Message Reactions" is the use of Message Actions for emoji or social reactions.
 
 ##### Message Actions vs. Message Reactions
-Message Actions is the low-level API for metadata (read receipts, delivery confirmations, custom data). Message Reactions refers to using Message Actions for emoji reactions. Same underlying API across Core and Chat SDKs.
+Message Actions is the low-level API for attaching metadata (read receipts, delivery confirmations, custom data). Message Reactions refers to using Message Actions specifically for emoji/social reactions. Same underlying API in Core and Chat SDKs.
 
 ## Add message action[​](#add-message-action)
 
 ##### Requires Message Persistence
-Requires Message Persistence enabled for your key in the Admin Portal.
+This method requires Message Persistence to be enabled for your key in the Admin Portal.
 
 Add an action to a published message. The response includes the added action.
 
@@ -32,16 +32,17 @@ Use this Ruby method:
 ```
 
 Parameters:
-- channel (String, required, default: n/a): Channel name to add the message action to.
-- type (String, required, default: n/a): Message action type (max 15 characters).
-- value (String, required, default: n/a): Message action value.
-- message_timetoken (Integer, required, default: n/a): Timetoken of the target message.
-- http_sync (Boolean, optional, default: false): When true, executes synchronously and returns an array of envelopes.
-- callback (Lambda with one parameter, optional, default: n/a): Invoked for each envelope (for async calls, use value to retrieve the envelope).
+- channel: String. Required. Channel name to add the message action to.
+- type: String. Required. Message action type (max 15 characters).
+- value: String. Required. Message action value.
+- message_timetoken: Integer. Required. Timetoken of the target message.
+- http_sync: Boolean. Optional. Default: false. When true, executes synchronously and returns an array of envelopes.
+- callback: Lambda (one parameter). Optional. Invoked for each envelope (for async calls, use value to retrieve the envelope).
 
 ### Sample code[​](#sample-code)
 
 ##### Reference code
+This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
 
 ```
 1require 'pubnub'  
@@ -113,7 +114,7 @@ Parameters:
 ## Remove message action[​](#remove-message-action)
 
 ##### Requires Message Persistence
-Requires Message Persistence enabled for your key in the Admin Portal.
+This method requires Message Persistence to be enabled for your key in the Admin Portal.
 
 Remove a previously added action from a published message. The response is empty.
 
@@ -133,11 +134,11 @@ Use this Ruby method:
 ```
 
 Parameters:
-- channel (String, required, default: n/a): Channel name to remove the message action from.
-- message_timetoken (Integer, required, default: n/a): Timetoken of the target message.
-- action_timetoken (Integer, required, default: n/a): Timetoken of the message action to remove.
-- http_sync (Boolean, optional, default: false): When true, executes synchronously and returns an array of envelopes.
-- callback (Lambda with one parameter, optional, default: n/a): Invoked for each envelope (for async calls, use value to retrieve the envelope).
+- channel: String. Required. Channel name to remove the message action from.
+- message_timetoken: Integer. Required. Timetoken of the target message.
+- action_timetoken: Integer. Required. Timetoken of the message action to remove.
+- http_sync: Boolean. Optional. Default: false. When true, executes synchronously and returns an array of envelopes.
+- callback: Lambda (one parameter). Optional. Invoked for each envelope (for async calls, use value to retrieve the envelope).
 
 ### Sample code[​](#sample-code-1)
 
@@ -168,9 +169,9 @@ Parameters:
 ## Get message actions[​](#get-message-actions)
 
 ##### Requires Message Persistence
-Requires Message Persistence enabled for your key in the Admin Portal.
+This method requires Message Persistence to be enabled for your key in the Admin Portal.
 
-Get a list of message actions in a channel. Actions are sorted by action timetoken in ascending order.
+Get a list of message actions in a channel. Results are sorted by action timetoken in ascending order.
 
 ### Method(s)[​](#methods-2)
 
@@ -189,12 +190,12 @@ Use this Ruby method:
 ```
 
 Parameters:
-- channel (String, required, default: n/a): Channel name to list message actions for.
-- start (Integer, optional, default: n/a): Action timetoken for the start of the range (exclusive).
-- end (Integer, optional, default: n/a): Action timetoken for the end of the range (inclusive).
-- limit (Integer, optional, default: n/a): Number of message actions to return.
-- http_sync (Boolean, optional, default: false): When true, executes synchronously and returns an array of envelopes.
-- callback (Lambda with one parameter, optional, default: n/a): Invoked for each envelope (for async calls, use value to retrieve the envelope).
+- channel: String. Required. Channel name to list message actions for.
+- start: Integer. Optional. Message action timetoken for the start of the range (exclusive).
+- end: Integer. Optional. Message action timetoken for the end of the range (inclusive).
+- limit: Integer. Optional. Number of message actions to return.
+- http_sync: Boolean. Optional. Default: false. When true, executes synchronously and returns an array of envelopes.
+- callback: Lambda (one parameter). Optional. Invoked for each envelope (for async calls, use value to retrieve the envelope).
 
 ### Sample code[​](#sample-code-2)
 

@@ -1,14 +1,12 @@
 # Mobile Push Notifications API for Dart SDK
 
-Connect PubNub publishing to third-party push services: Google Android FCM (Firebase Cloud Messaging) and Apple iOS APNs (Apple Push Notification service). See Mobile Push Notifications for details.
+Connect PubNub publishing to third-party push services: Google Android FCM and Apple iOS APNs. Learn more: Mobile Push Notifications (/docs/general/push/send).
 
-Requires Mobile Push Notifications add-on: Enable in the Admin Portal. See the support page for enabling add-ons.
-
-Supported gateways: PushGateway.fcm (FCM) and PushGateway.apns2 (APNs). For APNs2, topic is required and environment is optional (development or production).
+Prerequisite: Enable the Mobile Push Notifications add-on for your key in the Admin Portal (https://admin.pubnub.com/).
 
 ## Add device to channel
 
-Enable mobile push notifications on the provided set of channels.
+Enable mobile push notifications for a device on specified channels.
 
 ### Method(s)
 
@@ -26,17 +24,15 @@ Enable mobile push notifications on the provided set of channels.
 ```
 
 Parameters:
-- deviceId (String): ID of the device to add mobile push notifications on.
-- gateway (PushGateway): Backend to use for push. Values: apns2, fcm.
-- channels (Set<String>): Channels to enable.
-- topic (String, APNs2 only): Notifications topic (typically app bundle identifier).
-- environment (Environment, APNs2 only): APNs environment for managing device channel registrations.
-- keyset (Keyset): Override the default keyset configuration.
-- using (String): Keyset name from keysetStore to use for this call.
+- deviceId (String): Device ID/token to enable notifications on.
+- gateway (PushGateway): Backend to use; values: apns2, fcm.
+- channels (Set<String>): Channels to enable notifications for.
+- topic (String, optional): Required when gateway = apns2. Typically the iOS app bundle identifier.
+- environment (Environment, optional): Applies only to apns2 (development or production).
+- keyset (Keyset, optional): Override default keyset.
+- using (String, optional): Keyset name from keysetStore.
 
 ### Sample code
-
-Reference code:
 
 ```
 1import 'package:pubnub/pubnub.dart';  
@@ -70,11 +66,11 @@ Reference code:
 
 ### Returns
 
-Does not return actionable data. Throws an exception on error.
+No actionable data. Throws an exception on error.
 
 ## List channels for device
 
-Request all channels with push notifications enabled for the specified device token.
+Get all channels where push is enabled for the specified device token.
 
 ### Method(s)
 
@@ -94,14 +90,14 @@ Request all channels with push notifications enabled for the specified device to
 ```
 
 Parameters:
-- deviceId (String): Device ID to query.
-- gateway (PushGateway): Backend to use for push. Values: apns2, fcm.
-- topic (String, APNs2 only): Notifications topic.
-- environment (Environment, APNs2 only): APNs environment context.
-- keyset (Keyset): Override the default keyset configuration.
-- using (String): Keyset name from keysetStore.
-- start (String): Starting channel for pagination (use last channel from previous page).
-- count (int): Number of channels to return (max 1000, default 500).
+- deviceId (String): Device ID/token to query.
+- gateway (PushGateway): Backend; values: apns2, fcm.
+- topic (String, optional): Required when gateway = apns2.
+- environment (Environment, optional): Applies only to apns2.
+- keyset (Keyset, optional): Override default keyset.
+- using (String, optional): Keyset name from keysetStore.
+- start (String, optional): Pagination start (use last channel from previous page).
+- count (int, optional): Page size (max 1000, default 500).
 
 ### Sample code
 
@@ -118,12 +114,12 @@ Parameters:
 
 ### Returns
 
-Returns ListPushChannelsResult with:
-- channels (List): Channels associated for mobile push notifications.
+ListPushChannelsResult:
+- channels (List): Channels associated with the device for mobile push notifications.
 
 ## Remove device from channel
 
-Disable mobile push notifications on the provided set of channels.
+Disable mobile push notifications for a device on specific channels.
 
 ### Method(s)
 
@@ -141,13 +137,13 @@ Disable mobile push notifications on the provided set of channels.
 ```
 
 Parameters:
-- deviceId (String): Device ID to remove mobile push notifications from.
-- gateway (PushGateway): Backend to use for push. Values: apns2, fcm.
+- deviceId (String): Device ID/token to remove from channels.
+- gateway (PushGateway): Backend; values: apns2, fcm.
 - channels (Set<String>): Channels to remove.
-- topic (String, APNs2 only): Notifications topic.
-- environment (Environment, APNs2 only): APNs environment context.
-- keyset (Keyset): Override the default keyset configuration.
-- using (String): Keyset name from keysetStore.
+- topic (String, optional): Required when gateway = apns2.
+- environment (Environment, optional): Applies only to apns2.
+- keyset (Keyset, optional): Override default keyset.
+- using (String, optional): Keyset name from keysetStore.
 
 ### Sample code
 
@@ -165,11 +161,11 @@ Parameters:
 
 ### Returns
 
-Does not return actionable data. Throws an exception on error.
+No actionable data. Throws an exception on error.
 
 ## Remove all mobile push notifications
 
-Disable mobile push notifications from all channels registered with the specified device token.
+Disable mobile push notifications for a device across all channels.
 
 ### Method(s)
 
@@ -186,12 +182,12 @@ Disable mobile push notifications from all channels registered with the specifie
 ```
 
 Parameters:
-- deviceId (String): Device ID to clear all mobile push registrations from.
-- gateway (PushGateway): Backend to use for push. Values: apns2, fcm.
-- topic (String, APNs2 only): Notifications topic.
-- environment (Environment, APNs2 only): APNs environment context.
-- keyset (Keyset): Override the default keyset configuration.
-- using (String): Keyset name from keysetStore.
+- deviceId (String): Device ID/token to deregister.
+- gateway (PushGateway): Backend; values: apns2, fcm.
+- topic (String, optional): Required when gateway = apns2.
+- environment (Environment, optional): Applies only to apns2.
+- keyset (Keyset, optional): Override default keyset.
+- using (String, optional): Keyset name from keysetStore.
 
 ### Sample code
 
@@ -208,7 +204,7 @@ Parameters:
 
 ### Returns
 
-Does not return actionable data. Throws an exception on error.
+No actionable data. Throws an exception on error.
 
 ## Other examples
 

@@ -1,21 +1,18 @@
 # Presence API for Go SDK
 
-Presence lets you track who is online/offline and store custom state. It shows:
-- Join/leave events
-- Channel occupancy
+Presence tracks online/offline status and optional custom state. It shows:
+- Join/leave events per channel
+- Channel occupancy (user count)
 - Channels a UUID is subscribed to
 - Presence state per user
 
-Learn more in the Presence overview.
+Requires Presence add-on enabled for your key in the Admin Portal. See Presence overview and Presence Events for details.
 
 ## Here now
 
-##### Requires Presence
+Returns the current state of channels: UUIDs present and occupancy counts.
 
-Returns current state of channels: list of UUIDs and total occupancy.
-
-##### Cache
-3-second response cache time.
+Cache: 3-second response cache time.
 
 ### Method(s)
 
@@ -33,83 +30,105 @@ Returns current state of channels: list of UUIDs and total occupancy.
 ```
 
 Parameters:
-- Channels (Type: []string, required): Channels to query.
-- ChannelGroups (Type: []string): Channel groups to query. Wildcards not supported.
-- IncludeState (Type: bool, default: false): Include presence states of users.
-- IncludeUUIDs (Type: bool, default: true): Include UUIDs of connected clients.
-- Limit (Type: int, default: 1000): 0–1000. 0 returns occupancy counts only (no user details).
-- Offset (Type: int, default: 0): Zero-based starting index. Requires Limit > 0. Only included when Offset > 0. Use with Limit to paginate.
-- QueryParam (Type: map[string]string, default: nil): Custom query string parameters.
+- Channels
+  - Type: []string
+  - Default: n/a
+  - The channels to get here-now details.
+- ChannelGroups
+  - Type: []string
+  - Default: n/a
+  - Channel groups to get here-now details. Wildcards are not supported.
+- IncludeState
+  - Type: bool
+  - Default: false
+  - If true, include presence state for users.
+- IncludeUUIDs
+  - Type: bool
+  - Default: true
+  - If true, include UUIDs of connected clients.
+- Limit
+  - Type: int
+  - Default: 1000
+  - Max occupants per channel to return. Range 0–1000. Use 0 for occupancy counts only (no UUIDs).
+- Offset
+  - Type: int
+  - Default: 0
+  - Zero-based start index for pagination. Must be >= 0 and requires Limit > 0. Use with Limit to paginate. Only included when Offset > 0.
+- QueryParam
+  - Type: map[string]string
+  - Default: nil
+  - Extra query string parameters.
 
 ### Sample code
 
-##### Reference code
-Use as a template when working with examples below.
+Reference code
+```
+1
+  
+```
 
 #### Get a list of UUIDs subscribed to channel
 
 ```
 1
   
-
 ```
 
-### Rest response from server
+### REST response
 
-PNHereNowResult:
-- TotalChannels (Type: int): Total channels.
-- TotalOccupancy (Type: int): Total occupancy.
-- Channels (Type: []HereNowChannelData)
+PNHereNowResult fields:
+- TotalChannels
+  - Type: int
+  - Total channels
+- TotalOccupancy
+  - Type: int
+  - Total occupancy
+- Channels
+  - Type: []HereNowChannelData
 
 HereNowChannelData:
-- ChannelName (Type: string): Channel name.
-- Occupancy (Type: int): Channel occupancy.
-- Occupants (Type: []HereNowOccupantsData)
+- ChannelName
+  - Type: string
+  - Channel name
+- Occupancy
+  - Type: int
+  - Channel occupancy
+- Occupants
+  - Type: []HereNowOccupantsData
 
 HereNowOccupantsData:
-- UUID (Type: string): User UUID.
-- State (Type: map[string]interface): User state.
+- UUID
+  - Type: string
+  - User UUID
+- State
+  - Type: map[string]interface
+  - User state
 
 ### Other examples
 
-#### Returning state
-
-##### Requires Presence
-
+Returning state
 ```
 1
   
-
 ```
 
-#### Return occupancy only
-
-##### Requires Presence
-
-You can return only occupancy for a single channel by setting UUIDs to false.
-
+Return occupancy only (set IncludeUUIDs/UUIDs to false)
 ```
 1
   
-
 ```
 
-#### Here now for channel groups
-
+Here now for channel groups
 ```
 1
   
-
 ```
 
 ## Where now
 
-##### Requires Presence
-
 Returns the list of channels a UUID is subscribed to.
 
-##### Timeout events
-If the app restarts (or page refreshes) within the heartbeat window, no timeout event is generated.
+Timeout events: If the app restarts (or the page refreshes) within the heartbeat window, no timeout event is generated.
 
 ### Method(s)
 
@@ -122,38 +141,40 @@ If the app restarts (or page refreshes) within the heartbeat window, no timeout 
 ```
 
 Parameters:
-- UUID (Type: string, required): UUID to query. If omitted, uses the current PubNub instance UUID.
-- QueryParam (Type: map[string]string, default: nil): Custom query string parameters.
+- UUID
+  - Type: string
+  - Default: n/a
+  - UUID to query.
+- QueryParam
+  - Type: map[string]string
+  - Default: nil
+  - Extra query string parameters.
 
 ### Sample code
 
-#### Get a list of channels a UUID is subscribed to
-
+Get a list of channels a UUID is subscribed to
 ```
 1
   
-
 ```
 
-### Rest response from server
+### REST response
 
-- Channels (Type: []string): Channels where the UUID is present.
+- Channels
+  - Type: []string
+  - Channels where the UUID is present.
 
 ### Other examples
 
-If UUID is omitted, the current instance UUID is used.
-
+Omit UUID to use the current PubNub instance UUID
 ```
 1
   
-
 ```
 
 ## User state
 
-##### Requires Presence
-
-Clients can set dynamic custom state (for example, score or location) for users per channel while subscribed. State is not persisted and is lost on disconnect. See Presence State.
+Clients can set dynamic custom state (for example, score, game state, location) per channel while subscribed. State is not persisted and is lost on disconnect. See Presence State for details.
 
 ### Method(s)
 
@@ -171,11 +192,21 @@ Clients can set dynamic custom state (for example, score or location) for users 
 ```
 
 Parameters:
-- Channels (Type: []string): Channels to set state on.
-- ChannelGroups (Type: []string): Channel groups to set state on.
-- State (Type: map[string]interface): State to set.
-- UUID (Type: string): Set state for this UUID.
-- QueryParam (Type: map[string]string): Custom query string parameters.
+- Channels
+  - Type: []string
+  - Channels to set state.
+- ChannelGroups
+  - Type: []string
+  - Channel groups to set state.
+- State
+  - Type: map[string]interface
+  - State to set.
+- UUID
+  - Type: string
+  - Set presence state for this UUID.
+- QueryParam
+  - Type: map[string]string
+  - Extra query string parameters.
 
 #### Get state
 
@@ -190,60 +221,62 @@ Parameters:
 ```
 
 Parameters:
-- Channels (Type: []string): Channels to get state from.
-- ChannelGroups (Type: []string): Channel groups to get state from.
-- UUID (Type: string): Get state for this UUID.
-- QueryParam (Type: map[string]string): Custom query string parameters.
+- Channels
+  - Type: []string
+  - Channels to get state.
+- ChannelGroups
+  - Type: []string
+  - Channel groups to get state.
+- UUID
+  - Type: string
+  - Get presence state for this UUID.
+- QueryParam
+  - Type: map[string]string
+  - Extra query string parameters.
 
 ### Sample code
 
-#### Set state
-
+Set state
 ```
 1
   
-
 ```
 
-#### Get state
-
+Get state
 ```
 1
   
-
 ```
 
 ### Response
 
-SetState() → PNSetStateResult:
-- State (Type: interface): Map of UUIDs and user states.
+SetState() returns PNSetStateResult:
+- State
+  - Type: interface
+  - Map of UUIDs and user states.
 
-GetState() → PNGetStateResult:
-- State (Type: map[string]interface): Map of UUIDs and user states.
+GetState() returns PNGetStateResult:
+- State
+  - Type: map[string]interface
+  - Map of UUIDs and user states.
 
 ### Other examples
 
-#### Set state for channels in a channel group
-
+Set state for channels in a channel group
 ```
 1
   
-
 ```
 
-#### Get state for multiple channels
-
+Get state for multiple channels
 ```
 1
   
-
 ```
 
 ## Heartbeat without subscription
 
-##### Requires Presence
-
-Send presence heartbeat notifications without subscribing. Configure presence timeout and interval during Configuration.
+Send presence heartbeat notifications without subscribing to a channel. Configure presence timeout and interval during SDK configuration.
 
 ### Method(s)
 
@@ -257,25 +290,27 @@ Send presence heartbeat notifications without subscribing. Configure presence ti
 ```
 
 Parameters:
-- Connected (Type: bool): true to mark as connected (join), false to mark as offline (leave).
-- Channels (Type: []string): Channels whose presence state should change.
-- ChannelGroups (Type: []string): Channel groups whose presence state should change.
+- Connected
+  - Type: bool
+  - Set presence to connected (true to join) or offline (false to leave).
+- Channels
+  - Type: []string
+  - Channels to apply the presence state change.
+- ChannelGroups
+  - Type: []string
+  - Channel groups to apply the presence state change.
 
 ### Sample code
 
 ```
 1
   
-
 ```
 
 ### Other examples
 
-#### To stop heartbeating without subscription to channel or channel group
-
+To stop heartbeating without subscription to channel or channel group
 ```
 1
 **
 ```
-
-Last updated on Nov 10, 2025**

@@ -1,96 +1,130 @@
 # Configuration API for Unreal SDK
 
-Concise reference for configuring, initializing, and using PubNub in Unreal via Project Settings, Blueprints, and C++.
+Concise reference for configuring and initializing the PubNub Unreal SDK, with essential settings, initialization methods, and minimal examples.
 
 ## Configuration and initialization
 
 - Project settings
 - C++
 
-### Project Settings
+Configure in Unreal Editor:
 
-Unreal Editor > Settings > Project Settings > Plugins > Pubnub SDK
-
-Provide values for:
-
-- Publish Key
-  - Type: string
-  - Publish Key from Admin Portal (required if publishing).
-- Subscribe Key
-  - Type: string
-  - Subscribe Key from Admin Portal.
-- Secret Key
-  - Type: string
-  - Secret Key from Admin Portal (only required for access control). If set with “Set Secret Key Automatically,” the user gets root Access Manager permissions.
-- Initialize Automatically
-  - Type: Boolean
-  - Initialize the SDK without calling Init Pubnub. Disable to use InitPubnubWithConfig().
-- Set Secret Key Automatically
-  - Type: Boolean (Project Settings only)
-  - Initialize the SDK using the provided Secret Key without calling Set Secret Key.
+- Settings > Project Settings > Plugins > Pubnub SDK.
+- Set these options:
+  - Publish Key
+    - Type: string
+    - From Admin Portal. Required for publishing.
+  - Subscribe Key
+    - Type: string
+    - From Admin Portal.
+  - Secret Key
+    - Type: string
+    - From Admin Portal. Only for Access Manager (grants root permissions when active).
+  - Initialize Automatically
+    - Type: boolean
+    - If enabled, SDK initializes without calling Init Pubnub. Disable to use InitPubnubWithConfig().
+  - Set Secret Key Automatically
+    - Type: boolean
+    - Only in Project Settings. If enabled and Secret Key is set, SDK sets the Secret Key on init. Grants root Access Manager permissions.
 
 ##### Must disable automatic initialization
 
-You can only use InitPubnubWithConfig() if Initialize Automatically is disabled in Project Settings.
+You can only use the `InitPubnubWithConfig()` method if `Initialize Automatically` is disabled in the project settings.
 
 ```
-PubnubSubsystem->InitPubnubWithConfig(FPubnubConfig);
+`1PubnubSubsystem->InitPubnubWithConfig(FPubnubConfig);  
+`
 ```
 
-### FPubnubConfig
+Properties for initialization:
 
-Configuration struct for the PubNub SDK.
-
-- PublishKey
-  - Type: FString
-  - Default: "demo"
-  - Publish Key from Admin Portal (required if publishing).
-- SubscribeKey
-  - Type: FString
-  - Default: "demo"
-  - Subscribe Key from Admin Portal.
-- SecretKey
-  - Type: FString
-  - Default: ""
-  - Secret Key for access control. When set, grants root Access Manager permissions. To use it, set SetSecretKeyAutomatically to true or call SetSecretKey.
-- UserID
-  - Type: FString
-  - Default: ""
-  - Required for all operations; set before first operation if empty. UTF-8, up to 92 alphanumeric characters.
-- SetSecretKeyAutomatically
-  - Type: bool
-  - Default: false
-  - If true, SecretKey will be set during initialization (grants root Access Manager permissions).
+- FPubnubConfig
+  - Type: FPubnubConfig
+  - Configuration struct for the PubNub SDK. Properties:
+    - PublishKey
+      - Type: FString
+      - Default: "demo"
+      - Publish Key from Admin Portal (only required if publishing).
+    - SubscribeKey
+      - Type: FString
+      - Default: "demo"
+      - Subscribe Key from Admin Portal.
+    - SecretKey
+      - Type: FString
+      - Default: ""
+      - Secret Key from Admin Portal, only required for access control operations. When set, it gives user root permissions for Access Manager. To use it, set SetSecretKeyAutomatically to true or call SetSecretKey.
+    - UserID
+      - Type: FString
+      - Default: ""
+      - Identifies the user or device that connects to PubNub. Required for all operations. If left empty, use SetUserID before the first operation. Must be a UTF-8 encoded string up to 92 alphanumeric characters.
+    - SetSecretKeyAutomatically
+      - Type: bool
+      - Default: false
+      - If true, SecretKey will be set during initialization. Grants root permissions for Access Manager.
 
 ### Sample code
 
-Add a C++ dependency on PubnubLibrary:
+Add C++ dependency:
+
+In Source/YourProject/YourProject.Build.cs:
 
 ```
-PrivateDependencyModuleNames.AddRange(new string[] { "PubnubLibrary" });
+`PrivateDependencyModuleNames.AddRange(new string[] { "PubnubLibrary" });  
+`
 ```
 
-Access the subsystem and call SDK functions:
+Get the subsystem and use the SDK:
 
 ```
-#include "Kismet/GameplayStatics.h"
-#include "PubnubSubsystem.h"
+#include "Kismet/GameplayStatics.h"  
+#include "PubnubSubsystem.h"  
 
-UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);
-UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystem<UPubnubSubsystem>();
-```
-
-Example:
+  
+UGameInstance* GameInstance = UGameplayStatics::GetGameInstance(this);  
+UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>();  
 
 ```
-PubnubSubsystem->SubscribeToChannel("MyChannel");
+
+Example call:
+
+```
+`PubnubSubsystem->SubscribeToChannel("MyChannel");  
+`
 ```
 
 ### Usage in Blueprints and C++
 
-- Blueprints: Use the Pubnub Subsystem node to access SDK functionality.
-- C++: Use UPubnubSubsystem via the Game Instance Subsystem.
+- In Blueprints, use the Pubnub Subsystem node.
+- In C++, access via Game Instance Subsystem as shown above.
 
 ##### Required User ID
 
-Always set and persist a stable User ID for the lifetime of the user/device. If not set in config, call SetUserID before any operation.
+Always set a stable User ID. If not set, you cannot connect. Persist it for the user/device lifetime.
+
+- C++
+- Project settings
+- Blueprint
+
+#### Actor.h
+
+```
+1
+  
+
+```
+
+#### Actor.cpp
+
+```
+1
+  
+
+```
+
+## Encryption
+
+- CryptoModule handles message encryption/decryption. Disabled by default.
+- Implementations:
+  - UPubnubAesCryptor (AES-256-CBC) – recommended.
+  - UPubnubLegacyCryptor – for backward compatibility.
+- To use, configure CryptoModule; then publishes are encrypted and incoming messages are decrypted. For usage details, see the Encryption API reference.

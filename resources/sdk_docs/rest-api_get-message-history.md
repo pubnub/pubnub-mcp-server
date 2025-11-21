@@ -1,15 +1,11 @@
 # Get message history
 
-Fetch historical messages from one or multiple channels with control over time range and returned fields.
+Fetch historical messages from one or multiple channels with control over time range and included fields.
 
 - start only: returns messages older than start (start is exclusive).
 - end only: returns messages from end and newer (end is inclusive).
-- start and end: returns messages between them (inclusive of end).
-
-Limits:
-- Max 100 messages for a single channel.
-- Max 25 messages when requesting multiple channels (batch up to 500 channels).
-- Iterate with adjusted start timetoken to page remaining messages.
+- start and end: returns messages between them (end inclusive).
+- Limits: max 100 messages for a single channel; 25 messages when querying multiple channels; batch history limited to 500 channels. For more results, paginate by adjusting start (or end) across iterative calls.
 
 ## Path Parameters
 
@@ -24,39 +20,39 @@ Limits:
 ## Query Parameters
 
 - start number  
-  Start timetoken (exclusive). Use to page or define a start time.  
+  Start timetoken (exclusive). Use to page older messages or define a start of a slice.  
   Example: `123323123123123`
 
 - end number  
-  End timetoken (inclusive). Use to page or define an end time.  
+  End timetoken (inclusive). Use to page newer messages or define an end of a slice.  
   Example: `123323123123123`
 
 - max integer  
-  Max messages to return. Default/maximum: 100 (single channel), 25 (multiple channels or when retrieving message actions). Batch history limited to 500 channels.  
+  Max messages to return. Default and max are 100 for a single channel, 25 for multiple channels (or when retrieving message actions). Batch history limited to 500 channels.  
   Example: `25`
 
 - include_meta boolean  
-  Include message metadata set at publish time. Default: false.  
+  Include publish-time metadata. Default false.  
   Example: `true`
 
 - include_uuid boolean  
-  Include publisher UUID. Default: false.  
+  Include uuid published with the message. Default false.  
   Example: `true`
 
 - include_message_type boolean  
-  Include PubNub message type. Default: false.  
+  Include PubNub message type. Default false.  
   Example: `true`
 
 - include_custom_message_type boolean  
-  Include custom message type. Default: false.  
+  Include custom message type. Default false.  
   Example: `true`
 
 - encode_channels boolean  
-  Encode channel names in response data. Default: true.  
+  Encode channel names in the response. Default true.  
   Example: `true`
 
 - auth string  
-  Auth key (legacy) or Access Manager token to authorize the operation.  
+  Auth key (legacy) or Access Manager token. Required if access control is enabled.  
   Example: `authKey / p0thisAkFl043rhDdHRsCkNyZXisRBjoERtZXRhoENzaWdYIGOAeTyWGJI`
 
 - uuid string  
@@ -64,7 +60,7 @@ Limits:
   Example: `myUniqueUserId`
 
 - signature string  
-  Request signature for Access Manager when not using a token. See Access Manager docs for computation.
+  Request signature for Access Manager (alternative to token). See Access Manager docs for computing signatures.
 
 - timestamp integer  
   Unix epoch used as nonce for signature; must be within ±60s of NTP. Required when signature is supplied.
@@ -72,21 +68,10 @@ Limits:
 ## Responses
 
 - 200 Success  
-  Schema (optional):
-  - status integer
-  - error boolean
-  - error_message string
-  - channels object
+  Schema fields (optional): `status` integer, `error` boolean, `error_message` string, `channels` object
 
 - 400 Invalid request  
-  Schema (optional):
-  - status integer
-  - error boolean
-  - error_message string
-  - channels object
+  Schema fields (optional): `status` integer, `error` boolean, `error_message` string, `channels` object
 
 - 403 Do not have permission  
-  Schema (optional):
-  - status integer
-  - error boolean
-  - error_message string
+  Schema fields (optional): `status` integer, `error` boolean, `error_message` string, `channels` object

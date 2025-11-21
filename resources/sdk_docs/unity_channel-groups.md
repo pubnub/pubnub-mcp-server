@@ -1,6 +1,6 @@
 # Channel Groups API for Unity SDK
 
-Channel groups allow you to bundle thousands of channels into a named group. You can subscribe to a channel group to receive messages from all channels it contains.
+Channel groups let you bundle many channels under a single group name. You can subscribe to a channel group to receive messages from all its member channels.
 
 Channel group operations
 - You can't publish to a channel group. Publish to individual channels instead.
@@ -8,34 +8,39 @@ Channel group operations
 ## Add channels to a channel group
 
 Requires Stream Controller add-on
+- Enable the Stream Controller add-on for your key in the Admin Portal.
 
 Adds channels to a channel group.
+
+### Method(s)
 
 Maximum number of channels
 - Up to 200 channels per API call.
 
-### Method(s)
-
-Use in Unity SDK:
 ```
-pubnub.AddChannelsToChannelGroup()
-    .ChannelGroup(string)
-    .Channels(Array)
-    .QueryParam(Dictionary<string, object>)
-    .Execute(System.Action<PNChannelGroupsAddChannelResult, PNStatus>);
+`1pubnub.AddChannelsToChannelGroup()  
+2    .ChannelGroup(string)  
+3    .Channels(Array)  
+4    .QueryParam(Dictionarystring,object>)  
+5    .Execute(System.ActionPNChannelGroupsAddChannelResult, PNStatus>);  
+`
 ```
 
-Parameters and options
-- ChannelGroup (string, required): Group to add channels to.
-- Channels (Array, required): Channels to add.
-- QueryParam (Dictionary<string, object>): Query string name-value pairs.
-- Execute: System.Action<PNChannelGroupsAddChannelResult, PNStatus>.
-- ExecuteAsync: Task<PNResult<PNChannelGroupsAddChannelResult>>.
-- PNCallback: PNCallback of type PNChannelGroupsAddChannelResult.
+Parameters
+- ChannelGroup (string): The channel group to add the channels to.
+- Channels (Array): The channels to add.
+- QueryParam (Dictionary<string, object>): Optional query parameters.
+- Async: PNCallback of type PNChannelGroupsAddChannelResult.
+- Execute: System.Action of type PNChannelGroupsAddChannelResult, PNStatus.
+- ExecuteAsync: Returns Task<PNResult<PNChannelGroupsAddChannelResult>>.
 
 ### Sample code
 
 #### Add channels
+
+Reference code
+- Self-contained snippet with imports and console logging.
+
 ```
 1
   
@@ -44,40 +49,42 @@ Parameters and options
 
 ### Returns
 
-AddChannelsToChannelGroup() returns PNResult<PNChannelGroupsAddChannelResult>:
-- Result: PNChannelGroupsAddChannelResult (empty result object).
-- Status: PNStatus (request status, including errors).
+The AddChannelsToChannelGroup() operation returns a PNResult<PNChannelGroupsAddChannelResult> with:
+- Result (PNChannelGroupsAddChannelResult): The operation result.
+- Status (PNStatus): The request status.
 
 PNChannelGroupsAddChannelResult includes:
-- PNChannelGroupsAddChannelResult: Object (empty).
-- PNStatus: Object (request status, including errors).
+- PNChannelGroupsAddChannelResult (Object): Empty object.
+- PNStatus (Object): Request status, including errors.
 
 ## List channels in a channel group
 
 Requires Stream Controller add-on
+- Enable the Stream Controller add-on for your key in the Admin Portal.
 
 Lists all channels in a channel group.
 
 ### Method(s)
 
-Use in Unity SDK:
 ```
-pubnub.ListChannelsForChannelGroup()
-    .ChannelGroup(string)
-    .QueryParam(Dictionary<string, object>)
-    .Execute(System.Action<PNChannelGroupsAllChannelsResult, PNStatus>);
+`1pubnub.ListChannelsForChannelGroup()  
+2    .ChannelGroup(string)  
+3    .QueryParam(Dictionarystring,object>)  
+4    .Execute(System.ActionPNChannelGroupsAllChannelsResult, PNStatus>);  
+`
 ```
 
-Parameters and options
-- ChannelGroup (string, required): Group to list channels from.
-- QueryParam (Dictionary<string, object>): Query string name-value pairs.
-- Execute: System.Action<PNChannelGroupsAllChannelsResult, PNStatus>.
-- ExecuteAsync: Task<PNResult<PNChannelGroupsAllChannelsResult>>.
-- PNCallback: PNCallback of type PNChannelGroupsAllChannelsResult.
+Parameters
+- ChannelGroup (string): The channel group to fetch channels of.
+- QueryParam (Dictionary<string, object>): Optional query parameters.
+- Async: PNCallback of type PNChannelGroupsAllChannelsResult.
+- Execute: System.Action of type PNChannelGroupsAllChannelsResult, PNStatus.
+- ExecuteAsync: Returns Task<PNResult<PNChannelGroupsAllChannelsResult>>.
 
 ### Sample code
 
 #### List channels
+
 ```
 1
   
@@ -86,41 +93,43 @@ Parameters and options
 
 ### Returns
 
-ListChannelsForChannelGroup() returns PNResult<PNChannelGroupsAllChannelsResult>:
-- Result: PNChannelGroupsAllChannelsResult.
-- Status: PNStatus.
+The ListChannelsForChannelGroup() operation returns a PNChannelGroupsAllChannelsResult with:
+- Result (PNChannelGroupsAllChannelsResult): The operation result.
+- Status (PNStatus): The request status.
 
 PNChannelGroupsAllChannelsResult includes:
-- Channels: List<string> (channel names in the group).
+- Channels (List<string>): Channel names in the group.
 
 ## Remove channels from a channel group
 
 Requires Stream Controller add-on
+- Enable the Stream Controller add-on for your key in the Admin Portal.
 
 Removes channels from a channel group.
 
 ### Method(s)
 
-Use in Unity SDK:
 ```
-pubnub.RemoveChannelsFromChannelGroup()
-    .ChannelGroup(string)
-    .Channels(Array)
-    .QueryParam(Dictionary<string, object>)
-    .Execute((result, status) => {});
+`1pubnub.RemoveChannelsFromChannelGroup()  
+2    .ChannelGroup(string)  
+3    .Channels(Array)  
+4    .QueryParam(Dictionarystring,object>)  
+5    .Execute((result, status) => {});  
+`
 ```
 
-Parameters and options
-- ChannelGroup (string, required): Group to remove channels from.
-- Channels (Array, required): Channels to remove.
-- QueryParam (Dictionary<string, object>): Query string name-value pairs.
-- Execute: System.Action<PNChannelGroupsRemoveChannelResult, PNStatus>.
-- ExecuteAsync: Task<PNResult<PNChannelGroupsRemoveChannelResult>>.
-- PNCallback: PNCallback of type PNChannelGroupsRemoveChannelResult.
+Parameters
+- ChannelGroup (string): The channel group to remove channels from.
+- Channels (Array): The channels to remove.
+- QueryParam (Dictionary<string, object>): Optional query parameters.
+- Async: PNCallback of type PNChannelGroupsRemoveChannelResult.
+- Execute: System.Action of type PNChannelGroupsRemoveChannelResult.
+- ExecuteAsync: Returns Task<PNResult<PNChannelGroupsRemoveChannelResult>>.
 
 ### Sample code
 
 #### Remove channels
+
 ```
 1
   
@@ -129,39 +138,41 @@ Parameters and options
 
 ### Returns
 
-RemoveChannelsFromChannelGroup() returns PNResult<PNChannelGroupsRemoveChannelResult>:
-- Result: PNChannelGroupsRemoveChannelResult (empty result object).
-- Status: PNStatus.
+The RemoveChannelsFromChannelGroup() operation returns a PNChannelGroupsAddChannelResult with:
+- Result (PNChannelGroupsRemoveChannelResult): The operation result.
+- Status (PNStatus): The request status.
 
 PNChannelGroupsRemoveChannelResult includes:
-- PNChannelGroupsRemoveChannelResult: Object (empty).
+- PNChannelGroupsRemoveChannelResult (Object): Empty object.
 
 ## Delete a channel group
 
 Requires Stream Controller add-on
+- Enable the Stream Controller add-on for your key in the Admin Portal.
 
-Deletes a channel group.
+Removes a channel group.
 
 ### Method(s)
 
-Use in Unity SDK:
 ```
-pubnub.DeleteChannelGroup()
-    .ChannelGroup(string)
-    .QueryParam(Dictionary<string, object>)
-    .Execute(System.Action<PNChannelGroupsDeleteGroupResult, PNStatus>);
+`1pubnub.DeleteChannelGroup()  
+2    .ChannelGroup(string)  
+3    .QueryParam(Dictionarystring,object>)  
+4    .Execute(System.ActionPNChannelGroupsDeleteGroupResult, PNStatus>);  
+`
 ```
 
-Parameters and options
-- ChannelGroup (string, required): Group to remove.
-- QueryParam (Dictionary<string, object>): Query string name-value pairs.
-- Execute: System.Action<PNChannelGroupsDeleteGroupResult, PNStatus>.
-- ExecuteAsync: Task<PNResult<PNChannelGroupsDeleteGroupResult>>.
-- PNCallback: PNCallback of type PNChannelGroupsDeleteGroupResult.
+Parameters
+- ChannelGroup (string): The channel group to remove.
+- QueryParam (Dictionary<string, object>): Optional query parameters.
+- Async: PNCallback of type PNChannelGroupsDeleteGroupResult.
+- Execute: System.Action of type PNChannelGroupsDeleteGroupResult, PNStatus.
+- ExecuteAsync: Returns Task<PNResult<PNChannelGroupsDeleteGroupResult>>.
 
 ### Sample code
 
 #### Delete channel group
+
 ```
 1
   
@@ -170,16 +181,17 @@ Parameters and options
 
 ### Returns
 
-DeleteChannelGroup() returns PNResult<PNChannelGroupsDeleteGroupResult>:
-- Status: int (HTTP status code).
-- Error: bool (true if operation failed).
+The DeleteChannelGroup() operation returns a PNResult<PNChannelGroupsDeleteGroupResult> with:
+- Status (int): HTTP status code.
+- Error (bool): True if the operation failed.
 
-Example response:
 ```
-{
-    "status" : 200,
-    "message" : "OK",
-    "service" : "channel-registry",
-    "error" : false
-}
+`1{**2    "status" : 200,  
+3    "message" : "OK",  
+4    "service" : "channel-registry",  
+5    "error" : False  
+6}  
+`
 ```
+
+Last updated on Sep 3, 2025**

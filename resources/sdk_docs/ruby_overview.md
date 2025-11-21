@@ -1,15 +1,9 @@
 # Ruby API & SDK Docs 6.0.1
 
-This guide shows how to quickly build a "Hello, World" app with PubNub in Ruby:
-- Setting up a connection
-- Sending messages
-- Receiving messages in real-time
+Build real-time Ruby apps with the PubNub Ruby SDK:
 
-## Overview
-
-Use the PubNub Ruby SDK to add real-time features:
 - Publish/subscribe messaging
-- Presence detection (online/offline)
+- Presence detection (online/offline status)
 - Storage and playback
 - Access control
 - Push notifications
@@ -17,7 +11,6 @@ Use the PubNub Ruby SDK to add real-time features:
 ## Prerequisites
 
 - Ruby 2.7+
-- Basic Ruby knowledge
 - Bundler (optional)
 - PubNub account and keyset
 
@@ -25,16 +18,13 @@ Use the PubNub Ruby SDK to add real-time features:
 
 ### Get your PubNub keys
 
-- Sign in or create an account on the PubNub Admin Portal.
-- Create an app or use an existing one.
-- Use the generated keyset (publish/subscribe keys). Prefer separate keysets for dev/prod.
+- Sign in or create an account in the PubNub Admin Portal.
+- Create an app and keyset; obtain publish and subscribe keys.
+- Use separate keysets for dev/prod environments.
 
 ### Install the SDK
 
-##### SDK version
-Use the latest SDK version for features and security.
-
-Install via RubyGems:
+Always use the latest SDK version.
 
 ```
 `1gem install pubnub  
@@ -49,7 +39,6 @@ Using Bundler:
 3
   
 4gem 'pubnub', '~> 6.0.1'  
-
 ```
 
 ```
@@ -66,7 +55,7 @@ Clone the GitHub repository:
 `
 ```
 
-See platform support: /docs/sdks/ruby/platform-support
+For supported platforms, see the platform support documentation.
 
 ## Steps
 
@@ -88,13 +77,12 @@ Replace demo keys with your own from the Admin Portal.
 10
   
 11puts "PubNub initialized with user_id: #{pubnub.user_id}"  
-
 ```
 
-Notes:
-- user_id must be unique for your user.
-- ssl: true secures connections.
-- See Configuration: /docs/sdks/ruby/api-reference/configuration
+Parameters:
+- subscribe_key, publish_key: your keyset
+- user_id: unique identifier for the client
+- ssl: true to secure connections
 
 ### Set up event listeners
 
@@ -119,13 +107,11 @@ Notes:
   
 18# Add the listener to the PubNub instance  
 19pubnub.add_listener(callback: callback)  
-
 ```
 
-- message: handles incoming messages.
-- presence: handles joins/leaves and occupancy.
-- status: connection state and errors.
-- More: /docs/sdks/ruby/api-reference/configuration#event-listeners
+- message: processes incoming messages
+- presence: handles join/leave events
+- status: connection status and errors
 
 ### Create a subscription
 
@@ -138,15 +124,14 @@ Notes:
 6
   
 7puts "Subscribed to 'my_channel'"  
-
 ```
 
-- with_presence: true enables presence events.
-- More: /docs/sdks/ruby/api-reference/publish-and-subscribe#subscribe
+- channels: array of channel names
+- with_presence: true to receive presence events
 
 ### Publish messages
 
-Messages are delivered to all subscribers on the channel. The message payload must be JSON-serializable and under 32 KiB.
+Messages must be JSON-serializable and under 32 KiB.
 
 ```
 1# Define a message to publish  
@@ -164,8 +149,11 @@ Messages are delivered to all subscribers on the channel. The message payload mu
 12    puts "Message Published! Timetoken: #{envelope.result[:timetoken]}"  
 13  end  
 14end  
-
 ```
+
+- channel: target channel
+- message: payload
+- Block yields envelope with status and result[:timetoken]
 
 ### Run the app
 
@@ -174,7 +162,7 @@ Messages are delivered to all subscribers on the channel. The message payload mu
 `
 ```
 
-Example output:
+Expected output example:
 
 ```
 `1PubNub initialized with user_id: myUniqueUserId  
@@ -259,37 +247,33 @@ Example output:
 58puts "Waiting for messages... (Press Ctrl+C to exit)"  
 59sleep 5  # Wait for 5 seconds to see the results  
 60puts "Completed the demonstration"  
-
 ```
 
 ## Troubleshooting
 
 - No connection message
-  - Check internet connection.
-  - Verify publish and subscribe keys.
-  - Ensure firewall isn’t blocking PubNub.
-
+  - Check internet connectivity.
+  - Verify publish/subscribe keys.
+  - Ensure firewall allows PubNub connections.
 - Message not received
-  - Confirm subscription channel is correct.
-  - Check publish response for errors.
-  - Wait long enough for delivery.
-  - Ensure message listener is set up.
-
+  - Confirm subscription channel name.
+  - Check publish errors.
+  - Wait for delivery; keep process running.
+  - Verify message listener is set up.
 - Ruby errors
   - Install the PubNub gem correctly.
   - Use Ruby 2.7+.
-  - Verify imports.
-  - Match the examples exactly.
+  - Check imports and code against examples.
 
 ## Next steps
 
-- Presence: /docs/sdks/ruby/api-reference/presence
-- Message Persistence: /docs/sdks/ruby/api-reference/storage-and-playback
-- Access Manager: /docs/sdks/ruby/api-reference/access-manager
-- Channel Groups: /docs/sdks/ruby/api-reference/channel-groups
-- Push Notifications: /docs/sdks/ruby/api-reference/mobile-push
-- GitHub repo: https://github.com/pubnub/ruby
-- SDK reference: /docs/sdks/ruby/api-reference/configuration
-- Support: https://support.pubnub.com/
+- Try Presence to track online/offline status.
+- Implement Message Persistence for storage and retrieval.
+- Use Access Manager to secure channels.
+- Explore Channel Groups to organize channels.
+- Implement Push Notifications for mobile apps.
+- Explore the GitHub repository for more samples.
+- See the Ruby SDK reference documentation for detailed API info.
+- Visit the support portal for additional resources.
 
 Last updated on Sep 3, 2025

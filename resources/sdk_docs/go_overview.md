@@ -1,33 +1,31 @@
-# Go API & SDK Docs v8.0.0
+# Go API & SDK Docs v8.1.0
 
-This guide demonstrates core PubNub concepts in Go:
-- Setting up a connection
-- Sending messages
-- Receiving messages in real-time
+This guide shows how to set up PubNub in a Go app to send and receive real-time messages.
 
 ## Overview
 
-Get started integrating PubNub real-time messaging into Go applications (Go 1.11+). Go’s goroutines and channels support efficient real-time apps. Use this guide to initialize, listen, subscribe, publish, and run a simple app.
+Use the Go SDK to integrate PubNub real-time messaging into your Go applications.
 
 ## Prerequisites
 
 - Basic Go knowledge
-- Go 1.11 or later installed
-- A Go IDE or editor
-- A PubNub account
+- Go 1.11+
+- Go IDE or text editor
+- PubNub account and keyset
 
 ## Setup
 
 ### Get your PubNub keys
 
-- [Sign in](https://admin.pubnub.com/#/login) or [create an account](https://admin.pubnub.com/#/signup).
-- Create or select an app.
-- Get your publish and subscribe keys from the app dashboard.
-- Use separate keysets for development and production when possible.
+- Sign in or create an account in the PubNub Admin Portal.
+- Create an app and keyset.
+- Retrieve publish and subscribe keys. Use separate keysets for dev/prod.
 
 ### Install the SDK
 
-Always use the latest SDK version.
+##### SDK version
+
+Use the latest SDK version.
 
 - go get
 
@@ -36,16 +34,16 @@ Always use the latest SDK version.
 `
 ```
 
-If dependencies fail, run go mod tidy.
+If you encounter dependency issues, use the `go mod tidy` command.
 
 - go.mod
 
 ```
-`1require github.com/pubnub/go/v7 v8.0.0  
+`1require github.com/pubnub/go/v7 v8.1.0  
 `
 ```
 
-Then:
+Then run:
 
 ```
 `1go mod tidy  
@@ -59,13 +57,13 @@ Then:
 `
 ```
 
-View the [supported platforms](/docs/sdks/go/platform-support).
+See supported platforms for compatibility.
 
 ## Steps
 
 ### Initialize PubNub
 
-Create pubnub_example.go and replace demo keys with your app’s publish and subscribe keys.
+Create pubnub_example.go and replace demo keys with your publish and subscribe keys:
 
 ```
 1
@@ -73,11 +71,11 @@ Create pubnub_example.go and replace demo keys with your app’s publish and sub
 
 ```
 
-See [Configuration](/docs/sdks/go/api-reference/configuration).
+See Configuration docs for more options.
 
 ### Set up event listeners
 
-Use channels to handle asynchronous events for status and messages.
+Use channels to handle async events:
 
 ```
 1
@@ -85,11 +83,11 @@ Use channels to handle asynchronous events for status and messages.
 
 ```
 
-See [Event listeners](/docs/sdks/go/api-reference/configuration#event-listeners).
+See Listeners docs for details.
 
 ### Create a subscription
 
-Subscribe to a channel to receive messages in real-time.
+Subscribe to channels to receive messages in real-time:
 
 ```
 1
@@ -99,13 +97,15 @@ Subscribe to a channel to receive messages in real-time.
 
 ### Publish messages
 
-Publish JSON-serializable data (objects, arrays, integers, strings) up to 32 KiB to deliver to all channel subscribers. See [Subscribe](/docs/sdks/go/api-reference/publish-and-subscribe#subscribe).
+Publish JSON-serializable data up to 32 KiB:
 
 ```
 1
   
 
 ```
+
+See Subscribe docs for usage details.
 
 ### Run the app
 
@@ -136,30 +136,31 @@ Expected output:
 
 ### Troubleshooting
 
-- No connection:
-  - Check internet connectivity.
-  - Verify publish/subscribe keys.
-  - Ensure firewall allows PubNub.
-- Message not received:
-  - Confirm correct channel subscription.
+- No connection
+  - Check internet connection.
+  - Verify publish and subscribe keys.
+  - Ensure firewall isn’t blocking PubNub.
+- Message not received
+  - Confirm subscribed channel name.
   - Check for publish errors.
   - Allow time for delivery.
-- Build errors:
-  - Update Go.
+- Build errors
+  - Update Go version.
   - Run go mod tidy.
   - Verify imports.
 
 ## Next steps
 
-- Set up [Presence](/docs/sdks/go/api-reference/presence)
-- Use [Channel Groups](/docs/sdks/go/api-reference/channel-groups)
-- Send [Signals](/docs/sdks/go/api-reference/publish-and-subscribe#signal)
-- Secure with [Access Manager](/docs/sdks/go/api-reference/access-manager)
-- Add [Message Persistence](/docs/sdks/go/api-reference/storage-and-playback)
-- Configure [Push Notifications](/docs/sdks/go/api-reference/mobile-push)
-- [Build a chat app in Go](https://www.pubnub.com/blog/build-a-chat-app-in-go-using-pubnub/)
-- Explore the [GitHub repository](https://github.com/pubnub/go)
-- Read the [SDK reference docs](/docs/sdks/go/api-reference/configuration)
-- Visit the [support portal](https://support.pubnub.com/)
+- Presence
+- Channel groups
+- Signals
+- Access Manager
+- Message Persistence
+- Push Notifications
+- Build a chat app in Go
+- Explore GitHub samples
+- SDK reference documentation
+- Support portal
+- Ask the AI assistant
 
 Last updated on Oct 29, 2025

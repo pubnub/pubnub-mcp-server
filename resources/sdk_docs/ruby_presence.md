@@ -1,17 +1,16 @@
 # Presence API for Ruby SDK
 
-Presence tracks who is online/offline and stores custom state. It shows join/leave events, occupancy, subscriptions per UUID, and presence state. Requires Presence add-on enabled for your key in the Admin Portal. See Presence Events for subscribing to presence channels.
+Presence tracks who is online, channel occupancy, subscriptions, and per-user presence state. See Presence overview for concepts and events.
+
+All methods require the Presence add-on to be enabled for your key in the Admin Portal.
 
 ## Here now
 
-Returns the current state of a channel: list of UUIDs and occupancy.
+Returns the current state of a channel: list of UUIDs subscribed and total occupancy.
 
-- Requires Presence add-on enabled for your key in the Admin Portal. See Presence Events for details.
-- Cache: 3-second response cache.
+Cache: 3-second response cache time.
 
 ### Method(s)
-
-To call Here Now in the Ruby SDK:
 
 ```
 `1here_now(  
@@ -26,18 +25,18 @@ To call Here Now in the Ruby SDK:
 ```
 
 Parameters:
-- channels (String, Symbol): Channel(s) to return occupancy results. If omitted, returns global here_now for all channels.
-- channel_groups (String, Symbol): Channel group(s) to return occupancy results. Wildcards not supported.
-- limit (Integer, default 1000): Max occupants per channel; range 0–1000. Use 0 for counts only (no UUID details).
-- offset (Integer, default 0): Zero-based start index for pagination; must be >= 0 and requires limit > 0. Included only when offset > 0.
-- http_sync (Boolean, default false): Async by default returns a future; call value to get the Envelope. If true, returns an array of Envelopes (or a single Envelope for sync methods).
-- callback (Lambda one parameter): Invoked for each Envelope. For async, call future.value to retrieve the Envelope (blocks until available).
+- channels (String, Symbol) — Channel(s) to return occupancy for. If omitted, returns global here_now across all channels.
+- channel_groups (String, Symbol) — Channel group(s) to return occupancy for. Wildcards not supported.
+- limit (Integer, default 1000) — Max occupants per channel. Range 0–1000. Use 0 for counts only (no UUID details).
+- offset (Integer, default 0) — Zero-based starting index for pagination. Must be >= 0, requires limit > 0. Included only when offset > 0.
+- http_sync (Boolean, default false) — Async returns a future; call value to get Envelope. If true, returns array of Envelope(s); sync methods return Envelope.
+- callback (Lambda) — Called for each Envelope. For async, call value on future to get Envelope (blocks until available).
 
 ### Sample code
 
 #### Get a list of uuids subscribed to channel
 
-##### Reference code
+Reference code
 
 ```
 1require 'pubnub'  
@@ -74,7 +73,6 @@ Parameters:
 28if __FILE__ == $0  
 29  main  
 30end  
-
 ```
 
 ### Response
@@ -98,8 +96,7 @@ Parameters:
 
 Returns the list of channels a UUID is subscribed to.
 
-- Requires Presence add-on enabled for your key in the Admin Portal. See Presence Events for details.
-- Timeout events: If the app restarts (or page refreshes) within the heartbeat window, no timeout event is generated.
+Timeout events: If the app restarts (or the page refreshes) within the heartbeat window, no timeout event is generated.
 
 ### Method(s)
 
@@ -113,9 +110,9 @@ Returns the list of channels a UUID is subscribed to.
 ```
 
 Parameters:
-- uuid (String): UUID to look up.
-- http_sync (Boolean, default false): Async by default returns a future; call value to get the Envelope. If true, returns an array of Envelopes (or a single Envelope for sync methods).
-- callback (Lambda one parameter): Invoked for each Envelope. For async, call future.value to retrieve the Envelope (blocks until available).
+- uuid (String) — Target UUID.
+- http_sync (Boolean, default false) — Async returns a future; call value to get Envelope. If true, returns array of Envelope(s); sync methods return Envelope.
+- callback (Lambda) — Called for each Envelope. For async, call value on future to get Envelope.
 
 ### Sample code
 
@@ -146,7 +143,7 @@ Parameters:
 
 ## User state
 
-Clients can set dynamic custom state (for example score, game state, location) per channel while subscribed. State is not persisted and is lost on disconnect. Requires Presence add-on enabled.
+Set or get dynamic custom presence state (for example, score or location) per channel while subscribed. State is not persisted and is lost on disconnect.
 
 ### Method(s)
 
@@ -161,10 +158,10 @@ Clients can set dynamic custom state (for example score, game state, location) p
 ```
 
 Parameters:
-- channels (String, Symbol): Channels to set state for.
-- state (Hash): State to set.
-- http_sync (Boolean, default false): Async by default returns a future; call value to get the Envelope. If true, returns an array of Envelopes (or a single Envelope for sync methods).
-- callback (Lambda one parameter): Invoked for each Envelope. For async, call future.value to retrieve the Envelope (blocks until available).
+- channels (String, Symbol) — Channel(s) to set state for.
+- state (Hash) — State key-values to set.
+- http_sync (Boolean, default false) — Async returns a future; call value to get Envelope. If true, returns array of Envelope(s); sync methods return Envelope.
+- callback (Lambda) — Called for each Envelope. For async, call value on future to get Envelope.
 
 ```
 `1get_state(  
@@ -177,10 +174,10 @@ Parameters:
 ```
 
 Parameters:
-- channels (String, Symbol): Channels to get state from.
-- uuid (String): Target UUID.
-- http_sync (Boolean, default false): Async by default returns a future; call value to get the Envelope. If true, returns an array of Envelopes (or a single Envelope for sync methods).
-- callback (Lambda one parameter): Invoked for each Envelope. For async, call future.value to retrieve the Envelope (blocks until available).
+- channels (String, Symbol) — Channel(s) to get state from.
+- uuid (String) — UUID to retrieve state for.
+- http_sync (Boolean, default false) — Async returns a future; call value to get Envelope. If true, returns array of Envelope(s); sync methods return Envelope.
+- callback (Lambda) — Called for each Envelope. For async, call value on future to get Envelope.
 
 ### Sample code
 

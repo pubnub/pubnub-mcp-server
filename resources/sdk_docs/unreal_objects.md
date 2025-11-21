@@ -1,18 +1,18 @@
-# App Context API for Unreal SDK (Condensed)
+# App Context API for Unreal SDK
 
-App Context is serverless storage for user, channel, and membership metadata with real-time events on set/update/remove. Setting data to the same existing value doesn't trigger an event.
+App Context provides serverless storage for user and channel metadata and their membership associations. PubNub emits events when object data is set, updated, or removed; setting identical data doesn't trigger events. Use via Blueprints or C++.
 
-Use via Blueprints or C++:
-- Blueprints: start with the Pubnub Subsystem node.
-- C++: add dependency and access subsystem.
+In Blueprints, use the Pubnub Subsystem node. In C++, add dependency and access via Game Instance Subsystem.
 
-Add module dependency in Source/YourProject/YourProject.Build.cs:
+Add PubnubLibrary dependency in Source/YourProject/YourProject.Build.cs:
+
 ```
 `PrivateDependencyModuleNames.AddRange(new string[] { "PubnubLibrary" });  
 `
 ```
 
-Access the subsystem in C++:
+Access the subsystem:
+
 ```
 #include "Kismet/GameplayStatics.h"  
 #include "PubnubSubsystem.h"  
@@ -24,6 +24,7 @@ UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>(
 ```
 
 Example call:
+
 ```
 `PubnubSubsystem->SubscribeToChannel("MyChannel");  
 `
@@ -35,12 +36,12 @@ Example call:
 
 ### Get metadata for all users
 
-Retrieve user metadata in pages. Optionally include Custom and other fields.
+Retrieve user metadata in pages (optional custom object).
 
 #### Method(s)
 
-Method variants
-- GetAllUserMetadataRaw: uses String Include/Sort instead of FPubnubGetAllInclude/FPubnubGetAllSort.
+##### Method variants
+You can also call the `GetAllUserMetadataRaw` variant of this method which takes String values for `Include` and `Sort` instead of the `FPubnubGetAllInclude` and `FPubnubGetAllSort` structs.
 
 ```
 `1PubnubSubsystem->GetAllUserMetadata(  
@@ -55,36 +56,37 @@ Method variants
 `
 ```
 
-Parameters
-- OnGetAllUserMetadataResponse: Type FOnGetAllUserMetadataResponse. Delegate for result. Native alternative: FOnGetAllUserMetadataResponseNative (lambda).
-- Include: Type FPubnubGetAllInclude. Fields to include.
-- Limit: int. Default/Max: 100.
-- Filter: FString. See filtering.
-- Sort: Type FPubnubGetAllSort. Sort by id, name, updated with asc/desc.
-- PageNext: FString. Cursor for next page.
-- PagePrev: FString. Cursor for previous page (ignored if PageNext provided).
-- Count: EPubnubTribool. Whether to include total count (default: not set).
+- OnGetAllUserMetadataResponse Type: FOnGetAllUserMetadataResponse. Delegate for result. Native lambda callback: FOnGetAllUserMetadataResponseNative.
+- Include Type: FPubnubGetAllInclude. Properties to include.
+- Limit Type: int. Default/Max 100.
+- Filter Type: FString. Filter expression.
+- Sort Type: FPubnubGetAllSort. Sort by id, name, updated with asc/desc.
+- PageNext Type: FString. Next page cursor.
+- PagePrev Type: FString. Previous page cursor. Ignored if PageNext provided.
+- Count Type: EPubnubTribool. Include total count (default: not set).
 
 #### FPubnubGetAllInclude
 
 Field | Type | Description
 - IncludeCustom | bool | Include Custom object.
-- IncludeStatus | bool | Include membership Status.
-- IncludeType | bool | Include membership Type.
+- IncludeStatus | bool | Include membership Status field.
+- IncludeType | bool | Include membership Type field.
 - IncludeTotalCount | bool | Include total count.
 
 #### FPubnubGetAllSort
 
 Field | Type | Description
-- GetAllSort | TArray<FPubnubGetAllSingleSort> | Ordered sort criteria.
+- GetAllSort | TArray<FPubnubGetAllSingleSort> | Array of sorts (applied in order).
 
 #### Sample code
 
-Reference code
+##### Reference code
+
 - C++
 - Blueprint
 
 #### Actor.h
+
 ```
 1
   
@@ -92,74 +94,81 @@ Reference code
 ```
 
 #### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Other examples
+##### Other examples
 
-Reference code
+###### Get metadata for all users with additional settings
 
-Get metadata for all users with additional settings
+###### Actor.h
 
-Actor.h
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Get metadata for all users with all includes
+###### Get metadata for all users with all includes
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Get metadata for all users with lambda
+###### Get metadata for all users with lambda
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Get metadata for all users raw
+###### Get metadata for all users raw
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
@@ -168,47 +177,48 @@ Actor.cpp
 
 #### Returns
 
-Void; result via FOnGetAllUserMetadataResponse.
+Delegate returns FOnGetAllUserMetadataResponse.
 
 ##### FOnGetAllUserMetadataResponse
 
 Field | Type | Description
 - Result | FPubnubOperationResult | Operation result.
-- UsersData | const TArray<FPubnubUserData>& | Array of users with metadata.
-- PageNext | FString | Cursor for forward pagination.
-- PagePrev | FString | Cursor for backward pagination (ignored if PageNext is supplied).
+- UsersData | const TArray<FPubnubUserData>& | User metadata list.
+- PageNext | FString | Next page cursor.
+- PagePrev | FString | Previous page cursor (ignored if pageNext supplied).
 
 ##### FPubnubUserData
 
 Field | Type | Description
-- UserID | FString | UUID. Defaults to current user’s UUID if not supplied.
+- UserID | FString | UUID (defaults to current user UUID if not supplied).
 - UserName | FString | Display name.
 - ExternalID | FString | External system ID.
-- ProfileUrl | FString | Profile image URL.
+- ProfileUrl | FString | Profile picture URL.
 - Email | FString | Email.
 - Custom | FString | Custom JSON (strings, numbers, booleans). Filtering by Custom not supported.
 - Status | FString | Max 50 chars.
 - Type | FString | Max 50 chars.
-- Updated | FString | Last update date.
+- Updated | FString | Last updated timestamp.
 - ETag | FString | Content fingerprint.
 
 #### FOnGetAllUserMetadataResponseNative
 
-Same as FOnGetAllUserMetadataResponse but with const refs:
-- Result: const FPubnubOperationResult&
-- UsersData: const TArray<FPubnubUserData>&
-- PageNext, PagePrev: FString
+Field | Type | Description
+- Result | const FPubnubOperationResult& | Operation result.
+- UsersData | const TArray<FPubnubUserData>& | User metadata list.
+- PageNext | FString | Next page cursor.
+- PagePrev | FString | Previous page cursor (ignored if pageNext supplied).
 
 ### Get user metadata - UserMetadata entity
 
-Available in entities
-- UserMetadata
+Available in entities: UserMetadata
 
 Requires App Context add-on
 
-Retrieve metadata for a user. Optionally include Custom.
+Retrieve metadata for a user (optional custom).
 
 #### Method(s)
+
 ```
 1UPubnubUserMetadataEntity* UserMetadataEntity = PubnubSubsystem->CreateUserMetadataEntity("user-id");  
 2
@@ -220,16 +230,15 @@ Retrieve metadata for a user. Optionally include Custom.
 
 ```
 
-Parameters
-- OnGetUserMetadataResponse: Type FOnGetUserMetadataResponse. Native: FOnGetUserMetadataResponseNative.
-- Include: Type FPubnubGetMetadataInclude.
+- OnGetUserMetadataResponse Type: FOnGetUserMetadataResponse. Native: FOnGetUserMetadataResponseNative.
+- Include Type: FPubnubGetMetadataInclude. Properties to include.
 
 #### Sample code
 
-Reference code
 - C++
 
 #### Actor.h
+
 ```
 1
   
@@ -237,6 +246,7 @@ Reference code
 ```
 
 #### Actor.cpp
+
 ```
 1
   
@@ -245,22 +255,22 @@ Reference code
 
 #### Returns
 
-Void; result via FOnGetUserMetadataResponse.
+Delegate returns FOnGetUserMetadataResponse.
 
-Other examples
+#### Other examples
 
-Reference code
+##### Get user metadata with lambda
 
-Get user metadata with lambda
+###### Actor.h
 
-Actor.h
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
@@ -269,9 +279,10 @@ Actor.cpp
 
 ### Get user metadata - PubNub client
 
-Retrieve metadata for a user. Optionally include Custom.
+Retrieve metadata for a user (optional custom).
 
 #### Method(s)
+
 ```
 `1PubnubSubsystem->GetUserMetadata(  
 2    FString User,   
@@ -281,18 +292,17 @@ Retrieve metadata for a user. Optionally include Custom.
 `
 ```
 
-Parameters
-- User: FString. Metadata ID (required).
-- OnGetUserMetadataResponse: FOnGetUserMetadataResponse. Native: FOnGetUserMetadataResponseNative.
-- Include: FPubnubGetMetadataInclude.
+- User Type: FString. Metadata ID (non-empty).
+- OnGetUserMetadataResponse Type: FOnGetUserMetadataResponse. Native: FOnGetUserMetadataResponseNative.
+- Include Type: FPubnubGetMetadataInclude.
 
 #### Sample code
 
-Reference code
 - C++
 - Blueprint
 
 #### Actor.h
+
 ```
 1
   
@@ -300,6 +310,7 @@ Reference code
 ```
 
 #### Actor.cpp
+
 ```
 1
   
@@ -308,112 +319,124 @@ Reference code
 
 #### Returns
 
-Void; result via FOnGetUserMetadataResponse.
+Delegate returns FOnGetUserMetadataResponse.
 
 ##### FOnGetUserMetadataResponse
 
-- Result: FPubnubOperationResult
-- UserData: FPubnubUserData
+Field | Type | Description
+- Result | FPubnubOperationResult | Operation result.
+- UserData | FPubnubUserData | User metadata.
 
 ##### FOnGetUserMetadataResponseNative
 
-- Result: const FPubnubOperationResult&
-- UserData: const FPubnubUserData&
+Field | Type | Description
+- Result | const FPubnubOperationResult& | Operation result.
+- UserData | const FPubnubUserData& | User metadata.
 
-Other examples
+#### Other examples
 
-Reference code
+##### Get metadata for a user with all includes
 
-Get metadata for a user with all includes
+###### Actor.h
 
-Actor.h
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Get metadata for a user with lambda
+##### Get metadata for a user with lambda
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Get metadata for a user raw
+##### Get metadata for a user raw
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Set user metadata with additional settings
+##### Set user metadata with additional settings
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Set user metadata with result struct
+##### Set user metadata with result struct
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Remove user metadata with result struct
+##### Remove user metadata with result struct
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
@@ -422,17 +445,20 @@ Actor.cpp
 
 ### Set user metadata - UserMetadata entity
 
-Available in entities
-- UserMetadata
+Available in entities: UserMetadata
 
 Requires App Context add-on
 
 Unsupported partial updates of custom metadata
-- Custom payload overwrites existing Custom. To append, first read current value, merge client-side, then set.
+- The custom metadata value overwrites existing server value. To add new custom data iteratively, you must:
+1. $1
+2. $1
+3. $1
 
-Set metadata for a user (optionally include Custom).
+Set metadata for a user (optional custom).
 
 #### Method(s)
+
 ```
 1UPubnubUserMetadataEntity* UserMetadataEntity = PubnubSubsystem->CreateUserMetadataEntity("user-id");  
 2
@@ -445,20 +471,19 @@ Set metadata for a user (optionally include Custom).
 
 ```
 
-Parameters
-- UserMetadata: FPubnubUserData. Object to create/update.
-- FOnSetUserMetadataResponse: Delegate for result. Native: FOnSetUserMetadataResponseNative.
-- Include: FPubnubGetMetadataInclude.
+- UserMetadata Type: FPubnubUserData. Object to create/update.
+- FOnSetUserMetadataResponse Type: FOnSetUserMetadataResponse. Native: FOnSetUserMetadataResponseNative.
+- Include Type: FPubnubGetMetadataInclude.
 
-API limits
-- See REST API docs: /docs/sdks/rest-api/set-user-metadata
+##### API limits
+See REST API docs: /docs/sdks/rest-api/set-user-metadata.
 
 #### Sample code
 
-Reference code
 - C++
 
 #### Actor.h
+
 ```
 1
   
@@ -466,6 +491,7 @@ Reference code
 ```
 
 #### Actor.cpp
+
 ```
 1
   
@@ -473,6 +499,7 @@ Reference code
 ```
 
 #### Returns
+
 ```
 `1{  
 2    "Uuid": "uuid-1",  
@@ -486,36 +513,38 @@ Reference code
 `
 ```
 
-Other examples
+#### Other examples
 
-Reference code
+##### Set user metadata with result
 
-Set user metadata with result
+###### Actor.h
 
-Actor.h
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Set user metadata with lambda
+##### Set user metadata with lambda
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
@@ -525,11 +554,15 @@ Actor.cpp
 ### Set user metadata - PubNub client
 
 Unsupported partial updates of custom metadata
-- Custom payload overwrites existing Custom. To append, first read, merge, then set.
+- The custom metadata value overwrites existing server value. To add new custom data iteratively, you must:
+1. $1
+2. $1
+3. $1
 
-Set metadata for a user.
+Set metadata for a user (optional custom).
 
 #### Method(s)
+
 ```
 `1PubnubSubsystem->SetUserMetadata(  
 2    FString User,    
@@ -540,38 +573,40 @@ Set metadata for a user.
 `
 ```
 
-Parameters
-- User: FString. Metadata ID (required).
-- UserMetadata: FPubnubUserData. Object to create/update.
-- FOnSetUserMetadataResponse: Delegate. Native: FOnSetUserMetadataResponseNative.
-- Include: FPubnubGetMetadataInclude.
+- User Type: FString. Metadata ID (non-empty).
+- UserMetadata Type: FPubnubUserData. Object to create/update.
+- FOnSetUserMetadataResponse Type: FOnSetUserMetadataResponse. Native: FOnSetUserMetadataResponseNative.
+- Include Type: FPubnubGetMetadataInclude.
 
-API limits: See /docs/sdks/rest-api/set-user-metadata
+##### API limits
+See REST API docs: /docs/sdks/rest-api/set-user-metadata.
 
 #### FPubnubGetMetadataInclude
 
 Field | Type | Description
-- IncludeCustom | bool | Include Custom.
-- IncludeStatus | bool | Include Status.
-- IncludeType | bool | Include Type.
+- IncludeCustom | bool | Include Custom field.
+- IncludeStatus | bool | Include Status field.
+- IncludeType | bool | Include Type field.
 
 #### FOnSetUserMetadataResponse
 
-- Result: FPubnubOperationResult
-- UserData: FPubnubUserData
+Field | Type | Description
+- Result | FPubnubOperationResult | Operation result.
+- UserData | FPubnubUserData | Created/updated user object.
 
 #### FOnSetUserMetadataResponseNative
 
-- Result: const FPubnubOperationResult&
-- UserData: const FPubnubUserData&
+Field | Type | Description
+- Result | const FPubnubOperationResult& | Operation result.
+- UserData | const FPubnubUserData& | Created/updated user object.
 
 #### Sample code
 
-Reference code
 - C++
 - Blueprint
 
 #### Actor.h
+
 ```
 1
   
@@ -579,6 +614,7 @@ Reference code
 ```
 
 #### Actor.cpp
+
 ```
 1
   
@@ -586,6 +622,7 @@ Reference code
 ```
 
 #### Returns
+
 ```
 `1{  
 2    "Uuid": "uuid-1",  
@@ -599,68 +636,74 @@ Reference code
 `
 ```
 
-Other examples
+#### Other examples
 
-Reference code
+##### Set metadata for a user with result
 
-Set metadata for a user with result
+###### Actor.h
 
-Actor.h
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Set metadata for a user with lambda
+##### Set metadata for a user with lambda
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Set metadata for a user raw
+##### Set metadata for a user raw
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Iteratively update existing metadata
+##### Iteratively update existing metadata
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
@@ -669,14 +712,14 @@ Actor.cpp
 
 ### Remove user metadata - UserMetadata entity
 
-Available in entities
-- UserMetadata
+Available in entities: UserMetadata
 
 Requires App Context add-on
 
 Remove metadata for a user UUID.
 
 #### Method(s)
+
 ```
 1UPubnubUserMetadataEntity* UserMetadataEntity = PubnubSubsystem->CreateUserMetadataEntity("user-id");  
 2
@@ -687,15 +730,14 @@ Remove metadata for a user UUID.
 
 ```
 
-Parameters
-- OnRemoveUserMetadataResponse: FOnRemoveUserMetadataResponse. Native: FOnRemoveUserMetadataResponseNative.
+- OnRemoveUserMetadataResponse Type: FOnRemoveUserMetadataResponse. Native: FOnRemoveUserMetadataResponseNative.
 
 #### Sample code
 
-Reference code
 - C++
 
 #### Actor.h
+
 ```
 1
   
@@ -703,6 +745,7 @@ Reference code
 ```
 
 #### Actor.cpp
+
 ```
 1
   
@@ -711,38 +754,40 @@ Reference code
 
 #### Returns
 
-Void; result via FOnRemoveUserMetadataResponse.
+Delegate returns FOnRemoveUserMetadataResponse.
 
-Other examples
+#### Other examples
 
-Reference code
+##### Remove user metadata with result
 
-Remove user metadata with result
+###### Actor.h
 
-Actor.h
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Remove user metadata with lambda
+##### Remove user metadata with lambda
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
@@ -754,6 +799,7 @@ Actor.cpp
 Remove metadata for a user UUID.
 
 #### Method(s)
+
 ```
 `1PubnubSubsystem->RemoveUserMetadata(  
 2    FString User,  
@@ -762,17 +808,16 @@ Remove metadata for a user UUID.
 `
 ```
 
-Parameters
-- User: FString (required).
-- OnRemoveUserMetadataResponse: FOnRemoveUserMetadataResponse. Native: FOnRemoveUserMetadataResponseNative.
+- User Type: FString. Metadata ID (non-empty).
+- OnRemoveUserMetadataResponse Type: FOnRemoveUserMetadataResponse. Native: FOnRemoveUserMetadataResponseNative.
 
 #### Sample code
 
-Reference code
 - C++
 - Blueprint
 
 #### Actor.h
+
 ```
 1
   
@@ -780,6 +825,7 @@ Reference code
 ```
 
 #### Actor.cpp
+
 ```
 1
   
@@ -788,46 +834,50 @@ Reference code
 
 #### Returns
 
-Void; result via FOnRemoveUserMetadataResponse.
+Delegate returns FOnRemoveUserMetadataResponse.
 
 ##### FOnRemoveUserMetadataResponse
 
-- Result: FPubnubOperationResult
+Field | Type | Description
+- Result | FPubnubOperationResult | Operation result.
 
 ##### FOnRemoveUserMetadataResponseNative
 
-- Result: const FPubnubOperationResult&
+Field | Type | Description
+- Result | const FPubnubOperationResult& | Operation result.
 
-Other examples
+#### Other examples
 
-Reference code
+##### Remove metadata for a user with result
 
-Remove metadata for a user with result
+###### Actor.h
 
-Actor.h
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Remove metadata for a user with lambda
+##### Remove metadata for a user with lambda
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
@@ -838,12 +888,12 @@ Actor.cpp
 
 ### Get metadata for all channels
 
-Retrieve channel metadata in pages. Optionally include Custom.
+Retrieve channel metadata in pages (optional custom).
 
 #### Method(s)
 
-Method variants
-- GetAllChannelMetadataRaw: uses String Include/Sort instead of FPubnubGetAllInclude/FPubnubGetAllSort.
+##### Method variants
+You can also call the `GetAllChannelMetadataRaw` variant of this method which takes String values for `Include` and `Sort` instead of the `FPubnubGetAllInclude` and `FPubnubGetAllSort` structs.
 
 ```
 `1PubnubSubsystem->GetAllChannelMetadata(  
@@ -858,21 +908,21 @@ Method variants
 `
 ```
 
-Parameters
-- OnGetAllChannelMetadataResponse: FOnGetAllChannelMetadataResponse. Native: FOnGetAllChannelMetadataResponseNative.
-- Include: FPubnubGetAllInclude.
-- Limit: int (default/max 100).
-- Filter: FString.
-- Sort: FPubnubGetAllSort.
-- PageNext, PagePrev: FString.
+- OnGetAllChannelMetadataResponse Type: FOnGetAllChannelMetadataResponse. Native: FOnGetAllChannelMetadataResponseNative.
+- Include Type: FPubnubGetAllInclude.
+- Limit Type: int. Default/Max 100.
+- Filter Type: FString.
+- Sort Type: FPubnubGetAllSort.
+- PageNext Type: FString.
+- PagePrev Type: FString.
 
 #### Sample code
 
-Reference code
 - C++
 - Blueprint
 
 #### Actor.h
+
 ```
 1
   
@@ -880,6 +930,7 @@ Reference code
 ```
 
 #### Actor.cpp
+
 ```
 1
   
@@ -888,93 +939,104 @@ Reference code
 
 #### Returns
 
-Void; result via FOnGetAllChannelMetadataResponse.
+Delegate returns FOnGetAllChannelMetadataResponse.
 
 ##### FOnGetAllChannelMetadataResponse
 
-- Result: const FPubnubOperationResult&
-- ChannelsData: const TArray<FPubnubChannelData>&
-- PageNext: FString
-- PagePrev: FString
+Field | Type | Description
+- Result | const FPubnubOperationResult& | Operation result.
+- ChannelsData | const TArray<FPubnubChannelData>& | Channel metadata list.
+- PageNext | FString | Next page cursor.
+- PagePrev | FString | Previous page cursor (ignored if pageNext supplied).
 
 ##### FPubnubChannelData
 
 Field | Type | Description
 - ChannelID | FString | Channel ID.
 - ChannelName | FString | Channel name.
-- Description | FString | Description.
-- Custom | FString | Custom JSON (no filtering).
+- Description | FString | Channel description.
+- Custom | FString | Custom JSON (strings, numbers, booleans). Filtering by Custom not supported.
 - Status | FString | Max 50 chars.
 - Type | FString | Max 50 chars.
-- Updated | FString | Last update date.
+- Updated | FString | Last updated timestamp.
 - ETag | FString | Version identifier.
 
 ##### FOnGetAllChannelMetadataResponseNative
 
-Same fields as above with const refs.
+Field | Type | Description
+- Result | const FPubnubOperationResult& | Operation result.
+- ChannelsData | const TArray<FPubnubChannelData>& | Channel metadata list.
+- PageNext | FString | Next page cursor.
+- PagePrev | FString | Previous page cursor (ignored if pageNext supplied).
 
-Other examples
+#### Other examples
 
-Reference code
+##### Get metadata for all channels with settings
 
-Get metadata for all channels with settings
+###### Actor.h
 
-Actor.h
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Get metadata for all channels with all includes
+##### Get metadata for all channels with all includes
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Get metadata for all channels with lambda
+##### Get metadata for all channels with lambda
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Get metadata for all channels raw
+##### Get metadata for all channels raw
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
@@ -983,14 +1045,14 @@ Actor.cpp
 
 ### Get channel metadata - ChannelMetadata entity
 
-Available in entities
-- ChannelMetadata
+Available in entities: ChannelMetadata
 
 Requires App Context add-on
 
-Retrieve metadata for a channel. Optionally include Custom.
+Retrieve metadata for a channel (optional custom).
 
 #### Method(s)
+
 ```
 1UPubnubChannelMetadataEntity* ChannelMetadataEntity = PubnubSubsystem->CreateChannelMetadataEntity("channel-id");  
 2
@@ -1002,16 +1064,15 @@ Retrieve metadata for a channel. Optionally include Custom.
 
 ```
 
-Parameters
-- OnGetChannelMetadataResponse: FOnGetChannelMetadataResponse. Native: FOnGetChannelMetadataResponseNative.
-- Include: FPubnubGetMetadataInclude.
+- OnGetChannelMetadataResponse Type: FOnGetChannelMetadataResponse. Native: FOnGetChannelMetadataResponseNative.
+- Include Type: FPubnubGetMetadataInclude.
 
 #### Sample code
 
-Reference code
 - C++
 
 #### Actor.h
+
 ```
 1
   
@@ -1019,6 +1080,7 @@ Reference code
 ```
 
 #### Actor.cpp
+
 ```
 1
   
@@ -1027,22 +1089,22 @@ Reference code
 
 #### Returns
 
-Void; result via FOnGetChannelMetadataResponse.
+Delegate returns FOnGetChannelMetadataResponse.
 
-Other examples
+#### Other examples
 
-Reference code
+##### Get channel metadata with lambda
 
-Get channel metadata with lambda
+###### Actor.h
 
-Actor.h
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
@@ -1051,9 +1113,10 @@ Actor.cpp
 
 ### Get channel metadata - PubNub client
 
-Retrieve metadata for a channel. Optionally include Custom.
+Retrieve metadata for a channel (optional custom).
 
 #### Method(s)
+
 ```
 `1PubnubSubsystem->GetChannelMetadata(  
 2    FString Include,   
@@ -1063,18 +1126,17 @@ Retrieve metadata for a channel. Optionally include Custom.
 `
 ```
 
-Parameters
-- Include: FString (comma-delimited). Use "" for none.
-- Channel: FString (required).
-- OnGetChannelMetadataResponse: FOnGetChannelMetadataResponse. Native: FOnGetChannelMetadataResponseNative.
+- Include Type: FString. Comma-delimited include string (use "" for none).
+- Channel Type: FString. Channel ID (non-empty).
+- OnGetChannelMetadataResponse Type: FOnGetChannelMetadataResponse. Native: FOnGetChannelMetadataResponseNative.
 
 #### Sample code
 
-Reference code
 - C++
 - Blueprint
 
 #### Actor.h
+
 ```
 1
   
@@ -1082,6 +1144,7 @@ Reference code
 ```
 
 #### Actor.cpp
+
 ```
 1
   
@@ -1090,112 +1153,124 @@ Reference code
 
 #### Returns
 
-Void; result via FOnGetChannelMetadataResponse.
+Delegate returns FOnGetChannelMetadataResponse.
 
 ##### FOnGetChannelMetadataResponse
 
-- Result: FPubnubOperationResult
-- ChannelData: FPubnubChannelData
+Field | Type | Description
+- Result | FPubnubOperationResult | Operation result.
+- ChannelData | FPubnubChannelData | Channel metadata.
 
 ##### FOnGetChannelMetadataResponseNative
 
-- Result: const FPubnubOperationResult&
-- ChannelData: const FPubnubChannelData&
+Field | Type | Description
+- Result | const FPubnubOperationResult& | Operation result.
+- ChannelData | const FPubnubChannelData& | Channel metadata.
 
-Other examples
+#### Other examples
 
-Reference code
+##### Get metadata for a channel with all includes
 
-Get metadata for a channel with all includes
+###### Actor.h
 
-Actor.h
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Get metadata for a channel with lambda
+##### Get metadata for a channel with lambda
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Get metadata for a channel raw
+##### Get metadata for a channel raw
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Set channel metadata with additional settings
+##### Set channel metadata with additional settings
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Set channel metadata with result struct
+##### Set channel metadata with result struct
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Remove channel metadata with result struct
+##### Remove channel metadata with result struct
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
@@ -1204,17 +1279,20 @@ Actor.cpp
 
 ### Set channel metadata - ChannelMetadata entity
 
-Available in entities
-- ChannelMetadata
+Available in entities: ChannelMetadata
 
 Requires App Context add-on
 
 Unsupported partial updates of custom metadata
-- Custom payload overwrites existing Custom. To append, read-merge-set.
+- The custom metadata value overwrites existing server value. To add new custom data iteratively, you must:
+1. $1
+2. $1
+3. $1
 
-Set metadata for a channel.
+Set metadata for a channel (optional custom).
 
 #### Method(s)
+
 ```
 1UPubnubChannelMetadataEntity* ChannelMetadataEntity = PubnubSubsystem->CreateChannelMetadataEntity("channel-id");  
 2
@@ -1227,19 +1305,19 @@ Set metadata for a channel.
 
 ```
 
-Parameters
-- ChannelMetadata: FPubnubChannelData.
-- FOnSetChannelMetadataResponse: Delegate. Native: FOnSetChannelMetadataResponseNative.
-- Include: FPubnubGetMetadataInclude.
+- ChannelMetadata Type: FPubnubChannelData. Object to create/update.
+- FOnSetChannelMetadataResponse Type: FOnSetChannelMetadataResponse. Native: FOnSetChannelMetadataResponseNative.
+- Include Type: FPubnubGetMetadataInclude.
 
-API limits: See /docs/sdks/rest-api/set-channel-metadata
+##### API limits
+See REST API docs: /docs/sdks/rest-api/set-channel-metadata.
 
 #### Sample code
 
-Reference code
 - C++
 
 #### Actor.h
+
 ```
 1
   
@@ -1247,6 +1325,7 @@ Reference code
 ```
 
 #### Actor.cpp
+
 ```
 1
   
@@ -1254,6 +1333,7 @@ Reference code
 ```
 
 #### Returns
+
 ```
 `1{  
 2    "Channel": "my-channel",  
@@ -1264,36 +1344,38 @@ Reference code
 `
 ```
 
-Other examples
+#### Other examples
 
-Reference code
+##### Set channel metadata with result
 
-Set channel metadata with result
+###### Actor.h
 
-Actor.h
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Set channel metadata with lambda
+##### Set channel metadata with lambda
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
@@ -1303,11 +1385,15 @@ Actor.cpp
 ### Set channel metadata - PubNub client
 
 Unsupported partial updates of custom metadata
-- Custom payload overwrites existing Custom. To append, read-merge-set.
+- The custom metadata value overwrites existing server value. To add new custom data iteratively, you must:
+1. $1
+2. $1
+3. $1
 
-Set channel metadata.
+Set metadata for a channel (optional custom).
 
 #### Method(s)
+
 ```
 `1PubnubSubsystem->SetChannelMetadata(  
 2    FString Channel,   
@@ -1318,31 +1404,33 @@ Set channel metadata.
 `
 ```
 
-Parameters
-- Channel: FString (required).
-- ChannelMetadata: FPubnubChannelData.
-- FOnSetChannelMetadataResponse: Delegate. Native: FOnSetChannelMetadataResponseNative.
-- Include: FPubnubGetMetadataInclude.
+- Channel Type: FString. Channel ID (non-empty).
+- ChannelMetadata Type: FPubnubChannelData. Object to create/update.
+- FOnSetChannelMetadataResponse Type: FOnSetChannelMetadataResponse. Native: FOnSetChannelMetadataResponseNative.
+- Include Type: FPubnubGetMetadataInclude.
 
-API limits: See /docs/sdks/rest-api/set-channel-metadata
+##### API limits
+See REST API docs: /docs/sdks/rest-api/set-channel-metadata.
 
 #### FOnSetChannelMetadataResponse
 
-- Result: FPubnubOperationResult
-- ChannelData: FPubnubChannelData
+Field | Type | Description
+- Result | FPubnubOperationResult | Operation result.
+- ChannelData | FPubnubChannelData | Created/updated channel object.
 
 #### FOnSetChannelMetadataResponseNative
 
-- Result: const FPubnubOperationResult&
-- ChannelData: const FPubnubChannelData&
+Field | Type | Description
+- Result | const FPubnubOperationResult& | Operation result.
+- ChannelData | const FPubnubChannelData& | Created/updated channel object.
 
 #### Sample code
 
-Reference code
 - C++
 - Blueprint
 
 #### Actor.h
+
 ```
 1
   
@@ -1350,6 +1438,7 @@ Reference code
 ```
 
 #### Actor.cpp
+
 ```
 1
   
@@ -1357,6 +1446,7 @@ Reference code
 ```
 
 #### Returns
+
 ```
 `1{  
 2    "Channel": "my-channel",  
@@ -1367,68 +1457,74 @@ Reference code
 `
 ```
 
-Other examples
+#### Other examples
 
-Reference code
+##### Set metadata for a channel with result
 
-Set metadata for a channel with result
+###### Actor.h
 
-Actor.h
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Set metadata for a channel with lambda
+##### Set metadata for a channel with lambda
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Set metadata for a channel raw
+##### Set metadata for a channel raw
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Iteratively update existing metadata
+##### Iteratively update existing metadata
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
@@ -1437,14 +1533,14 @@ Actor.cpp
 
 ### Remove channel metadata - ChannelMetadata entity
 
-Available in entities
-- ChannelMetadata
+Available in entities: ChannelMetadata
 
 Requires App Context add-on
 
 Remove metadata for a channel.
 
 #### Method(s)
+
 ```
 1UPubnubChannelMetadataEntity* ChannelMetadataEntity = PubnubSubsystem->CreateChannelMetadataEntity("channel-id");  
 2
@@ -1455,15 +1551,14 @@ Remove metadata for a channel.
 
 ```
 
-Parameters
-- OnRemoveChannelMetadataResponse: FOnRemoveChannelMetadataResponse. Native: FOnRemoveChannelMetadataResponseNative.
+- OnRemoveChannelMetadataResponse Type: FOnRemoveChannelMetadataResponse. Native: FOnRemoveChannelMetadataResponseNative.
 
 #### Sample code
 
-Reference code
 - C++
 
 #### Actor.h
+
 ```
 1
   
@@ -1471,6 +1566,7 @@ Reference code
 ```
 
 #### Actor.cpp
+
 ```
 1
   
@@ -1479,38 +1575,40 @@ Reference code
 
 #### Returns
 
-Void; result via FOnRemoveChannelMetadataResponse.
+Delegate returns FOnRemoveChannelMetadataResponse.
 
-Other examples
+#### Other examples
 
-Reference code
+##### Remove channel metadata with result
 
-Remove channel metadata with result
+###### Actor.h
 
-Actor.h
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Remove channel metadata with lambda
+##### Remove channel metadata with lambda
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
@@ -1522,6 +1620,7 @@ Actor.cpp
 Remove metadata for a channel.
 
 #### Method(s)
+
 ```
 `1PubnubSubsystem->RemoveChannelMetadata(  
 2    FString Channel,   
@@ -1530,17 +1629,16 @@ Remove metadata for a channel.
 `
 ```
 
-Parameters
-- Channel: FString (required).
-- OnRemoveChannelMetadataResponse: FOnRemoveChannelMetadataResponse. Native: FOnRemoveChannelMetadataResponseNative.
+- Channel Type: FString. Channel ID (non-empty).
+- OnRemoveChannelMetadataResponse Type: FOnRemoveChannelMetadataResponse. Native: FOnRemoveChannelMetadataResponseNative.
 
 #### Sample code
 
-Reference code
 - C++
 - Blueprint
 
 #### Actor.h
+
 ```
 1
   
@@ -1548,6 +1646,7 @@ Reference code
 ```
 
 #### Actor.cpp
+
 ```
 1
   
@@ -1556,46 +1655,50 @@ Reference code
 
 #### Returns
 
-Void; result via FOnRemoveChannelMetadataResponse.
+Delegate returns FOnRemoveChannelMetadataResponse.
 
 ##### FOnRemoveChannelMetadataResponse
 
-- Result: FPubnubOperationResult
+Field | Type | Description
+- Result | FPubnubOperationResult | Operation result.
 
 ##### FOnRemoveChannelMetadataResponseNative
 
-- Result: const FPubnubOperationResult&
+Field | Type | Description
+- Result | const FPubnubOperationResult& | Operation result.
 
-Other examples
+#### Other examples
 
-Reference code
+##### Remove metadata for a channel with result
 
-Remove metadata for a channel with result
+###### Actor.h
 
-Actor.h
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Remove metadata for a channel with lambda
+##### Remove metadata for a channel with lambda
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
@@ -1606,12 +1709,12 @@ Actor.cpp
 
 ### Get channel memberships
 
-List channel memberships for a user (not subscriptions).
+List of channel memberships for a user (not subscriptions).
 
 #### Method(s)
 
-Method variants
-- GetMembershipsRaw: uses String Include/Sort instead of FPubnubMembershipInclude/FPubnubMembershipSort.
+##### Method variants
+You can also call the `GetMembershipsRaw` variant of this method which takes String values for `Include` and `Sort` instead of the `FPubnubMembershipInclude` and `FPubnubMembershipSort` structs.
 
 ```
 `1PubnubSubsystem->GetMemberships(  
@@ -1627,43 +1730,56 @@ Method variants
 `
 ```
 
-Parameters
-- User: FString (required).
-- OnGetMembershipsResponse: FOnGetMembershipsResponse. Native: FOnGetMembershipsResponseNative.
-- Include: FPubnubMembershipInclude.
-- Limit, Filter, Sort, PageNext, PagePrev: as standard pagination.
+- User Type: FString. User UUID.
+- OnGetMembershipsResponse Type: FOnGetMembershipsResponse. Native: FOnGetMembershipsResponseNative.
+- Include Type: FPubnubMembershipInclude.
+- Limit Type: int. Default/Max 100.
+- Filter Type: FString.
+- Sort Type: FPubnubMembershipSort.
+- PageNext Type: FString.
+- PagePrev Type: FString.
 
 #### FPubnubMembershipInclude
 
-- IncludeCustom (bool)
-- IncludeStatus (bool)
-- IncludeType (bool)
-- IncludeChannel (bool) Include FPubnubChannelData.
-- IncludeChannelCustom (bool)
-- IncludeChannelStatus (bool)
-- IncludeChannelType (bool)
-- IncludeTotalCount (bool)
+Field Name | Type | Default | Description
+- IncludeCustom | bool | false | Include membership Custom.
+- IncludeStatus | bool | false | Include membership Status.
+- IncludeType | bool | false | Include membership Type.
+- IncludeChannel | bool | false | Include Channel data (FPubnubChannelData).
+- IncludeChannelCustom | bool | false | Include Channel Custom.
+- IncludeChannelStatus | bool | false | Include Channel Status.
+- IncludeChannelType | bool | false | Include Channel Type.
+- IncludeTotalCount | bool | false | Include total count.
 
 #### FPubnubMembershipSort
 
-- MembershipSort: TArray<FPubnubMembershipSingleSort>
+Field Name | Type | Description
+- MembershipSort | TArray<FPubnubMembershipSingleSort> | Sort criteria, applied in order.
 
 #### FPubnubMembershipSingleSort
 
-- SortType: EPubnubMembershipSortType (default EPubnubMembershipSortType::PMST_ChannelID)
-- SortOrder: bool (false asc, true desc)
+Field Name | Type | Default | Description
+- SortType | EPubnubMembershipSortType | EPubnubMembershipSortType::PMST_ChannelID | Field to sort by.
+- SortOrder | bool | false | Ascending when false, descending when true.
 
 #### EPubnubMembershipSortType
 
-- PMST_ChannelID, PMST_ChannelName, PMST_ChannelUpdated, PMST_ChannelStatus, PMST_ChannelType, PMST_Updated, PMST_Status, PMST_Type
+- PMST_ChannelID (ChannelID): Sort by Channel ID
+- PMST_ChannelName (ChannelName): Sort by Channel Name
+- PMST_ChannelUpdated (ChannelUpdated): Sort by Channel last update
+- PMST_ChannelStatus (ChannelStatus): Sort by Channel Status
+- PMST_ChannelType (ChannelType): Sort by Channel Type
+- PMST_Updated (Updated): Sort by Membership update timestamp
+- PMST_Status (Status): Sort by Membership status
+- PMST_Type (Type): Sort by Membership type
 
 #### Sample code
 
-Reference code
 - C++
 - Blueprint
 
 #### Actor.h
+
 ```
 1
   
@@ -1671,6 +1787,7 @@ Reference code
 ```
 
 #### Actor.cpp
+
 ```
 1
   
@@ -1679,75 +1796,83 @@ Reference code
 
 #### Returns
 
-Void; result via FOnGetMembershipsResponse.
+Delegate returns FOnGetMembershipsResponse.
 
 ##### FOnGetMembershipsResponse
 
-- MembershipsData: TArray<FPubnubMembershipData>&
-- PageNext: FString
-- PagePrev: FString
+Field | Type | Description
+- MembershipsData | TArray<FPubnubMembershipData>& | Membership list.
+- PageNext | FString | Next page cursor.
+- PagePrev | FString | Previous page cursor (ignored if pageNext supplied).
 
 ##### FPubnubMembershipData
 
-- Channel: FPubnubChannelData
-- Custom: FString
-- Status: FString (max 50)
-- Type: FString (max 50)
-- Updated: FString
-- ETag: FString
+Field | Type | Description
+- Channel | FPubnubChannelData | Channel metadata.
+- Custom | FString | Custom JSON (strings, numbers, booleans). Filtering by Custom not supported.
+- Status | FString | Max 50 chars.
+- Type | FString | Max 50 chars.
+- Updated | FString | Last update timestamp.
+- ETag | FString | Version identifier.
 
 ##### FOnGetMembershipsResponseNative
 
-- Result: const FPubnubOperationResult&
-- MembershipsData: const TArray<FPubnubMembershipData>&
-- PageNext, PagePrev: FString
+Field | Type | Description
+- Result | const FPubnubOperationResult& | Operation result.
+- MembershipsData | const TArray<FPubnubMembershipData>& | Membership list.
+- PageNext | FString | Next page cursor.
+- PagePrev | FString | Previous page cursor.
 
-Other examples
+#### Other examples
 
-Reference code
+##### Get memberships for a user with settings
 
-Get memberships for a user with settings
+###### Actor.h
 
-Actor.h
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Get memberships for a user with lambda
+##### Get memberships for a user with lambda
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Get memberships for a user with raw
+##### Get memberships for a user with raw
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
@@ -1756,9 +1881,10 @@ Actor.cpp
 
 ### Set channel memberships
 
-Set memberships for a user.
+Set channel memberships for a user.
 
 #### Method(s)
+
 ```
 `1PubnubSubsystem->SetMemberships(  
 2    FString User,   
@@ -1773,40 +1899,50 @@ Set memberships for a user.
 `
 ```
 
-Parameters
-- User: FString (required).
-- Channels: TArray<FPubnubMembershipInputData> (required).
-- FOnSetMembershipsResponse: Delegate. Native: FOnSetMembershipsResponseNative.
-- Include, Limit, Filter, Sort, PageNext, PagePrev.
+- User Type: FString. User UUID (non-empty).
+- Channels Type: TArray<FPubnubMembershipInputData>. Memberships to add/update (non-empty).
+- FOnSetMembershipsResponse Type: FOnSetMembershipsResponse. Native: FOnSetMembershipsResponseNative.
+- Include Type: FPubnubMembershipInclude.
+- Limit Type: int.
+- Filter Type: FString.
+- Sort Type: FPubnubMembershipSort.
+- PageNext Type: FString.
+- PagePrev Type: FString.
 
-API limits: See /docs/sdks/rest-api/set-user-metadata
+##### API limits
+See REST API docs: /docs/sdks/rest-api/set-user-metadata.
 
 #### FPubnubMembershipInputData
 
-- Channel: FString (required)
-- Custom: FString
-- Status: FString
-- Type: FString
+Field | Type | Description
+- Channel | FString | Channel ID (non-empty).
+- Custom | FString | Custom data.
+- Status | FString | Membership status.
+- Type | FString | Membership type.
 
 #### FOnSetMembershipsResponse
 
-- Result: FPubnubOperationResult
-- MembershipsData: TArray<FPubnubMembershipData>&
-- PageNext, PagePrev: FString
+Field | Type | Description
+- Result | FPubnubOperationResult | Operation result.
+- MembershipsData | TArray<FPubnubMembershipData>& | Membership list.
+- PageNext | FString | Next page cursor.
+- PagePrev | FString | Previous page cursor.
 
 #### FOnSetMembershipsResponseNative
 
-- Result: const FPubnubOperationResult&
-- MembershipsData: const TArray<FPubnubMembershipData>&
-- PageNext, PagePrev: FString
+Field | Type | Description
+- Result | const FPubnubOperationResult& | Operation result.
+- MembershipsData | const TArray<FPubnubMembershipData>& | Membership list.
+- PageNext | FString | Next page cursor.
+- PagePrev | FString | Previous page cursor.
 
 #### Sample code
 
-Reference code
 - C++
 - Blueprint
 
 #### Actor.h
+
 ```
 1
   
@@ -1814,15 +1950,18 @@ Reference code
 ```
 
 #### Actor.cpp
+
 ```
 1
   
 
 ```
 
-API limits: See /docs/sdks/rest-api/set-membership-metadata
+##### API limits
+See REST API docs: /docs/sdks/rest-api/set-membership-metadata.
 
 #### Returns
+
 ```
 `1{  
 2    "Memberships": [  
@@ -1865,52 +2004,56 @@ API limits: See /docs/sdks/rest-api/set-membership-metadata
 `
 ```
 
-Other examples
+#### Other examples
 
-Reference code
+##### Set memberships for a user with result
 
-Set memberships for a user with result
+###### Actor.h
 
-Actor.h
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Set memberships for a user with lambda
+##### Set memberships for a user with lambda
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Set memberships for a user with raw
+##### Set memberships for a user with raw
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
@@ -1919,9 +2062,10 @@ Actor.cpp
 
 ### Remove Channel Memberships
 
-Remove memberships for a user.
+Remove channel memberships for a user.
 
 #### Method(s)
+
 ```
 `1PubnubSubsystem->RemoveMemberships(  
 2    FString User,   
@@ -1937,21 +2081,21 @@ Remove memberships for a user.
 `
 ```
 
-Parameters
-- User: FString (required).
-- Channels: TArray<FString> (required).
-- FOnRemoveMembershipsResponse: Delegate. Native: FOnRemoveMembershipsResponseNative.
-- Include, Limit, Filter, Sort, PageNext, PagePrev.
+- User Type: FString. User UUID (non-empty).
+- Channels Type: TArray<FString>. Channel IDs to remove (non-empty).
+- FOnRemoveMembershipsResponse Type: FOnRemoveMembershipsResponse. Native: FOnRemoveMembershipsResponseNative.
+- Include, Limit, Filter, Sort, PageNext, PagePrev as above.
 
-API limits: See /docs/sdks/rest-api/set-user-metadata
+##### API limits
+See REST API docs: /docs/sdks/rest-api/set-user-metadata.
 
 #### Sample code
 
-Reference code
 - C++
 - Blueprint
 
 #### Actor.h
+
 ```
 1
   
@@ -1959,6 +2103,7 @@ Reference code
 ```
 
 #### Actor.cpp
+
 ```
 1
   
@@ -1967,66 +2112,74 @@ Reference code
 
 #### Returns
 
-Void; result via FOnRemoveMembershipsResponse.
+Delegate returns FOnRemoveMembershipsResponse.
 
 ##### FOnRemoveMembershipsResponse
 
-- Result: FPubnubOperationResult
-- MembershipsData: TArray<FPubnubMembershipData>&
-- PageNext, PagePrev: FString
+Field | Type | Description
+- Result | FPubnubOperationResult | Operation result.
+- MembershipsData | TArray<FPubnubMembershipData>& | Membership list.
+- PageNext | FString | Next page cursor.
+- PagePrev | FString | Previous page cursor.
 
 ##### FOnRemoveMembershipsResponseNative
 
-- Result: const FPubnubOperationResult&
-- MembershipsData: const TArray<FPubnubMembershipData>&
-- PageNext, PagePrev: FString
+Field | Type | Description
+- Result | const FPubnubOperationResult& | Operation result.
+- MembershipsData | const TArray<FPubnubMembershipData>& | Membership list.
+- PageNext | FString | Next page cursor.
+- PagePrev | FString | Previous page cursor.
 
-Other examples
+#### Other examples
 
-Reference code
+##### Remove memberships for a user with result
 
-Remove memberships for a user with result
+###### Actor.h
 
-Actor.h
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Remove memberships for a user with lambda
+##### Remove memberships for a user with lambda
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Remove memberships for a user with raw
+##### Remove memberships for a user with raw
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
@@ -2037,12 +2190,12 @@ Actor.cpp
 
 ### Get channel members
 
-List members in a channel (includes user metadata if stored).
+List of members in a channel (includes user metadata if stored).
 
 #### Method(s)
 
-Method variants
-- GetChannelMembersRaw: uses String Include/Sort instead of FPubnubMemberInclude/FPubnubMemberSort.
+##### Method variants
+You can also call the `GetChannelMembersRaw` variant of this method which takes String values for `Include`, and `Sort` instead of the `FPubnubMemberInclude` and `FPubnubMemberSort` structs.
 
 ```
 `1PubnubSubsystem->GetChannelMembers(  
@@ -2058,43 +2211,56 @@ Method variants
 `
 ```
 
-Parameters
-- Channel: FString (required).
-- OnGetChannelMembersResponse: Delegate. Native: FOnGetChannelMembersResponseNative.
-- Include: FPubnubMemberInclude.
-- Limit, Filter, Sort, PageNext, PagePrev.
+- Channel Type: FString. Channel ID.
+- OnGetChannelMembersResponse Type: FOnGetChannelMembersResponse. Native: FOnGetChannelMembersResponseNative.
+- Include Type: FPubnubMemberInclude.
+- Limit Type: int. Default/Max 100.
+- Filter Type: FString.
+- Sort Type: FPubnubMemberSort.
+- PageNext Type: FString.
+- PagePrev Type: FString.
 
 #### FPubnubMemberInclude
 
-- IncludeCustom (bool)
-- IncludeStatus (bool)
-- IncludeType (bool)
-- IncludeUUID (bool) Include user data.
-- IncludeUUIDCustom (bool)
-- IncludeUUIDStatus (bool)
-- IncludeUUIDType (bool)
-- IncludeTotalCount (bool)
+Field Name | Type | Default | Description
+- IncludeCustom | bool | false | Include member Custom.
+- IncludeStatus | bool | false | Include member Status.
+- IncludeType | bool | false | Include member Type.
+- IncludeUUID | bool | false | Include user data.
+- IncludeUUIDCustom | bool | false | Include user Custom.
+- IncludeUUIDStatus | bool | false | Include user Status.
+- IncludeUUIDType | bool | false | Include user Type.
+- IncludeTotalCount | bool | false | Include total count.
 
 #### FPubnubMemberSort
 
-- MemberSort: TArray<FPubnubMemberSingleSort>
+Field Name | Type | Description
+- MemberSort | TArray<FPubnubMemberSingleSort> | Sort criteria, applied in order.
 
 #### FPubnubMemberSingleSort
 
-- SortType: EPubnubMemberSortType (default EPubnubMemberSortType::PMeST_UserID)
-- SortOrder: bool (false asc, true desc)
+Field Name | Type | Default | Description
+- SortType | EPubnubMemberSortType | EPubnubMemberSortType::PMeST_UserID | Field to sort by.
+- SortOrder | bool | false | Ascending when false, descending when true.
 
 #### EPubnubMemberSortType
 
-- PMeST_UserID, PMeST_UserName, PMeST_UserUpdated, PMeST_UserStatus, PMeST_UserType, PMeST_Updated, PMeST_Status, PMeST_Type
+- PMeST_UserID (UserID): Sort by user ID
+- PMeST_UserName (UserName): Sort by user name
+- PMeST_UserUpdated (UserUpdated): Sort by user update timestamp
+- PMeST_UserStatus (UserStatus): Sort by user status
+- PMeST_UserType (UserType): Sort by user type
+- PMeST_Updated (Updated): Sort by member update timestamp
+- PMeST_Status (Status): Sort by member status
+- PMeST_Type (Type): Sort by member type
 
 #### Sample code
 
-Reference code
 - C++
 - Blueprint
 
 #### Actor.h
+
 ```
 1
   
@@ -2102,6 +2268,7 @@ Reference code
 ```
 
 #### Actor.cpp
+
 ```
 1
   
@@ -2110,75 +2277,84 @@ Reference code
 
 #### Returns
 
-Void; result via FOnGetChannelMembersResponse.
+Delegate returns FOnGetChannelMembersResponse.
 
 ##### FOnGetChannelMembersResponse
 
-- Result: FPubnubOperationResult
-- MembersData: TArray<FPubnubChannelMemberData>&
-- PageNext, PagePrev: FString
+Field | Type | Description
+- Result | FPubnubOperationResult | Operation result.
+- MembersData | TArray<FPubnubChannelMemberData>& | Member list.
+- PageNext | FString | Next page cursor.
+- PagePrev | FString | Previous page cursor.
 
 ##### FPubnubChannelMemberData
 
-- User: FPubnubUserData
-- Custom: FString
-- Status: FString (max 50)
-- Type: FString (max 50)
-- Updated: FString
-- ETag: FString
+Field | Type | Description
+- User | FPubnubUserData | User metadata.
+- Custom | FString | Custom JSON (strings, numbers, booleans). Filtering by Custom not supported.
+- Status | FString | Max 50 chars.
+- Type | FString | Max 50 chars.
+- Updated | FString | Last update timestamp.
+- ETag | FString | Version identifier.
 
 ##### FOnGetChannelMembersResponseNative
 
-- Result: const FPubnubOperationResult&
-- MembersData: const TArray<FPubnubChannelMemberData>&
-- PageNext, PagePrev: FString
+Field | Type | Description
+- Result | const FPubnubOperationResult& | Operation result.
+- MembersData | const TArray<FPubnubChannelMemberData>& | Member list.
+- PageNext | FString | Next page cursor.
+- PagePrev | FString | Previous page cursor.
 
-Other examples
+#### Other examples
 
-Reference code
+##### Get channel members with settings
 
-Get channel members with settings
+###### Actor.h
 
-Actor.h
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Get channel members with lambda
+##### Get channel members with lambda
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Get channel members raw
+##### Get channel members raw
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
@@ -2190,6 +2366,7 @@ Actor.cpp
 Set members in a channel.
 
 #### Method(s)
+
 ```
 `1PubnubSubsystem->SetChannelMembers(  
 2    FString Channel,   
@@ -2205,40 +2382,45 @@ Set members in a channel.
 `
 ```
 
-Parameters
-- Channel: FString (required).
-- Users: TArray<FPubnubChannelMemberInputData> (required).
-- FOnSetChannelMembersResponse: Delegate. Native: FOnSetChannelMembersResponseNative.
-- Include, Limit, Filter, Sort, PageNext, PagePrev.
+- Channel Type: FString. Channel ID (non-empty).
+- Users Type: TArray<FPubnubChannelMemberInputData>. Members to add/update (non-empty).
+- FOnSetChannelMembersResponse Type: FOnSetChannelMembersResponse. Native: FOnSetChannelMembersResponseNative.
+- Include, Limit, Filter, Sort, PageNext, PagePrev as above.
 
-API limits: See /docs/sdks/rest-api/set-user-metadata
+##### API limits
+See REST API docs: /docs/sdks/rest-api/set-user-metadata.
 
 #### FPubnubChannelMemberInputData
 
-- User: FString (required)
-- Custom: FString
-- Status: FString
-- Type: FString
+Field | Type | Description
+- User | FString | User UUID (non-empty).
+- Custom | FString | Custom data.
+- Status | FString | Membership status.
+- Type | FString | Membership type.
 
 #### FOnSetChannelMembersResponse
 
-- Result: FPubnubOperationResult
-- MembersData: TArray<FPubnubChannelMemberData>&
-- PageNext, PagePrev: FString
+Field | Type | Description
+- Result | FPubnubOperationResult | Operation result.
+- MembersData | TArray<FPubnubChannelMemberData>& | Member list.
+- PageNext | FString | Next page cursor.
+- PagePrev | FString | Previous page cursor.
 
 #### FOnSetChannelMembersResponseNative
 
-- Result: const FPubnubOperationResult&
-- MembersData: const TArray<FPubnubChannelMemberData>&
-- PageNext, PagePrev: FString
+Field | Type | Description
+- Result | const FPubnubOperationResult& | Operation result.
+- MembersData | const TArray<FPubnubChannelMemberData>& | Member list.
+- PageNext | FString | Next page cursor.
+- PagePrev | FString | Previous page cursor.
 
 #### Sample code
 
-Reference code
 - C++
 - Blueprint
 
 #### Actor.h
+
 ```
 1
   
@@ -2246,15 +2428,18 @@ Reference code
 ```
 
 #### Actor.cpp
+
 ```
 1
   
 
 ```
 
-API limits: See /docs/sdks/rest-api/set-channel-members-metadata
+##### API limits
+See REST API docs: /docs/sdks/rest-api/set-channel-members-metadata.
 
 #### Returns
+
 ```
 `1{  
 2    "ChannelMembers": [  
@@ -2298,52 +2483,56 @@ API limits: See /docs/sdks/rest-api/set-channel-members-metadata
 `
 ```
 
-Other examples
+#### Other examples
 
-Reference code
+##### Set channel members with result
 
-Set channel members with result
+###### Actor.h
 
-Actor.h
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Set channel members with lambda
+##### Set channel members with lambda
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Set channel members raw
+##### Set channel members raw
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
@@ -2355,6 +2544,7 @@ Actor.cpp
 Remove members from a channel.
 
 #### Method(s)
+
 ```
 `1PubnubSubsystem->RemoveChannelMembers(  
 2    FString Channel,   
@@ -2370,19 +2560,18 @@ Remove members from a channel.
 `
 ```
 
-Parameters
-- Channel: FString (required).
-- Users: TArray<FString> (required).
-- FOnRemoveChannelMembersResponse: Delegate. Native: FOnRemoveChannelMembersResponseNative.
-- Include, Limit, Filter, Sort, PageNext, PagePrev.
+- Channel Type: FString. Channel ID (non-empty).
+- Users Type: TArray<FString>. User UUIDs (non-empty).
+- FOnRemoveChannelMembersResponse Type: FOnRemoveChannelMembersResponse. Native: FOnRemoveChannelMembersResponseNative.
+- Include, Limit, Filter, Sort, PageNext, PagePrev as above.
 
 #### Sample code
 
-Reference code
 - C++
 - Blueprint
 
 #### Actor.h
+
 ```
 1
   
@@ -2390,6 +2579,7 @@ Reference code
 ```
 
 #### Actor.cpp
+
 ```
 1
   
@@ -2398,66 +2588,74 @@ Reference code
 
 #### Returns
 
-Void; result via FOnRemoveChannelMembersResponse.
+Delegate returns FOnRemoveChannelMembersResponse.
 
 ##### FOnRemoveChannelMembersResponse
 
-- Result: FPubnubOperationResult
-- MembersData: TArray<FPubnubChannelMemberData>&
-- PageNext, PagePrev: FString
+Field | Type | Description
+- Result | FPubnubOperationResult | Operation result.
+- MembersData | TArray<FPubnubChannelMemberData>& | Member list.
+- PageNext | FString | Next page cursor.
+- PagePrev | FString | Previous page cursor.
 
 ##### FOnRemoveChannelMembersResponseNative
 
-- Result: const FPubnubOperationResult&
-- MembersData: const TArray<FPubnubChannelMemberData>&
-- PageNext, PagePrev: FString
+Field | Type | Description
+- Result | const FPubnubOperationResult& | Operation result.
+- MembersData | const TArray<FPubnubChannelMemberData>& | Member list.
+- PageNext | FString | Next page cursor.
+- PagePrev | FString | Previous page cursor.
 
-Other examples
+#### Other examples
 
-Reference code
+##### Remove channel members with result
 
-Remove channel members with result
+###### Actor.h
 
-Actor.h
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Remove channel members with lambda
+##### Remove channel members with lambda
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
 
 ```
 
-Remove channel members raw
+##### Remove channel members raw
 
-Actor.h
+###### Actor.h
+
 ```
 1
   
 
 ```
 
-Actor.cpp
+###### Actor.cpp
+
 ```
 1
   
@@ -2466,9 +2664,8 @@ Actor.cpp
 
 ## Complete example
 
-Reference code
-
 #### ASample_AppContextFull.h
+
 ```
 1
   
@@ -2476,9 +2673,9 @@ Reference code
 ```
 
 #### ASample_AppContextFull.cpp
+
 ```
 1
 **
 ```
-
 Last updated on Sep 11, 2025**

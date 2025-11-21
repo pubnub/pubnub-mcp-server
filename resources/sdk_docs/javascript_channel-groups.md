@@ -1,24 +1,18 @@
 # Channel Groups API for JavaScript SDK
 
-Channel groups let you bundle many channels under a named group and subscribe to the group to receive data from all included channels. You can't publish to a channel group—publish to individual channels instead.
+Channel groups bundle many channels under one name. You can subscribe to a channel group to receive messages from its member channels. You cannot publish to a channel group; publish to individual channels instead.
 
-All channel group operations require the Stream Controller add-on enabled for your key in the Admin Portal. See the support page for enabling add-on features.
+##### Supported asynchronous patterns
+Callbacks, Promises, and Async/Await are supported. Async/Await is recommended. Add try...catch to receive error status.
 
-##### Supported and recommended asynchronous patterns
+## Add channels to a channel group
 
-Callbacks, Promises, and Async/Await are supported. Recommended: Async/Await with try...catch to handle errors.
+##### Requires Stream Controller add-on
+Enable Stream Controller for your key in the Admin Portal.
 
-## Add channels to a channel group[​](#add-channels-to-a-channel-group)
+Adds channels to a channel group.
 
-This function adds channels to a channel group.
-
-##### Maximum number of channels
-
-You can add up to 200 channels to a channel group per API call.
-
-### Method(s)[​](#methods)
-
-Use the following method in the JavaScript SDK:
+### Method(s)
 
 ```
 `1pubnub.channelGroups.addChannels({  
@@ -29,21 +23,15 @@ Use the following method in the JavaScript SDK:
 ```
 
 Parameters:
-- channels (Array<string>): The channels to add.
-- channelGroup (string): The target channel group.
+- channels: Array<string> — The channels to add to the channel group.
+- channelGroup: string — The channel group to add the channels to.
 
-### Sample code[​](#sample-code)
+##### Maximum number of channels
+Up to 200 channels per API call.
 
-##### Reference code
-This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
+### Sample code
 
-#### Add channels[​](#add-channels)
-
-```
-1
-  
-
-```
+#### Add channels
 
 ```
 1
@@ -51,7 +39,13 @@ This example is a self-contained code snippet ready to be run. It includes neces
 
 ```
 
-### Response[​](#response)
+```
+1
+  
+
+```
+
+### Response
 
 ```
 `1{  
@@ -62,13 +56,14 @@ This example is a self-contained code snippet ready to be run. It includes neces
 `
 ```
 
-## List channels in a channel group[​](#list-channels-in-a-channel-group)
+## List channels in a channel group
 
-This function lists all channels in a channel group.
+##### Requires Stream Controller add-on
+Enable Stream Controller for your key in the Admin Portal.
 
-### Method(s)[​](#methods-1)
+Lists all channels in a channel group.
 
-Use the following method in the JavaScript SDK:
+### Method(s)
 
 ```
 `1pubnub.channelGroups.listChannels({  
@@ -78,11 +73,11 @@ Use the following method in the JavaScript SDK:
 ```
 
 Parameters:
-- channelGroup (string): The channel group for which to list channels.
+- channelGroup: string — The channel group for which to list channels.
 
-### Sample code[​](#sample-code-1)
+### Sample code
 
-#### List channels[​](#list-channels)
+#### List channels
 
 ```
 1
@@ -90,7 +85,7 @@ Parameters:
 
 ```
 
-### Response[​](#response-1)
+### Response
 
 ```
 1// Example of Status  
@@ -108,13 +103,14 @@ Parameters:
 
 ```
 
-## Remove channels from a channel group[​](#remove-channels-from-a-channel-group)
+## Remove channels from a channel group
 
-This function removes channels from a channel group.
+##### Requires Stream Controller add-on
+Enable Stream Controller for your key in the Admin Portal.
 
-### Method(s)[​](#methods-2)
+Removes channels from a channel group.
 
-Use the following method in the JavaScript SDK:
+### Method(s)
 
 ```
 `1pubnub.channelGroups.removeChannels({  
@@ -125,12 +121,12 @@ Use the following method in the JavaScript SDK:
 ```
 
 Parameters:
-- channels (Array<string>): The channels to remove.
-- channelGroup (string): The channel group to remove channels from.
+- channels: Array<string> — The channels to remove from the channel group.
+- channelGroup: string — The channel group from which to remove the channels.
 
-### Sample code[​](#sample-code-2)
+### Sample code
 
-#### Remove channels[​](#remove-channels)
+#### Remove channels
 
 ```
 1
@@ -138,7 +134,7 @@ Parameters:
 
 ```
 
-### Response[​](#response-2)
+### Response
 
 ```
 `1{  
@@ -149,13 +145,14 @@ Parameters:
 `
 ```
 
-## Delete a channel group[​](#delete-a-channel-group)
+## Delete a channel group
 
-This function deletes a channel group.
+##### Requires Stream Controller add-on
+Enable Stream Controller for your key in the Admin Portal.
 
-### Method(s)[​](#methods-3)
+Deletes a channel group.
 
-Use the following method in the JavaScript SDK:
+### Method(s)
 
 ```
 `1pubnub.channelGroups.deleteGroup({  
@@ -165,11 +162,11 @@ Use the following method in the JavaScript SDK:
 ```
 
 Parameters:
-- channelGroup (string): The channel group to delete.
+- channelGroup: string — The channel group to delete.
 
-### Sample code[​](#sample-code-3)
+### Sample code
 
-#### Delete channel group[​](#delete-channel-group)
+#### Delete channel group
 
 ```
 1
@@ -177,7 +174,7 @@ Parameters:
 
 ```
 
-### Response[​](#response-3)
+### Response
 
 ```
 `1{**2    error: false,  
@@ -186,5 +183,3 @@ Parameters:
 5}  
 `
 ```
-
-Last updated on Sep 3, 2025**

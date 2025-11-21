@@ -1,12 +1,10 @@
 # App Context API for C# SDK
 
-App Context (formerly Objects v2) provides serverless storage for user and channel metadata and membership associations. Events are triggered on create/update/delete (no event if data is unchanged). Use try/catch with the C# SDK: invalid parameters throw exceptions; server/network errors are returned in status.
+App Context (formerly Objects v2) provides serverless storage for user and channel metadata and their membership associations. PubNub triggers events when object data is set, updated, or removed. Setting the same data that already exists does not trigger an event.
+
+Use try/catch when working with the C# SDK. Invalid parameters throw exceptions; server/network errors are returned in PNStatus.
 
 ##### Request execution
-
-Use `try`/`catch` when working with the C# SDK.
-
-If a request has invalid parameters (for example, a missing required field), the SDK throws an exception. If the request reaches the server but fails (server error or network issue), the error details are available in the returned `status`.
 
 ```
 1try  
@@ -29,15 +27,15 @@ If a request has invalid parameters (for example, a missing required field), the
 
 ```
 
-## User[​](#user)
+## User
 
-### Get metadata for all users[​](#get-metadata-for-all-users)
+### Get metadata for all users
 
-Returns a paginated list of UUID Metadata objects, optionally including custom data.
+Returns a paginated list of UUID Metadata objects. Optional: include custom data and total count.
 
-#### Method(s)[​](#methods)
+#### Method(s)
 
-To `Get All UUID Metadata` you can use the following method(s) in the C# SDK:
+To Get All UUID Metadata:
 
 ```
 `1pubnub.GetAllUuidMetadata()  
@@ -50,15 +48,14 @@ To `Get All UUID Metadata` you can use the following method(s) in the C# SDK:
 `
 ```
 
-Parameters:
-- IncludeCustom (bool): Include Custom in response.
-- IncludeCount (bool): Include total count in response (default false).
+- IncludeCustom (bool): Include Custom object.
+- IncludeCount (bool): Include total count (default false).
 - Page (PNPageObject): Cursor-based pagination.
 - Sort (List<string>): Sort by id, name, updated with asc/desc.
 - Filter (string): Filter expression. See filtering.
 - Limit (int): Number of objects to return. Default/Max: 100.
 
-#### Sample code[​](#sample-code)
+#### Sample code
 
 ##### Reference code
 
@@ -68,7 +65,7 @@ Parameters:
 
 ```
 
-#### Response[​](#response)
+#### Response
 
 ```
 `1{  
@@ -103,13 +100,13 @@ Parameters:
 `
 ```
 
-### Get user metadata[​](#get-user-metadata)
+### Get user metadata
 
-Returns metadata for the specified UUID, optionally including custom data.
+Returns metadata for the specified UUID. Optional: include custom data.
 
-#### Method(s)[​](#methods-1)
+#### Method(s)
 
-To `Get UUID Metadata` you can use the following method(s) in the C# SDK:
+To Get UUID Metadata:
 
 ```
 `1pubnub.GetUuidMetadata()  
@@ -118,11 +115,10 @@ To `Get UUID Metadata` you can use the following method(s) in the C# SDK:
 `
 ```
 
-Parameters:
-- Uuid (string): Unique user identifier; defaults to current user's UUID if omitted.
-- IncludeCustom (bool): Include Custom in response.
+- Uuid (string): Unique user identifier. Defaults to current user's UUID if not supplied.
+- IncludeCustom (bool): Include Custom object.
 
-#### Sample code[​](#sample-code-1)
+#### Sample code
 
 ```
 1
@@ -130,7 +126,7 @@ Parameters:
 
 ```
 
-#### Response[​](#response-1)
+#### Response
 
 ```
 `1{  
@@ -145,17 +141,13 @@ Parameters:
 `
 ```
 
-### Set user metadata[​](#set-user-metadata)
+### Set user metadata
 
-Sets metadata for a UUID, optionally including custom data.
+Note: Custom metadata is fully overwritten (no partial merge). Use a read-modify-write approach to add fields.
 
-##### Unsupported partial updates of custom metadata
+#### Method(s)
 
-Custom data sent in this method overwrites the existing value on PubNub servers.
-
-#### Method(s)[​](#methods-2)
-
-To `Set UUID Metadata` you can use the following method(s) in the C# SDK:
+To Set UUID Metadata:
 
 ```
 `1pubnub.SetUuidMetadata()  
@@ -170,21 +162,20 @@ To `Set UUID Metadata` you can use the following method(s) in the C# SDK:
 `
 ```
 
-Parameters:
-- Uuid (string): Unique user identifier; defaults to current user's UUID if omitted.
+- Uuid (string): Unique user identifier. Defaults to current user's UUID.
 - Name (string): Display name.
 - Email (string): Email address.
 - ExternalId (string): External system identifier.
-- ProfileUrl (string): Profile picture URL.
+- ProfileUrl (string): Profile image URL.
 - Custom (Dictionary<string, object>): Custom JSON (strings, numbers, booleans). Filtering by Custom isn’t supported.
-- IncludeCustom (bool): Include Custom in response.
-- IfMatchesEtag (string): Conditional update using eTag; mismatched eTags return HTTP 412.
+- IncludeCustom (bool): Include Custom object in response.
+- IfMatchesEtag (string): Conditional update with eTag; mismatches return HTTP 412.
 
 ##### API limits
 
-See REST API docs for maximum parameter sizes.
+See REST API docs for parameter limits.
 
-#### Sample code[​](#sample-code-2)
+#### Sample code
 
 ```
 1
@@ -192,7 +183,7 @@ See REST API docs for maximum parameter sizes.
 
 ```
 
-#### Response[​](#response-2)
+#### Response
 
 ```
 `1{  
@@ -207,13 +198,13 @@ See REST API docs for maximum parameter sizes.
 `
 ```
 
-### Remove user metadata[​](#remove-user-metadata)
+### Remove user metadata
 
 Removes metadata for a specified UUID.
 
-#### Method(s)[​](#methods-3)
+#### Method(s)
 
-To `Remove UUID Metadata` you can use the following method(s) in the C# SDK:
+To Remove UUID Metadata:
 
 ```
 `1pubnub.RemoveUuidMetadata()  
@@ -221,10 +212,9 @@ To `Remove UUID Metadata` you can use the following method(s) in the C# SDK:
 `
 ```
 
-Parameters:
-- Uuid (string): Unique user identifier; defaults to current user's UUID if omitted.
+- Uuid (string): Unique user identifier. Defaults to current user's UUID.
 
-#### Sample code[​](#sample-code-3)
+#### Sample code
 
 ```
 1
@@ -232,22 +222,22 @@ Parameters:
 
 ```
 
-#### Response[​](#response-3)
+#### Response
 
 ```
 `1{}  
 `
 ```
 
-## Channel[​](#channel)
+## Channel
 
-### Get metadata for all channels[​](#get-metadata-for-all-channels)
+### Get metadata for all channels
 
-Returns a paginated list of Channel Metadata objects, optionally including custom data.
+Returns a paginated list of Channel Metadata objects. Optional: include custom data and total count.
 
-#### Method(s)[​](#methods-4)
+#### Method(s)
 
-To `Get All Channel Metadata` you can use the following method(s) in the C# SDK:
+To Get All Channel Metadata:
 
 ```
 `1pubnub.GetAllChannelMetadata()  
@@ -259,14 +249,13 @@ To `Get All Channel Metadata` you can use the following method(s) in the C# SDK:
 `
 ```
 
-Parameters:
-- IncludeCustom (bool): Include Custom in response.
+- IncludeCustom (bool): Include Custom object.
 - IncludeCount (bool): Include total count (default false).
 - Page (PNPageObject): Cursor-based pagination.
 - Sort (List<string>): Sort by id, name, updated with asc/desc.
 - Filter (string): Filter expression. See filtering.
 
-#### Sample code[​](#sample-code-4)
+#### Sample code
 
 ```
 1
@@ -274,7 +263,7 @@ Parameters:
 
 ```
 
-#### Response[​](#response-4)
+#### Response
 
 ```
 `1{  
@@ -306,13 +295,13 @@ Parameters:
 `
 ```
 
-### Get channel metadata[​](#get-channel-metadata)
+### Get channel metadata
 
-Returns metadata for a specified channel, optionally including custom data.
+Returns metadata for the specified channel. Optional: include custom data.
 
-#### Method(s)[​](#methods-5)
+#### Method(s)
 
-To `Get Channel Metadata` you can use the following method(s) in the C# SDK:
+To Get Channel Metadata:
 
 ```
 `1pubnub.GetChannelMetadata()  
@@ -321,11 +310,10 @@ To `Get Channel Metadata` you can use the following method(s) in the C# SDK:
 `
 ```
 
-Parameters:
 - Channel (string): Channel name.
-- IncludeCustom (bool): Include Custom in response.
+- IncludeCustom (bool): Include Custom object.
 
-#### Sample code[​](#sample-code-5)
+#### Sample code
 
 ```
 1
@@ -333,7 +321,7 @@ Parameters:
 
 ```
 
-#### Response[​](#response-5)
+#### Response
 
 ```
 `1{  
@@ -346,17 +334,13 @@ Parameters:
 `
 ```
 
-### Set channel metadata[​](#set-channel-metadata)
+### Set channel metadata
 
-Sets metadata for a channel, optionally including custom data.
+Note: Custom metadata is fully overwritten (no partial merge). Use a read-modify-write approach to add fields.
 
-##### Unsupported partial updates of custom metadata
+#### Method(s)
 
-Custom data sent in this method overwrites the existing value on PubNub servers.
-
-#### Method(s)[​](#methods-6)
-
-To `Set Channel Metadata` you can use the following method(s) in the C# SDK:
+To Set Channel Metadata:
 
 ```
 `1pubnub.SetChannelMetadata()  
@@ -369,19 +353,18 @@ To `Set Channel Metadata` you can use the following method(s) in the C# SDK:
 `
 ```
 
-Parameters:
 - Channel (string): Channel name.
 - Name (string): Channel name.
 - Description (string): Channel description.
 - Custom (Dictionary<string, object>): Custom JSON (strings, numbers, booleans). Filtering by Custom isn’t supported.
-- IncludeCustom (bool): Include Custom in response.
-- IfMatchesEtag (string): Conditional update using eTag; mismatched eTags return HTTP 412.
+- IncludeCustom (bool): Include Custom object in response.
+- IfMatchesEtag (string): Conditional update with eTag; mismatches return HTTP 412.
 
 ##### API limits
 
-See REST API docs for maximum parameter sizes.
+See REST API docs for parameter limits.
 
-#### Sample code[​](#sample-code-6)
+#### Sample code
 
 ```
 1
@@ -389,7 +372,7 @@ See REST API docs for maximum parameter sizes.
 
 ```
 
-#### Response[​](#response-6)
+#### Response
 
 ```
 `1{  
@@ -404,9 +387,9 @@ See REST API docs for maximum parameter sizes.
 `
 ```
 
-#### Other examples[​](#other-examples)
+#### Other examples
 
-##### Iteratively update existing metadata[​](#iteratively-update-existing-metadata)
+##### Iteratively update existing metadata
 
 ```
 1
@@ -414,13 +397,13 @@ See REST API docs for maximum parameter sizes.
 
 ```
 
-### Remove channel metadata[​](#remove-channel-metadata)
+### Remove channel metadata
 
-Removes metadata for a specified channel.
+Removes the metadata for a specified channel.
 
-#### Method(s)[​](#methods-7)
+#### Method(s)
 
-To `Remove Channel Metadata` you can use the following method(s) in the C# SDK:
+To Remove Channel Metadata:
 
 ```
 `1pubnub.RemoveChannelMetadata()  
@@ -428,10 +411,9 @@ To `Remove Channel Metadata` you can use the following method(s) in the C# SDK:
 `
 ```
 
-Parameters:
 - Channel (string): Channel name.
 
-#### Sample code[​](#sample-code-7)
+#### Sample code
 
 ```
 1
@@ -439,22 +421,22 @@ Parameters:
 
 ```
 
-#### Response[​](#response-7)
+#### Response
 
 ```
 `1{}  
 `
 ```
 
-## Channel memberships[​](#channel-memberships)
+## Channel memberships
 
-### Get channel memberships[​](#get-channel-memberships)
+### Get channel memberships
 
 Returns a list of channel memberships for a user (not subscriptions).
 
-#### Method(s)[​](#methods-8)
+#### Method(s)
 
-To `Get Memberships` you can use the following method(s) in the C# SDK:
+To Get Memberships:
 
 ```
 `1pubnub.GetMemberships()  
@@ -465,13 +447,12 @@ To `Get Memberships` you can use the following method(s) in the C# SDK:
 `
 ```
 
-Parameters:
-- Uuid (string): Unique user identifier; defaults to current user's UUID if omitted.
+- Uuid (string): Unique user identifier. Defaults to current user's UUID.
 - Include (PNMembershipField[]): Include additional fields.
 - IncludeCount (bool): Include total count (default false).
 - Page (PNPageObject): Cursor-based pagination.
 
-#### Sample code[​](#sample-code-8)
+#### Sample code
 
 ```
 1
@@ -479,7 +460,7 @@ Parameters:
 
 ```
 
-#### Response[​](#response-8)
+#### Response
 
 ```
 `1{  
@@ -523,13 +504,13 @@ Parameters:
 `
 ```
 
-### Set channel memberships[​](#set-channel-memberships)
+### Set channel memberships
 
-Sets channel memberships for a UUID.
+Set channel memberships for a UUID.
 
-#### Method(s)[​](#methods-9)
+#### Method(s)
 
-To `Set Memberships` you can use the following method(s) in the C# SDK:
+To Set Memberships:
 
 ```
 `1pubnub.SetMemberships()  
@@ -544,9 +525,8 @@ To `Set Memberships` you can use the following method(s) in the C# SDK:
 `
 ```
 
-Parameters:
-- Uuid (string): Unique user identifier; defaults to current user's UUID if omitted.
-- Channels (List<PNMembership>): Channels to add (names or objects with optional custom data).
+- Uuid (string): Unique user identifier. Defaults to current user's UUID.
+- Channels (List<PNMembership>): Channels to add (names or objects with optional custom).
 - Include (PNMembershipField[]): Include additional fields.
 - IncludeCount (bool): Include total count (default false).
 - Page (PNPageObject): Cursor-based pagination.
@@ -556,16 +536,16 @@ Parameters:
 
 ##### API limits
 
-See REST API docs for maximum parameter sizes.
+See REST API docs for parameter limits.
 
-#### PNMembership[​](#pnmembership)
+#### PNMembership
 
 - Channel (string): Channel name for this membership.
 - Custom (Dictionary<string, object>): Custom metadata (strings, numbers, booleans).
-- Status (string): Membership status (for example, "active" or "inactive").
+- Status (string): Membership status (for example, active, inactive).
 - Type (string): Membership type for categorization.
 
-#### Sample code[​](#sample-code-9)
+#### Sample code
 
 ```
 1
@@ -573,7 +553,7 @@ See REST API docs for maximum parameter sizes.
 
 ```
 
-#### Response[​](#response-9)
+#### Response
 
 ```
 `1{  
@@ -617,13 +597,13 @@ See REST API docs for maximum parameter sizes.
 `
 ```
 
-### Remove channel memberships[​](#remove-channel-memberships)
+### Remove channel memberships
 
-Removes channel memberships for a UUID.
+Remove channel memberships for a UUID.
 
-#### Method(s)[​](#methods-10)
+#### Method(s)
 
-To `Remove Memberships` you can use the following method(s) in the C# SDK:
+To Remove Memberships:
 
 ```
 `1pubnub.RemoveMemberships()  
@@ -638,8 +618,7 @@ To `Remove Memberships` you can use the following method(s) in the C# SDK:
 `
 ```
 
-Parameters:
-- Uuid (string): Unique user identifier; defaults to current user's UUID if omitted.
+- Uuid (string): Unique user identifier. Defaults to current user's UUID.
 - Channels (List<string>): Channels to remove.
 - Include (PNMembershipField[]): Include additional fields.
 - IncludeCount (bool): Include total count (default false).
@@ -648,7 +627,7 @@ Parameters:
 - Filter (string): Filter expression. See filtering.
 - Limit (int): Number of objects to return. Default/Max: 100.
 
-#### Sample code[​](#sample-code-10)
+#### Sample code
 
 ```
 1
@@ -656,7 +635,7 @@ Parameters:
 
 ```
 
-#### Response[​](#response-10)
+#### Response
 
 ```
 `1{  
@@ -700,13 +679,13 @@ Parameters:
 `
 ```
 
-### Manage channel memberships[​](#manage-channel-memberships)
+### Manage channel memberships
 
-Sets and removes channel memberships for a user in a single call.
+Set and remove channel memberships for a user.
 
-#### Method(s)[​](#methods-11)
+#### Method(s)
 
-To `Manage Memberships` you can use the following method(s) in the C# SDK:
+To Manage Memberships:
 
 ```
 `1pubnub.ManageMemberships()  
@@ -720,16 +699,15 @@ To `Manage Memberships` you can use the following method(s) in the C# SDK:
 `
 ```
 
-Parameters:
-- Uuid (string): Unique user identifier; defaults to current user's UUID if omitted.
-- Set (List<PNMembership>): Memberships to set.
-- Remove (List<string>): Memberships to remove.
+- Uuid (string): Unique user identifier. Defaults to current user's UUID.
+- Set (List<PNMembership>): Channel memberships to set.
+- Remove (List<string>): Channel memberships to remove.
 - Include (PNMembershipField[]): Include additional fields.
 - IncludeCount (bool): Include total count (default false).
 - Page (PNPageObject): Cursor-based pagination.
 - Sort (List<string>): Sort by id, name, updated with asc/desc.
 
-#### Sample code[​](#sample-code-11)
+#### Sample code
 
 ```
 1
@@ -737,7 +715,7 @@ Parameters:
 
 ```
 
-#### Response[​](#response-11)
+#### Response
 
 ```
 `1{  
@@ -781,15 +759,15 @@ Parameters:
 `
 ```
 
-## Channel members[​](#channel-members)
+## Channel members
 
-### Get channel members[​](#get-channel-members)
+### Get channel members
 
-Returns a list of members in a channel, with user metadata if available.
+Returns a list of members in a channel. Includes user metadata when available.
 
-#### Method(s)[​](#methods-12)
+#### Method(s)
 
-To `Get Channel Members` you can use the following method(s) in the C# SDK:
+To Get Channel Members:
 
 ```
 `1pubnub.GetChannelMembers()  
@@ -803,7 +781,6 @@ To `Get Channel Members` you can use the following method(s) in the C# SDK:
 `
 ```
 
-Parameters:
 - Channel (string): Channel name.
 - Include (PNChannelMemberField[]): Include additional fields.
 - IncludeCount (bool): Include total count (default false).
@@ -812,7 +789,7 @@ Parameters:
 - Filter (string): Filter expression. See filtering.
 - Limit (int): Number of objects to return. Default/Max: 100.
 
-#### Sample code[​](#sample-code-12)
+#### Sample code
 
 ```
 1
@@ -820,7 +797,7 @@ Parameters:
 
 ```
 
-#### Response[​](#response-12)
+#### Response
 
 ```
 `1{  
@@ -865,22 +842,21 @@ Parameters:
 `
 ```
 
-### Set channel members[​](#set-channel-members)
+### Set channel members
 
-Sets members in a channel.
+Set members in a channel.
 
-#### Method(s)[​](#methods-13)
+#### Method(s)
 
-To `Set Channel Members` you can use the following method(s) in the C# SDK:
+To Set Channel Members:
 
 ```
 `1pubnub.SetChannelMembers().Channel(string).Uuids(ListPNChannelMember>).Include(PNChannelMemberField[]).Page(PNPageObject).Sort(Liststring>).Filter(string).Limit(int)  
 `
 ```
 
-Parameters:
-- Channel (string): Channel name.
-- Uuids (List<PNChannelMember>): Members to add (UUIDs or objects with optional custom data).
+- Channel (String): Channel name.
+- Uuids (List<PNChannelMember>): Members to add (UUIDs or objects with optional custom).
 - Include (PNChannelMemberField[]): Include additional fields.
 - Page (PNPageObject): Cursor-based pagination.
 - Sort (List<string>): Sort by id, name, updated with asc/desc.
@@ -889,9 +865,9 @@ Parameters:
 
 ##### API limits
 
-See REST API docs for maximum parameter sizes.
+See REST API docs for parameter limits.
 
-#### Sample code[​](#sample-code-13)
+#### Sample code
 
 ```
 1
@@ -899,7 +875,7 @@ See REST API docs for maximum parameter sizes.
 
 ```
 
-#### Response[​](#response-13)
+#### Response
 
 ```
 `1{  
@@ -944,13 +920,13 @@ See REST API docs for maximum parameter sizes.
 `
 ```
 
-### Remove channel members[​](#remove-channel-members)
+### Remove channel members
 
-Removes members from a channel.
+Remove members from a channel.
 
-#### Method(s)[​](#methods-14)
+#### Method(s)
 
-To `Remove Channel Members` you can use the following method(s) in the C# SDK:
+To Remove Channel Members:
 
 ```
 `1pubnub.RemoveChannelMembers()  
@@ -966,7 +942,6 @@ To `Remove Channel Members` you can use the following method(s) in the C# SDK:
 `
 ```
 
-Parameters:
 - Channel (string): Channel name.
 - Uuids (List<string>): Members to remove.
 - Include (PNChannelMemberField[]): Include additional fields.
@@ -976,7 +951,7 @@ Parameters:
 - Filter (string): Filter expression. See filtering.
 - Limit (int): Number of objects to return. Default/Max: 100.
 
-#### Sample code[​](#sample-code-14)
+#### Sample code
 
 ```
 1
@@ -984,7 +959,7 @@ Parameters:
 
 ```
 
-#### Response[​](#response-14)
+#### Response
 
 ```
 `1{**2    "ChannelMembers": [  

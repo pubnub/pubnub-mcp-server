@@ -1,35 +1,38 @@
 # Utility Methods API for Unity SDK
 
-Utility methods for cleanup, connectivity, subscription inspection, and push payload creation.
+Utility methods that don't fit other categories.
 
-## Cleanup
+## Cleanup[​](#cleanup)
 
-Frees threads and allows clean exit.
+Frees threads for a clean exit.
 
-### Method(s)
+### Method(s)[​](#methods)
 
 ```
 `1Pubnub.CleanUp()  
 `
 ```
 
-### Sample code
+### Sample code[​](#sample-code)
 
 ##### Reference code
+This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
+
 ```
 1
   
+
 ```
 
-### Returns
+### Returns[​](#returns)
 
 None
 
-## Disconnect
+## Disconnect[​](#disconnect)
 
-Forces the SDK to stop all requests to PubNub when there are active subscribe channels.
+Force the SDK to stop all requests to PubNub when there are active subscribe channels.
 
-### Method(s)
+### Method(s)[​](#methods-1)
 
 ```
 `1DisconnectT>()  
@@ -38,33 +41,36 @@ Forces the SDK to stop all requests to PubNub when there are active subscribe ch
 
 This method doesn't take any arguments.
 
-### Sample code
+### Sample code[​](#sample-code-1)
 
 ```
 1
   
+
 ```
 
-## Get subscribed channel groups
+## Get subscribed channel groups[​](#get-subscribed-channel-groups)
 
-Returns all subscribed channel groups as a List<string>.
+Returns all subscribed channel groups as `List<string>`.
 
-### Method(s)
+### Method(s)[​](#methods-2)
 
 ```
 `1Liststring> GetSubscribedChannelGroups()  
 `
 ```
 
-### Sample code
+### Sample code[​](#sample-code-2)
 
-#### Get subscribed channel groups
+#### Get subscribed channel groups[​](#get-subscribed-channel-groups-1)
+
 ```
 1
   
+
 ```
 
-### Response
+### Response[​](#response)
 
 `List<String>`
 
@@ -73,26 +79,28 @@ Returns all subscribed channel groups as a List<string>.
 `
 ```
 
-## Get subscribed channels
+## Get subscribed channels[​](#get-subscribed-channels)
 
-Returns all subscribed channels as a List<string>.
+Returns all subscribed channels as `List<string>`.
 
-### Method(s)
+### Method(s)[​](#methods-3)
 
 ```
 `1Liststring> GetSubscribedChannels()  
 `
 ```
 
-### Sample code
+### Sample code[​](#sample-code-3)
 
-#### Get subscribed channels
+#### Get subscribed channels[​](#get-subscribed-channels-1)
+
 ```
 1
   
+
 ```
 
-### Response
+### Response[​](#response-1)
 
 `List<String>`
 
@@ -101,31 +109,32 @@ Returns all subscribed channels as a List<string>.
 `
 ```
 
-## Reconnect
+## Reconnect[​](#reconnect)
 
-Forces the SDK to try to reach PubNub again.
+Force the SDK to attempt reconnecting to PubNub.
 
-### Method(s)
+### Method(s)[​](#methods-4)
 
 ```
 `1ReconnectT>(bool resetSubscribeToken)  
 `
 ```
 
-- resetSubscribeToken: bool. Passing true sends a zero timetoken upon reconnect.
+- resetSubscribeToken (bool): Passing true sends zero timetoken upon reconnect.
 
-### Sample code
+### Sample code[​](#sample-code-4)
 
 ```
 1
   
+
 ```
 
-## Create push payload
+## Create push payload[​](#create-push-payload)
 
-Creates a push payload for use in publish or push-related endpoints.
+Build a push payload for use in publish/endpoints.
 
-### Method(s)
+### Method(s)[​](#methods-5)
 
 ```
 `1CreatePushPayloadHelper()  
@@ -137,25 +146,27 @@ Creates a push payload for use in publish or push-related endpoints.
 ```
 
 - SetAPNSPayload
-  - PNAPSData: Set APNS payload; delivered under pn_apns.
-  - List<PNAPNS2Data>: Set APNS2 payload; delivered under pn_push.
+  - Type: PNAPSData — Set APNS payload; delivered within pn_apns.
+  - Type: List<PNAPNS2Data> — Set APNS2 payload; delivered within pn_push.
 - SetFCMPayload
-  - PNFCMData: Set FCM payload; delivered under pn_fcm.
+  - Type: PNFCMData — Set FCM payload; delivered within pn_fcm.
 - SetCommonPayload
-  - Dictionary<string, object>: Common payload; native PubNub subscribers receive the entire object including pn_apns, pn_fcm, and common payload.
+  - Type: Dictionary<string, object> — Common payload; native PubNub subscribers receive full object including pn_apns, pn_fcm, and common payload.
 - BuildPayload
-  - Builds and returns Dictionary<string, object>.
+  - Builds payload from the above and returns Dictionary<string, object>.
 
-### Sample code
+### Sample code[​](#sample-code-5)
 
-#### Create push payload
+#### Create push payload[​](#create-push-payload-1)
+
 ```
 1
   
+
 ```
 
-### Response
+### Response[​](#response-2)
 
-CreatePushPayloadHelper() returns a Dictionary<string, object> that can be passed directly to the Publish method's Message parameter.
+CreatePushPayloadHelper() returns a Dictionary<string, object> suitable for Publish Method's Message parameter.
 
 Last updated on Nov 6, 2025

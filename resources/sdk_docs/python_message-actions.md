@@ -1,10 +1,10 @@
 # Message Actions API for Python SDK
 
-Use Message Actions to add or remove metadata (for example, receipts or reactions) on published messages. Message actions are delivered to subscribers and can be fetched from Message Persistence.
+Use message actions to add or remove metadata on published messages (for example, receipts or reactions). Subscribe to channels to receive action events. You can also fetch past actions from Message Persistence.
 
 ##### Request execution and return values
 
-You can execute operations synchronously or asynchronously.
+Choose synchronous or asynchronous execution.
 
 `.sync()` returns an `Envelope` with `Envelope.result` (type varies by API) and `Envelope.status` (`PnStatus`).
 
@@ -16,7 +16,7 @@ You can execute operations synchronously or asynchronously.
 `
 ```
 
-`.pn_async(callback)` returns `None` and invokes your callback with `Envelope.result` and `Envelope.status`.
+`.pn_async(callback)` returns `None`, passing `Envelope.result` and `Envelope.status` to your callback.
 
 ```
 1def my_callback_function(result, status):  
@@ -32,17 +32,15 @@ You can execute operations synchronously or asynchronously.
 
 ##### Reactions
 
-Message Reactions are a specific use of Message Actions for emoji/social reactions. The underlying API is the same.
+Message Reactions are an application of Message Actions for emoji/social reactions. The same API is referred to as “Message Reactions” in some PubNub SDKs when used for emoji reactions.
 
-## Add message action
+## Add message action[​](#add-message-action)
 
 ##### Requires Message Persistence
 
-Enable Message Persistence for your key in the Admin Portal.
+Add an action to a published message. Response includes the added action.
 
-Add an action to a published message. The response includes the added action.
-
-### Method(s)
+### Method(s)[​](#methods)
 
 ```
 `1pubnub.add_message_action() \  
@@ -53,14 +51,14 @@ Add an action to a published message. The response includes the added action.
 ```
 
 Parameters:
-- channel (String) – Channel name to add the message action to.
-- message_action (PNMessageAction) – Message action payload:
-  - message_action.type (String) – Action type.
-  - message_action.value (String) – Action value.
-  - message_action.message_timetoken (Integer) – Timetoken of the target message.
-- message_action_callback (Function) – Callback for success or error (see PNMessageAction callback).
+- channel (String): Channel name to add the action to.
+- message_action (PNMessageAction): Action payload.
+  - message_action.type (String): Action type.
+  - message_action.value (String): Action value.
+  - message_action.message_timetoken (Integer): Timetoken of the target message.
+- message_action_callback (Function): Success or error callback. See PNMessageAction callback.
 
-### Sample code
+### Sample code[​](#sample-code)
 
 - Builder Pattern
 - Named Arguments
@@ -179,13 +177,13 @@ Parameters:
 
 ```
 
-### Returns
+### Returns[​](#returns)
 
-`add_message_action()` returns an `Envelope`:
+`Envelope`:
 - result: PNAddMessageActionResult
 - status: PNStatus
 
-#### PNAddMessageActionResult
+#### PNAddMessageActionResult[​](#pnaddmessageactionresult)
 
 ```
 `1{  
@@ -198,15 +196,13 @@ Parameters:
 `
 ```
 
-## Remove message action
+## Remove message action[​](#remove-message-action)
 
 ##### Requires Message Persistence
 
-Enable Message Persistence for your key in the Admin Portal.
+Remove a previously added action from a published message. Response is empty.
 
-Remove a previously added action from a published message. The response is empty.
-
-### Method(s)
+### Method(s)[​](#methods-1)
 
 ```
 `1pubnub.remove_message_action() \  
@@ -218,12 +214,12 @@ Remove a previously added action from a published message. The response is empty
 ```
 
 Parameters:
-- channel (String) – Channel name to remove the message action from.
-- action_timetoken (Integer) – Timetoken of the message action to remove.
-- message_timetoken (Integer) – Timetoken of the target message.
-- message_action_callback (Function) – Callback for success or error (see PNMessageAction callback).
+- channel (String): Channel name to remove the action from.
+- action_timetoken (Integer): Timetoken of the action to remove.
+- message_timetoken (Integer): Timetoken of the target message.
+- message_action_callback (Function): Success or error callback. See PNMessageAction callback.
 
-### Sample code
+### Sample code[​](#sample-code-1)
 
 - Builder Pattern
 - Named Arguments
@@ -254,13 +250,13 @@ Parameters:
 
 ```
 
-### Returns
+### Returns[​](#returns-1)
 
-`remove_message_action()` returns an `Envelope`:
+`Envelope`:
 - result: PNRemoveMessageActionResult
 - status: PNStatus
 
-#### PNRemoveMessageActionResult
+#### PNRemoveMessageActionResult[​](#pnremovemessageactionresult)
 
 ```
 `1# in case of success (empty object)  
@@ -268,15 +264,13 @@ Parameters:
 `
 ```
 
-## Get message actions
+## Get message actions[​](#get-message-actions)
 
 ##### Requires Message Persistence
 
-Enable Message Persistence for your key in the Admin Portal.
+Get a list of message actions in a channel. Sorted by action timetoken ascending.
 
-Get a list of message actions in a channel. Actions are sorted by action timetoken in ascending order.
-
-### Method(s)
+### Method(s)[​](#methods-2)
 
 ```
 `1pubnub.get_message_actions() \  
@@ -289,13 +283,13 @@ Get a list of message actions in a channel. Actions are sorted by action timetok
 ```
 
 Parameters:
-- channel (String) – Channel name to list message actions for.
-- start (String) – Action timetoken for the start of the range (exclusive).
-- end (String) – Action timetoken for the end of the range (inclusive).
-- limit (Integer) – Max number of actions to return; if exceeded, results include a more token (see REST API docs).
-- message_action_callback (Function) – Callback for success or error (see PNMessageAction callback).
+- channel (String): Channel name to list message actions for.
+- start (String): Action timetoken for start of range (exclusive).
+- end (String): Action timetoken for end of range (inclusive).
+- limit (Integer): Max actions to return; if exceeded, results include a more token. See REST docs.
+- message_action_callback (Function): Success or error callback. See PNMessageAction callback.
 
-### Sample code
+### Sample code[​](#sample-code-2)
 
 - Builder Pattern
 - Named Arguments
@@ -324,13 +318,13 @@ Parameters:
 
 ```
 
-### Returns
+### Returns[​](#returns-2)
 
-`get_message_actions` returns an `Envelope`:
+`Envelope`:
 - result: PNGetMessageActionsResult
 - status: PNStatus
 
-#### PNGetMessageActionsResult
+#### PNGetMessageActionsResult[​](#pngetmessageactionsresult)
 
 ```
 `1{  
@@ -347,7 +341,7 @@ Parameters:
 `
 ```
 
-## PNMessageAction
+## PNMessageAction[​](#pnmessageaction)
 
 Structure:
 
@@ -362,7 +356,7 @@ Structure:
 `
 ```
 
-Callback template:
+Sample callback:
 
 ```
 `1def message_action_callback(envelope, status):**2    if status.is_error():  

@@ -1,27 +1,79 @@
 # Subscribe V2
 
-To subscribe and receive messages:
-- Send an initial subscribe call with tt=0.
-- Continue sending subsequent subscribe calls using the last response’s t.t as tt and set tr to the last response’s t.r to remain on the same region and avoid duplicates.
+Subscribe V2 returns messages newer than the timetoken you pass. To maintain continuity:
+- Start with an initial subscribe using tt=0.
+- On subsequent calls, set tr to the last received r to remain on the same data center and avoid duplicates.
 
-The subscribe call returns messages newer than the provided timetoken.
+Success responses include message envelopes and metadata. When subscribed to a channel group myCG and a message arrives from member channel myCH: b contains "myCG" and c contains "myCH".
 
-- When subscribed to a channel group myCG and a member channel myCH publishes, b will be "myCG" and c will be "myCH".
-- Message type (e):
-  - 0 or missing: regular message
-  - 1: Signal
-  - 2: Objects
-  - 3: Message Actions
-  - 4: Files
-- Message Actions publish action event messages on the same channel with e=3. The data shows the action added/removed and its details; the UUID that triggered it is in i.
-- When subscribing to both channels and channel groups, non-CG member channel entries match corresponding non-CG entries.
+Message type is denoted by e:
+- 0 or absent: regular message
+- 1: Signal
+- 2: Objects
+- 3: Message Actions (includes action details and the issuing UUID in i)
+- 4: Files
+
+Always design subscribe logic to retry on failure (exponential or constant backoff is acceptable). On each failure, fire the error callback so callers can unsubscribe if needed.
+
+### Path Parameters
+- sub_key string — REQUIRED  
+  Your app's subscribe key from Admin Portal.
+- channel string — REQUIRED  
+  The channel ID(s) to subscribe to. Use comma to subscribe to multiple channels. If subscribing to no channels (only channel groups), use a comma char (,) as a placeholder.  
+  Example:  
+  `myChannel`
+- callback string — REQUIRED  
+  JSONP callback name. Use 0 for no callback.  
+  Example (myCallback):  
+  `myCallback`  
+  Example (zero):  
+  `0`
+
+### Query Parameters
+- tt string  
+  0 for initial subscribe, or a valid timetoken to resume/continue/fast-forward.  
+  Example:  
+  `1231312313123`
+- tr string  
+  Region value returned from the previous subscribe call. Keeps you on the same data center to prevent duplicates.
+- channel-group string  
+  Channel group name(s), comma-separated.  
+  Example:  
+  `cg1,cg2,cg3`
+- state string  
+  Sets Presence state (URL-encoded JSON).  
+  Example:  
+  `%7B%22text%22%3A%22hey%22%7D`
+- heartbeat integer  
+  Presence timeout (default 300). Used only for Presence heartbeats.
+- auth string  
+  Auth key (legacy) or a valid token for Access Manager–protected resources.  
+  Example:  
+  `myAuthKey`
+- uuid string  
+  UTF-8 string (≤92 chars) identifying the client.  
+  Example:  
+  `myUniqueUserId`
+- filter-expr string  
+  Subscribe filter expression.  
+  Example:  
+  `uuid%20!%3D%20%27cvc1%27`
+- signature string  
+  Request signature used with Access Manager. If Access Manager is enabled, either a valid authorization token or a signature is required. See Access Manager docs for signature computation.
+- timestamp integer  
+  Unix epoch used as nonce for signature. Must be within ±60s of NTP. Required if signature is supplied.
 
 ### Success Responses
 
-On success, an object is returned as shown in the examples below.
+On success, an object is returned.
+
+If you are subscribed to a channel group named myCG, and you receive a message on myCG from a member channel named myCH, b will contain "myCG", and c will contain "myCH".
+
+Each time a message action is added or removed, a specially-structured action event message is published on the same channel as the parent message with e=3. The event body shows whether the action was added or removed, the action data, and the UUID in i.
+
+#### 200 Success
 
 ##### Body (For normal messages)
-
 ```
 `{  
 "t": {  
@@ -49,7 +101,6 @@ On success, an object is returned as shown in the examples below.
 ```
 
 ##### Body (For messages of type `Signal`)
-
 ```
 `{  
 "t": {  
@@ -78,7 +129,6 @@ On success, an object is returned as shown in the examples below.
 ```
 
 ##### Body (For messages of type `Objects`)
-
 ```
 `{  
 "t": {  
@@ -117,7 +167,6 @@ On success, an object is returned as shown in the examples below.
 ```
 
 ##### Body (For messages of type `Message Actions`)
-
 ```
 `{  
 "t": {  
@@ -154,7 +203,6 @@ On success, an object is returned as shown in the examples below.
 ```
 
 ##### Body (For messages of type `Files`)
-
 ```
 `{  
 "t": {  
@@ -189,74 +237,56 @@ On success, an object is returned as shown in the examples below.
 
 Schema — OPTIONAL
 - t object — OPTIONAL
-  - t string — OPTIONAL: the timetoken
-  - r integer — OPTIONAL: the region
+  - t string — OPTIONAL — the timetoken
+  - r integer — OPTIONAL — the region
 - m object[] — OPTIONAL
-  - a string — OPTIONAL: Shard
-  - f integer — OPTIONAL: Flags
-  - e integer — OPTIONAL: Message type (1 Signal, 2 Objects, 3 MessageAction, 4 Files)
-  - i string — OPTIONAL: Issuing Client Id
-  - s integer — OPTIONAL: Sequence number
-  - p object — OPTIONAL: Publish Timetoken Metadata
+  - a string — OPTIONAL — Shard
+  - f integer — OPTIONAL — Flags
+  - e integer — OPTIONAL — Message type: 1 Signal, 2 Objects, 3 MessageAction, 4 Files
+  - i string — OPTIONAL — Issuing Client Id
+  - s integer — OPTIONAL — Sequence number
+  - p object — OPTIONAL — Publish Timetoken Metadata
     - t string — OPTIONAL
     - r integer — OPTIONAL
-  - k string — OPTIONAL: Subscribe Key
-  - c string — OPTIONAL: Channel
-  - d string — OPTIONAL: The payload
-  - b string — OPTIONAL: Subscription match or channel group
-  - cmt string — OPTIONAL: Published custom message type data if query parameter set
+  - k string — OPTIONAL — Subscribe Key
+  - c string — OPTIONAL — Channel
+  - d string — OPTIONAL — The payload
+  - b string — OPTIONAL — Subscription match or the channel group
+  - cmt string — OPTIONAL — Published custom message type data if query parameter set
 
 ### Error Responses
 
-On error, a non-200 status is returned. For unknown status codes or unparseable JSON, treat as error, call error callback with available info, wait 1 second, and retry indefinitely. Subscribe logic must be durable; developers can unsubscribe as needed.
+Non-200 HTTP status codes indicate errors. For unparseable JSON or uncommon errors, assume failure, invoke error callback with available info, wait 1 second, and retry indefinitely.
 
-Common HTTP status codes apply. For non-common or parse errors, follow the retry guidance above.
+- 400 Bad Request
 
-- 400 Bad Request  
-  Schema — OPTIONAL: status integer, service string, error boolean, message string
-- 403 Unauthorized access  
-  Schema — OPTIONAL: message string, payload object, channels string[], error boolean, service string, status integer
-- 413 Request Entity too large (larger than 64 bytes).  
-  Schema — OPTIONAL: status integer, service string, error boolean, message string
-- 429 Request rate limit exceeded.  
-  Schema — OPTIONAL: status integer, error boolean, message string
+  Schema — OPTIONAL  
+  - status integer — OPTIONAL  
+  - service string — OPTIONAL  
+  - error boolean — OPTIONAL  
+  - message string — OPTIONAL
 
-## Parameters
+- 403 Unauthorized access
 
-Path Parameters
-- sub_key string — REQUIRED  
-  Your app's subscribe key from Admin Portal.
-- channel string — REQUIRED  
-  Channel ID(s) to subscribe to. Multiple via comma. Use a single comma (,) if subscribing to no channels (channel groups only). You may subscribe to channels, channel groups, or both.  
-  Example: myChannel
-- callback string — REQUIRED  
-  JSONP callback name; use 0 for no callback.  
-  Examples: myCallback, 0
+  Schema — OPTIONAL  
+  - message string — OPTIONAL  
+  - payload object — OPTIONAL  
+  - channels string[] — OPTIONAL  
+  - error boolean — OPTIONAL  
+  - service string — OPTIONAL  
+  - status integer — OPTIONAL
 
-Query Parameters
-- tt string  
-  0 for initial subscribe, or a valid timetoken to resume/continue/fast-forward.  
-  Example: 1231312313123
-- tr string  
-  Region from the initial or subsequent subscribe response; prevents duplicates by pinning to a data center.
-- channel-group string  
-  Channel group name(s), comma-separated. Can subscribe to channels, groups, or both.  
-  Example: cg1,cg2,cg3
-- state string  
-  URL-encoded JSON object of state per channel.  
-  Example: %7B%22text%22%3A%22hey%22%7D
-- heartbeat integer  
-  Presence timeout (seconds). Default 300. Presence only; no effect on client performance/integrity.
-- auth string  
-  Auth key (legacy) or valid Access Manager token authorizing the operation.  
-  Example: myAuthKey
-- uuid string  
-  UTF-8 string up to 92 chars to identify the client.  
-  Example: myUniqueUserId
-- filter-expr string  
-  Filter expression for message filtering.  
-  Example: uuid%20!%3D%20%27cvc1%27
-- signature string  
-  Signature validating the request using the secret key for the subscribe key. If Access Manager is enabled, either a valid authorization token or a signature is required. See Access Manager for signature computation.
-- timestamp integer  
-  Unix epoch timestamp used as a nonce for signature computation; must be within ±60s of NTP. Required if signature is supplied.
+- 413 Request Entity too large (larger than 64 bytes).
+
+  Schema — OPTIONAL  
+  - status integer — OPTIONAL  
+  - service string — OPTIONAL  
+  - error boolean — OPTIONAL  
+  - message string — OPTIONAL
+
+- 429 Request rate limit exceeded.
+
+  Schema — OPTIONAL  
+  - status integer — OPTIONAL  
+  - error boolean — OPTIONAL  
+  - message string — OPTIONAL

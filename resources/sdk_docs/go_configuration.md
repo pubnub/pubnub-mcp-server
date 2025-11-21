@@ -1,5 +1,5 @@
 # Configuration API for Go SDK
-Go API reference for configuring PubNub clients.
+Go API reference for configuring the PubNub client.
 [View on GoDoc](https://godoc.org/github.com/pubnub/go)
 
 ## Configuration
@@ -15,117 +15,122 @@ Create a configuration instance with:
 `
 ```
 
-Properties:
+Required: Set a unique UserId (UTF-8 string up to 92 alphanumeric chars) per user/device. Without it, the client can’t connect.
+
+### Parameters
+
 - SubscribeKey
   - Type: string
   - Default: n/a
-  - Description: Subscribe key from the Admin Portal. Required.
+  - Subscribe key from the Admin Portal.
 - PublishKey
   - Type: string
   - Default: None
-  - Description: Publish key from the Admin Portal. Required if publishing.
+  - Publish key from the Admin Portal (required if publishing).
 - SecretKey
   - Type: string
   - Default: None
-  - Description: Secret key, required only for modifying or revealing access permissions.
+  - Secret key (required for modifying or revealing access permissions).
 - SetUserId
   - Type: UserId
   - Default: n/a
-  - Description: userId to use. UserId takes String as an argument. Must be a unique, UTF-8 string up to 92 alphanumeric characters. Required to connect; without it the client won’t connect.
+  - UserId to use. Takes String as an argument. Must be unique per user/device; required to connect.
 - AuthKey
   - Type: string
   - Default: None
-  - Description: If Access Manager is used, this AuthKey is sent with restricted requests.
+  - Used on all restricted requests when Access Manager is enabled.
 - Secure
   - Type: bool
   - Default: True
-  - Description: Use SSL.
+  - Use SSL.
 - MessageQueueOverflowCount
   - Type: int
   - Default: 100
-  - Description: Fires PNRequestMessageCountExceededCategory when a single subscribe response contains more than this many messages.
+  - Fires PNRequestMessageCountExceededCategory when a single subscribe response exceeds this message count.
 - ConnectTimeout
-  - Type: int
+  - Type: int (seconds)
   - Default: 10
-  - Description: Maximum time to establish a connection (seconds).
+  - Max time to establish a connection.
 - SubscribeRequestTimeout
-  - Type: int
+  - Type: int (seconds)
   - Default: 310
-  - Description: Subscribe request timeout (seconds).
 - NonSubscribeRequestTimeout
-  - Type: int
+  - Type: int (seconds)
   - Default: 10
-  - Description: Non-subscribe request timeout (seconds).
 - FilterExpression
   - Type: string
   - Default: None
-  - Description: Subscribe with a custom filter expression.
+  - Custom subscribe filter expression.
 - Origin
   - Type: string
   - Default: ps.pndsn.com
-  - Description: Custom origin if needed. To request a custom domain, contact support and follow the request process.
+  - Custom origin if needed. For a custom domain, contact support and follow the request process.
 - MaximumReconnectionRetries
   - Type: int
   - Default: 50
-  - Description: Number of reconnection retries before giving up.
+  - Number of reconnection retry attempts before giving up.
 - SetPresenceTimeout
   - Type: int
   - Default: 0
-  - Description: Presence timeout (seconds). Server considers the client alive for this duration; client sends periodic heartbeats. If no heartbeat arrives within the timeout, the client is marked inactive and a “timeout” event is emitted on the presence channel.
+  - Presence timeout; server considers client alive if periodic heartbeats arrive within this time. Emits “timeout” on presence channel on inactivity.
 - SetPresenceTimeoutWithCustomInterval
   - Type: int
   - Default: 0
-  - Description: How often the client sends heartbeats. For shorter presence timeouts, set roughly to (SetPresenceTimeout / 2) - 1.
+  - Custom heartbeat interval. For shorter presence timeouts, set roughly to (SetPresenceTimeout / 2) - 1.
 - SuppressLeaveEvents
   - Type: bool
   - Default: n/a
-  - Description: When true the SDK doesn't send leave requests.
+  - When true, the SDK does not send leave requests.
 - MaxIdleConnsPerHost
   - Type: int
   - Default: 30
-  - Description: Sets HTTP Transport’s MaxIdleConnsPerHost.
+  - Sets HTTP Transport’s MaxIdleConnsPerHost.
 - FileMessagePublishRetryLimit
   - Type: int
   - Default: 5
-  - Description: Number of retries for Publish File Message failures.
+  - Publish File Message retry attempts.
 - CryptoModule
-  - Type: crypto.NewAesCbcCryptor(CipherKey, UseRandomInitializationVector) or crypto.NewLegacyCryptor(CipherKey, UseRandomInitializationVector)
+  - Type:
+    - crypto.NewAesCbcCryptor(CipherKey, UseRandomInitializationVector)
+    - crypto.NewLegacyCryptor(CipherKey, UseRandomInitializationVector)
   - Default: None
-  - Description: Cryptography module used for encryption/decryption of messages and files. Takes CipherKey and UseRandomInitializationVector as arguments. See CryptoModule below.
+  - Module used to encrypt/decrypt messages and files. Pass CipherKey and UseRandomInitializationVector as arguments. See CryptoModule section.
 - CipherKey
   - Type: string
   - Default: None
-  - Description: Deprecated; pass to CryptoModule instead. If set, all communications to/from PubNub will be encrypted.
+  - Deprecated: pass via CryptoModule instead. If set, communication is encrypted.
 - UseRandomInitializationVector
   - Type: bool
   - Default: true
-  - Description: Deprecated; pass to CryptoModule instead. When true, IV is random for all requests (not just file upload). When false, IV is hard-coded for all requests except file upload.
+  - Deprecated: pass via CryptoModule instead. When true, IV is random for all requests (not just file upload). When false, IV is hard-coded for all requests except file upload.
 - UUID
   - Type: string
   - Default: n/a
-  - Description: Deprecated; use userId instead. Required to connect if userId is not set.
+  - Deprecated: use userId instead. Required to connect if used.
 
 ##### Disabling random initialization vector
-Disable random IV only for backward compatibility (<5.0.0). Do not disable random IV in new applications.
+Disable random IV only for backward compatibility (<5.0.0). Do not disable for new applications.
 
 #### CryptoModule
 
-CryptoModule encrypts and decrypts messages and files. From 7.1.2, you can configure the algorithms.
+CryptoModule encrypts and decrypts messages and files. From 7.1.2, you can choose algorithms.
 
-- Options: legacy 128‑bit encryption and recommended 256‑bit AES‑CBC.
-- If you don’t set CryptoModule but set cipherKey and useRandomInitializationVector in config, the client uses legacy encryption.
-- For details, utilities, and examples, see Encryption.
+- Options:
+  - Legacy 128‑bit encryption.
+  - Recommended 256‑bit AES‑CBC.
+- If CryptoModule is not set but cipherKey and useRandomInitializationVector are set in config, the client uses legacy encryption.
+- For configuration details, utilities, and examples, see Encryption.
 
 ##### Legacy encryption with 128-bit cipher key entropy
-To keep using legacy encryption, no changes are required. To use the recommended 256‑bit AES‑CBC encryption, explicitly set it in config.
+You can keep legacy encryption. To use recommended 256-bit AES-CBC, explicitly set it in config.
 
 ### Sample code
 
 ##### Reference code
-Self-contained snippet ready to run. Includes necessary imports and method execution with console logging.
+Self-contained snippet for reference and console logging.
 
 ##### Required User ID
-Always set UserId to uniquely identify the user or device. Persist it and keep it unchanged for the lifetime of the user or device. Without it, you won’t be able to connect.
+Always set a persistent UserId for the user or device.
 
 ```
 1
@@ -134,8 +139,7 @@ Always set UserId to uniquely identify the user or device. Persist it and keep i
 ```
 
 ### Server response
-
-Configured and ready to use client configuration instance.
+Configured and ready-to-use client configuration instance.
 
 ### Other examples
 
@@ -213,7 +217,7 @@ Configured and ready to use client configuration instance.
 
 ### Proxy configuration
 
-The following sample configures a client to use a proxy for subscribe requests:
+Subscribe requests via proxy:
 
 ```
 1
@@ -221,10 +225,143 @@ The following sample configures a client to use a proxy for subscribe requests:
 
 ```
 
-The following sample configures a client to use a proxy for non-subscribe requests:
+Non-subscribe requests via proxy:
 
 ```
 1
   
 
+```
+
+## User ID
+
+Set or get a user ID at runtime. Required to connect.
+
+### Method(s)
+
+Set or get UserId with:
+
+```
+`1config.SetUserId(UserId(string))  
+`
+```
+
+- UserId
+  - Type: string
+  - Default: n/a
+  - Device/user identifier. Required to connect.
+
+```
+`1config.GetUserId()  
+`
+```
+
+This method doesn't take any arguments.
+
+### Sample code
+
+#### Set user ID
+
+##### Required User ID
+Always set a persistent UserId for the user or device.
+
+```
+1
+  
+
+```
+
+#### Get user ID
+
+```
+1
+  
+
+```
+
+## Authentication key
+
+Set or get the user's authentication key (used with Access Manager).
+
+### Method(s)
+
+```
+`1config.AuthKey = string  
+`
+```
+
+- AuthKey
+  - Type: string
+  - Used on all restricted requests when Access Manager is enabled.
+
+```
+`1config.AuthKey  
+`
+```
+
+This method doesn't take any arguments.
+
+### Sample code
+
+#### Set auth key
+
+```
+1
+  
+
+```
+
+#### Get auth key
+
+```
+1
+  
+
+```
+
+### Returns
+None.
+
+## Filter expression
+
+Requires Stream Controller add-on enabled for your key.
+
+Filters let subscribers receive only messages matching a filter expression.
+
+### Method(s)
+
+```
+`1config.FilterExpression = string  
+`
+```
+
+- filterExpression
+  - Type: string
+  - Custom filter expression applied to Subscribe.
+
+```
+`1config.FilterExpression  
+`
+```
+
+This method doesn't take any arguments.
+
+### Sample code
+
+#### Set filter expression
+
+##### Required User ID
+Always set a persistent UserId for the user or device.
+
+```
+1
+  
+
+```
+
+#### Get filter expression
+
+```
+1
+**
 ```

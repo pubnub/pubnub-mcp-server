@@ -1,10 +1,12 @@
 # Channel Groups API for Go SDK
 
-Channel groups bundle thousands of channels under a single name for subscription. You can't publish to a channel group; publish to individual channels. All operations below require the Stream Controller add-on enabled for your key in the Admin Portal.
+Channel groups let you bundle many channels under a single group name for subscription. You can't publish to a channel group; publish to individual channels instead.
 
 ## Add channels to a channel group
 
-Add up to 200 channels per API call.
+Requires Stream Controller add-on (enable in Admin Portal). Adds channels to a channel group.
+
+- Limit: up to 200 channels per API call.
 
 ### Method(s)
 
@@ -18,9 +20,9 @@ Add up to 200 channels per API call.
 ```
 
 Parameters:
-- Channels (Type: []string) — Channels to add to the group.
-- ChannelGroup (Type: string) — Target channel group.
-- QueryParam (Type: map[string]string) — Map of query string parameters.
+- Channels (required) — Type: []string. Channels to add.
+- ChannelGroup (required) — Type: string. Target channel group.
+- QueryParam — Type: map[string]string. Extra query string parameters.
 
 ### Sample code
 
@@ -44,7 +46,7 @@ Parameters:
 
 ## List channels in a channel group
 
-List all channels within a channel group.
+Requires Stream Controller add-on. Lists all channels in a channel group.
 
 ### Method(s)
 
@@ -57,8 +59,8 @@ List all channels within a channel group.
 ```
 
 Parameters:
-- ChannelGroup (Type: string) — Channel group to list.
-- QueryParam (Type: map[string]string) — Map of query string parameters.
+- ChannelGroup (required) — Type: string. Channel group to list.
+- QueryParam — Type: map[string]string. Extra query string parameters.
 
 ### Sample code
 
@@ -70,13 +72,13 @@ Parameters:
 
 ### Response
 
-Returns:
-- Channels (Type: []string)
-- Group (Type: string)
+Fields:
+- Channels — Type: []string. Required.
+- Group — Type: string. Required.
 
 ## Remove channels from a channel group
 
-Remove specified channels from a channel group.
+Requires Stream Controller add-on. Removes channels from a channel group.
 
 ### Method(s)
 
@@ -90,9 +92,9 @@ Remove specified channels from a channel group.
 ```
 
 Parameters:
-- ChannelGroup (Type: string) — Channel group to update.
-- Channels (Type: []string) — Channels to remove.
-- QueryParam (Type: map[string]string) — Map of query string parameters.
+- ChannelGroup (required) — Type: string. Group to remove from.
+- Channels (required) — Type: []string. Channels to remove.
+- QueryParam — Type: map[string]string. Extra query string parameters.
 
 ### Sample code
 
@@ -128,7 +130,7 @@ Parameters:
 
 ## Delete a channel group
 
-Delete an entire channel group.
+Requires Stream Controller add-on. Deletes a channel group.
 
 ### Method(s)
 
@@ -141,8 +143,8 @@ Delete an entire channel group.
 ```
 
 Parameters:
-- ChannelGroup (Type: string) — Channel group to delete.
-- QueryParam (Type: map[string]string) — Map of query string parameters.
+- ChannelGroup (required) — Type: string. Group to delete.
+- QueryParam — Type: map[string]string. Extra query string parameters.
 
 ### Sample code
 

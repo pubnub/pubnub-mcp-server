@@ -1,16 +1,24 @@
 # Channel Groups API for PHP SDK
 
-Channel groups bundle channels under a named group. You can subscribe to a channel group to receive messages from all its channels. You can't publish to a channel group; publish to individual channels instead.
+[Channel groups](/docs/general/channels/subscribe#channel-groups) bundle many [channels](/docs/general/channels/overview) into a named group. You can subscribe to a channel group to receive messages from all channels it contains.
 
-Note: All operations below require the Stream Controller add-on enabled for your key in the PubNub Admin Portal. See the support page for enabling add-ons.
+##### Channel group operations
+- You can't publish to a channel group—only subscribe.
+- To publish, send messages to individual channels.
 
 ## Add channels to a channel group[​](#add-channels-to-a-channel-group)
 
+##### Requires Stream Controller add-on
+Enable the Stream Controller add-on for your key in the PubNub [Admin Portal](https://admin.pubnub.com/). See the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
+
 Adds channels to a channel group.
 
-- Maximum number of channels: You can add up to 200 channels per API call.
-
 ### Method(s)[​](#methods)
+
+`Adding Channels` is accomplished by using the following method(s) in the PHP SDK:
+
+##### Maximum number of channels
+You can add up to 200 channels to a channel group per API call.
 
 ```
 `1$pubnub->addChannelToChannelGroup()  
@@ -21,12 +29,15 @@ Adds channels to a channel group.
 ```
 
 Parameters:
-- channels (Type: String|Array): The channels to add to the channel group.
-- channelGroup (Type: String): The channel group to add the channels to.
+- channels — Type: String|Array — Channels to add to the channel group.
+- channelGroup — Type: String — Target channel group.
 
 ### Sample code[​](#sample-code)
 
 #### Add channels[​](#add-channels)
+
+##### Reference code
+This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
 
 ```
 1
@@ -48,9 +59,14 @@ Parameters:
 
 ## List channels in a channel group[​](#list-channels-in-a-channel-group)
 
+##### Requires Stream Controller add-on
+Enable the Stream Controller add-on for your key in the [Admin Portal](https://admin.pubnub.com/). See the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
+
 Lists all channels in a channel group.
 
 ### Method(s)[​](#methods-1)
+
+`Listing Channels` is accomplished by using the following method(s) in the PHP SDK:
 
 ```
 `1$pubnub->listChannelsInChannelGroup()  
@@ -60,7 +76,7 @@ Lists all channels in a channel group.
 ```
 
 Parameters:
-- channelGroup (Type: String): The channel group for which to list channels.
+- channelGroup — Type: String — Channel group to list channels for.
 
 ### Sample code[​](#sample-code-1)
 
@@ -89,9 +105,14 @@ Parameters:
 
 ## Remove channels from a channel group[​](#remove-channels-from-a-channel-group)
 
+##### Requires Stream Controller add-on
+Enable the Stream Controller add-on for your key in the [Admin Portal](https://admin.pubnub.com/). See the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
+
 Removes channels from a channel group.
 
 ### Method(s)[​](#methods-2)
+
+`Removing Channels` is accomplished by using the following method(s) in the PHP SDK:
 
 ```
 `1$pubnub->removeChannelFromChannelGroup()  
@@ -102,8 +123,8 @@ Removes channels from a channel group.
 ```
 
 Parameters:
-- channels (Type: String|Array): The channels to remove from the channel group.
-- channelGroup (Type: String): The channel group from which to remove the channels.
+- channels — Type: String|Array — Channels to remove from the channel group.
+- channelGroup — Type: String — Channel group to remove channels from.
 
 ### Sample code[​](#sample-code-2)
 
@@ -129,9 +150,14 @@ Parameters:
 
 ## Delete a channel group[​](#delete-a-channel-group)
 
+##### Requires Stream Controller add-on
+Enable the Stream Controller add-on for your key in the [Admin Portal](https://admin.pubnub.com/). See the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
+
 Deletes a channel group.
 
 ### Method(s)[​](#methods-3)
+
+`Deleting Channel Group` is accomplished by using the following method(s) in the PHP SDK:
 
 ```
 `1$pubnub->removeChannelGroup()  
@@ -141,7 +167,7 @@ Deletes a channel group.
 ```
 
 Parameters:
-- channelGroup (Type: String): The channel group to remove.
+- channelGroup — Type: String — Channel group to remove.
 
 ### Sample code[​](#sample-code-3)
 

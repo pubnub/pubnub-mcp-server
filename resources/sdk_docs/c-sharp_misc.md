@@ -1,10 +1,10 @@
 # Utility Methods API for C# SDK
 
-Utility methods that don't fit other categories.
+The methods on this page are utility methods that don't fit into other categories.
 
 ##### Request execution
 
-Use try/catch with the C# SDK. Invalid parameters throw exceptions. If the request reaches the server but fails (server error or network issues), error details are available in the returned status.
+Use try/catch with the C# SDK. Invalid parameters throw exceptions; server/network failures are returned in status.
 
 ```
 1try  
@@ -29,7 +29,7 @@ Use try/catch with the C# SDK. Invalid parameters throw exceptions. If the reque
 
 ## Destroy[​](#destroy)
 
-Frees threads for clean exit.
+Frees threads and allows a clean exit.
 
 ### Method(s)[​](#methods)
 
@@ -39,9 +39,6 @@ Frees threads for clean exit.
 ```
 
 ### Sample code[​](#sample-code)
-
-##### Reference code
-This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
 
 ```
 1
@@ -76,7 +73,7 @@ This method doesn't take any arguments.
 
 ## Get subscribed channel groups[​](#get-subscribed-channel-groups)
 
-Return all subscribed channel groups as List<string>.
+Returns all subscribed channel groups as List<String>.
 
 ### Method(s)[​](#methods-2)
 
@@ -106,7 +103,7 @@ Return all subscribed channel groups as List<string>.
 
 ## Get subscribed channels[​](#get-subscribed-channels)
 
-Return all subscribed channels as List<string>.
+Returns all subscribed channels as List<String>.
 
 ### Method(s)[​](#methods-3)
 
@@ -136,7 +133,7 @@ Return all subscribed channels as List<string>.
 
 ## Reconnect[​](#reconnect)
 
-Force the SDK to attempt reconnection to PubNub.
+Force the SDK to attempt reconnecting to PubNub.
 
 ### Method(s)[​](#methods-4)
 
@@ -145,7 +142,7 @@ Force the SDK to attempt reconnection to PubNub.
 `
 ```
 
-- resetSubscribeToken (bool): Passing true sends zero timetoken upon reconnect.
+- resetSubscribeToken (bool): Passing true sends a zero timetoken upon reconnect.
 
 ### Sample code[​](#sample-code-4)
 
@@ -153,5 +150,3 @@ Force the SDK to attempt reconnection to PubNub.
 1
 **
 ```
-
-Last updated on Aug 6, 2025**

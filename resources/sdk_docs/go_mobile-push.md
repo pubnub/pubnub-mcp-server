@@ -1,15 +1,12 @@
 # Mobile Push Notifications API for Go SDK
 
-Connect PubNub publishing to third-party push services: Google Android FCM and Apple iOS APNs.
+Connects PubNub publishing to FCM (Firebase Cloud Messaging) and APNs (Apple Push Notification service). See Mobile Push Notifications overview at /docs/general/push/send.
 
-Requires Mobile Push Notifications add-on:
-- Enable for your key in the Admin Portal: https://admin.pubnub.com/
-- How to enable add-on features: https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-
-- Learn more: /docs/general/push/send
+Requires Mobile Push Notifications add-on: enable in Admin Portal.
 
 ## Add a device to a push notifications channel
 
-Enable mobile push notifications on a set of channels.
+Enable mobile push notifications on specified channels.
 
 ### Method(s)
 
@@ -25,18 +22,34 @@ Enable mobile push notifications on a set of channels.
 `
 ```
 
-Parameters:
-- Channels (required): Type []string; Default n/a; Channels to enable for push notifications.
-- DeviceIDForPush (required): Type string; Default n/a; Device ID (push token).
-- PushType: Type PNPushTypeAPNS2 | PNPushTypeFCM; Default Not set; Accepted: PNPushTypeAPNS2, PNPushTypeFCM.
-- Topic: Type string; Default Not set; APNs topic (bundle identifier).
-- Environment: Type PNPushEnvironment; Default PNPushEnvironmentDevelopment; Accepted: PNPushEnvironmentDevelopment, PNPushEnvironmentProduction.
-- QueryParam: Type map[string]string; Default n/a; Extra query parameters.
+### Parameters
+
+- Channels
+  - Type: []string
+  - Default: n/a
+  - Description: Channels to enable for push notifications.
+- DeviceIDForPush
+  - Type: string
+  - Default: n/a
+  - Description: Device ID (push token).
+- PushType
+  - Type: PNPushTypeAPNS2 | PNPushTypeFCM
+  - Default: Not set
+  - Accepted values: PNPushTypeAPNS2, PNPushTypeFCM
+- Topic
+  - Type: string
+  - Default: Not set
+  - Description: APNs topic (bundle identifier).
+- Environment
+  - Type: PNPushEnvironment
+  - Default: PNPushEnvironmentDevelopment
+  - Accepted values: PNPushEnvironmentDevelopment, PNPushEnvironmentProduction
+- QueryParam
+  - Type: map[string]string
+  - Default: n/a
+  - Description: Query parameters to append to the API request.
 
 ### Sample code
-
-##### Reference code
-This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
 
 #### Add device to channel (FCM)
 
@@ -56,11 +69,11 @@ This example is a self-contained code snippet ready to be run. It includes neces
 
 ### Returns
 
-No payload. Check status.Error.
+No payload. Check status.Error on the status object.
 
 ## List push notifications channels for a device
 
-Get all channels with push notifications for the specified push token.
+Get all channels with push notifications for a specific push token.
 
 ### Method(s)
 
@@ -75,12 +88,28 @@ Get all channels with push notifications for the specified push token.
 `
 ```
 
-Parameters:
-- DeviceIDForPush (required): Type string; Default n/a; Device ID (push token).
-- PushType: Type PNPushTypeAPNS2 | PNPushTypeFCM; Default Not set; Accepted: PNPushTypeAPNS2, PNPushTypeFCM.
-- Topic: Type string; Default Not set; APNs topic (bundle identifier).
-- Environment: Type PNPushEnvironment; Default PNPushEnvironmentDevelopment; Accepted: PNPushEnvironmentDevelopment, PNPushEnvironmentProduction.
-- QueryParam: Type map[string]string; Default n/a; Extra query parameters.
+### Parameters
+
+- DeviceIDForPush
+  - Type: string
+  - Default: n/a
+  - Description: Device ID (push token).
+- PushType
+  - Type: PNPushTypeAPNS2 | PNPushTypeFCM
+  - Default: Not set
+  - Accepted values: PNPushTypeAPNS2, PNPushTypeFCM
+- Topic
+  - Type: string
+  - Default: Not set
+  - Description: APNs topic (bundle identifier).
+- Environment
+  - Type: PNPushEnvironment
+  - Default: PNPushEnvironmentDevelopment
+  - Accepted values: PNPushEnvironmentDevelopment, PNPushEnvironmentProduction
+- QueryParam
+  - Type: map[string]string
+  - Default: n/a
+  - Description: Query parameters to append to the API request.
 
 ### Sample code
 
@@ -102,8 +131,8 @@ Parameters:
 
 ### Returns
 
-Returns ListPushProvisionsRequestResponse with:
-- Channels: Type []string; Channels associated with push notifications.
+ListPushProvisionsRequestResponse:
+- Channels: []string — Channels associated with push notifications.
 
 ## Remove a device from push notifications channels
 
@@ -123,13 +152,32 @@ Disable push notifications on selected channels.
 `
 ```
 
-Parameters:
-- Channels (required): Type []string; Default n/a; Channels to disable for push notifications.
-- DeviceIDForPush (required): Type string; Default n/a; Device ID (push token).
-- PushType: Type PNPushTypeAPNS2 | PNPushTypeFCM; Default Not set; Accepted: PNPushTypeAPNS2, PNPushTypeFCM.
-- Topic: Type string; Default Not set; APNs topic (bundle identifier).
-- Environment: Type PNPushEnvironment; Default PNPushEnvironmentDevelopment; Accepted: PNPushEnvironmentDevelopment, PNPushEnvironmentProduction.
-- QueryParam: Type map[string]string; Default n/a; Extra query parameters.
+### Parameters
+
+- Channels
+  - Type: []string
+  - Default: n/a
+  - Description: Channels to disable for push notifications.
+- DeviceIDForPush
+  - Type: string
+  - Default: n/a
+  - Description: Device ID (push token).
+- PushType
+  - Type: PNPushTypeAPNS2 | PNPushTypeFCM
+  - Default: Not set
+  - Accepted values: PNPushTypeAPNS2, PNPushTypeFCM
+- Topic
+  - Type: string
+  - Default: Not set
+  - Description: APNs topic (bundle identifier).
+- Environment
+  - Type: PNPushEnvironment
+  - Default: PNPushEnvironmentDevelopment
+  - Accepted values: PNPushEnvironmentDevelopment, PNPushEnvironmentProduction
+- QueryParam
+  - Type: map[string]string
+  - Default: n/a
+  - Description: Query parameters to append to the API request.
 
 ### Sample code
 
@@ -151,7 +199,7 @@ Parameters:
 
 ### Returns
 
-No payload. Check status.Error.
+No payload. Check status.Error on the status object.
 
 ## Remove a device from all push notifications channels
 
@@ -170,12 +218,28 @@ Disable push notifications from all channels registered for the specified push t
 `
 ```
 
-Parameters:
-- DeviceIDForPush (required): Type string; Default n/a; Device ID (push token).
-- PushType: Type PNPushTypeAPNS2 | PNPushTypeFCM; Default Not set; Accepted: PNPushTypeAPNS2, PNPushTypeFCM.
-- Topic: Type string; Default Not set; APNs topic (bundle identifier).
-- Environment: Type PNPushEnvironment; Default PNPushEnvironmentDevelopment; Accepted: PNPushEnvironmentDevelopment, PNPushEnvironmentProduction.
-- QueryParam: Type map[string]string; Default n/a; Extra query parameters.
+### Parameters
+
+- DeviceIDForPush
+  - Type: string
+  - Default: n/a
+  - Description: Device ID (push token).
+- PushType
+  - Type: PNPushTypeAPNS2 | PNPushTypeFCM
+  - Default: Not set
+  - Accepted values: PNPushTypeAPNS2, PNPushTypeFCM
+- Topic
+  - Type: string
+  - Default: Not set
+  - Description: APNs topic (bundle identifier).
+- Environment
+  - Type: PNPushEnvironment
+  - Default: PNPushEnvironmentDevelopment
+  - Accepted values: PNPushEnvironmentDevelopment, PNPushEnvironmentProduction
+- QueryParam
+  - Type: map[string]string
+  - Default: n/a
+  - Description: Query parameters to append to the API request.
 
 ### Sample code
 
@@ -197,6 +261,6 @@ Parameters:
 
 ### Returns
 
-No payload. Check status.Error.
+No payload. Check status.Error on the status object.
 
 Last updated on Nov 6, 2025

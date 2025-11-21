@@ -1,25 +1,42 @@
 # Access Manager v3 API for PHP SDK
 
-Access Manager v3 issues time-limited tokens with embedded permissions to specific PubNub resources. Tokens can:
-- Grant access for a defined TTL (minutes).
-- Target resources by lists or RegEx patterns.
-- Include per-resource permission levels in a single request.
-- Optionally lock usage to a single authorizedUuid.
+Access Manager v3 issues time-limited tokens with embedded permissions for PubNub resources:
+- Limited TTL
+- Resource lists or RegEx patterns
+- Mixed permissions per resource in a single request
+- Optional authorizedUuid to restrict usage to a single client UUID
 
-Resources:
-- Channels
-- ChannelGroups
-- Uuids (App Context user metadata)
-
-Requires:
-- Access Manager add-on enabled on the keyset.
-- Server-side use with Secret Key (for grant/revoke).
-
-For permissions mapping and concepts, see Manage Permissions with Access Manager v3.
+For full concepts, see Manage Permissions with Access Manager v3.
 
 ## Grant token
 
-Generates a signed token with TTL, optional authorizedUuid, and permissions for resources and/or patterns. Unauthorized/invalid usage returns 403. TTL is required, min 1, max 43,200 minutes (30 days). Patterns allow assigning permissions via RegEx. authorizedUuid restricts token to a single client UUID.
+##### Requires Access Manager add-on
+Enable Access Manager for your keyset in the Admin Portal.
+
+##### Requires Secret Key authentication
+Granting must be performed by a server SDK instance initialized with a Secret Key.
+
+The grantToken() method creates a token with ttl, optional authorized_uuid, and permissions for:
+- Channels
+- ChannelGroups
+- Uuids (App Context metadata)
+
+Unauthorized or invalid token use returns 403.
+
+Permissions per resource:
+- Channels: read, write, get, manage, update, join, delete
+- ChannelGroups: read, manage
+- Uuids: get, update, delete
+
+TTL:
+- Required; minutes the token remains valid
+- Minimum 1, maximum 43,200 (30 days)
+
+Patterns (RegEx):
+- Use patterns to grant by regex instead of explicit names.
+
+Authorized UUID:
+- Restrict the token to a single UUID via authorizedUuid.
 
 ### Method(s)
 
@@ -41,22 +58,35 @@ Generates a signed token with TTL, optional authorizedUuid, and permissions for 
 ```
 
 Parameters:
-- ttl (Number, required): Minutes the token is valid. Min 1, max 43,200.
-- authorizedUuid (String): UUID allowed to use the token.
-- addChannelResources (Array): Explicit channel permissions.
-- addChannelGroupResources (Array): Explicit channel group permissions.
-- addUuidResources (Array): Explicit UUID permissions.
-- addChannelPatterns (Array): Channel permissions via RegEx pattern.
-- addChannelGroupPatterns (Array): Channel group permissions via RegEx pattern.
-- addUuidPatterns (Array): UUID permissions via RegEx pattern.
-- meta (Array): Extra scalar metadata; arrays/objects not supported.
+- ttl
+  - Type: Number; Default: n/a
+  - Total minutes the token is valid (min 1; max 43,200).
+- authorizedUuid
+  - Type: String; Default: n/a
+  - UUID authorized to use the token.
+- addChannelResources
+  - Type: Array; Default: n/a
+  - Explicit channel permissions.
+- addChannelGroupResources
+  - Type: Array; Default: n/a
+  - Explicit channel group permissions.
+- addUuidResources
+  - Type: Array; Default: n/a
+  - Explicit UUID permissions.
+- addChannelPatterns
+  - Type: Array; Default: n/a
+  - Channel permissions expressed as RegEx patterns.
+- addChannelGroupPatterns
+  - Type: Array; Default: n/a
+  - Channel group permissions expressed as RegEx patterns.
+- addUuidPatterns
+  - Type: Array; Default: n/a
+  - UUID permissions expressed as RegEx patterns.
+- meta
+  - Type: Array; Default: n/a
+  - Extra metadata for the request. Values must be scalar only.
 
-Resource permissions:
-- Channels: read, write, get, manage, update, join, delete
-- ChannelGroups: read, manage
-- Uuids: get, update, delete
-
-Resource/permission array uses resource name as key and rights map as value. Omit false rights (default false).
+Resource/permission array format: key = resource name, value = rights. Omit false (default).
 
 ```
 `1[  
@@ -67,7 +97,8 @@ Resource/permission array uses resource name as key and rights map as value. Omi
 `
 ```
 
-Required: Provide permissions for at least one Uuid, Channel, or ChannelGroup, either as explicit resources or patterns.
+Required key/value mappings:
+- Specify permissions for at least one of: Uuid, Channel, or ChannelGroup, as resources or patterns.
 
 ### Sample code
 
@@ -88,10 +119,6 @@ Required: Provide permissions for at least one Uuid, Channel, or ChannelGroup, e
 
 #### Grant an authorized client different levels of access to various resources in a single call
 
-- my-authorized-uuid gets:
-  - Read: channel-a, channel-group-b; Get: uuid-c.
-  - Read/Write: channel-b, channel-c, channel-d; Get/Update: uuid-d.
-
 ```
 1
   
@@ -99,8 +126,6 @@ Required: Provide permissions for at least one Uuid, Channel, or ChannelGroup, e
 ```
 
 #### Grant an authorized client read access to multiple channels using RegEx
-
-- my-authorized-uuid gets Read on channels matching channel-[A-Za-z0-9].
 
 ```
 1
@@ -110,11 +135,6 @@ Required: Provide permissions for at least one Uuid, Channel, or ChannelGroup, e
 
 #### Grant an authorized client different levels of access to various resources and read access to channels using RegEx in a single call
 
-- my-authorized-uuid gets:
-  - Read: channel-a, channel-group-b; Get: uuid-c.
-  - Read/Write: channel-b, channel-c, channel-d; Get/Update: uuid-d.
-  - Read: channels matching channel-[A-Za-z0-9].
-
 ```
 1
   
@@ -123,24 +143,23 @@ Required: Provide permissions for at least one Uuid, Channel, or ChannelGroup, e
 
 ### Error responses
 
-Invalid requests return HTTP 400 with details in PubNubServerException. Possible causes: invalid RegEx, invalid timestamp, incorrect permissions.
+Invalid requests return HTTP 400 with details in PubNubServerException (e.g., regex issues, invalid timestamp, incorrect permissions).
 
-PubNubServerException:
-- getStatusCode(): Int — HTTP status (400).
-- getBody(): Object — Error body (message, source, details, service, status).
-- getServerErrorMessage(): String — Message, e.g., Invalid ttl.
-- getServerErrorSource(): String — Error source.
-- getServerErrorDetails(): Object — First problem details (message, location, locationType).
+- getStatusCode() — Int: HTTP status (400)
+- getBody() — Object: Entire error body (message, source, details, service, status)
+- getServerErrorMessage() — String: Descriptive message (e.g., Invalid ttl)
+- getServerErrorSource() — String: Error source
+- getServerErrorDetails() — Object: First problem details (message, location, locationType)
 
 ## Revoke token
 
-Disables an existing token previously obtained via grantToken.
+##### Requires Access Manager add-on
+Enable Access Manager in the Admin Portal.
 
-Requirements:
-- Access Manager add-on enabled.
-- Enable Revoke v3 Token in Admin Portal (keyset > ACCESS MANAGER).
+##### Enable token revoke
+Enable Revoke v3 Token for your keyset in the Admin Portal.
 
-Use for tokens with TTL ≤ 30 days. For longer TTL, contact support.
+revokeToken() disables a valid token previously obtained via grantToken(). Use for tokens with ttl ≤ 30 days. For longer ttl, contact support.
 
 ### Method(s)
 
@@ -151,7 +170,9 @@ Use for tokens with TTL ≤ 30 days. For longer TTL, contact support.
 ```
 
 Parameters:
-- token (String, required): Existing token to revoke.
+- token
+  - Type: String; Default: n/a
+  - Existing token to revoke.
 
 ### Sample code
 
@@ -163,24 +184,25 @@ Parameters:
 
 ### Returns
 
-On success: PNRequestResult. On failure: PubNubServerException.
+Success returns PNRequestResult; failures return PubNubServerException.
 
 PNRequestResult:
-- getStatus(): Int — 200.
-- getService(): String — Access Manager.
-- isError(): Boolean
-- getError(): Array
-- getMessage(): String — Success.
+- getStatus() — Int: 200
+- getService() — String: Access Manager
+- isError() — Boolean
+- getError() — Array
+- getMessage() — String: Success
 
 ### Error Responses
 
+Possible errors:
 - 400 Bad Request
 - 403 Forbidden
 - 503 Service Unavailable
 
 ## Parse token
 
-Decodes a token and returns embedded permissions and metadata. Useful for debugging TTL and permissions.
+parseToken() decodes an existing token and returns embedded permissions and details (useful for debugging).
 
 ### Method(s)
 
@@ -190,7 +212,9 @@ Decodes a token and returns embedded permissions and metadata. Useful for debugg
 ```
 
 Parameters:
-- token (String, required): Token to decode.
+- token
+  - Type: String; Default: n/a
+  - Token to decode.
 
 ### Sample code
 
@@ -250,26 +274,26 @@ Parameters:
 
 ```
 
-Token accessor methods:
-- getVersion(): Int — Token version (current: 2).
-- getTimestamp(): Int — Issued timestamp.
-- getTtl(): String — Minutes valid.
-- getResources(): Array — type => name => permissions.
-- getPatterns(): Array — type => name => permissions.
-- getChannelResource($channel: String): Object|null — Permissions for a channel.
-- getChannelGroupResource($channelGroup: String): Object|null — Permissions for a channel group.
-- getUuidResource($uuid: String): Object|null — Permissions for a UUID.
-- getChannelPattern($channel: String): Object|null — Pattern permissions for a channel.
-- getChannelGroupPattern($channelGroup: String): Object|null — Pattern permissions for a channel group.
-- getUuidPattern($uuid: String): Object|null — Pattern permissions for a UUID.
-- getMetadata(): Array — Metadata set in grant.
-- getSignature(): String — Server signature.
-- getUuid(): String — Authorized UUID.
-- toArray(): Array — Entire token as array.
+Methods:
+- getVersion() — Int: Token version (current: 2)
+- getTimestamp() — Int: Issue timestamp
+- getTtl() — String: Token TTL in minutes
+- getResources() — Array: resources as type => name => permissions
+- getPatterns() — Array: patterns as type => name => permissions
+- getChannelResource($channel) — Object|null: Permissions for a channel
+- getChannelGroupResource($channelGroup) — Object|null: Permissions for a channel group
+- getUuidResource($uuid) — Object|null: Permissions for a UUID
+- getChannelPattern($channel) — Object|null: Permissions for a channel pattern
+- getChannelGroupPattern($channelGroup) — Object|null: Permissions for a channel group pattern
+- getUuidPattern($uuid) — Object|null: Permissions for a UUID pattern
+- getMetadata() — Array: Metadata set in grant
+- getSignature() — String: Server signature
+- getUuid() — String: Authorized UUID
+- toArray() — Array: Entire token as array
 
 #### Permissions object
 
-Calling getChannelResource() returns a Permissions object with methods:
+Calling getChannelResource(), etc., returns a Permissions object with methods to inspect rights.
 
 ```
 1
@@ -277,21 +301,21 @@ Calling getChannelResource() returns a Permissions object with methods:
 
 ```
 
-- hasRead(): boolean — read (Subscribe, History, Presence).
-- hasWrite(): boolean — write (Publish).
-- hasManage(): boolean — manage (channel groups, App Context).
-- hasDelete(): boolean — delete (History, App Context).
-- hasGet(): boolean — get (App Context).
-- hasUpdate(): boolean — update (App Context).
-- hasJoin(): boolean — join (App Context).
+- hasRead() — boolean: read (Subscribe, History, Presence)
+- hasWrite() — boolean: write (Publish)
+- hasManage() — boolean: manage (Channel Groups, App Context)
+- hasDelete() — boolean: delete (History, App Context)
+- hasGet() — boolean: get (App Context)
+- hasUpdate() — boolean: update (App Context)
+- hasJoin() — boolean: join (App Context)
 
 ### Error Responses
 
-Token parse errors indicate a damaged token; request a new one.
+If parsing fails, the token may be damaged. Request a new token.
 
 ## Set token
 
-Clients set/update the current authentication token received from server.
+setToken() is used by clients to update their current authentication token.
 
 ### Method(s)
 
@@ -301,7 +325,9 @@ Clients set/update the current authentication token received from server.
 ```
 
 Parameters:
-- token (String, required): Current token with embedded permissions.
+- token
+  - Type: String; Default: n/a
+  - Token with embedded permissions.
 
 ### Sample code
 
@@ -314,3 +340,5 @@ Parameters:
 ### Returns
 
 No return value.
+
+Last updated on Nov 6, 2025

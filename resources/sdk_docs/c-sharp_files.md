@@ -1,10 +1,10 @@
 # File Sharing API for C# SDK
 
-Upload and share files up to 5 MB on a channel. Uploaded files are stored with your key; channel subscribers receive a file event with file ID, filename, and optional description.
+Upload and share files (up to 5 MB) on a channel. Subscribers receive a file event with file ID, filename, and optional description.
 
 ##### Request execution
 
-Use try/catch. Invalid parameters throw exceptions. Server/network errors are in returned status.
+Use try/catch. Invalid parameters throw exceptions. Server/network errors are in the returned status.
 
 ```
 1try  
@@ -27,11 +27,11 @@ Use try/catch. Invalid parameters throw exceptions. Server/network errors are in
 
 ```
 
-## Send file
+## Send file[​](#send-file)
 
-Uploads a file to a channel (prepares, uploads to storage, then publishes a message on the channel). Internally calls PublishFileMessage.
+Uploads a file to a channel, then publishes a message (internally calls PublishFileMessage) with file metadata so others can access it.
 
-### Method(s)
+### Method(s)[​](#methods)
 
 ```
 `1pubnub.SendFile()  
@@ -47,29 +47,28 @@ Uploads a file to a channel (prepares, uploads to storage, then publishes a mess
 ```
 
 Parameters:
-- Channel (string, required): Target channel.
-- File (string or byte[], required): Local file path or byte array. If byte[], you must set FileName.
-- FileName (string, required when File is byte[]): Name to send/override.
-- Message (string, optional): Message to send with the file.
-- ShouldStore (bool, optional): Store the published file message in history.
-- Meta (Dictionary<string, object>, optional): Metadata for message filtering.
-- Ttl (int, optional): How long the message is stored.
-- CustomMessageType (string, optional): 3–50 char, alphanumeric, dashes and underscores allowed; cannot start with special characters or pn_/pn-. Examples: text, action, poll.
+- Channel (string, required): Channel for the file.
+- File (string | byte[], required): Path to file or file bytes. If byte[], you must set FileName.
+- FileName (string): Overrides default file name.
+- Message (string): Message sent with the file.
+- ShouldStore (bool): Whether the published file message is stored in history.
+- Meta (Dictionary<string, object>): Values used for message filtering.
+- Ttl (int): How long the message is stored.
+- CustomMessageType (string): Case-sensitive, 3–50 alphanumeric chars; dashes and underscores allowed; cannot start with special chars or pn_/pn-. Examples: text, action, poll.
 
 Deprecated parameter:
-- CipherKey: Deprecated. Configure the crypto module instead. Passing CipherKey overrides crypto module and uses legacy 128-bit encryption.
+- CipherKey: Deprecated. Configure the crypto module on your PubNub instance instead. Passing CipherKey overrides crypto module config and uses legacy 128-bit encryption.
 
-### Sample code
+### Sample code[​](#sample-code)
 
 ##### Reference code
-
 ```
 1
   
 
 ```
 
-### Response
+### Response[​](#response)
 
 ```
 `1{  
@@ -80,22 +79,22 @@ Deprecated parameter:
 `
 ```
 
-### Returns
+### Returns[​](#returns)
 
 SendFile() returns PNResult<PNFileUploadResult>:
-- Result (PNFileUploadResult): Upload result.
-- Status (PNStatus): Request status.
+- Result (PNFileUploadResult)
+- Status (PNStatus)
 
 PNFileUploadResult:
-- Timetoken (long): Publish timetoken.
-- FileId (string): File ID.
-- FileName (string): File name.
+- Timetoken (long)
+- FileId (string)
+- FileName (string)
 
-## List channel files
+## List channel files[​](#list-channel-files)
 
 Retrieve files uploaded to a channel.
 
-### Method(s)
+### Method(s)[​](#methods-1)
 
 ```
 `1pubnub.ListFiles()  
@@ -104,11 +103,11 @@ Retrieve files uploaded to a channel.
 ```
 
 Parameters:
-- Channel (string, required): Channel name.
-- Limit (int, optional, default 100): Number of files to return.
-- Next (string, optional): Server-provided pagination cursor for next page.
+- Channel (string, required): Channel to list files.
+- Limit (int, default 100): Number of files to return.
+- Next (string): Server-provided pagination cursor for next page.
 
-### Sample code
+### Sample code[​](#sample-code-1)
 
 ```
 1
@@ -116,7 +115,7 @@ Parameters:
 
 ```
 
-### Response
+### Response[​](#response-1)
 
 ```
 `1{  
@@ -133,28 +132,28 @@ Parameters:
 `
 ```
 
-### Returns
+### Returns[​](#returns-1)
 
 ListFiles() returns PNResult<PNListFilesResult>:
-- Result (PNListFilesResult): Listing result.
-- Status (PNStatus): Request status.
+- Result (PNListFilesResult)
+- Status (PNStatus)
 
 PNListFilesResult:
-- FilesList (List<PNFileResult>): Files on the channel.
-- Count (int): Number of files returned.
-- Next (string): Pagination cursor.
+- FilesList (List<PNFileResult>)
+- Count (int)
+- Next (string)
 
 PNFileResult:
-- Name (string): File name.
-- Id (string): File ID.
-- Size (int): File size.
-- Created (string): Creation timestamp.
+- Name (string)
+- Id (string)
+- Size (int)
+- Created (string)
 
-## Get file URL
+## Get file URL[​](#get-file-url)
 
-Generate a direct download URL for a file on a channel.
+Generate a URL to download a file from a channel.
 
-### Method(s)
+### Method(s)[​](#methods-2)
 
 ```
 `1pubnub.GetFileUrl()  
@@ -165,11 +164,11 @@ Generate a direct download URL for a file on a channel.
 ```
 
 Parameters:
-- Channel (string, required): Channel where the file was uploaded.
-- FileId (string, required): File identifier.
-- FileName (string, required): Stored file name.
+- Channel (string, required): Channel name where the file was uploaded.
+- FileId (string, required): Unique file identifier.
+- FileName (string, required): Name under which the file is stored.
 
-### Sample code
+### Sample code[​](#sample-code-2)
 
 ```
 1
@@ -177,7 +176,7 @@ Parameters:
 
 ```
 
-### Response
+### Response[​](#response-2)
 
 ```
 `1{  
@@ -186,20 +185,20 @@ Parameters:
 `
 ```
 
-### Returns
+### Returns[​](#returns-2)
 
 GetFileUrl() returns PNResult<PNFileUrlResult>:
-- Result (PNFileUrlResult): URL result.
-- Status (PNStatus): Request status.
+- Result (PNFileUrlResult)
+- Status (PNStatus)
 
 PNFileUrlResult:
-- Url (string): Download URL.
+- Url (string)
 
-## Download file
+## Download file[​](#download-file)
 
 Download a file from a channel.
 
-### Method(s)
+### Method(s)[​](#methods-3)
 
 ```
 `1pubnub.DownloadFile()  
@@ -210,14 +209,14 @@ Download a file from a channel.
 ```
 
 Parameters:
-- Channel (string, required): Channel name.
-- FileId (string, required): File identifier.
-- FileName (string, required): File name.
+- Channel (string, required): Channel name where the file was uploaded.
+- FileId (string, required): Unique file identifier.
+- FileName (string, required): Stored file name.
 
 Deprecated parameter:
-- CipherKey: Deprecated. Configure the crypto module instead. Passing CipherKey overrides crypto module and uses legacy 128-bit encryption.
+- CipherKey: Deprecated. Use the crypto module. Passing CipherKey overrides module config and uses legacy 128-bit encryption.
 
-### Sample code
+### Sample code[​](#sample-code-3)
 
 ```
 1
@@ -225,7 +224,7 @@ Deprecated parameter:
 
 ```
 
-### Response
+### Response[​](#response-3)
 
 ```
 `1{  
@@ -236,22 +235,22 @@ Deprecated parameter:
 `
 ```
 
-### Returns
+### Returns[​](#returns-3)
 
 DownloadFile() returns PNResult<PNDownloadFileResult>:
-- Result (PNDownloadFileResult): Download result.
-- Status (PNStatus): Request status.
+- Result (PNDownloadFileResult)
+- Status (PNStatus)
 
 PNDownloadFileResult:
-- FileBytes (byte[]): Downloaded file bytes. Use SaveFileToLocal to save.
-- FileName (string): Downloaded file name.
-- SaveFileToLocal(string): Provide full destination path to save locally.
+- FileBytes (byte[]): Downloaded file bytes. Use SaveFileToLocal to save locally.
+- FileName (string)
+- SaveFileToLocal(string): Provide full destination path to save the file locally.
 
-## Delete file
+## Delete file[​](#delete-file)
 
 Delete a file from a channel.
 
-### Method(s)
+### Method(s)[​](#methods-4)
 
 ```
 `1pubnub.DeleteFile()  
@@ -262,11 +261,11 @@ Delete a file from a channel.
 ```
 
 Parameters:
-- Channel (string, required): Channel name.
-- FileId (string, required): File identifier.
-- FileName (string, required): File name.
+- Channel (string, required): Channel containing the file.
+- FileId (string, required): File identifier to delete.
+- FileName (string, required): Name of the file to delete.
 
-### Sample code
+### Sample code[​](#sample-code-4)
 
 ```
 1
@@ -274,26 +273,26 @@ Parameters:
 
 ```
 
-### Response
+### Response[​](#response-4)
 
 ```
 `1{}  
 `
 ```
 
-### Returns
+### Returns[​](#returns-4)
 
 DeleteFile() returns PNResult<PNDeleteFileResult>:
-- Result (PNDeleteFileResult): Empty result.
-- Status (PNStatus): Request status.
+- Result (PNDeleteFileResult)
+- Status (PNStatus)
 
-PNDeleteFileResult: Empty object.
+PNDeleteFileResult returns an empty object.
 
-## Publish file message
+## Publish file message[​](#publish-file-message)
 
-Publishes a message to a channel for an already uploaded file. Called internally by SendFile. If SendFile fails with PNPublishFileMessageOperation, use this to retry publishing without re-uploading.
+Publish the uploaded file message to a channel. Called internally by SendFile. Use this if SendFile fails with status.operation === PNPublishFileMessageOperation to resend the file message without re-uploading.
 
-### Method(s)
+### Method(s)[​](#methods-5)
 
 ```
 `1pubnub.PublishFileMessage()  
@@ -308,15 +307,15 @@ Publishes a message to a channel for an already uploaded file. Called internally
 ```
 
 Parameters:
-- Channel (string, required): Channel to publish to.
-- FileId (string, required): File identifier.
+- Channel (string, required): Channel to publish the file message.
+- FileId (string, required): Unique file identifier.
 - FileName (string, required): File name.
-- Message (string, required): Payload.
-- Meta (string, optional): Metadata for filtering.
-- ShouldStore (bool, optional, default true): Store in history.
-- CustomMessageType (string, optional): 3–50 char, alphanumeric, dashes and underscores allowed; cannot start with special characters or pn_/pn-. Examples: text, action, poll.
+- Message (string): Payload.
+- Meta (string): Metadata for message filtering.
+- ShouldStore (bool, default true): Store in history.
+- CustomMessageType (string): Case-sensitive, 3–50 alphanumeric chars; dashes and underscores allowed; cannot start with special chars or pn_/pn-. Examples: text, action, poll.
 
-### Sample code
+### Sample code[​](#sample-code-5)
 
 ```
 1
@@ -324,7 +323,7 @@ Parameters:
 
 ```
 
-### Response
+### Response[​](#response-5)
 
 ```
 `1{  
@@ -333,13 +332,13 @@ Parameters:
 `
 ```
 
-### Returns
+### Returns[​](#returns-5)
 
 PublishFileMessage() returns PNResult<PNPublishFileMessageResult>:
-- Result (PNPublishFileMessageResult): Publish result.
-- Status (PNStatus): Request status.
+- Result (PNPublishFileMessageResult)
+- Status (PNStatus)
 
 PNPublishFileMessageResult:
-- Timetoken (long): Publish timetoken.
+- Timetoken (long)
 
 Last updated on Jul 15, 2025

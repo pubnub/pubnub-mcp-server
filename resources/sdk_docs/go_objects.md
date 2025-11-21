@@ -1,12 +1,14 @@
-# App Context API for Go SDK
+# App Context API for Go SDK (Objects v2)
 
-App Context (formerly Objects v2) provides serverless storage for user and channel metadata and their membership associations. Events are triggered when object data is set, updated, or removed. Making a request to set identical data doesn't trigger an event. Clients can subscribe to these events to update UIs in real time. To upgrade from Objects v1, see the migration guide.
+App Context provides serverless storage for user (UUID) and channel metadata, plus their membership associations. Updates (set, update, remove) trigger real-time events; re-setting identical data doesn't trigger events.
+
+Refer to the migration guide if upgrading from Objects v1.
 
 ## User
 
 ### Get metadata for all users
 
-Returns a paginated list of UUID Metadata objects, optionally including the custom data object.
+Returns a paginated list of UUID Metadata objects; can include custom data.
 
 #### Method(s)
 
@@ -23,13 +25,13 @@ Returns a paginated list of UUID Metadata objects, optionally including the cust
 `
 ```
 
-- Include Type: []pubnub.PNUUIDMetadataInclude — Include additional UUID attributes. Available: pubnub.PNUUIDMetadataIncludeCustom
-- Sort Type: Array — Sort by id, name, updated with asc/desc (for example, {name: 'asc'}).
-- Limit Type: int — Default/Max: 100.
-- Count Type: bool — Include total count. Default: false.
-- Start Type: string — Cursor-based pagination.
-- End Type: string — Cursor-based pagination.
-- Filter Type: string — Filter expression. See filtering.
+- Include (type: []pubnub.PNUUIDMetadataInclude) — optional; include additional attributes. Available: pubnub.PNUUIDMetadataIncludeCustom
+- Sort — sort by id, name, updated with asc/desc (for example, {name: 'asc'})
+- Limit (int) — number of objects; default/max 100
+- Count (bool) — include total count; default false
+- Start (string) — cursor for forward pagination
+- End (string) — cursor for backward pagination
+- Filter (string) — filter expression; see filtering docs
 
 #### Sample code
 
@@ -44,15 +46,16 @@ This example is a self-contained code snippet ready to be run. It includes neces
 
 #### Response
 
-GetAllUUIDMetadata() returns PNGetAllChannelMetadataResponse:
-- Data []PNUUID — See PNUUID.
-- TotalCount int — Total objects without pagination.
-- Next string — Cursor for forward pagination.
-- Prev string — Cursor for backward pagination (ignored if Next is supplied).
+The GetAllUUIDMetadata() operation returns a PNGetAllChannelMetadataResponse with:
+
+- Data ([]PNUUID) — see PNUUID
+- TotalCount (int)
+- Next (string) — cursor for next page
+- Prev (string) — cursor for previous page (ignored if Next is provided)
 
 ### Get user metadata
 
-Returns metadata for the specified UUID, optionally including the custom data object.
+Returns metadata for the specified UUID; can include custom data.
 
 #### Method(s)
 
@@ -65,9 +68,9 @@ Returns metadata for the specified UUID, optionally including the custom data ob
 `
 ```
 
-- Include Type: []pubnub.PNUUIDMetadataIncludeCustom — Additional UUID attributes. Available: pubnub.PNUUIDMetadataIncludeCustom
-- Sort Type: Array — Sort by id, name, updated with asc/desc.
-- ID Type: string — UUID. If omitted, uses current user UUID.
+- Include (type: []pubnub.PNUUIDMetadataIncludeCustom) — optional; Available: pubnub.PNUUIDMetadataIncludeCustom
+- Sort — sort by id, name, updated with asc/desc
+- ID (string) — UUID; defaults to current user's UUID if omitted
 
 #### Sample code
 
@@ -79,12 +82,16 @@ Returns metadata for the specified UUID, optionally including the custom data ob
 
 #### Response
 
-GetUUIDMetadata() returns PNGetUUIDMetadataResponse:
-- Data PNUUID — See PNUUID.
+The GetUUIDMetadata() operation returns a PNGetUUIDMetadataResponse with:
+
+- Data (PNUUID) — see PNUUID
 
 ### Set user metadata
 
-The custom metadata parameter overwrites existing server-side custom metadata (partial updates aren't supported).
+Sets metadata for a UUID; can include custom data.
+
+Unsupported partial updates of custom metadata:
+- The custom field overwrites existing server value. To merge, read current metadata, update locally, then write back.
 
 #### Method(s)
 
@@ -103,19 +110,17 @@ The custom metadata parameter overwrites existing server-side custom metadata (p
 `
 ```
 
-- Include Type: []pubnub.PNUUIDMetadataInclude — Additional attributes. Available: pubnub.PNUUIDMetadataIncludeCustom
-- ID Type: string — Unique user identifier; defaults to current user's uuid.
-- Sort Type: Array — Sort by id, name, updated with asc/desc.
-- Name Type: string — Display name.
-- ExternalID Type: string — External system identifier.
-- ProfileURL Type: string — Profile picture URL.
-- Email Type: string — Email address.
-- Custom Type: map[string]interface{} — Custom JSON values (strings, numbers, booleans). Filtering by Custom isn't supported.
-- IfMatchETag Type: string — Provide eTag to ensure conditional update; mismatches return HTTP 412.
+- Include (type: []pubnub.PNUUIDMetadataInclude) — optional; Available: pubnub.PNUUIDMetadataIncludeCustom
+- Sort — sort by id, name, updated with asc/desc
+- ID (string) — unique user identifier; defaults to current user's uuid
+- Name (string) — display name
+- ExternalID (string) — external system identifier
+- ProfileURL (string) — profile picture URL
+- Email (string)
+- Custom (map[string]interface{}) — strings, numbers, booleans; filtering by Custom not supported
+- IfMatchETag (string) — conditional update using ETag; mismatches return HTTP 412
 
-##### API limits
-
-For parameter length limits, see REST API docs.
+API limits: see REST API docs for set-user-metadata.
 
 #### Sample code
 
@@ -127,21 +132,22 @@ For parameter length limits, see REST API docs.
 
 #### Response
 
-SetUUIDMetadata() returns PNSetUUIDMetadataResponse:
-- Data PNUUID — See PNUUID.
+The SetUUIDMetadata() operation returns a PNSetUUIDMetadataResponse with:
+
+- Data (PNUUID) — see PNUUID
 
 #### PNUUID
 
-- ID string — Unique user identifier; defaults to current user's uuid.
-- Name string — Display name.
-- ExternalID string
-- ProfileURL string
-- Email string
-- Custom map[string]interface
-- Updated string — Last updated date.
-- ETag string
-- Status string — Max 50 chars.
-- Type string — Max 50 chars.
+- ID (string) — unique user identifier; defaults to current user's uuid
+- Name (string)
+- ExternalID (string)
+- ProfileURL (string)
+- Email (string)
+- Custom (map[string]interface{})
+- Updated (string)
+- ETag (string)
+- Status (string) — max 50 chars
+- Type (string) — max 50 chars
 
 ### Remove user metadata
 
@@ -156,7 +162,7 @@ Removes metadata for a specified UUID.
 `
 ```
 
-- ID Type: string — UUID; defaults to current user's uuid.
+- ID (string) — UUID; defaults to current user's uuid
 
 #### Sample code
 
@@ -168,14 +174,15 @@ Removes metadata for a specified UUID.
 
 #### Response
 
-RemoveUUIDMetadata() returns PNRemoveUUIDMetadataResponse:
-- Data interface — Empty.
+The RemoveUUIDMetadata() operation returns a PNRemoveUUIDMetadataResponse with:
+
+- Data (interface{}) — empty
 
 ## Channel
 
 ### Get metadata for all channels
 
-Returns a paginated list of Channel Metadata objects, optionally including the custom data object.
+Returns a paginated list of Channel Metadata objects; can include custom data.
 
 #### Method(s)
 
@@ -192,13 +199,13 @@ Returns a paginated list of Channel Metadata objects, optionally including the c
 `
 ```
 
-- Include Type: []pubnub.PNChannelMetadataInclude — Additional attributes. Available: pubnub.PNChannelMetadataIncludeCustom
-- Sort Type: Array — Sort by id, name, updated with asc/desc.
-- Limit Type: int — Default/Max: 100.
-- Count Type: bool — Include total count. Default: false.
-- Start Type: string — Cursor-based pagination.
-- End Type: string — Cursor-based pagination.
-- Filter Type: string — Filter expression. See filtering.
+- Include (type: []pubnub.PNChannelMetadataInclude) — optional; Available: pubnub.PNChannelMetadataIncludeCustom
+- Sort — sort by id, name, updated with asc/desc
+- Limit (int) — default/max 100
+- Count (bool) — default false
+- Start (string) — forward pagination
+- End (string) — backward pagination
+- Filter (string) — see filtering docs
 
 #### Sample code
 
@@ -210,15 +217,16 @@ Returns a paginated list of Channel Metadata objects, optionally including the c
 
 #### Response
 
-GetAllChannelMetadata() returns PNGetAllChannelMetadataResponse:
-- Data []PNChannel — See PNChannel.
-- TotalCount int
-- Next string
-- Prev string
+The GetAllChannelMetadata() operation returns a PNGetAllChannelMetadataResponse with:
+
+- Data ([]PNChannel) — see PNChannel
+- TotalCount (int)
+- Next (string)
+- Prev (string)
 
 ### Get channel metadata
 
-Returns metadata for the specified channel, optionally including the custom data object.
+Returns metadata for the specified channel; can include custom data.
 
 #### Method(s)
 
@@ -231,9 +239,9 @@ Returns metadata for the specified channel, optionally including the custom data
 `
 ```
 
-- Include Type: []pubnub.PNChannelMetadataInclude — Additional attributes. Available: pubnub.PNChannelMetadataIncludeCustom
-- Sort Type: Array — Sort by id, name, updated with asc/desc.
-- ID Type: string — UUID. If not supplied, current user's UUID is used.
+- Include (type: []pubnub.PNChannelMetadataInclude) — optional; Available: pubnub.PNChannelMetadataIncludeCustom
+- Sort — sort by id, name, updated with asc/desc
+- ID (string) — UUID; defaults to current user's UUID if omitted
 
 #### Sample code
 
@@ -245,12 +253,18 @@ Returns metadata for the specified channel, optionally including the custom data
 
 #### Response
 
-GetChannelMetadata() returns PNGetChannelMetadataResponse:
-- Data PNChannel — See PNChannel.
+The GetChannelMetadata() operation returns a PNGetChannelMetadataResponse with:
+
+- Data (PNChannel) — see PNChannel
 
 ### Set channel metadata
 
-Custom metadata overwrites existing server-side custom metadata (partial updates aren't supported).
+Sets channel metadata; can include custom data.
+
+Unsupported partial updates of custom metadata:
+- The custom field overwrites existing server value.
+
+API limits: see REST API docs for set-channel-metadata.
 
 #### Method(s)
 
@@ -267,17 +281,13 @@ Custom metadata overwrites existing server-side custom metadata (partial updates
 `
 ```
 
-- Include Type: []pubnub.PNChannelMetadataInclude — Additional attributes. Available: pubnub.PNChannelMetadataIncludeCustom
-- Sort Type: Array — Sort by id, name, updated with asc/desc.
-- ID Type: string — Unique user identifier; defaults to current user's uuid.
-- Name Type: string — Channel name.
-- Description Type: string
-- Custom Type: map[string]interface — Custom JSON values. Filtering by Custom isn't supported.
-- IfMatchETag Type: string — Conditional update with eTag; mismatches return HTTP 412.
-
-##### API limits
-
-For parameter length limits, see REST API docs.
+- Include (type: []pubnub.PNChannelMetadataInclude) — optional; Available: pubnub.PNChannelMetadataIncludeCustom
+- Sort — sort by id, name, updated with asc/desc
+- ID (string) — unique user identifier; defaults to current user's uuid
+- Name (string) — channel name
+- Description (string)
+- Custom (map[string]interface{}) — strings, numbers, booleans; filtering by Custom not supported
+- IfMatchETag (string) — conditional update using ETag; mismatches return HTTP 412
 
 #### Sample code
 
@@ -289,19 +299,20 @@ For parameter length limits, see REST API docs.
 
 #### Response
 
-SetChannelMetadata() returns PNSetChannelMetadataResponse:
-- Data PNChannel — See PNChannel.
+The SetChannelMetadata() operation returns a PNSetChannelMetadataResponse with:
+
+- Data (PNChannel) — see PNChannel
 
 #### PNChannel
 
-- ID string — Unique user identifier; defaults to current user's uuid.
-- Name string
-- Description string
-- Custom map[string]interface
-- Updated string — Last updated date.
-- ETag string
-- Status string — Max 50 chars.
-- Type string — Max 50 chars.
+- ID (string) — unique user identifier; defaults to current user's uuid
+- Name (string)
+- Description (string)
+- Custom (map[string]interface{})
+- Updated (string)
+- ETag (string)
+- Status (string) — max 50 chars
+- Type (string) — max 50 chars
 
 #### Other examples
 
@@ -323,7 +334,7 @@ SetChannelMetadata() returns PNSetChannelMetadataResponse:
 
 ### Remove channel metadata
 
-Removes the metadata from a specified channel.
+Removes metadata for a specified channel.
 
 #### Method(s)
 
@@ -334,7 +345,7 @@ Removes the metadata from a specified channel.
 `
 ```
 
-- ID Type: string — Unique user identifier; defaults to current user's uuid.
+- ID (string) — unique user identifier; defaults to current user's uuid
 
 #### Sample code
 
@@ -346,8 +357,9 @@ Removes the metadata from a specified channel.
 
 #### Response
 
-RemoveChannelMetadata() returns PNRemoveChannelMetadataResponse:
-- Data interface — Empty.
+The RemoveChannelMetadata() operation returns a PNRemoveChannelMetadataResponse with:
+
+- Data (interface{}) — empty
 
 ## Channel memberships
 
@@ -371,14 +383,14 @@ Returns a list of channel memberships for a user (not subscriptions).
 `
 ```
 
-- UUID Type: string — If omitted, uses current user's UUID.
-- Include Type: []pubnub.PNMembershipsInclude — Additional attributes. Available: pubnub.PNMembershipsIncludeCustom, pubnub.PNMembershipsIncludeChannel, pubnub.PNMembershipsIncludeChannelCustom
-- Sort Type: Array — Sort by id, name, updated with asc/desc.
-- Limit Type: int — Default/Max: 100.
-- Count Type: bool — Include total count. Default: false.
-- Start Type: string — Cursor-based pagination.
-- End Type: string — Cursor-based pagination.
-- Filter Type: string — Filter expression. See filtering.
+- UUID (string) — user UUID; defaults to current user's UUID
+- Include (type: []pubnub.PNMembershipsInclude) — optional; Available: pubnub.PNMembershipsIncludeCustom, pubnub.PNMembershipsIncludeChannel, pubnub.PNMembershipsIncludeChannelCustom
+- Sort — sort by id, name, updated with asc/desc
+- Limit (int) — default/max 100
+- Count (bool) — default false
+- Start (string) — forward pagination
+- End (string) — backward pagination
+- Filter (string) — see filtering docs
 
 #### Sample code
 
@@ -390,25 +402,26 @@ Returns a list of channel memberships for a user (not subscriptions).
 
 #### Response
 
-GetMemberships() returns PNGetMembershipsResponse:
-- Data []PNMemberships — See PNMemberships.
-- TotalCount int
-- Next string
-- Prev string
+The GetMemberships() operation returns a PNGetMembershipsResponse with:
+
+- Data ([]PNMemberships) — see PNMemberships
+- TotalCount (int)
+- Next (string)
+- Prev (string)
 
 #### PNMemberships
 
-- ID string — Unique user identifier; defaults to current user's uuid.
-- Channel PNChannel — See PNChannel.
-- Custom map[string]interface
-- Updated string — Last updated date.
-- ETag string
-- Status string — Max 50 chars.
-- Type string — Max 50 chars.
+- ID (string) — unique user identifier; defaults to current user's uuid
+- Channel (PNChannel) — see PNChannel
+- Custom (map[string]interface{})
+- Updated (string)
+- ETag (string)
+- Status (string) — max 50 chars
+- Type (string) — max 50 chars
 
 ### Set channel memberships
 
-Set channel memberships for a UUID.
+Sets channel memberships for a UUID.
 
 #### Method(s)
 
@@ -426,18 +439,16 @@ Set channel memberships for a UUID.
 `
 ```
 
-- UUID Type: string — If omitted, uses current user's UUID.
-- Set Type: pubnub.PNMembershipsSet — Items to add for UUID. PNMembershipsSet allows Channel (PNMembershipsChannel with ID string) and Custom map.
-- Include Type: []pubnub.PNMembershipsInclude — Available: pubnub.PNMembershipsIncludeCustom, pubnub.PNMembershipsIncludeChannel, pubnub.PNMembershipsIncludeChannelCustom
-- Sort Type: Array — Sort by id, name, updated with asc/desc.
-- Limit Type: int — Default/Max: 100.
-- Count Type: bool — Include total count. Default: false.
-- Start Type: string — Cursor-based pagination.
-- End Type: string — Cursor-based pagination.
+- UUID (string) — defaults to current user's UUID
+- Set (pubnub.PNMembershipsSet) — items to add; set Channel (PNMembershipsChannel with ID string) and Custom map
+- Include (type: []pubnub.PNMembershipsInclude) — Available: pubnub.PNMembershipsIncludeCustom, pubnub.PNMembershipsIncludeChannel, pubnub.PNMembershipsIncludeChannelCustom
+- Sort — sort by id, name, updated with asc/desc
+- Limit (int) — default/max 100
+- Count (bool) — default false
+- Start (string) — forward pagination
+- End (string) — backward pagination
 
-##### API limits
-
-For parameter length limits, see REST API docs.
+API limits: see REST API docs for set-membership-metadata.
 
 #### Sample code
 
@@ -449,15 +460,16 @@ For parameter length limits, see REST API docs.
 
 #### Response
 
-SetMemberships() returns PNSetMembershipsResponse:
-- Data []PNMemberships — See PNMemberships.
-- TotalCount int
-- Next string
-- Prev string
+The SetMemberships() operation returns a PNSetMembershipsResponse with:
+
+- Data ([]PNMemberships)
+- TotalCount (int)
+- Next (string)
+- Prev (string)
 
 ### Remove channel memberships
 
-Remove channel memberships for a UUID.
+Removes channel memberships for a UUID.
 
 #### Method(s)
 
@@ -474,13 +486,13 @@ Remove channel memberships for a UUID.
 `
 ```
 
-- UUID Type: string — If omitted, uses current user's UUID.
-- Remove Type: pubnub.PNMembershipsRemove — Items to remove for UUID. PNMembershipsRemove allows Channel (PNMembershipsChannel with ID string) and Custom map.
-- Include Type: []pubnub.PNMembershipsInclude — Available: pubnub.PNMembershipsIncludeCustom, pubnub.PNMembershipsIncludeChannel, pubnub.PNMembershipsIncludeChannelCustom
-- Limit Type: int — Default/Max: 100.
-- Count Type: bool — Include total count. Default: false.
-- Start Type: string — Cursor-based pagination.
-- End Type: string — Cursor-based pagination.
+- UUID (string) — defaults to current user's UUID
+- Remove (pubnub.PNMembershipsRemove) — items to remove; set Channel (PNMembershipsChannel with ID string) and optional Custom map
+- Include (type: []pubnub.PNMembershipsInclude) — Available: pubnub.PNMembershipsIncludeCustom, pubnub.PNMembershipsIncludeChannel, pubnub.PNMembershipsIncludeChannelCustom
+- Limit (int) — default/max 100
+- Count (bool) — default false
+- Start (string)
+- End (string)
 
 #### Sample code
 
@@ -492,15 +504,16 @@ Remove channel memberships for a UUID.
 
 #### Response
 
-RemoveMemberships() returns PNRemoveMembershipsResponse:
-- Data []PNMemberships — See PNMemberships.
-- TotalCount int
-- Next string
-- Prev string
+The RemoveMemberships() operation returns a PNRemoveMembershipsResponse with:
+
+- Data ([]PNMemberships)
+- TotalCount (int)
+- Next (string)
+- Prev (string)
 
 ### Manage channel memberships
 
-Manage a UUID's memberships: Add (Set), Remove, and Update.
+Add, remove, and update memberships for a UUID.
 
 #### Method(s)
 
@@ -519,15 +532,15 @@ Manage a UUID's memberships: Add (Set), Remove, and Update.
 `
 ```
 
-- UUID Type: string — Unique user identifier; defaults to current user's Uuid.
-- Set Type: pubnub.PNMembershipsSet — Provide Channel (PNMembershipsChannel with ID string) and Custom map.
-- Remove Type: pubnub.PNMembershipsRemove — Provide Channel (PNMembershipsChannel with ID string).
-- Include Type: []pubnub.PNMembershipsInclude — Available: pubnub.PNMembershipsIncludeCustom, pubnub.PNMembershipsIncludeChannel, pubnub.PNMembershipsIncludeChannelCustom
-- Sort Type: Array — Sort by id, name, updated with asc/desc.
-- Limit Type: int — Default/Max: 100.
-- Count Type: bool — Include total count. Default: false.
-- Start Type: string — Cursor-based pagination.
-- End Type: string — Cursor-based pagination.
+- UUID (string) — defaults to current user's Uuid
+- Set (pubnub.PNMembershipsSet) — add/update; set Channel (PNMembershipsChannel with ID string) and Custom map
+- Remove (pubnub.PNMembershipsRemove) — remove; set Channel (PNMembershipsChannel with ID string)
+- Include (type: []pubnub.PNMembershipsInclude) — Available: pubnub.PNMembershipsIncludeCustom, pubnub.PNMembershipsIncludeChannel, pubnub.PNMembershipsIncludeChannelCustom
+- Sort — sort by id, name, updated with asc/desc
+- Limit (int) — default/max 100
+- Count (bool) — default false
+- Start (string)
+- End (string)
 
 #### Sample code
 
@@ -539,17 +552,18 @@ Manage a UUID's memberships: Add (Set), Remove, and Update.
 
 #### Response
 
-ManageMemberships() returns PNManageMembershipsResponse:
-- Data []PNMemberships — See PNMemberships.
-- TotalCount int
-- Next string
-- Prev string
+The ManageMemberships() operation returns a PNManageMembershipsResponse with:
+
+- Data ([]PNMemberships)
+- TotalCount (int)
+- Next (string)
+- Prev (string)
 
 ## Channel members
 
 ### Get channel members
 
-Returns a list of members in a channel. Includes user metadata for members with stored metadata.
+Returns a list of members in a channel; can include user metadata.
 
 #### Method(s)
 
@@ -567,14 +581,14 @@ Returns a list of members in a channel. Includes user metadata for members with 
 `
 ```
 
-- Channel Type: string — Channel name.
-- Include Type: []pubnub.PNChannelMembersInclude — Available: pubnub.PNChannelMembersIncludeCustom, pubnub.PNChannelMembersIncludeUUID, pubnub.PNChannelMembersIncludeUUIDCustom
-- Sort Type: Array — Sort by id, name, updated with asc/desc (for example, {name: 'asc'}).
-- Limit Type: int — Default/Max: 100.
-- Count Type: bool — Include total count. Default: false.
-- Start Type: string — Cursor-based pagination.
-- End Type: string — Cursor-based pagination.
-- Filter Type: string — Filter expression. See filtering.
+- Channel (string) — channel name
+- Include (type: []pubnub.PNChannelMembersInclude) — Available: pubnub.PNChannelMembersIncludeCustom, pubnub.PNChannelMembersIncludeUUID, pubnub.PNChannelMembersIncludeUUIDCustom
+- Sort — sort by id, name, updated with asc/desc
+- Limit (int) — default/max 100
+- Count (bool) — default false
+- Start (string)
+- End (string)
+- Filter (string) — see filtering docs
 
 #### Sample code
 
@@ -586,21 +600,22 @@ Returns a list of members in a channel. Includes user metadata for members with 
 
 #### Response
 
-GetChannelMembers() returns PNGetChannelMembersResponse:
-- Data []PNChannelMembers — See PNChannelMembers.
-- TotalCount int
-- Next string
-- Prev string
+The GetChannelMembers() operation returns a PNGetChannelMembersResponse with:
+
+- Data ([]PNChannelMembers) — see PNChannelMembers
+- TotalCount (int)
+- Next (string)
+- Prev (string)
 
 #### PNChannelMembers
 
-- ID string — Unique user identifier; defaults to current user's uuid.
-- UUID PNUUID — See PNUUID.
-- Custom map[string]interface
-- Updated string — Last updated date.
-- ETag string
-- Status string — Max 50 chars.
-- Type string — Max 50 chars.
+- ID (string) — unique user identifier; defaults to current user's uuid
+- UUID (PNUUID) — see PNUUID
+- Custom (map[string]interface{})
+- Updated (string)
+- ETag (string)
+- Status (string) — max 50 chars
+- Type (string) — max 50 chars
 
 ### Set channel members
 
@@ -622,18 +637,16 @@ Sets members in a channel.
 `
 ```
 
-- Channel Type: string — Channel name.
-- Set Type: pubnub.PNChannelMembersSet — For the channel, set UUID (PNChannelMembersUUID with ID string) and Custom map.
-- Include Type: []pubnub.PNChannelMembersInclude — Available: pubnub.PNChannelMembersIncludeCustom, pubnub.PNChannelMembersIncludeUUID, pubnub.PNChannelMembersIncludeUUIDCustom
-- Sort Type: Array — Sort by id, name, updated with asc/desc.
-- Limit Type: int — Default/Max: 100.
-- Count Type: bool — Include total count. Default: false.
-- Start Type: string — Cursor-based pagination.
-- End Type: string — Cursor-based pagination.
+- Channel (string)
+- Set (pubnub.PNChannelMembersSet) — add/update; set UUID (PNChannelMembersUUID with ID string) and Custom map
+- Include (type: []pubnub.PNChannelMembersInclude) — Available: pubnub.PNChannelMembersIncludeCustom, pubnub.PNChannelMembersIncludeUUID, pubnub.PNChannelMembersIncludeUUIDCustom
+- Sort — sort by id, name, updated with asc/desc
+- Limit (int) — default/max 100
+- Count (bool) — default false
+- Start (string)
+- End (string)
 
-##### API limits
-
-For parameter length limits, see REST API docs.
+API limits: see REST API docs for set-channel-members-metadata.
 
 #### Sample code
 
@@ -645,15 +658,16 @@ For parameter length limits, see REST API docs.
 
 #### Response
 
-SetChannelMembers() returns PNSetChannelMembersResponse:
-- Data []PNChannelMembers — See PNChannelMembers.
-- TotalCount int
-- Next string
-- Prev string
+The SetChannelMembers() operation returns a PNSetChannelMembersResponse with:
+
+- Data ([]PNChannelMembers)
+- TotalCount (int)
+- Next (string)
+- Prev (string)
 
 ### Remove channel members
 
-Remove members from a channel.
+Removes members from a channel.
 
 #### Method(s)
 
@@ -670,18 +684,15 @@ Remove members from a channel.
 `
 ```
 
-- channel Type: String — Name of channel from which members should be fetched.
-- uuids Type: Array — List of UUIDs; each entry has UUID and optional custom (strings/integers).
-- sort Type: Array — Sort by id, name, updated with asc/desc (for example, {name: 'asc'}).
-- include Type: Object — Default: { count: true }. Options:
-  - count — include how many UUIDs are associated.
-  - custom — include additional metadata fields used during UUID metadata set.
-- filter Type: String — Filter expression. See filtering.
-- start Type: String — Cursor for forward pagination.
-- end Type: String — Cursor for backward pagination (ignored if start supplied).
-- limit Type: Integer — Default/Max: 100.
-- http_sync Type: Boolean — Default: false. Async by default; true returns envelopes synchronously.
-- callback Type: Lambda — Callback per envelope (async returns future; call value to block).
+- Channel (string) — channel name
+- Remove (pubnub.PNChannelMembersRemove) — remove; set UUID (PNChannelMembersUUID with ID string)
+- Include (type: []pubnub.PNChannelMembersInclude) — Available: pubnub.PNChannelMembersIncludeCustom, pubnub.PNChannelMembersIncludeUUID, pubnub.PNChannelMembersIncludeUUIDCustom
+- Sort (Array) — sort by id, name, updated (asc/desc)
+- Limit (int) — default/max 100
+- Count (bool) — default false
+- Start (string) — forward pagination
+- End (string) — backward pagination
+- Filter (string) — optional filtering expression
 
 #### Sample code
 
@@ -693,15 +704,16 @@ Remove members from a channel.
 
 #### Response
 
-RemoveChannelMembers() returns PNRemoveChannelMembersResponse:
-- Data []PNChannelMembers — See PNChannelMembers.
-- TotalCount int
-- Next string
-- Prev string
+The RemoveChannelMembers() operation returns a PNRemoveChannelMembersResponse with:
+
+- Data ([]PNChannelMembers)
+- TotalCount (int)
+- Next (string)
+- Prev (string)
 
 ### Manage channel members
 
-Set and Remove channel memberships for a user within a channel.
+Adds and removes channel members for a channel.
 
 #### Method(s)
 
@@ -720,15 +732,15 @@ Set and Remove channel memberships for a user within a channel.
 `
 ```
 
-- Channel Type: string — Channel Name.
-- Set Type: pubnub.PNChannelMembersSet — Add UUID (PNChannelMembersUUID with ID string) and Custom map.
-- Remove Type: pubnub.PNChannelMembersRemove — Remove UUID (PNChannelMembersUUID with ID string).
-- Limit Type: int — Default/Max: 100.
-- Count Type: bool — Include total count. Default: false.
-- Start Type: string — Cursor-based pagination.
-- End Type: string — Cursor-based pagination.
-- Sort Type: Array — Sort by id, name, updated with asc/desc.
-- Include Type: []pubnub.PNChannelMembersInclude — Available: pubnub.PNChannelMembersIncludeCustom, pubnub.PNChannelMembersIncludeUUID, pubnub.PNChannelMembersIncludeUUIDCustom
+- Channel (string)
+- Set (pubnub.PNChannelMembersSet) — add/update; set UUID (PNChannelMembersUUID with ID string) and Custom map
+- Remove (pubnub.PNChannelMembersRemove) — remove; set UUID (PNChannelMembersUUID with ID string)
+- Limit (int) — default/max 100
+- Count (bool) — default false
+- Start (string)
+- End (string)
+- Sort — sort by id, name, updated with asc/desc
+- Include (type: []pubnub.PNChannelMembersInclude) — Available: pubnub.PNChannelMembersIncludeCustom, pubnub.PNChannelMembersIncludeUUID, pubnub.PNChannelMembersIncludeUUIDCustom
 
 #### Sample code
 
@@ -740,8 +752,9 @@ Set and Remove channel memberships for a user within a channel.
 
 #### Response
 
-ManageChannelMembers() returns PNManageMembersResponse:
-- Data []PNChannelMembers — See PNChannelMembers.
-- TotalCount int
-- Next string
-- Prev string
+The ManageChannelMembers() operation returns a PNManageMembersResponse with:
+
+- Data ([]PNChannelMembers)
+- TotalCount (int)
+- Next (string)
+- Prev (string)

@@ -1,13 +1,14 @@
 # App Context API for Python SDK
 
-App Context (formerly Objects v2) provides storage for user and channel metadata and their membership associations. PubNub triggers real-time events when object data is set, updated, or removed. Setting identical data doesn’t trigger events.
+App Context (formerly Objects v2) provides serverless storage for user (UUID) and channel metadata and their membership associations. PubNub triggers events when object data is set, updated, or removed; setting identical data does not trigger an event.
 
 ##### Request execution and return values
 
-- `.sync()` returns an Envelope with:
-  - Envelope.result: type varies by API
-  - Envelope.status: PnStatus
-- `.pn_async(callback)` returns None; callback receives (result, status)
+Operations can be executed synchronously or asynchronously.
+
+`.sync()` returns an `Envelope` with:
+- `Envelope.result` — operation-specific result type.
+- `Envelope.status` — `PnStatus`.
 
 ```
 `1pubnub.publish() \  
@@ -16,6 +17,8 @@ App Context (formerly Objects v2) provides storage for user and channel metadata
 4    .sync()  
 `
 ```
+
+`.pn_async(callback)` returns `None` and invokes your callback with `result` and `status`.
 
 ```
 1def my_callback_function(result, status):  
@@ -31,13 +34,13 @@ App Context (formerly Objects v2) provides storage for user and channel metadata
 
 ## User
 
-Manage UUID metadata: list, fetch, set, and remove.
+Manage UUID metadata (list, fetch, set, remove).
 
 ### Get metadata for all users
 
-Get a paginated list of UUID metadata, with filter/sort options.
+Retrieve a paginated list of UUID metadata with optional filtering/sorting.
 
-#### Methods
+#### Method(s)
 
 ```
 `1pubnub.get_all_uuid_metadata() \  
@@ -53,18 +56,18 @@ Get a paginated list of UUID metadata, with filter/sort options.
 ```
 
 Parameters:
-- limit (Integer, default: N/A) – Max objects per page.
-- page (PNPage, default: N/A) – Pagination cursor.
-- filter (String) – See filtering language docs.
-- sort (List<PNSortKey>) – Sort by id|name|updated with asc|desc (e.g., {name: 'asc'}).
-- include_total_count (Boolean, default: False) – Include total count.
-- include_custom (Boolean, default: False) – Include custom object.
-- include_status (Boolean, default: True) – Include status field.
-- include_type (Boolean, default: True) – Include type field.
+- limit — Integer; maximum objects per page.
+- page — PNPage; pagination cursor object.
+- filter — String; expression per filtering language.
+- sort — List<PNSortKey>; by id, name, updated; asc/desc (example: {name: 'asc'}).
+- include_total_count — Boolean; include total count in response (default False).
+- include_custom — Boolean; include custom object (default False).
+- include_status — Boolean; include status field (default True).
+- include_type — Boolean; include type field (default True).
 
 #### Sample code
 
-Synchronous (Builder Pattern):
+Synchronous:
 
 ```
 1import os  
@@ -124,7 +127,7 @@ Synchronous (Builder Pattern):
 
 ```
 
-Asynchronous (Builder Pattern):
+Asynchronous:
 
 ```
 1import os  
@@ -184,7 +187,7 @@ Asynchronous (Builder Pattern):
 
 ```
 
-Synchronous (Named Arguments):
+Synchronous:
 
 ```
 1import os  
@@ -242,7 +245,7 @@ Synchronous (Named Arguments):
 
 ```
 
-Asynchronous (Named Arguments):
+Asynchronous:
 
 ```
 1import os  
@@ -302,21 +305,17 @@ Asynchronous (Named Arguments):
 
 ##### Returns
 
-- result: PNGetAllUUIDMetadataResult
-- status: PNStatus
+`Envelope.result` is `PNGetAllUUIDMetadataResult`:
+- data — list[dict] of UUID metadata
+- status — PNStatus
 
-PNGetAllUUIDMetadataResult:
-- data: list of UUID metadata dicts
-- status: PNStatus
-
-UUID metadata keys:
-- id, name, externalId, profileUrl, email, custom, status, type
+UUID metadata keys in `data`: id, name, externalId, profileUrl, email, custom, status, type.
 
 ### Get user metadata
 
 Fetch metadata for a single UUID.
 
-#### Methods
+#### Method(s)
 
 ```
 `1pubnub.get_uuid_metadata() \  
@@ -326,14 +325,14 @@ Fetch metadata for a single UUID.
 ```
 
 Parameters:
-- uuid (String, default: pubnub.configuration.uuid) – UUID id; uses configured UUID if omitted.
-- include_custom (Boolean, default: False)
-- include_status (Boolean, default: True)
-- include_type (Boolean, default: True)
+- uuid — String; UUID identifier (defaults to configured UUID).
+- include_custom — Boolean; include custom object (default False).
+- include_status — Boolean; include status field (default True).
+- include_type — Boolean; include type field (default True).
 
 #### Sample code
 
-Synchronous (Builder Pattern):
+Synchronous:
 
 ```
 `1pubnub.get_uuid_metadata() \  
@@ -342,7 +341,7 @@ Synchronous (Builder Pattern):
 `
 ```
 
-Asynchronous (Builder Pattern):
+Asynchronous:
 
 ```
 1def callback(response, status):  
@@ -355,14 +354,14 @@ Asynchronous (Builder Pattern):
 
 ```
 
-Synchronous (Named Arguments):
+Synchronous (named arguments):
 
 ```
 `1metadata = pubnub.get_uuid_metadata(include_custom=True).sync()  
 `
 ```
 
-Asynchronous (Named Arguments):
+Asynchronous (named arguments):
 
 ```
 1def callback(response, status):  
@@ -375,23 +374,19 @@ Asynchronous (Named Arguments):
 
 ##### Returns
 
-- result: PNGetUUIDMetadataResult
-- status: PNStatus
+`Envelope.result` is `PNGetUUIDMetadataResult`:
+- data — dict of UUID metadata
+- status — PNStatus
 
-PNGetUUIDMetadataResult:
-- data: UUID metadata dict
-- status: PNStatus
-
-UUID metadata keys:
-- id, name, externalId, profileUrl, email, status, type, custom
+UUID metadata keys: id, name, externalId, profileUrl, email, status, type, custom.
 
 ### Set user metadata
 
-Create or update metadata for a UUID. ETag can be used for concurrency control.
+Create or update metadata for a UUID. Use `if_matches_etag` to avoid overwriting concurrent updates.
 
-Note: Custom object updates overwrite existing custom data (partial updates unsupported).
+Note: Partial updates of custom metadata are not supported; the provided custom object overwrites existing custom data.
 
-#### Methods
+#### Method(s)
 
 ```
 `1pubnub.set_uuid_metadata() \  
@@ -411,26 +406,24 @@ Note: Custom object updates overwrite existing custom data (partial updates unsu
 ```
 
 Parameters:
-- uuid (String, default: pubnub.configuration.uuid)
-- set_name (String) – Display name.
-- set_status (String) – Max 50 chars.
-- set_type (String) – Max 50 chars.
-- external_id (String)
-- profile_url (String)
-- email (String)
-- custom (Any) – Key-value pairs; filtering not supported on custom fields.
-- include_custom (Boolean, default: False)
-- include_status (Boolean, default: False)
-- include_type (Boolean, default: False)
-- if_matches_etag (String) – Use ETag from previous read; 412 if mismatch.
+- uuid — String; UUID identifier (defaults to configured UUID).
+- set_name — String; display name.
+- set_status — String; user status (max 50 chars).
+- set_type — String; user type (max 50 chars).
+- external_id — String; external system ID.
+- profile_url — String; profile picture URL.
+- email — String; email address.
+- custom — Any; key-value pairs; filtering by custom is not supported.
+- include_custom — Boolean; include custom object (default False).
+- include_status — Boolean; include status (default False).
+- include_type — Boolean; include type (default False).
+- if_matches_etag — String; conditional update using eTag (HTTP 412 if mismatch).
 
-##### API limits
-
-See REST API docs for max lengths.
+API limits: see REST docs for parameter length constraints.
 
 #### Sample code
 
-Synchronous (Builder Pattern):
+Synchronous:
 
 ```
 `1pubnub.set_uuid_metadata() \  
@@ -447,7 +440,7 @@ Synchronous (Builder Pattern):
 `
 ```
 
-Asynchronous (Builder Pattern):
+Asynchronous:
 
 ```
 1def callback(response, status):  
@@ -468,7 +461,7 @@ Asynchronous (Builder Pattern):
 
 ```
 
-Synchronous (Named Arguments):
+Synchronous (named arguments):
 
 ```
 `1pubnub.set_uuid_metadata(uuid="Some UUID",  
@@ -482,7 +475,7 @@ Synchronous (Named Arguments):
 `
 ```
 
-Asynchronous (Named Arguments):
+Asynchronous (named arguments):
 
 ```
 1def callback(response, status):  
@@ -502,17 +495,17 @@ Asynchronous (Named Arguments):
 
 ##### Returns
 
-PNSetUUIDMetadataResult:
-- data: UUID metadata dict
-- status: PNStatus
+`PNSetUUIDMetadataResult`:
+- data — dict of UUID metadata
+- status — PNStatus
 
-Keys: id, name, externalId, profileUrl, email, status, type, custom
+Keys: id, name, externalId, profileUrl, email, status, type, custom.
 
 ### Remove user metadata
 
 Delete metadata for the specified UUID.
 
-#### Methods
+#### Method(s)
 
 ```
 `1pubnub.remove_uuid_metadata() \  
@@ -521,11 +514,11 @@ Delete metadata for the specified UUID.
 ```
 
 Parameters:
-- uuid (String, default: pubnub.configuration.uuid)
+- uuid — String; UUID identifier (defaults to configured UUID).
 
 #### Sample code
 
-Synchronous (Builder Pattern):
+Synchronous:
 
 ```
 `1pubnub.remove_uuid_metadata() \  
@@ -533,7 +526,7 @@ Synchronous (Builder Pattern):
 `
 ```
 
-Asynchronous (Builder Pattern):
+Asynchronous:
 
 ```
 1def callback(response, status):  
@@ -545,14 +538,14 @@ Asynchronous (Builder Pattern):
 
 ```
 
-Synchronous (Named Arguments):
+Synchronous (named arguments):
 
 ```
 `1pubnub.remove_uuid_metadata(uuid="Some UUID").sync()  
 `
 ```
 
-Asynchronous (Named Arguments):
+Asynchronous (named arguments):
 
 ```
 1def callback(response, status):  
@@ -565,21 +558,18 @@ Asynchronous (Named Arguments):
 
 ##### Returns
 
-- result: PNRemoveUUIDMetadataResult
-- status: PNStatus
-
-PNRemoveUUIDMetadataResult:
-- status: PNStatus
+`PNRemoveUUIDMetadataResult`:
+- status — PNStatus
 
 ## Channel
 
-Manage channel metadata: list, fetch, set, and remove.
+Manage channel metadata (list, fetch, set, remove).
 
 ### Get metadata for all channels
 
-Paginated list of channel metadata with filter/sort options.
+Retrieve a paginated list of channel metadata with optional filtering/sorting.
 
-#### Methods
+#### Method(s)
 
 ```
 `1pubnub.get_all_channel_metadata() \  
@@ -595,18 +585,18 @@ Paginated list of channel metadata with filter/sort options.
 ```
 
 Parameters:
-- limit (Integer, default: 100)
-- page (PNPage)
-- filter (String)
-- sort ([PNSortKey]) – id|name|updated asc|desc
-- include_total_count (Boolean, default: False)
-- include_custom (Boolean, default: False)
-- include_status (Boolean, default: True)
-- include_type (Boolean, default: True)
+- limit — Integer; maximum objects per page (default 100).
+- page — PNPage; pagination cursor object.
+- filter — String; expression per filtering language.
+- sort — [PNSortKey]; by id, name, updated; asc/desc.
+- include_total_count — Boolean; include total count (default False).
+- include_custom — Boolean; include custom object (default False).
+- include_status — Boolean; include status field (default True).
+- include_type — Boolean; include type field (default True).
 
 #### Sample code
 
-Synchronous (Builder Pattern):
+Synchronous:
 
 ```
 `1pubnub.get_all_channel_metadata() \  
@@ -619,7 +609,7 @@ Synchronous (Builder Pattern):
 `
 ```
 
-Asynchronous (Builder Pattern):
+Asynchronous:
 
 ```
 1def callback(response, status):  
@@ -636,7 +626,7 @@ Asynchronous (Builder Pattern):
 
 ```
 
-Synchronous (Named Arguments):
+Synchronous (named arguments):
 
 ```
 `1metadata = pubnub.get_all_channel_metadata(limit=10,  
@@ -647,7 +637,7 @@ Synchronous (Named Arguments):
 `
 ```
 
-Asynchronous (Named Arguments):
+Asynchronous (named arguments):
 
 ```
 1def callback(response, status):  
@@ -664,20 +654,17 @@ Asynchronous (Named Arguments):
 
 #### Returns
 
-- result: PNGetAllChannelMetadataResult
-- status: PNStatus
+`PNGetAllChannelMetadataResult`:
+- data — list[dict] of channel metadata
+- status — PNStatus
 
-PNGetAllChannelMetadataResult:
-- data: list of channel metadata dicts
-- status: PNStatus
-
-Channel metadata keys: id, name, description, status, type, custom
+Channel metadata keys: id, name, description, status, type, custom.
 
 ### Get channel metadata
 
 Fetch metadata for a single channel.
 
-#### Methods
+#### Method(s)
 
 ```
 `1pubnub.get_channel_metadata() \  
@@ -689,14 +676,14 @@ Fetch metadata for a single channel.
 ```
 
 Parameters:
-- channel (str)
-- include_custom (bool, default: False)
-- include_status (Boolean, default: True)
-- include_type (Boolean, default: True)
+- channel — String; channel name.
+- include_custom — Boolean; include custom object (default False).
+- include_status — Boolean; include status field (default True).
+- include_type — Boolean; include type field (default True).
 
 #### Sample code
 
-Synchronous (Builder Pattern):
+Synchronous:
 
 ```
 `1pubnub.get_channel_metadata() \  
@@ -706,7 +693,7 @@ Synchronous (Builder Pattern):
 `
 ```
 
-Asynchronous (Builder Pattern):
+Asynchronous:
 
 ```
 1def callback(response, status):  
@@ -720,14 +707,14 @@ Asynchronous (Builder Pattern):
 
 ```
 
-Synchronous (Named Arguments):
+Synchronous (named arguments):
 
 ```
 `1pubnub.get_channel_metadata(channel="channel", include_custom=True).sync()  
 `
 ```
 
-Asynchronous (Named Arguments):
+Asynchronous (named arguments):
 
 ```
 1def callback(response, status):  
@@ -740,22 +727,19 @@ Asynchronous (Named Arguments):
 
 ##### Returns
 
-- result: PNGetChannelMetadataResult
-- status: PNStatus
+`PNGetChannelMetadataResult`:
+- data — dict of channel metadata
+- status — PNStatus
 
-PNGetChannelMetadataResult:
-- data: channel metadata dict
-- status: PNStatus
-
-Channel metadata keys: id, name, description, status, type, custom
+Keys: id, name, description, status, type, custom.
 
 ### Set channel metadata
 
-Create or update metadata for a channel. ETag can be used for concurrency control.
+Create or update metadata for a channel. Use `if_matches_etag` to avoid overwriting concurrent updates.
 
-Note: Custom object updates overwrite existing custom data (partial updates unsupported).
+Note: Partial updates of custom metadata are not supported; the provided custom object overwrites existing custom data.
 
-#### Methods
+#### Method(s)
 
 ```
 `1pubnub.set_channel_metadata() \  
@@ -773,24 +757,22 @@ Note: Custom object updates overwrite existing custom data (partial updates unsu
 ```
 
 Parameters:
-- channel (String)
-- set_name (String)
-- set_status (String, max 50)
-- set_type (String, max 50)
-- description (String)
-- custom (Map<String, Object>)
-- include_custom (Boolean, default: False)
-- include_status (Boolean, default: False)
-- include_type (Boolean, default: False)
-- if_matches_etag (String) – use ETag; 412 if mismatch
+- channel — String; channel ID.
+- set_name — String; channel name.
+- set_status — String; status (max 50 chars).
+- set_type — String; type (max 50 chars).
+- description — String; channel description.
+- custom — Map<String, Object>; key-value pairs; filtering by custom not supported.
+- include_custom — Boolean; include custom (default False).
+- include_status — Boolean; include status (default False).
+- include_type — Boolean; include type (default False).
+- if_matches_etag — String; conditional update using eTag (HTTP 412 if mismatch).
 
-##### API limits
-
-See REST API docs for max lengths.
+API limits: see REST docs for parameter length constraints.
 
 #### Sample code
 
-Synchronous (Builder Pattern):
+Synchronous:
 
 ```
 `1pubnub.set_channel_metadata() \  
@@ -805,7 +787,7 @@ Synchronous (Builder Pattern):
 `
 ```
 
-Asynchronous (Builder Pattern):
+Asynchronous:
 
 ```
 1def callback(response, status):  
@@ -824,7 +806,7 @@ Asynchronous (Builder Pattern):
 
 ```
 
-Synchronous (Named Arguments):
+Synchronous (named arguments):
 
 ```
 `1pubnub.set_channel_metadata(channel="channel id",  
@@ -838,7 +820,7 @@ Synchronous (Named Arguments):
 `
 ```
 
-Asynchronous (Named Arguments):
+Asynchronous (named arguments):
 
 ```
 1def callback(response, status):  
@@ -858,16 +840,15 @@ Asynchronous (Named Arguments):
 
 ##### Returns
 
-- result: PNSetChannelMetadataResult
-- status: PNStatus
+`PNSetChannelMetadataResult`:
+- data — dict of channel metadata
+- status — PNStatus
 
-PNSetChannelMetadataResult:
-- data: channel metadata dict
-- status: PNStatus
-
-Keys: id, name, description, status, type, custom
+Keys: id, name, description, status, type, custom.
 
 #### Other examples
+
+##### Iteratively update existing metadata
 
 ```
 1
@@ -879,7 +860,7 @@ Keys: id, name, description, status, type, custom
 
 Delete metadata for the specified channel.
 
-#### Methods
+#### Method(s)
 
 ```
 `1pubnub.remove_channel_metadata() \  
@@ -888,11 +869,11 @@ Delete metadata for the specified channel.
 ```
 
 Parameters:
-- channel (String)
+- channel — String; channel name.
 
 #### Sample code
 
-Synchronous (Builder Pattern):
+Synchronous:
 
 ```
 `1pubnub.remove_channel_metadata() \  
@@ -901,7 +882,7 @@ Synchronous (Builder Pattern):
 `
 ```
 
-Asynchronous (Builder Pattern):
+Asynchronous:
 
 ```
 1def callback(response, status):  
@@ -914,14 +895,14 @@ Asynchronous (Builder Pattern):
 
 ```
 
-Synchronous (Named Arguments):
+Synchronous (named arguments):
 
 ```
 `1pubnub.remove_channel_metadata(channel="channel id").sync()  
 `
 ```
 
-Asynchronous (Named Arguments):
+Asynchronous (named arguments):
 
 ```
 1def callback(response, status):  
@@ -934,21 +915,18 @@ Asynchronous (Named Arguments):
 
 ##### Returns
 
-- result: PNRemoveChannelMetadataResult
-- status: PNStatus
-
-PNRemoveChannelMetadataResult:
-- status: PNStatus
+`PNRemoveChannelMetadataResult`:
+- status — PNStatus
 
 ## Channel memberships
 
-Manage channels a UUID belongs to.
+Manage channels a UUID belongs to (list, set, remove, manage in bulk).
 
 ### Get channel memberships
 
-List channel memberships for a UUID (not subscriptions).
+List channel memberships for a UUID.
 
-#### Methods
+#### Method(s)
 
 ```
 `1pubnub.get_memberships() \  
@@ -962,24 +940,24 @@ List channel memberships for a UUID (not subscriptions).
 ```
 
 Parameters:
-- uuid (String, default: pubnub.configuration.uuid)
-- limit (Integer, default: 100)
-- page (PNPage)
-- filter (String)
-- sort (PNSortKey) – id|name|updated asc|desc
-- include (MembershipIncludes):
-  - total_count (Boolean, default: False)
-  - custom (Boolean, default: False)
-  - status (Boolean, default: False)
-  - type (Boolean, default: False)
-  - channel (Boolean, default: False)
-  - channel_custom (Boolean, default: False)
-  - channel_type (Boolean, default: False)
-  - channel_status (Boolean, default: False)
+- uuid — String; UUID identifier (defaults to configured UUID).
+- limit — Integer; maximum objects per page (default 100).
+- page — PNPage; pagination cursor.
+- filter — String; expression per filtering language.
+- sort — PNSortKey; by id, name, updated; asc/desc.
+- include — MembershipIncludes; control extra fields:
+  - total_count — Boolean (default False)
+  - custom — Boolean (default False)
+  - status — Boolean (default False)
+  - type — Boolean (default False)
+  - channel — Boolean (default False)
+  - channel_custom — Boolean (default False)
+  - channel_type — Boolean (default False)
+  - channel_status — Boolean (default False)
 
 #### Sample code
 
-Synchronous (Builder Pattern):
+Synchronous:
 
 ```
 `1pubnub.get_memberships() \  
@@ -988,7 +966,7 @@ Synchronous (Builder Pattern):
 `
 ```
 
-Asynchronous (Builder Pattern):
+Asynchronous:
 
 ```
 1def callback(response, status):  
@@ -1001,7 +979,7 @@ Asynchronous (Builder Pattern):
 
 ```
 
-Synchronous (Named Arguments):
+Synchronous (named arguments):
 
 ```
 `1pubnub.get_memberships(uuid="Some UUID",  
@@ -1010,7 +988,7 @@ Synchronous (Named Arguments):
 `
 ```
 
-Asynchronous (Named Arguments):
+Asynchronous (named arguments):
 
 ```
 1def callback(response, status):  
@@ -1025,23 +1003,20 @@ Asynchronous (Named Arguments):
 
 ##### Returns
 
-- result: PNGetMembershipsResult
-- status: PNStatus
+`PNGetMembershipsResult`:
+- data — list[dict] of memberships
+- status — PNStatus
+- total_count — int (if requested)
+- prev — PNPage.Previous
+- next — PNPage.Next
 
-PNGetMembershipsResult:
-- data: list of membership dicts
-- status: PNStatus
-- total_count (int, when requested)
-- prev (PNPage.Previous)
-- next (PNPage.Next)
-
-Membership keys: channel (dict: id, name, description, custom), custom
+Membership keys: channel (dict with id, name, description, custom), custom.
 
 ### Set channel memberships
 
 Replace/add memberships for a UUID.
 
-#### Methods
+#### Method(s)
 
 ```
 `1pubnub.set_memberships() \  
@@ -1056,21 +1031,19 @@ Replace/add memberships for a UUID.
 ```
 
 Parameters:
-- channelMemberships ([PNChannelMembership]) – collection to add
-- uuid (String, default: pubnub.configuration.uuid)
-- limit (Integer, default: 100)
-- page (PNPage)
-- filter (String)
-- sort (PNSortKey) – id|name|updated asc|desc
-- include (MembershipIncludes) – same options as above
+- channelMemberships — [PNChannelMembership]; memberships to add.
+- uuid — String; UUID identifier (defaults to configured UUID).
+- limit — Integer; default 100.
+- page — PNPage; pagination cursor.
+- filter — String; expression per filtering language.
+- sort — PNSortKey; by id, name, updated; asc/desc.
+- include — MembershipIncludes (same flags as Get memberships).
 
-##### API limits
-
-See REST API docs for max lengths.
+API limits: see REST docs for parameter length constraints.
 
 #### Sample code
 
-Synchronous (Builder Pattern):
+Synchronous:
 
 ```
 1some_channel = "somechannel"  
@@ -1116,7 +1089,7 @@ Synchronous (Builder Pattern):
 
 ```
 
-Asynchronous (Builder Pattern):
+Asynchronous:
 
 ```
 1def callback(response, status):  
@@ -1166,7 +1139,7 @@ Asynchronous (Builder Pattern):
 
 ```
 
-Synchronous (Named Arguments):
+Synchronous (named arguments):
 
 ```
 1some_channel = "somechannel"  
@@ -1207,7 +1180,7 @@ Synchronous (Named Arguments):
 
 ```
 
-Asynchronous (Named Arguments):
+Asynchronous (named arguments):
 
 ```
 1def callback(response, status):  
@@ -1254,21 +1227,20 @@ Asynchronous (Named Arguments):
 
 ##### Returns
 
-- result: PNSetMembershipsResult
-- status: PNStatus
+`PNSetMembershipsResult`:
+- data — list[dict] of memberships
+- status — PNStatus
+- total_count — int (if requested)
+- prev — PNPage.Previous
+- next — PNPage.Next
 
-PNSetMembershipsResult:
-- data: list of membership dicts
-- status: PNStatus
-- total_count, prev, next
-
-Membership keys: channel (dict), custom
+Membership keys: channel (dict with id, name, description, custom), custom.
 
 ### Remove channel memberships
 
 Remove memberships for a UUID.
 
-#### Methods
+#### Method(s)
 
 ```
 `1pubnub.remove_memberships() \  
@@ -1285,19 +1257,19 @@ Remove memberships for a UUID.
 ```
 
 Parameters:
-- channel_memberships ([PNChannelMembership]) – list to remove
-- uuid (String, default: pubnub.configuration.uuid)
-- limit (Integer, default: 100)
-- page (PNPage)
-- filter (String)
-- sort (PNSortKey) – id|name|updated asc|desc
-- include_total_count (Boolean, default: False)
-- include_custom (Boolean, default: False)
-- include_channel (Integer) – ChannelIncludeEndpoint.CHANNEL or CHANNEL_WITH_CUSTOM
+- channel_memberships — [PNChannelMembership]; channels to remove.
+- uuid — String; UUID identifier (defaults to configured UUID).
+- limit — Integer; default 100.
+- page — PNPage; pagination cursor.
+- filter — String; expression per filtering language.
+- sort — PNSortKey; by id, name, updated; asc/desc.
+- include_total_count — Boolean; include total count (default False).
+- include_custom — Boolean; include custom (default False).
+- include_channel — Integer; channel details level: ChannelIncludeEndpoint.CHANNEL or CHANNEL_WITH_CUSTOM.
 
 #### Sample code
 
-Synchronous (Builder Pattern):
+Synchronous:
 
 ```
 `1pubnub.remove_memberships() \  
@@ -1309,7 +1281,7 @@ Synchronous (Builder Pattern):
 `
 ```
 
-Asynchronous (Builder Pattern):
+Asynchronous:
 
 ```
 1def callback(response, status):  
@@ -1325,7 +1297,7 @@ Asynchronous (Builder Pattern):
 
 ```
 
-Synchronous (Named Arguments):
+Synchronous (named arguments):
 
 ```
 `1pubnub.remove_memberships(uuid="some_uuid",  
@@ -1336,7 +1308,7 @@ Synchronous (Named Arguments):
 `
 ```
 
-Asynchronous (Named Arguments):
+Asynchronous (named arguments):
 
 ```
 1def callback(response, status):  
@@ -1353,21 +1325,20 @@ Asynchronous (Named Arguments):
 
 ##### Returns
 
-- result: PNRemoveMembershipsResult
-- status: PNStatus
+`PNRemoveMembershipsResult`:
+- data — list[dict] of memberships
+- status — PNStatus
+- total_count — int (if requested)
+- prev — PNPage.Previous
+- next — PNPage.Next
 
-PNRemoveMembershipsResult:
-- data: list of membership dicts
-- status: PNStatus
-- total_count, prev, next
-
-Membership keys: channel (dict), custom
+Membership keys: channel (dict with id, name, description, custom), custom.
 
 ### Manage channel memberships
 
 Add and remove memberships for a UUID in one request.
 
-#### Methods
+#### Method(s)
 
 ```
 `1pubnub.manage_memberships() \  
@@ -1383,18 +1354,18 @@ Add and remove memberships for a UUID in one request.
 ```
 
 Parameters:
-- uuid (String, default: pubnub.configuration.uuid)
-- set ([PNChannelMembership]) – add
-- remove ([PNChannelMembership]) – remove
-- limit (Integer, default: 100)
-- page (PNPage, default: null)
-- filter (String, default: null)
-- sort (PNSortKey)
-- include (MembershipIncludes) – same options as Get Memberships
+- uuid — String; UUID identifier (defaults to configured UUID).
+- set — [PNChannelMembership]; memberships to add.
+- remove — [PNChannelMembership]; memberships to remove.
+- limit — Integer; default 100.
+- page — PNPage; pagination cursor.
+- filter — String; expression per filtering language.
+- sort — PNSortKey; by id, name, updated; asc/desc.
+- include — MembershipIncludes (same flags as Get memberships).
 
 #### Sample code
 
-Synchronous (Builder Pattern):
+Synchronous:
 
 ```
 `1pubnub.manage_memberships() \  
@@ -1406,7 +1377,7 @@ Synchronous (Builder Pattern):
 `
 ```
 
-Asynchronous (Builder Pattern):
+Asynchronous:
 
 ```
 1def callback(response, status):  
@@ -1422,7 +1393,7 @@ Asynchronous (Builder Pattern):
 
 ```
 
-Synchronous (Named Arguments):
+Synchronous (named arguments):
 
 ```
 `1pubnub.manage_memberships(uuid="some_uuid",  
@@ -1433,7 +1404,7 @@ Synchronous (Named Arguments):
 `
 ```
 
-Asynchronous (Named Arguments):
+Asynchronous (named arguments):
 
 ```
 1def callback(response, status):  
@@ -1450,25 +1421,24 @@ Asynchronous (Named Arguments):
 
 ##### Returns
 
-- result: PNManageMembershipsResult
-- status: PNStatus
+`PNManageMembershipsResult`:
+- data — list[dict] of memberships
+- status — PNStatus
+- total_count — int (if requested)
+- prev — PNPage.Previous
+- next — PNPage.Next
 
-PNManageMembershipsResult:
-- data: list of membership dicts
-- status: PNStatus
-- total_count, prev, next
-
-Membership keys: channel (dict), custom
+Membership keys: channel (dict with id, name, description, custom), custom.
 
 ## Channel members
 
-Manage the users in a channel.
+Manage users in a channel (list, set, remove, manage in bulk).
 
 ### Get channel members
 
-List users in a channel; optionally include user metadata.
+List users in a channel.
 
-#### Methods
+#### Method(s)
 
 ```
 `1pubnub.get_channel_members() \  
@@ -1482,17 +1452,24 @@ List users in a channel; optionally include user metadata.
 ```
 
 Parameters:
-- channel (String)
-- limit (Integer, default: 100)
-- page (PNPage)
-- filter (String)
-- sort (PNSortKey) – id|name|updated asc|desc
-- include (MemberIncludes):
-  - total_count, custom, status, type, user, user_custom, user_type, user_status (all Boolean, default: False)
+- channel — String; channel name.
+- limit — Integer; default 100.
+- page — PNPage; pagination cursor.
+- filter — String; expression per filtering language.
+- sort — PNSortKey; by id, name, updated; asc/desc.
+- include — MemberIncludes; control extra fields:
+  - total_count — Boolean (default False)
+  - custom — Boolean (default False)
+  - status — Boolean (default False)
+  - type — Boolean (default False)
+  - user — Boolean (default False)
+  - user_custom — Boolean (default False)
+  - user_type — Boolean (default False)
+  - user_status — Boolean (default False)
 
 #### Sample code
 
-Synchronous (Builder Pattern):
+Synchronous:
 
 ```
 `1pubnub.get_channel_members() \  
@@ -1502,7 +1479,7 @@ Synchronous (Builder Pattern):
 `
 ```
 
-Asynchronous (Builder Pattern):
+Asynchronous:
 
 ```
 1def callback(response, status):  
@@ -1516,7 +1493,7 @@ Asynchronous (Builder Pattern):
 
 ```
 
-Synchronous (Named Arguments):
+Synchronous (named arguments):
 
 ```
 `1pubnub.get_channel_members(channel="channel",  
@@ -1525,7 +1502,7 @@ Synchronous (Named Arguments):
 `
 ```
 
-Asynchronous (Named Arguments):
+Asynchronous (named arguments):
 
 ```
 1def callback(response, status):  
@@ -1540,21 +1517,20 @@ Asynchronous (Named Arguments):
 
 #### Returns
 
-- result: PNManageMembershipsResult
-- status: PNStatus
+`PNGetChannelMembersResult`:
+- data — list[dict] of channel members
+- status — PNStatus
+- total_count — int (if requested)
+- prev — PNPage.Previous
+- next — PNPage.Next
 
-PNGetChannelMembersResult:
-- data: list of channel member dicts
-- status: PNStatus
-- total_count, prev, next
-
-Member keys: uuid (dict: id, name, email, externalId, profileUrl, custom), custom
+Channel member keys: uuid (dict with id, name, email, externalId, profileUrl, custom), custom.
 
 ### Set channel members
 
 Set users in a channel.
 
-#### Methods
+#### Method(s)
 
 ```
 `1pubnub.set_channel_members() \  
@@ -1569,21 +1545,19 @@ Set users in a channel.
 ```
 
 Parameters:
-- channel (String)
-- uuids ([PNUUID]) – members to add
-- limit (Integer, default: 100)
-- page (PNPage, default: null)
-- filter (String, default: null)
-- sort (PNSortKey)
-- include (MemberIncludes) – same as above
+- channel — String; channel name.
+- uuids — [PNUUID]; users to add.
+- limit — Integer; default 100.
+- page — PNPage; pagination cursor.
+- filter — String; expression per filtering language.
+- sort — PNSortKey; by id, name, updated; asc/desc.
+- include — MemberIncludes (same flags as Get channel members).
 
-##### API limits
-
-See REST API docs for max lengths.
+API limits: see REST docs for parameter length constraints.
 
 #### Sample code
 
-Synchronous (Builder Pattern):
+Synchronous:
 
 ```
 1pubnub.set_uuid_metadata() \  
@@ -1619,7 +1593,7 @@ Synchronous (Builder Pattern):
 
 ```
 
-Asynchronous (Builder Pattern):
+Asynchronous:
 
 ```
 1def callback(response, status):  
@@ -1659,7 +1633,7 @@ Asynchronous (Builder Pattern):
 
 ```
 
-Synchronous (Named Arguments):
+Synchronous (named arguments):
 
 ```
 1pubnub.set_uuid_metadata(uuid=some_uuid, name="some name").sync()  
@@ -1690,7 +1664,7 @@ Synchronous (Named Arguments):
 
 ```
 
-Asynchronous (Named Arguments):
+Asynchronous (named arguments):
 
 ```
 1def callback(response, status):  
@@ -1727,21 +1701,20 @@ Asynchronous (Named Arguments):
 
 #### Returns
 
-- result: PNSetChannelMembersResult
-- status: PNStatus
+`PNSetChannelMembersResult`:
+- data — list[dict] of channel members
+- status — PNStatus
+- total_count — int (if requested)
+- prev — PNPage.Previous
+- next — PNPage.Next
 
-PNSetChannelMembersResult:
-- data: list of channel member dicts
-- status: PNStatus
-- total_count, prev, next
-
-Member keys: uuid (dict), custom
+Channel member keys: uuid (dict with id, name, email, externalId, profileUrl, custom), custom.
 
 ### Remove channel members
 
 Remove users from a channel.
 
-#### Methods
+#### Method(s)
 
 ```
 `1pubnub.remove_channel_members() \  
@@ -1758,19 +1731,19 @@ Remove users from a channel.
 ```
 
 Parameters:
-- channel (String)
-- uuids ([PNUUID]) – list to remove
-- limit (Integer, default: 100)
-- page (PNPage)
-- filter (String)
-- sort (PNSortKey)
-- include_total_count (Boolean, default: False)
-- include_custom (Boolean, default: False)
-- include_uuid (Integer) – UUIDIncludeEndpoint.UUID or UUID_WITH_CUSTOM
+- channel — String; channel name.
+- uuids — [PNUUID]; users to remove.
+- limit — Integer; default 100.
+- page — PNPage; pagination cursor.
+- filter — String; expression per filtering language.
+- sort — PNSortKey; by id, name, updated; asc/desc.
+- include_total_count — Boolean; include total count (default False).
+- include_custom — Boolean; include custom (default False).
+- include_uuid — Integer; UUID detail level: UUIDIncludeEndpoint.UUID or UUID_WITH_CUSTOM.
 
 #### Sample code
 
-Synchronous (Builder Pattern):
+Synchronous:
 
 ```
 `1pubnub.remove_channel_members() \  
@@ -1782,7 +1755,7 @@ Synchronous (Builder Pattern):
 `
 ```
 
-Asynchronous (Builder Pattern):
+Asynchronous:
 
 ```
 1def callback(response, status):  
@@ -1797,7 +1770,7 @@ Asynchronous (Builder Pattern):
 
 ```
 
-Synchronous (Named Arguments):
+Synchronous (named arguments):
 
 ```
 `1pubnub.remove_channel_members(channel="channel id",  
@@ -1808,7 +1781,7 @@ Synchronous (Named Arguments):
 `
 ```
 
-Asynchronous (Named Arguments):
+Asynchronous (named arguments):
 
 ```
 1def callback(response, status):  
@@ -1827,21 +1800,20 @@ Asynchronous (Named Arguments):
 
 #### Returns
 
-- result: PNRemoveChannelMembersResult
-- status: PNStatus
+`PNRemoveChannelMembersResult`:
+- data — list[dict] of channel members
+- status — PNStatus
+- total_count — int (if requested)
+- prev — PNPage.Previous
+- next — PNPage.Next
 
-PNRemoveChannelMembersResult:
-- data: list of channel member dicts
-- status: PNStatus
-- total_count, prev, next
-
-Member keys: uuid (dict), custom
+Channel member keys: uuid (dict with id, name, email, externalId, profileUrl, custom), custom.
 
 ### Manage channel members
 
 Add and remove users in a channel in one request.
 
-#### Methods
+#### Method(s)
 
 ```
 `1pubnub.manage_channel_members() \  
@@ -1857,18 +1829,18 @@ Add and remove users in a channel in one request.
 ```
 
 Parameters:
-- channel (String)
-- set ([PNUUID]) – add members
-- remove ([PNUUID]) – remove members
-- limit (Integer, default: 100)
-- page (PNPage)
-- filter (String)
-- sort (PNSortKey)
-- include (MemberIncludes) – same as Get channel members
+- channel — String; channel name.
+- set — [PNUUID]; users to add.
+- remove — [PNUUID]; users to remove.
+- limit — Integer; default 100.
+- page — PNPage; pagination cursor.
+- filter — String; expression per filtering language.
+- sort — PNSortKey; by id, name, updated; asc/desc.
+- include — MemberIncludes (same flags as Get channel members).
 
 #### Sample code
 
-Synchronous (Builder Pattern):
+Synchronous:
 
 ```
 `1pubnub.manage_channel_members() \  
@@ -1880,7 +1852,7 @@ Synchronous (Builder Pattern):
 `
 ```
 
-Asynchronous (Builder Pattern):
+Asynchronous:
 
 ```
 1def callback(response, status):  
@@ -1896,7 +1868,7 @@ Asynchronous (Builder Pattern):
 
 ```
 
-Synchronous (Named Arguments):
+Synchronous (named arguments):
 
 ```
 `1pubnub.manage_channel_members(channel="channel id",  
@@ -1907,7 +1879,7 @@ Synchronous (Named Arguments):
 `
 ```
 
-Asynchronous (Named Arguments):
+Asynchronous (named arguments):
 
 ```
 1def callback(response, status):  
@@ -1924,19 +1896,18 @@ Asynchronous (Named Arguments):
 
 #### Returns
 
-- result: PNManageChannelMembersResult
-- status: PNStatus
+`PNManageChannelMembersResult`:
+- data — list[dict] of channel members
+- status — PNStatus
+- total_count — int (if requested)
+- prev — PNPage.Previous
+- next — PNPage.Next
 
-PNManageChannelMembersResult:
-- data: list of channel member dicts
-- status: PNStatus
-- total_count, prev, next
-
-Member keys: uuid (dict), custom
+Channel member keys: uuid (dict with id, name, email, externalId, profileUrl, custom), custom.
 
 ## PNChannelMembership class
 
-Utility class to build membership payloads.
+`PNChannelMembership` utility class with factory methods for membership entries.
 
 ```
 1class PNChannelMembership:  
@@ -1975,7 +1946,7 @@ Utility class to build membership payloads.
 
 ## PNUUID class
 
-Utility class to build UUID payloads.
+`PNUUID` utility class with factory methods for user entries.
 
 ```
 1class PNUUID:  
@@ -2010,3 +1981,5 @@ Utility class to build UUID payloads.
 24        self._custom = custom  
 
 ```
+
+Last updated on Sep 3, 2025**

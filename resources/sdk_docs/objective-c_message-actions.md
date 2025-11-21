@@ -1,12 +1,12 @@
 # Message Actions API for Objective-C SDK
 
-Use Message Actions to add or remove metadata on published messages (reactions, receipts). Subscribe to channels to receive message action events. You can also fetch past actions from Message Persistence.
+Use Message Actions to add/remove metadata on published messages (receipts, reactions, custom data). Subscribe to channels to receive message action events; fetch past actions from Message Persistence.
 
-Reactions: Using Message Actions specifically for emoji/social reactions.
+Reactions: Using Message Actions for emoji/social reactions.
 
 ## Add message action
 
-Requires Message Persistence (enable in Admin Portal).
+Requires Message Persistence: enable in the Admin Portal.
 
 Add an action to a published message. Response includes the added action.
 
@@ -26,7 +26,7 @@ Parameters:
 
 #### PNAddMessageActionRequest
 
-- type (NSString): Message action type. Max 15 characters.
+- type (NSString): Message action type (max 15 chars).
 - value (NSString): Message action value.
 - channel (NSString): Channel name of the target message.
 - messageTimetoken (NSNumber): Timetoken of the target message.
@@ -113,7 +113,8 @@ Parameters:
 7
   
 8@interface PNAddMessageActionStatus : PNAcknowledgmentStatus  
-9  
+9
+  
 10// Add message action request processed information.  
 11@property (nonatomic, readonly, strong) PNAddMessageActionData *data;  
 12
@@ -123,7 +124,7 @@ Parameters:
 
 ## Add message action (builder pattern)
 
-Requires Message Persistence (enable in Admin Portal).
+Requires Message Persistence: enable in the Admin Portal.
 
 ### Method(s)
 
@@ -190,7 +191,8 @@ Parameters:
 7
   
 8@interface PNAddMessageActionStatus : PNAcknowledgmentStatus  
-9  
+9
+  
 10// Add message action request processed information.  
 11@property (nonatomic, readonly, strong) PNAddMessageActionData *data;  
 12
@@ -200,7 +202,7 @@ Parameters:
 
 ## Remove message action
 
-Requires Message Persistence (enable in Admin Portal).
+Requires Message Persistence: enable in the Admin Portal.
 
 Remove a previously added action from a published message. Response is empty.
 
@@ -215,7 +217,7 @@ Use this Objective-C method:
 ```
 
 Parameters:
-- request (PNRemoveMessageActionRequest): Message action to remove.
+- request (PNRemoveMessageActionRequest): Action to remove.
 - block (PNRemoveMessageActionCompletionBlock): Completion block.
 
 #### PNRemoveMessageActionRequest
@@ -278,7 +280,7 @@ Parameters:
 
 ## Remove message action (builder pattern)
 
-Requires Message Persistence (enable in Admin Portal).
+Requires Message Persistence: enable in the Admin Portal.
 
 ### Method(s)
 
@@ -348,9 +350,9 @@ Parameters:
 
 ## Get message actions
 
-Requires Message Persistence (enable in Admin Portal).
+Requires Message Persistence: enable in the Admin Portal.
 
-Get a list of message actions in a channel. Actions are sorted by action timetoken in ascending order.
+Get a list of message actions in a channel. Actions are sorted by action timetoken (ascending).
 
 ### Method(s)
 
@@ -370,8 +372,8 @@ Parameters:
 
 - start (NSNumber): Action timetoken for start of range (exclusive).
 - end (NSNumber): Action timetoken for end of range (inclusive).
-- limit (NSUInteger): Number of actions to return.
-- channel (NSString): Channel name to list message actions for.
+- limit (NSUInteger): Number of message actions to return.
+- channel (NSString): Channel name to list actions for.
 
 ### Sample code
 
@@ -426,18 +428,21 @@ Parameters:
   
 13// Fetched messages actions time range end (newest action timetoken).  
 14@property (nonatomic, readonly, strong) NSNumber *end;  
-15  
+15
+  
 16@end  
-17  
+17
+  
 18@interface PNFetchMessageActionsResult : PNResult  
 19  
 20// Fetch message actions request processed information.  
 21@property (nonatomic, readonly, strong) PNFetchMessageActionsData *data;  
-22  
+22
+  
 23@end  
 ```
 
-Error response used in case of Message Action API call failure:
+Error response used when Message Action API calls fail:
 
 ```
 1@interface PNErrorData : PNServiceData  
@@ -451,12 +456,10 @@ Error response used in case of Message Action API call failure:
 7
   
 8@interface PNErrorStatus : PNStatus  
-9
-  
+9  
 10// Whether status object represent error or not.  
 11@property (nonatomic, readonly, assign, getter = isError) BOOL error;  
-12
-  
+12  
 13// Additional information related to error status object.  
 14@property (nonatomic, readonly, strong) PNErrorData *errorData;  
 15
@@ -466,13 +469,13 @@ Error response used in case of Message Action API call failure:
 
 ## Get Message Reactions (builder pattern)
 
-Requires Message Persistence (enable in Admin Portal).
+Requires Message Persistence.
 
-Get a list of message actions in a channel. Returns actions sorted by action timetoken in ascending order.
+Get a list of message actions in a channel. Returns actions sorted by action timetoken (ascending).
 
 ### Method(s)
 
-To get Message Actions:
+To get message actions you can use:
 
 ```
 `1fetchMessageActions()  
@@ -486,8 +489,8 @@ To get Message Actions:
 
 Parameters:
 - channel (NSString): Channel to retrieve actions from.
-- start (NSNumber): Start timetoken; return values will be less than start.
-- end (NSNumber): End timetoken; return values will be greater than or equal to end.
+- start (NSNumber): Start timetoken; returned values will be less than start.
+- end (NSNumber): End timetoken; returned values will be greater than or equal to end.
 - limit (NSUInteger): Number of actions to return.
 - block (PNFetchMessageActionsCompletionBlock): Completion block.
 
@@ -524,7 +527,7 @@ Parameters:
 
 ### Response
 
-Response objects returned for fetch message actions:
+Response objects returned by fetch message actions:
 
 ```
 1@interface PNFetchMessageActionsData : PNServiceData  
@@ -544,18 +547,21 @@ Response objects returned for fetch message actions:
   
 13// Fetched messages actions time range end (newest action timetoken).  
 14@property (nonatomic, readonly, strong) NSNumber *end;  
-15  
+15
+  
 16@end  
-17  
+17
+  
 18@interface PNFetchMessageActionsResult : PNResult  
 19  
 20// Fetch message actions request processed information.  
 21@property (nonatomic, readonly, strong) PNFetchMessageActionsData *data;  
-22  
+22
+  
 23@end  
 ```
 
-Error response used in case of Message Action API call failure:
+Error response for Message Action API failures:
 
 ```
 1@interface PNErrorData : PNServiceData  
@@ -569,12 +575,10 @@ Error response used in case of Message Action API call failure:
 7
   
 8@interface PNErrorStatus : PNStatus  
-9
-  
+9  
 10// Whether status object represent error or not.  
 11@property (nonatomic, readonly, assign, getter = isError) BOOL error;  
-12
-  
+12  
 13// Additional information related to error status object.  
 14@property (nonatomic, readonly, strong) PNErrorData *errorData;  
 15

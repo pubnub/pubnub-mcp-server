@@ -1,11 +1,11 @@
 # Channel Groups API for Unreal SDK
 
-Channel groups let you subscribe to many channels via a single group name. You can’t publish to a channel group; publish to individual channels instead.
+Channel groups let you bundle many channels under a group name for subscription. You can't publish to a channel group—publish to individual channels instead.
 
 You can use PubNub via Blueprints or C++.
 
-- Blueprints: Use the Pubnub Subsystem node.
-- C++: Add PubnubLibrary dependency and access the subsystem.
+- In Blueprints, use the Pubnub Subsystem node.
+- In C++, add PubnubLibrary, then use the Game Instance Subsystem.
 
 Add dependency in Source/YourProject/YourProject.Build.cs:
 
@@ -14,7 +14,7 @@ Add dependency in Source/YourProject/YourProject.Build.cs:
 `
 ```
 
-Access PubNub in C++:
+Subsystem usage in C++:
 
 ```
 #include "Kismet/GameplayStatics.h"  
@@ -26,7 +26,7 @@ UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>(
 
 ```
 
-Example call:
+Example:
 
 ```
 `PubnubSubsystem->SubscribeToChannel("MyChannel");  
@@ -41,7 +41,7 @@ Available in entities: ChannelGroup
 
 Requires Stream Controller add-on (enable in Admin Portal).
 
-Adds a channel to a channel group. Max 200 channels per API call.
+Adds a channel to a channel group.
 
 ### Method(s)
 
@@ -56,19 +56,18 @@ Adds a channel to a channel group. Max 200 channels per API call.
 
 ```
 
-Parameters:
-- Channel (FString): Channel to add.
-- OnAddChannelToGroupResponse (FOnAddChannelToGroupResponse): Result delegate.
-- Optional native callback: FOnAddChannelToGroupResponseNative (lambda).
+- Parameters
+  - Channel (FString): Channel to add.
+  - OnAddChannelToGroupResponse (FOnAddChannelToGroupResponse): Result delegate. Native lambda: FOnAddChannelToGroupResponseNative.
+- Limits
+  - Max 200 channels per API call.
 
 #### FOnAddChannelToGroupResponse
 
-Field:
 - Result (FPubnubOperationResult): Operation result.
 
 #### FOnAddChannelToGroupResponseNative
 
-Field:
 - Result (const FPubnubOperationResult&): Operation result.
 
 ### Sample code
@@ -93,13 +92,11 @@ Field:
 
 ### Returns
 
-Void; result provided via FOnAddChannelToGroupResponse.
+Void; result via FOnAddChannelToGroupResponse.
 
 ### Other Examples
 
 #### Add channels to a channel group with lambda
-
-Use a lambda to handle the response.
 
 #### Actor.h
 
@@ -118,8 +115,6 @@ Use a lambda to handle the response.
 ```
 
 #### Add channels to a channel group with result struct
-
-Use the result struct to handle the response.
 
 ##### Actor.h
 
@@ -141,7 +136,7 @@ Use the result struct to handle the response.
 
 Requires Stream Controller add-on.
 
-Adds a channel to a channel group. Max 200 channels per API call.
+Adds a channel to a channel group.
 
 ### Method(s)
 
@@ -154,20 +149,19 @@ Adds a channel to a channel group. Max 200 channels per API call.
 `
 ```
 
-Parameters:
-- Channel (FString): Channel to add.
-- ChannelGroup (FString): Target channel group.
-- OnAddChannelToGroupResponse (FOnAddChannelToGroupResponse): Result delegate.
-- Optional native callback: FOnAddChannelToGroupResponseNative (lambda).
+- Parameters
+  - Channel (FString): Channel to add.
+  - ChannelGroup (FString): Target channel group.
+  - OnAddChannelToGroupResponse (FOnAddChannelToGroupResponse): Result delegate. Native lambda: FOnAddChannelToGroupResponseNative.
+- Limits
+  - Max 200 channels per API call.
 
 #### FOnAddChannelToGroupResponse
 
-Field:
 - Result (FPubnubOperationResult): Operation result.
 
 #### FOnAddChannelToGroupResponseNative
 
-Field:
 - Result (const FPubnubOperationResult&): Operation result.
 
 ### Sample code
@@ -193,7 +187,7 @@ Field:
 
 ### Returns
 
-No return value; result via delegate.
+No direct return; result via delegate.
 
 ### Other Examples
 
@@ -239,7 +233,7 @@ Available in entities: ChannelGroup
 
 Requires Stream Controller add-on.
 
-Lists all channels in a channel group.
+Lists all channels in the group.
 
 ### Method(s)
 
@@ -253,21 +247,18 @@ Lists all channels in a channel group.
 
 ```
 
-Parameters:
-- OnListChannelsResponse (FOnListChannelsFromGroupResponse): Result delegate.
-- Optional native callback: FOnListChannelsFromGroupResponseNative (lambda).
+- Parameters
+  - OnListChannelsResponse (FOnListChannelsFromGroupResponse): Result delegate. Native lambda: FOnListChannelsFromGroupResponseNative.
 
 #### FOnListChannelsFromGroupResponse
 
-Fields:
 - Result (FPubnubOperationResult): Operation result.
-- Channels (TArray<FString>&): Channel names in the group.
+- Channels (TArray<FString>&): Channel names.
 
 #### FOnListChannelsFromGroupResponseNative
 
-Fields:
 - Result (const FPubnubOperationResult&): Operation result.
-- Channels (const TArray<FString>&): Channel names in the group.
+- Channels (const TArray<FString>&): Channel names.
 
 ### Sample code
 
@@ -335,7 +326,7 @@ Void; result via FOnListChannelsFromGroupResponse.
 
 Requires Stream Controller add-on.
 
-Lists all channels in a channel group.
+Lists all channels in the group.
 
 ### Method(s)
 
@@ -347,22 +338,19 @@ Lists all channels in a channel group.
 `
 ```
 
-Parameters:
-- ChannelGroup (FString): Group to list.
-- OnListChannelsResponse (FOnListChannelsFromGroupResponse): Result delegate.
-- Optional native callback: FOnListChannelsFromGroupResponseNative (lambda).
+- Parameters
+  - ChannelGroup (FString): Group to list.
+  - OnListChannelsResponse (FOnListChannelsFromGroupResponse): Result delegate. Native lambda: FOnListChannelsFromGroupResponseNative.
 
 #### FOnListChannelsFromGroupResponse
 
-Fields:
 - Result (FPubnubOperationResult): Operation result.
-- Channels (TArray<FString>&): Channel names in the group.
+- Channels (TArray<FString>&): Channel names.
 
 #### FOnListChannelsFromGroupResponseNative
 
-Fields:
 - Result (const FPubnubOperationResult&): Operation result.
-- Channels (const TArray<FString>&): Channel names in the group.
+- Channels (const TArray<FString>&): Channel names.
 
 ### Sample code
 
@@ -415,7 +403,7 @@ Available in entities: ChannelGroup
 
 Requires Stream Controller add-on.
 
-Removes channels from a channel group.
+Removes a channel from the group.
 
 ### Method(s)
 
@@ -430,19 +418,16 @@ Removes channels from a channel group.
 
 ```
 
-Parameters:
-- Channel (FString): Channel to remove.
-- OnRemoveChannelFromGroupResponse (FOnRemoveChannelFromGroupResponse): Result delegate.
-- Optional native callback: FOnRemoveChannelFromGroupResponseNative (lambda).
+- Parameters
+  - Channel (FString): Channel to remove.
+  - OnRemoveChannelFromGroupResponse (FOnRemoveChannelFromGroupResponse): Result delegate. Native lambda: FOnRemoveChannelFromGroupResponseNative.
 
 #### FOnRemoveChannelFromGroupResponse
 
-Field:
 - Result (FPubnubOperationResult): Operation result.
 
 #### FOnRemoveChannelFromGroupResponseNative
 
-Field:
 - Result (const FPubnubOperationResult&): Operation result.
 
 ### Sample code
@@ -511,7 +496,7 @@ Void; result via FOnRemoveChannelFromGroupResponse.
 
 Requires Stream Controller add-on.
 
-Removes channels from a channel group.
+Removes a channel from the group.
 
 ### Method(s)
 
@@ -524,20 +509,17 @@ Removes channels from a channel group.
 `
 ```
 
-Parameters:
-- ChannelGroup (FString): Group to remove from.
-- Channel (FString): Channel to remove.
-- OnRemoveChannelFromGroupResponse (FOnRemoveChannelFromGroupResponse): Result delegate.
-- Optional native callback: FOnRemoveChannelFromGroupResponseNative (lambda).
+- Parameters
+  - ChannelGroup (FString): Group to remove from.
+  - Channel (FString): Channel to remove.
+  - OnRemoveChannelFromGroupResponse (FOnRemoveChannelFromGroupResponse): Result delegate. Native lambda: FOnRemoveChannelFromGroupResponseNative.
 
 #### FOnRemoveChannelFromGroupResponse
 
-Field:
 - Result (FPubnubOperationResult): Operation result.
 
 #### FOnRemoveChannelFromGroupResponseNative
 
-Field:
 - Result (const FPubnubOperationResult&): Operation result.
 
 ### Sample code
@@ -563,7 +545,7 @@ Field:
 
 ### Returns
 
-No return value; result via delegate.
+No direct return; result via delegate.
 
 ### Other Examples
 
@@ -609,7 +591,7 @@ Available in entities: ChannelGroup
 
 Requires Stream Controller add-on.
 
-Removes a channel group.
+Deletes the channel group.
 
 ### Method(s)
 
@@ -623,18 +605,15 @@ Removes a channel group.
 
 ```
 
-Parameters:
-- OnRemoveChannelGroupResponse (FOnRemoveChannelGroupResponse): Result delegate.
-- Optional native callback: FOnRemoveChannelGroupResponseNative (lambda).
+- Parameters
+  - OnRemoveChannelGroupResponse (FOnRemoveChannelGroupResponse): Result delegate. Native lambda: FOnRemoveChannelGroupResponseNative.
 
 #### FOnRemoveChannelGroupResponse
 
-Field:
 - Result (FPubnubOperationResult): Operation result.
 
 #### FOnRemoveChannelGroupResponseNative
 
-Field:
 - Result (const FPubnubOperationResult&): Operation result.
 
 ### Sample code
@@ -703,7 +682,7 @@ Void; result via FOnRemoveChannelGroupResponse.
 
 Requires Stream Controller add-on.
 
-Removes a channel group.
+Deletes the channel group.
 
 ### Method(s)
 
@@ -715,19 +694,16 @@ Removes a channel group.
 `
 ```
 
-Parameters:
-- ChannelGroup (FString): Group to remove.
-- OnRemoveChannelGroupResponse (FOnRemoveChannelGroupResponse): Result delegate.
-- Optional native callback: FOnRemoveChannelGroupResponseNative (lambda).
+- Parameters
+  - ChannelGroup (FString): Group to delete.
+  - OnRemoveChannelGroupResponse (FOnRemoveChannelGroupResponse): Result delegate. Native lambda: FOnRemoveChannelGroupResponseNative.
 
 #### FOnRemoveChannelGroupResponse
 
-Field:
 - Result (FPubnubOperationResult): Operation result.
 
 #### FOnRemoveChannelGroupResponseNative
 
-Field:
 - Result (const FPubnubOperationResult&): Operation result.
 
 ### Sample code
@@ -753,7 +729,7 @@ Field:
 
 ### Returns
 
-No return value; result via delegate.
+No direct return; result via delegate.
 
 ### Other Examples
 

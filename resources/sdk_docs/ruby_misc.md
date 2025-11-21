@@ -42,8 +42,8 @@ To fetch `Time` use:
 ```
 
 Parameters:
-- http_sync (Boolean, default false): If false, executes asynchronously and returns a future; call `value` on the future to get the `Envelope`. If true, returns an array of envelopes (even if there's only one envelope). For sync methods `Envelope` object will be returned.
-- callback (Lambda): Accepts one parameter (`Callback`) and is called for each `envelope`. For async methods a future is returned; call `value` to retrieve the `Envelope` (thread will block until returned).
+- http_sync (Boolean): Default false. If false, executes asynchronously and returns a future; call value to obtain the result. If true, returns an array of envelopes (even if only one). For sync methods, an Envelope object will be returned.
+- callback (Lambda): Accepts one parameter (Callback) invoked for each envelope. For async methods, a future is returned; call value to retrieve the Envelope (thread blocks until value is returned).
 
 ### Sample code[​](#sample-code)
 

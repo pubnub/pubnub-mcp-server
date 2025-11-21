@@ -1,20 +1,26 @@
 # Configuration API for Unity SDK
 
-Configure and initialize the Unity SDK via Unity Editor assets or entirely in code. See Getting Started for asset setup.
+Configure and initialize the PubNub Unity SDK via Unity assets or programmatically.
+
+Refer to Getting Started for asset setup.
 
 ## Build platform configuration
 
+Different Unity build platforms may require specific configuration.
+
 ### Mobile build configuration
 
-On Android/iOS, code stripping can remove PubNub assemblies, causing no messages on device while working in Editor. See Troubleshooting.
+On Android/iOS, builds may fail to receive messages due to Unity's code stripping removing PubNub assemblies. See Troubleshooting for solutions.
 
 ### WebGL configuration
 
-Enable WebGL build mode only for builds
-- Using UnityWebGLHttpClientService outside WebGL builds (including Editor) is unsafe due to UnityWebRequest being thread-unsafe.
-- Create a config asset: right-click in Project -> Create -> PubNub -> PubNub Config Asset (PNConfigAsset). Provide account info.
-- If you already have a PNConfigAsset, open it and check Enable Web GL Build Mode. This sets UnityWebGLHttpClientService as the transport in PnManagerBehaviour during initialization.
-- If you don't use PnManagerBehaviour, initialize PubNub with WebGL build mode using one of the following methods:
+The PubNub Unity SDK supports WebGL builds.
+
+- Enable WebGL build mode only for builds
+  - Using UnityWebGLHttpClientService outside WebGL builds (including Editor) may cause issues due to UnityWebRequest being thread-unsafe.
+  - In Unity Editor: Create -> PubNub -> PubNub Config Asset to provide account info.
+  - If you already have a config asset, open PNConfigAsset and check Enable Web GL Build Mode. This sets UnityWebGLHttpClientService in PnManagerBehaviour during initialization.
+  - If you don't use PnManagerBehaviour, initialize with WebGL build mode using:
 
 ```
 1
@@ -26,23 +32,24 @@ Enable WebGL build mode only for builds
   
 ```
 
-- In Edit -> Project Settings -> Player, set Managed Stripping Level to Minimal.
+- Set Managed Stripping Level
+  - Edit -> Project Settings -> Player -> Managed Stripping Level = Minimal.
 
-Additional HTTP setup
-- If you can't set Secure in PNConfiguration or the Scriptable Object, set Project Settings -> Player -> WebGL Settings -> Allow downloads over HTTP to Always allowed.
+- Additional HTTP setup
+  - If you can't enable Secure in PNConfiguration or the asset, set Project Settings -> Player -> WebGL Settings -> Allow downloads over HTTP = Always allowed.
 
-Install the WebGL Threading Patcher
-- Window -> Package Manager -> + -> Add package from git URL -> https://github.com/VolodymyrBS/WebGLThreadingPatcher.git
+- Install WebGL Threading Patcher
+  - Window -> Package Manager -> + -> Add package from git URL -> https://github.com/VolodymyrBS/WebGLThreadingPatcher.git
 
-These steps are for WebGL builds only.
+These steps apply to WebGL builds only.
 
 ## Configuration
 
 A PNConfiguration instance stores settings controlling PubNub client behavior.
 
-### Methods
+### Method(s)
 
-Configure via Editor or entirely in code. Examples below use code.
+Configure via assets or entirely in code. Examples below use code.
 
 Create PNConfiguration:
 
@@ -51,55 +58,61 @@ Create PNConfiguration:
 `
 ```
 
-Parameters (Type: description, defaults, notes)
-- SubscribeKey (string): From Admin Portal. Required.
-- PublishKey (string): From Admin Portal. Required if publishing.
-- SecretKey (string): Required for access operations. Use only on secure server-side platforms.
-- UserId (UserId): Required to connect. Unique user/device identifier. UTF-8 string up to 92 alphanumeric chars.
-- LogLevel (PubnubLogLevel): Logging detail level. See Logging.
-- AuthKey (string): Used when Access Manager is enabled.
-- Secure (bool): Enable SSL/TLS transport.
-- SubscribeTimeout (int, seconds): How long to keep the subscribe loop running before disconnect.
-- NonSubscribeRequestTimeout (int, seconds): Timeout for non-subscribe operations.
-- FilterExpression (string): Subscribe with a server-side filter expression.
-- HeartbeatNotificationOption (PNHeartbeatNotificationOption): Default FAILURES; options: ALL, NONE.
-- Origin (string): Custom domain. To request, see request process.
+Parameters (Type: Description):
+- SubscribeKey (string): SubscribeKey from Admin Portal.
+- PublishKey (string): PublishKey from Admin Portal (required if publishing).
+- SecretKey (string): Required for access operations.
+- UserId (UserId): UTF-8 string up to 92 alphanumeric chars. Required to connect. Represents a unique user/device identifier.
+- LogLevel (PubnubLogLevel): Sets logging level. See Logging.
+- AuthKey (string): Used for restricted requests when Access Manager is enabled.
+- Secure (bool): Use SSL/TLS.
+- SubscribeTimeout (int): Seconds to keep subscribe loop running before disconnect.
+- NonSubscribeRequestTimeout (int): Seconds to wait for server response on non-subscribe operations.
+- FilterExpression (string): Custom filter expression for subscribe.
+- HeartbeatNotificationOption (PNHeartbeatNotificationOption): Default FAILURES. Options: ALL, NONE.
+- Origin (string): Custom domain. See request process for custom domain.
 - ReconnectionPolicy (PNReconnectionPolicy): Default EXPONENTIAL (subscribe only). Values: NONE, LINEAR, EXPONENTIAL. See SDK connection lifecycle.
-- ConnectionMaxRetries (int): Max reconnection attempts. If not provided, SDK will not reconnect. See Reconnection Policy.
-- PresenceTimeout (int, seconds): How long the server considers the client alive. Missing heartbeats trigger a timeout event on the presence channel.
-- PresenceInterval (int, seconds): How often to send heartbeats. Typically set to (PresenceTimeout / 2) - 1 for a shorter presence timeout.
-- Proxy (Proxy): Proxy configuration.
-- EnableTelemetry (bool): Enables SDK analytics (response time). Enabled by default.
-- RequestMessageCountThreshold (Number): Triggers PNRequestMessageCountExceededCategory when payload message count exceeds threshold.
-- SuppressLeaveEvents (bool): When true, SDK doesn't send leave requests.
+- ConnectionMaxRetries (int): Max reconnection attempts. If not set, no reconnect. See Reconnection Policy.
+- PresenceTimeout (int): Seconds server considers client alive for presence; triggers timeout event if no heartbeat.
+- PresenceInterval (int): Seconds between heartbeats. Typically (PresenceTimeout / 2) - 1 for shorter timeout.
+- Proxy (Proxy): Proxy configuration to communicate with PubNub.
+- EnableTelemetry (bool): Capture and send response-time analytics. Enabled by default.
+- RequestMessageCountThreshold (Number): Throws PNRequestMessageCountExceededCategory when payload message count exceeds threshold.
+- SuppressLeaveEvents (bool): If true, SDK does not send leave requests.
 - DedupOnSubscribe (bool): Filter duplicate subscribe messages across regions.
 - MaximumMessagesCacheSize (int): Used with DedupOnSubscribe. Default 100.
 - FileMessagePublishRetryLimit (int): Retries for Publish File Message. Default 5.
-- EnableEventEngine (bool): True by default. Enables standardized event processing. See SDK connection lifecycle.
-- CryptoModule (AesCbcCryptor(CipherKey) or LegacyCryptor(CipherKey)): Encryption module for messages/files. Prefer 256-bit AES-CBC. See Encryption.
+- EnableEventEngine (bool): Default true. Use updated standardized event processing. See SDK connection lifecycle.
+- CryptoModule (AesCbcCryptor(CipherKey) or LegacyCryptor(CipherKey)): Configures encryption/decryption. See CryptoModule.
 - PubnubLog (IPubnubLog): Deprecated. Use pubnub.SetLogger(IPubnubLogger).
-- LogVerbosity (PNLogVerbosity): Deprecated. Use LogLevel. BODY enables debug; NONE disables.
-- CipherKey (string): Deprecated. Pass to CryptoModule instead. If set (with UseRandomInitializationVector), legacy encryption is used.
-- UseRandomInitializationVector (bool): Deprecated. Configure via CryptoModule. Default false. When true, random IV is used for all requests (not just file upload).
-- Uuid (string): Deprecated. Use userId instead.
+- LogVerbosity (PNLogVerbosity): Deprecated. Use LogLevel. BODY enables debugging; NONE disables.
+- CipherKey (string): Deprecated; pass to CryptoModule instead. If set, all communications are encrypted.
+- UseRandomInitializationVector (bool): Deprecated; pass to CryptoModule instead. Default false. When true, IV is random for all requests (not just file upload).
+- Uuid (string): Deprecated; use userId instead. Required in older versions to connect.
 
-Disabling random initialization vector
-- Disable random IV only for backward compatibility (< 5.0.0). Do not disable for new apps.
+#### Disabling random initialization vector
+
+Disable random IV only for backward compatibility (<5.0.0). Do not disable for new apps.
 
 #### CryptoModule
 
-Configurable from 7.0.1. Options:
-- Legacy 128-bit encryption (keep existing config to continue using).
-- Recommended 256-bit AES-CBC (explicitly set in config).
+Encrypts/decrypts messages and files. From 7.0.1, you can configure algorithms.
 
-If CryptoModule is not set but CipherKey and UseRandomInitializationVector are set, legacy encryption is used. See Message Encryption, File Encryption, and Encryption reference.
+- Options: legacy 128‑bit encryption or recommended 256‑bit AES‑CBC.
+- If you set CipherKey/UseRandomInitializationVector in config but not CryptoModule, legacy encryption is used.
+- See Encryption for details and examples.
+
+##### Legacy encryption with 128-bit cipher key entropy
+
+You can keep legacy encryption. To use 256-bit AES-CBC, explicitly set it in config.
 
 ### Sample code
 
-Required User ID
-- Always set a stable UserId to identify the user/device. Without it, you can't connect.
+##### Required User ID
 
-Reference code
+Always set the UserId to uniquely identify the user/device. Persist it for the user's/device's lifetime. Without UserId, you cannot connect.
+
+##### Reference code
 
 ```
 1
@@ -117,9 +130,9 @@ Reference code
 
 ### Description
 
-Initialize the PubNub client before any API calls to establish credentials (PublishKey, SubscribeKey).
+Initialize the PubNub Client API context before calling any APIs to establish credentials like PublishKey and SubscribeKey.
 
-### Methods
+### Method(s)
 
 ```
 `1new PubNub(pnConfiguration);  
@@ -134,22 +147,26 @@ Initialize the PubNub client before any API calls to establish credentials (Publ
 ```
 
 - configuration (PNConfiguration): See Configuration.
-- webGLBuildMode (bool): Default false. If true, sets UnityWebGLHttpClientService as transport.
-- unityLogging (bool): Default false. If true, sets UnityPubNubLogger.
+- webGLBuildMode (bool): Default false; if true uses UnityWebGLHttpClientService as transport.
+- unityLogging (bool): Default false; if true sets UnityPubNubLogger.
 
 ```
 `1PubnubUnityUtils.NewUnityPubnub(configurationAsset, userId);  
 `
 ```
 
-- configurationAsset (PNConfigAsset): Scriptable Object config.
-- userId (string): User ID for this Pubnub instance.
+- configurationAsset (PNConfigAsset): PubNub configuration Scriptable Object.
+- userId (string): ID for this Pubnub instance.
 
 All methods return a new Pubnub instance.
 
 ### Sample code
 
-Initialize the PubNub client API
+#### Initialize the PubNub client API
+
+##### Required User ID
+
+Always set the UserId.
 
 ```
 1
@@ -158,77 +175,99 @@ Initialize the PubNub client API
 
 ### Returns
 
-Returns a PubNub instance for Publish(), Subscribe(), History(), HereNow(), etc.
+Returns the PubNub instance for APIs like Publish(), Subscribe(), History(), HereNow(), etc.
 
 ### Other examples
 
-Initialize a non-secure client
+#### Initialize a non-secure client
+
+##### Required User ID
+
+Always set the UserId.
 
 ```
 1
   
 ```
 
-Initialization for a Read-Only client (omit PublishKey)
+#### Initialization for a Read-Only client
+
+Omit PublishKey if the client only reads messages.
+
+##### Required User ID
+
+Always set the UserId.
 
 ```
 1
   
 ```
 
-Initializing with SSL enabled (set Secure = true)
+#### Initializing with SSL enabled
+
+Set Secure = true to enable TLS.
+
+##### Required User ID
+
+Always set the UserId.
 
 ```
 1
   
 ```
 
-Requires Access Manager add-on
-- Enable Access Manager in Admin Portal.
+##### Requires Access Manager add-on
 
-Secure your 'secretKey'
-- SecretKey grants/revokes permissions. Never expose it. Use only on secure server-side platforms.
-- Initializing with SecretKey gives root permissions; server apps can access all channels.
+Access Manager must be enabled for your key.
 
-Access Manager initialization example
+##### Secure your 'secretKey'
+
+Never expose SecretKey. Use only on secure server-side platforms.
+
+Initialize with SecretKey to administer Access Manager permissions:
+
+##### Required User ID
+
+Always set the UserId.
 
 ```
 1
   
 ```
+
+With SecretKey, the client signs Access Manager messages to PubNub.
 
 ## Event listeners
 
-Real-time update sources:
-- PubNub client: updates from all subscriptions (channels, channel groups, channel metadata, users).
-- Subscription: updates for the particular subscribed object.
-- SubscriptionsSet: updates for a set of subscription objects.
+- PubNub client: updates from all subscriptions (channels, groups, channel metadata, users).
+- Subscription object: updates only for its target (channel, group, metadata, or user).
+- SubscriptionsSet object: updates for all objects from a list of subscriptions.
 
-See Publish & Subscribe for entity subscriptions and event handlers.
+See Publish & Subscribe for details.
 
 ## UserId
 
 Set/get user ID at runtime.
 
-### Methods
+### Method(s)
 
 ```
 `1pubnub.ChangeUserId(UserId newUserid)  
 `
 ```
 
-- newUserid (UserId): New user identifier for this Pubnub instance.
+- newUserid (UserId): New identifier for this Pubnub instance.
 
 ### Sample code
 
-Set user ID
+#### Set user ID
 
 ```
 1
   
 ```
 
-Get user ID
+#### Get user ID
 
 ```
 1
@@ -237,11 +276,11 @@ Get user ID
 
 ## Filter expression
 
-Requires Stream Controller add-on
+##### Requires Stream Controller add-on
 
-Server-side stream filtering delivers only messages matching the filter. See Publish Messages.
+Server-side stream filtering to receive only messages matching the filter.
 
-### Properties
+### Property(s)
 
 ```
 `1FilterExpression  
@@ -255,22 +294,26 @@ Server-side stream filtering delivers only messages matching the filter. See Pub
 `
 ```
 
-A property on PNConfiguration.
+A property in the PNConfiguration class.
 
 ### Sample code
 
-Set filter expression
+#### Set filter expression
+
+##### Required User ID
+
+Always set the UserId.
 
 ```
 1
   
 ```
 
-Get filter expression
+#### Get filter expression
 
 ```
 1
 **
 ```
 
-Last updated on Oct 29, 2025
+Last updated on Oct 29, 2025**

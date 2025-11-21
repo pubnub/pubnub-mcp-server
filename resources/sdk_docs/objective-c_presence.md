@@ -1,13 +1,18 @@
 # Presence API for Objective-C SDK
 
-Presence tracks online/offline users and custom state, including:
-- Join/leave events, occupancy (user count), subscribed channels per UUID/device, and per-UUID presence state.
+Presence provides:
+- Joins/leaves per channel
+- Occupancy (user count) per channel
+- Channels a UUID is subscribed to
+- Presence state per user
 
-Requires Presence add-on enabled for your key in the Admin Portal.
+Requires Presence add-on enabled for your key in the Admin Portal. See Presence Events for subscribing to presence channels.
 
 ## Here now
 
-Returns current channel state: list of UUIDs and total occupancy. Response cache: 3 seconds.
+Returns current presence info for channels/channel groups: UUIDs and occupancy.
+
+- Cache: 3 seconds.
 
 ### Method(s)
 
@@ -17,15 +22,16 @@ Returns current channel state: list of UUIDs and total occupancy. Response cache
 `
 ```
 
-- request: Type: PNHereNowRequest. Presence query configuration.
+Parameters:
+- request: Type: PNHereNowRequest. Payload describing presence request.
 - block: Type: PNHereNowCompletionBlock. Completion with result (success) or status (error).
 
 #### PNHereNowRequest
 
-- channels: Type: NSArray<NSString *>. List of channels to query.
-- channelGroups: Type: NSArray<NSString *>. List of channel groups to query.
-- verbosityLevel: Type: PNHereNowVerbosityLevel. Default: PNHereNowState. Controls response detail.
-- limit: Type: NSUInteger. Default: 1000. Range: 0–1000. Use 0 for occupancy only (no UUID details).
+- channels: Type: NSArray<NSString *> — List of channels to query.
+- channelGroups: Type: NSArray<NSString *> — List of channel groups to query.
+- verbosityLevel: Type: PNHereNowVerbosityLevel — Default: PNHereNowState. Controls detail in response.
+- limit: Type: NSUInteger — Default: 1000. Range: 0–1000. Use 0 for occupancy only.
 
 ### Sample code
 
@@ -192,19 +198,25 @@ Returns current channel state: list of UUIDs and total occupancy. Response cache
 11
   
 12@interface PNPresenceChannelGroupHereNowData : PNPresenceGlobalHereNowData  
-13  
+13
+  
 14@end  
-15  
+15
+  
 16@interface PNPresenceChannelGroupHereNowResult : PNResult  
-17  
+17
+  
 18// Stores reference on channel group presence request processing information.  
 19@property (nonatomic, nonnull, readonly, strong) PNPresenceChannelGroupHereNowData *data;  
-20  
+20
+  
 21@end  
 
 ```
 
-### Other examples
+## Other examples
+
+Requires Presence.
 
 #### Returning state
 
@@ -292,8 +304,6 @@ Returns current channel state: list of UUIDs and total occupancy. Response cache
 
 #### Return occupancy only
 
-You can return only the occupancy information for a single channel:
-
 ```
 1// With PNHereNowOccupancy client will pull out only occupancy information.  
 2[self.client hereNowForChannel: @"my_channel" withVerbosity:PNHereNowOccupancy  
@@ -354,7 +364,7 @@ You can return only the occupancy information for a single channel:
 
 ## Here now for channel groups
 
-Request presence (UUIDs, state, occupancy) for a channel group.
+Request presence info for a channel group: UUIDs, per-channel occupancy, total channels, total occupancy.
 
 ### Method(s)
 
@@ -364,8 +374,9 @@ Request presence (UUIDs, state, occupancy) for a channel group.
 `
 ```
 
-- group: Type: NSString. Channel group to query.
-- block: Type: PNChannelGroupHereNowCompletionBlock. Completion with result (success) or status (error).
+Parameters:
+- group: Type: NSString — Channel group name.
+- block: Type: PNChannelGroupHereNowCompletionBlock — Completion with result or status.
 
 ```
 `1- (void)hereNowForChannelGroup:(NSString *)group   
@@ -374,9 +385,10 @@ Request presence (UUIDs, state, occupancy) for a channel group.
 `
 ```
 
-- group: Type: NSString. Channel group to query.
-- level: Type: PNHereNowVerbosityLevel. Controls response detail.
-- block: Type: PNChannelGroupHereNowCompletionBlock.
+Parameters:
+- group: Type: NSString — Channel group name.
+- level: Type: PNHereNowVerbosityLevel — Response detail.
+- block: Type: PNChannelGroupHereNowCompletionBlock — Completion with result or status.
 
 ### Sample code
 
@@ -450,9 +462,9 @@ Request presence (UUIDs, state, occupancy) for a channel group.
 
 ## Where now
 
-Returns the list of channels a UUID is subscribed to. Requires Presence add-on.
+Returns the list of channels a UUID is subscribed to.
 
-Timeout note: If the app restarts within the heartbeat window, no timeout event is generated.
+- Timeout events: If the app restarts within the heartbeat window, no timeout event is generated.
 
 ### Method(s)
 
@@ -462,8 +474,9 @@ Timeout note: If the app restarts within the heartbeat window, no timeout event 
 `
 ```
 
-- uuid: Type: NSString. UUID to query.
-- block: Type: PNWhereNowCompletionBlock. Completion with result (success) or status (error).
+Parameters:
+- uuid: Type: NSString — UUID to query.
+- block: Type: PNWhereNowCompletionBlock — Completion with result or status.
 
 ### Sample code
 
@@ -503,11 +516,9 @@ Timeout note: If the app restarts within the heartbeat window, no timeout event 
   
 3// List of channels on which client subscribed.  
 4@property (nonatomic, readonly, strong) NSArrayNSString *> *channels;  
-5
-  
+5  
 6@end  
-7
-  
+7  
 8@interface PNPresenceWhereNowResult : PNResult  
 9  
 10// Stores reference on client presence request processing information.  
@@ -519,7 +530,7 @@ Timeout note: If the app restarts within the heartbeat window, no timeout event 
 
 ## User state
 
-Set/get dynamic custom state for users on channels or channel groups. State is not persisted.
+Set and get dynamic custom state for a UUID on channels or channel groups. State exists while subscribed and is not persisted.
 
 ### Method(s)
 
@@ -533,10 +544,11 @@ Set/get dynamic custom state for users on channels or channel groups. State is n
 `
 ```
 
-- state: Type: NSDictionary. State to bind to uuid on channel. nil removes state.
-- uuid: Type: NSString. Target user UUID.
-- channel: Type: NSString. Channel to store state.
-- block: Type: PNSetStateCompletionBlock. Completion status.
+Parameters:
+- state: Type: NSDictionary — Key/value state to bind to uuid on channel. nil removes state.
+- uuid: Type: NSString — Target UUID.
+- channel: Type: NSString — Target channel.
+- block: Type: PNSetStateCompletionBlock — Completion status only.
 
 ```
 `1- (void)setState:(nullable NSDictionaryNSString *, id> *)state   
@@ -546,10 +558,11 @@ Set/get dynamic custom state for users on channels or channel groups. State is n
 `
 ```
 
-- state: Type: NSDictionary. State to bind to uuid on group. nil removes state.
-- uuid: Type: NSString.
-- group: Type: NSString. Channel group to store state.
-- block: Type: PNSetStateCompletionBlock.
+Parameters:
+- state: Type: NSDictionary — State for uuid on group. nil removes state.
+- uuid: Type: NSString — Target UUID.
+- group: Type: NSString — Target channel group.
+- block: Type: PNSetStateCompletionBlock — Completion status only.
 
 #### Get state
 
@@ -560,9 +573,10 @@ Set/get dynamic custom state for users on channels or channel groups. State is n
 `
 ```
 
-- uuid: Type: NSString. Target UUID.
-- channel: Type: NSString. Channel to retrieve state from.
-- block: Type: PNChannelStateCompletionBlock. Completion with result or status.
+Parameters:
+- uuid: Type: NSString — UUID to retrieve state for.
+- channel: Type: NSString — Channel to query.
+- block: Type: PNChannelStateCompletionBlock — Completion with result or status.
 
 ```
 `1- (void)stateForUUID:(NSString *)uuid  
@@ -571,9 +585,10 @@ Set/get dynamic custom state for users on channels or channel groups. State is n
 `
 ```
 
-- uuid: Type: NSString.
-- group: Type: NSString. Channel group to retrieve state from.
-- block: Type: PNChannelGroupStateCompletionBlock.
+Parameters:
+- uuid: Type: NSString — UUID to retrieve state for.
+- group: Type: NSString — Channel group to query.
+- block: Type: PNChannelGroupStateCompletionBlock — Completion with result or status.
 
 ### Sample code
 
@@ -689,7 +704,7 @@ Set/get dynamic custom state for users on channels or channel groups. State is n
 
 ## User state (builder pattern)
 
-Set/get per-UUID key/value pairs.
+Set/get state using builder API.
 
 ### Method(s)
 
@@ -706,11 +721,14 @@ Set/get per-UUID key/value pairs.
 `
 ```
 
-- uuid: Type: NSString. Defaults to current PubNub user ID if nil.
-- state: Type: NSDictionary. Data to bind to uuid on channels/channelGroups.
-- channels: Type: NSArray<NSString *>. Channels to store state. Optional if channelGroups set.
-- channelGroups: Type: NSArray<NSString *>. Channel groups to store state. Optional if channels set.
-- completion: Type: PNSetStateCompletionBlock. Completion status (errorData on failure).
+Parameters:
+- uuid: Type: NSString — UUID to bind state to. Defaults to current user ID if nil/not set.
+- state: Type: NSDictionary — State data for specified UUID on channels/channelGroups.
+- channels: Type: NSArray<NSString *> — Target channels (omit if using channelGroups).
+- channelGroups: Type: NSArray<NSString *> — Target groups (omit if using channels).
+- completion: Type: PNSetStateCompletionBlock — Completion status (errorData on failure).
+
+Note: Builder pattern; optional arguments can be omitted.
 
 #### Get state
 
@@ -724,10 +742,13 @@ Set/get per-UUID key/value pairs.
 `
 ```
 
-- uuid: Type: NSString. Defaults to current PubNub user ID if nil.
-- channels: Type: NSArray<NSString *>. Channels to retrieve state from. Optional if channelGroups set.
-- channelGroups: Type: NSArray<NSString *>. Channel groups to retrieve state from. Optional if channels set.
-- completion: Type: PNGetStateCompletionBlock. Completion with result or status.
+Parameters:
+- uuid: Type: NSString — UUID to retrieve. Defaults to current user ID if nil/not set.
+- channels: Type: NSArray<NSString *> — Channels to query (omit if using channelGroups).
+- channelGroups: Type: NSArray<NSString *> — Groups to query (omit if using channels).
+- completion: Type: PNGetStateCompletionBlock — Completion with result or status.
+
+Note: Builder pattern; optional arguments can be omitted.
 
 ### Sample code
 

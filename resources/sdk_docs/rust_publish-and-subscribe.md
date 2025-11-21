@@ -1,17 +1,10 @@
-# Publish/Subscribe API for Rust SDK
+# Publish/Subscribe API for Rust SDK (Condensed)
 
-Essential notes:
-- Requires valid publish_key to publish and subscribe_key to subscribe.
-- Messages are JSON-serializable data. Do not pre-serialize; SDK handles it.
-- Max message size: 32 KiB (including channel name and escaping). Aim for <1,800 bytes. Over 32 KiB returns error.
-- In-memory queue per subscriber: 100 messages. Publishing faster than subscribers can consume may drop older messages. Publish serially per channel and throttle as needed.
-- Can't publish to multiple channels in a single call.
-- Publish returns a Future; await it.
-- Best-effort message retrieval from cursor (timetoken + region); not guaranteed.
+Use PubNub to publish and subscribe to messages with low latency. For conceptual overviews, see Connection Management and Publish Messages.
 
 ## Publish
 
-Add any of the following features to `Cargo.toml` to use this API:
+Add features to Cargo.toml:
 
 ```
 `[dependencies]  
@@ -24,22 +17,23 @@ pubnub = { version = "0.7.0", default-features = false, features = ["publish"] }
 `
 ```
 
-For a list of all features, refer to [Available features](/docs/sdks/rust#available-features).
+Available in features: default, full, publish.
 
-### Available in features
-defaultfullpublish
-
-- Publish anytime: You don't need to be subscribed to the channel.
-- Message too large error: See support article: https://support.pubnub.com/hc/en-us/articles/360051495932-Calculating-Message-Payload-Size-Before-Publish
-- Reliability recommendations:
+Requirements and behavior:
+- Must configure a valid publish_key at initialization.
+- You can publish without being subscribed.
+- Message data: any JSON-serializable type; do not pre-serialize to JSON (SDK handles it).
+- Max message size: 32 KiB (including channel name and escaped characters). Aim for < ~1,800 bytes for best performance. Exceeding 32 KiB returns an error.
+- Publish rate: publish as bandwidth allows; subscribers have an in-memory queue limit of 100 messages. Excess may be dropped if subscribers can’t keep up.
+- Publish to one channel at a time; multi-channel publish is not supported.
+- Reliability best practices:
   - Publish serially per channel.
-  - Wait for success before sending next; on failure, retry.
-  - Avoid overflowing 100-message in-memory queue.
-  - Throttle (for example, ≤5 msgs/sec/channel) per app latency needs.
+  - Wait for a success result before sending the next message.
+  - Retry on failure.
+  - Avoid overflowing the 100-message in-memory queue.
+  - Throttle bursts as needed (for example, ≤ 5 msgs/sec per channel).
 
 ### Method(s)
-
-To Publish a message you can use the following method(s) in the Rust SDK:
 
 ```
 `1pubnub  
@@ -55,39 +49,20 @@ To Publish a message you can use the following method(s) in the Rust SDK:
 ```
 
 Parameters:
-- publish_message (required)
-  - Type: T: Serialize
-  - Message payload.
-- channel (required)
-  - Type: Into<String>
-  - Target channel ID.
-- store
-  - Type: Option<bool>
-  - Default: Account default
-  - Whether to store the message in Message Persistence.
-- meta
-  - Type: Option<HashMap<String, String>>
-  - Additional key/value metadata for Filters.
-- replicate
-  - Type: bool
-  - Whether to replicate across PoPs. See Replicated Transactions.
-- ttl
-  - Type: Option<u32>
-  - Per-message TTL in hours when stored.
-    1. If store = true and ttl = 0: stored with no expiry.
-    2. If store = true and ttl = X: stored with X-hour expiry unless keyset retention is Unlimited.
-    3. If store = false: ttl ignored.
-    4. If ttl unspecified: defaults to key expiry value.
-- use_post
-  - Type: bool
-  - Default: false
-  - Use HTTP POST to publish.
-- execute
-  - Returns a Future; await it to execute.
+- publish_message (required): Type: T: Serialize. The message payload.
+- channel (required): Type: Into<String>. Channel ID.
+- store: Type: Option<bool>. Default: Account default. Whether to store in Message Persistence.
+- meta: Type: Option<HashMap<String, String>>. Additional info for Filters.
+- replicate: Type: bool. Whether to replicate across PoPs. See Replicated Transactions.
+- ttl: Type: Option<u32>. Per-message TTL in Message Persistence.
+  1) store=true, ttl=0 → stored with no expiry.
+  2) store=true, ttl=X → expiry X hours (unless keyset retention is Unlimited).
+  3) store=false → ttl ignored.
+  4) ttl unspecified → defaults to key expiry value.
+- use_post: Type: bool. Default: false. Use HTTP POST.
+- execute: Executes the request; returns a Future to await.
 
 ### Sample code
-
-Publish a message to a channel:
 
 ```
 1
@@ -105,7 +80,7 @@ Publish a message to a channel:
 
 ### Returns
 
-The `publish()` operation returns a `PublishResult` which contains the timetoken, or a `PubNub Error` which contains the error indicator and the description of the error.
+Publish returns PublishResult with timetoken or PubNub Error.
 
 ```
 // success example  
@@ -119,7 +94,7 @@ Error: PublishError("Status code: 400, body: OtherResponse { status: 400, error:
 
 ## Subscribe
 
-Add any of the following features to `Cargo.toml` to use this API:
+Add features to Cargo.toml:
 
 ```
 `[dependencies]  
@@ -132,24 +107,22 @@ pubnub = { version = "0.7.0", features = ["subscribe"] }
 `
 ```
 
-For a list of all features, refer to [Available features](/docs/sdks/rust#available-features).
+Available in features: default, full, subscribe.
 
-### Available in features
-defaultfullsubscribe
-
-- Opens a TCP socket and streams messages/events for specified entities.
-- Configure with subscribe_key at initialization.
-- Use with_retry_policy() to auto-reconnect and attempt retrieval of available messages on disconnect.
+Behavior:
+- Opens a long-lived connection to receive messages/events on specified entities.
+- Requires subscribe_key at initialization.
+- New messages are received after subscribe() completes.
+- Optional with_retry_policy() can reconnect and best-effort retrieve available messages after disconnects.
 
 ### Subscription scope
 
-Two types:
-- Subscription: entity-scoped (for example, a single channel).
-- SubscriptionSet: client-scoped; can include multiple subscriptions. One event listener can receive all message types.
+- Subscription: entity-level scope (for example, a channel).
+- SubscriptionSet: client-level scope on a pubnub instance; can include multiple subscriptions.
+
+Use event listeners to receive updates; see Event listeners.
 
 ### Create a subscription
-
-An entity-level `Subscription` allows you to receive messages and events for only that entity for which it was created.
 
 ```
 `// entity-based, local-scoped  
@@ -158,14 +131,9 @@ channel.subscription(options: OptionVecSubscriptionOptions>>)
 `
 ```
 
-Parameters:
-- options (optional)
-  - Type: Option<Vec<SubscriptionOptions>>
-  - Subscription behavior configuration. Pass None for no options.
+- options (optional): Type: Option<Vec<SubscriptionOptions>>. Subscription behavior configuration. Pass None for no options.
 
 ### Create a subscription set
-
-A client-level `SubscriptionSet` allows you to receive messages and events for all entities in the set.
 
 ```
 `// client-based, general-scoped  
@@ -177,29 +145,25 @@ pubnub.subscription(parameters: (SubscriptionParams {
 `
 ```
 
-Parameters:
-- parameters (required)
-  - Type: SubscriptionParams<String>
-  - channels: Option<&[String]> — Pass None for no channels.
-  - channel_groups: Option<&[String]> — Pass None for no channel groups.
-  - options: Option<Vec<SubscriptionOptions>> — Subscription behavior configuration. Pass None for no options.
+parameters: Type: SubscriptionParams<String>
+- channels: Type: Option<&[String]>. Pass None for none.
+- channel_groups: Type: Option<&[String]>. Pass None for none.
+- options: Type: Option<Vec<SubscriptionOptions>>. Pass None for none.
 
-Add/remove sets: You can add and remove subscription sets to create new sets.
+Add/remove sets: you can compose and modify subscription sets (see examples below).
 
 #### SubscriptionOptions
 
-`SubscriptionOptions` is an enum:
-- ReceivePresenceEvents — deliver presence updates via listener streams. See Presence Events docs for details.
+Enum variants:
+- ReceivePresenceEvents: include presence updates in listener streams. See Presence Events for details.
 
 ### Method(s)
 
-`Subscription` and `SubscriptionSet` share methods:
-- Subcribe
+Common methods for Subscription and SubscriptionSet:
+- Subscribe
 - Subscribe with timetoken
 
 #### Subscribe
-
-To subscribe, you can use the following method in the Rust SDK:
 
 ```
 `subscription.subscribe()  
@@ -245,7 +209,6 @@ To subscribe, you can use the following method in the Rust SDK:
 20set.sub_subscriptions(subscription3)  
 
 ```
-show all 20 lines
 
 ###### Create a subscription set from 2 sets
 
@@ -274,27 +237,19 @@ show all 20 lines
 19let set_of_channels_only = set_of_channels_and_channel_groups - set2;  
 
 ```
-show all 19 lines
 
 ##### Returns
 
-The `subscribe()` method doesn't have a return value.
+subscribe() has no return value.
 
 #### Subscribe with timetoken
-
-To subscribe to real-time updates from a given timetoken:
 
 ```
 `subscription.subscribe_with_timetoken(cursor: IntoSubscriptionCursor>)  
 `
 ```
 
-Parameters:
-- cursor (required)
-  - Type: Into<SubscriptionCursor> | String | usize | u64
-  - Cursor consists of timetoken and region: SubscriptionCursor{timetoken: String, region: u32}
-  - Primitive types are converted; if not a 17-digit number or numeric string, the value is ignored.
-  - Retrieval with cursor is best-effort, not guaranteed.
+- cursor (required): Type: Into<SubscriptionCursor> (String, usize, u64). Cursor is best-effort and consists of timetoken and region: SubscriptionCursor{timetoken: String, region: u32}. Non-17-digit or non-numeric strings are ignored.
 
 ##### Sample code
 
@@ -318,20 +273,13 @@ Parameters:
 
 ##### Returns
 
-The `subscribe_with_timetoken()` method doesn't have a return value.
+subscribe_with_timetoken() has no return value.
 
 ## Entities
 
-Entities are subscribable objects for which you can receive real-time updates (messages, events, etc).
-
-- Channel
-- ChannelGroup
-- UserMetadata
-- ChannelMetadata
+Create subscribable entities to receive real-time updates.
 
 ### Create channels
-
-These methods return one or more local `Channel` entities.
 
 ```
 pubnub.channel(String)  
@@ -342,12 +290,8 @@ pubnub.channels(&[String])
 ```
 
 Parameters:
-- channel
-  - Type: String
-  - Channel ID.
-- channel
-  - Type: &[String]
-  - Slice of channel IDs.
+- channel: Type: String. Channel ID.
+- channel: Type: &[String]. Slice of channel IDs.
 
 #### Sample code
 
@@ -365,8 +309,6 @@ Parameters:
 
 ### Create channel groups
 
-These methods return one or more local `ChannelGroup` entities.
-
 ```
 pubnub.channel_group(String)  
 
@@ -376,12 +318,8 @@ pubnub.channel_groups(&[String])
 ```
 
 Parameters:
-- channel_group
-  - Type: String
-  - Channel group name.
-- channel_groups
-  - Type: &[String]
-  - Slice of channel group names.
+- channel_group: Type: String. Channel group name.
+- channel_groups: Type: &[String]. Slice of channel group names.
 
 #### Sample code
 
@@ -399,8 +337,6 @@ Parameters:
 
 ### Create channel metadata
 
-These methods return one or more local `ChannelMetadata` entities.
-
 ```
 pubnub.channel_metadata(String)  
 
@@ -410,12 +346,8 @@ pubnub.channels_metadata(&[String])
 ```
 
 Parameters:
-- channel_metadata
-  - Type: String
-  - Channel metadata identifier.
-- channels_metadata
-  - Type: &[String]
-  - Slice of channel metadata identifiers.
+- channel_metadata: Type: String. Channel metadata identifier.
+- channels_metadata: Type: &[String]. Slice of channel metadata identifiers.
 
 #### Sample code
 
@@ -433,8 +365,6 @@ Parameters:
 
 ### Create user metadata
 
-These methods return one or more local `UserMetadata` entities.
-
 ```
 pubnub.user_metadata(String)  
 
@@ -444,12 +374,8 @@ pubnub.users_metadata(&[String])
 ```
 
 Parameters:
-- user_metadata
-  - Type: String
-  - User metadata identifier.
-- users_metadata
-  - Type: &[String]
-  - Slice of user metadata identifiers.
+- user_metadata: Type: String. User metadata identifier.
+- users_metadata: Type: &[String]. Slice of user metadata identifiers.
 
 #### Sample code
 
@@ -467,11 +393,11 @@ Parameters:
 
 ## Event listeners
 
-Attach listeners to Subscription, SubscriptionSet, and PubNub client (status).
+Attach listeners to Subscription, SubscriptionSet, or (for connection status) the PubNub client.
 
 ### Add listeners
 
-Choose dedicated streams (messages, signals, files, etc.) or a generic Update stream.
+Implement streams for specific update types or a generic stream.
 
 #### Method(s)
 
@@ -505,7 +431,6 @@ subscription
     .stream() -> DataStreamUpdate>;  
 
 ```
-show all 21 lines
 
 #### Sample code
 
@@ -517,7 +442,7 @@ show all 21 lines
 
 ### Add connection status listener
 
-Client-only listener for connection status updates.
+Client scope only.
 
 #### Method(s)
 
@@ -536,11 +461,11 @@ Client-only listener for connection status updates.
 
 #### Returns
 
-Subscription status. See SDK statuses in Connection Management docs.
+Subscription status (see SDK statuses).
 
 ## Clone empty
 
-Clone a subscription’s state with no attached listeners.
+Clone a subscription with the same state but without any listeners.
 
 ### Method(s)
 
@@ -596,9 +521,7 @@ None
 
 ## Unsubscribe all
 
-Stop all streams and remove associated entities.
-
-Client scope: Only available on the PubNub object.
+Stop all streams and remove associated entities. Client scope only.
 
 ### Method(s)
 

@@ -1,10 +1,10 @@
 # File Sharing API for Unity SDK
 
-Upload and share files up to 5 MB. When a file is uploaded to a channel, it's stored with your key. Subscribers receive a file event containing file ID, filename, and optional description.
+Upload and share files up to 5 MB. When a file is uploaded on a channel, it’s stored with your key; subscribers receive a file event with file ID, filename, and optional description.
 
 ## Send file
 
-Uploads a file to a channel and publishes a file message on that channel. Internally calls PublishFileMessage to announce the uploaded file.
+Uploads a file to a channel and publishes a file message. Internally calls PublishFileMessage to publish metadata (file ID and name).
 
 ### Method(s)
 
@@ -24,26 +24,27 @@ Uploads a file to a channel and publishes a file message on that channel. Intern
 ```
 
 Parameters:
-- Channel (string, required): Target channel.
-- File (string | byte[]): Full path with filename, or file bytes. If passing bytes, set FileName.
-- Texture (Texture2D | RenderTexture): Optional texture to send. When used, a Message with size and format is added automatically.
-- FileName (string): Overrides default filename or required when sending bytes/texture.
-- Ttl (int): How long to store the message in channel storage.
+- Channel (required, string): Channel for the file.
+- File (string | byte[]): Full path with filename or byte array. If byte[], you must set FileName.
+- Texture (Texture2D | RenderTexture): Texture instance. When provided, a Message with size and format is auto-added.
+- FileName (string): Override default name or required when File is byte[].
+- Ttl (int): How long the message is stored in channel history.
 - ShouldStore (bool): Whether to store the published file message in history.
-- Message (string): Message to send along with the file.
-- Meta (Dictionary<string, object>): Metadata used for message filtering.
-- CustomMessageType (string): 3–50 char case-sensitive label. Alphanumeric, dashes -, underscores _. Cannot start with special characters or pn_/pn-. Examples: text, action, poll.
-- Execute (System.Action<PNFileUploadResult, PNStatus>): Callback.
+- Message (string): Message to send with the file.
+- Meta (Dictionary<string, object>): For server-side filtering.
+- CustomMessageType (string): 3–50 chars, case-sensitive alphanumeric; dashes/underscores allowed; cannot start with special chars or pn_/pn-. Examples: text, action, poll.
+- Execute (System.Action): System.Action of type PNFileUploadResult.
 - ExecuteAsync: Returns Task<PNResult<PNFileUploadResult>>.
 
 Deprecated:
-- CipherKey: Deprecated. Configure the crypto module instead. If passed, it overrides the crypto module and uses legacy 128-bit encryption.
+- CipherKey parameter is deprecated. Configure the crypto module instead (/docs/sdks/unity/api-reference/configuration#cryptomodule). Passing CipherKey overrides the module and uses legacy 128-bit encryption.
 
 ### Sample code
 
 ```
 1
   
+
 ```
 
 ### Response
@@ -59,18 +60,18 @@ Deprecated:
 
 ### Returns
 
-SendFile returns PNResult<PNFileUploadResult>:
-- Result (PNFileUploadResult): 
-  - Timetoken (long)
-  - FileId (string)
-  - FileName (string)
+Returns PNResult<PNFileUploadResult>:
+- Result (PNFileUploadResult)
 - Status (PNStatus)
 
----
+PNFileUploadResult:
+- Timetoken (long): Publish timetoken.
+- FileId (string): File ID.
+- FileName (string): File name.
 
 ## List channel files
 
-Retrieve a paginated list of files uploaded to a channel.
+Retrieve files uploaded to a channel.
 
 ### Method(s)
 
@@ -85,11 +86,11 @@ Retrieve a paginated list of files uploaded to a channel.
 ```
 
 Parameters:
-- Channel (string, required): Channel to list files for.
+- Channel (required, string): Channel to list files from.
 - Limit (int, default 100): Number of files to return.
 - Next (string): Server-provided cursor for forward pagination.
-- QueryParam (Dictionary<string, object>): Extra URL query params (debug).
-- Execute (System.Action<PNListFilesResult, PNStatus>): Callback.
+- QueryParam (Dictionary<string, object>): Extra query params for debugging.
+- Execute (System.Action): System.Action of type PNListFilesResult.
 - ExecuteAsync: Returns Task<PNResult<PNListFilesResult>>.
 
 ### Sample code
@@ -97,6 +98,7 @@ Parameters:
 ```
 1
   
+
 ```
 
 ### Response
@@ -118,18 +120,20 @@ Parameters:
 
 ### Returns
 
-ListFiles returns PNResult<PNListFilesResult>:
-- Result (PNListFilesResult):
-  - FilesList (List<PNFileResult>): 
-    - Name (string)
-    - Id (string)
-    - Size (int)
-    - Created (string)
-  - Count (int)
-  - Next (string)
+Returns PNResult<PNListFilesResult>:
+- Result (PNListFilesResult)
 - Status (PNStatus)
 
----
+PNListFilesResult:
+- FilesList (List<PNFileResult>): List of files.
+- Count (int): Number of files returned.
+- Next (string): Cursor for forward pagination.
+
+PNFileResult:
+- Name (string): File name.
+- Id (string): File ID.
+- Size (int): File size.
+- Created (string): Creation date.
 
 ## Get file URL
 
@@ -147,10 +151,10 @@ Generate a URL to download a file from a channel.
 ```
 
 Parameters:
-- Channel (string, required): Channel containing the file.
-- FileId (string, required): Unique file identifier assigned at upload.
-- FileName (string, required): Stored filename.
-- Execute (System.Action<PNFileUrlResult, PNStatus>): Callback.
+- Channel (required, string): Channel where the file was uploaded.
+- FileId (required, string): Uploaded file identifier.
+- FileName (required, string): File name stored for the channel.
+- Execute (System.Action): System.Action of type PNFileUrlResult.
 - ExecuteAsync: Returns Task<PNResult<PNFileUrlResult>>.
 
 ### Sample code
@@ -158,16 +162,17 @@ Parameters:
 ```
 1
   
+
 ```
 
 ### Returns
 
-GetFileUrl returns PNResult<PNFileUrlResult>:
-- Result (PNFileUrlResult):
-  - Url (string)
+Returns PNResult<PNFileUrlResult>:
+- Result (PNFileUrlResult)
 - Status (PNStatus)
 
----
+PNFileUrlResult:
+- Url (string): Download URL for the file.
 
 ## Download file
 
@@ -185,20 +190,21 @@ Download a file from a channel.
 ```
 
 Parameters:
-- Channel (string, required): Channel containing the file.
-- FileId (string, required): Unique file identifier.
-- FileName (string, required): Stored filename.
-- Execute (System.Action<PNDownloadFileResult, PNStatus>): Callback.
+- Channel (required, string): Channel where the file was uploaded.
+- FileId (required, string): Uploaded file identifier.
+- FileName (required, string): Stored file name.
+- Execute (System.Action): System.Action of type PNDownloadFileResult.
 - ExecuteAsync: Returns Task<PNResult<PNDownloadFileResult>>.
 
 Deprecated:
-- CipherKey: Deprecated. Configure the crypto module instead. If passed, it overrides the crypto module and uses legacy 128-bit encryption.
+- CipherKey parameter is deprecated. Use the crypto module (/docs/sdks/unity/api-reference/configuration#cryptomodule). Passing CipherKey uses legacy 128-bit encryption.
 
 ### Sample code
 
 ```
 1
   
+
 ```
 
 ### Response
@@ -214,14 +220,14 @@ Deprecated:
 
 ### Returns
 
-DownloadFile returns PNResult<PNDownloadFileResult>:
-- Result (PNDownloadFileResult):
-  - FileBytes (byte[])
-  - FileName (string)
-  - SaveFileToLocal(string): Save bytes to a local path.
+Returns PNResult<PNDownloadFileResult>:
+- Result (PNDownloadFileResult)
 - Status (PNStatus)
 
----
+PNDownloadFileResult:
+- FileBytes (byte[]): Downloaded bytes.
+- FileName (string): Downloaded file name.
+- SaveFileToLocal(string): Call with destination path to save locally.
 
 ## Delete file
 
@@ -239,10 +245,10 @@ Delete a file from a channel.
 ```
 
 Parameters:
-- Channel (string, required): Channel containing the file.
-- FileId (string, required): Unique file identifier.
-- FileName (string, required): File to delete.
-- Execute (System.Action<PNDeleteFileResult, PNStatus>): Callback.
+- Channel (required, string): Channel containing the file.
+- FileId (required, string): File identifier to delete.
+- FileName (required, string): Name of the file to delete.
+- Execute (System.Action): System.Action of type PNDeleteFileResult.
 - ExecuteAsync: Returns Task<PNResult<PNDeleteFileResult>>.
 
 ### Sample code
@@ -250,6 +256,7 @@ Parameters:
 ```
 1
   
+
 ```
 
 ### Response
@@ -261,15 +268,15 @@ Parameters:
 
 ### Returns
 
-DeleteFile returns PNResult<PNDeleteFileResult>:
-- Result (PNDeleteFileResult): empty
+Returns PNResult<PNDeleteFileResult>:
+- Result (PNDeleteFileResult)
 - Status (PNStatus)
 
----
+PNDeleteFileResult: Empty.
 
 ## Publish file message
 
-Publish the uploaded file message to a channel. Called by SendFile after upload. Use directly if SendFile fails with status.operation === PNPublishFileMessageOperation to resend the message without re-uploading.
+Publish a previously uploaded file message to a channel. Used internally by SendFile. If SendFile fails with status.operation === PNPublishFileMessageOperation, use data from status to retry with PublishFileMessage (no re-upload).
 
 ### Method(s)
 
@@ -287,14 +294,14 @@ Publish the uploaded file message to a channel. Called by SendFile after upload.
 ```
 
 Parameters:
-- Channel (string, required): Target channel.
-- FileId (string, required): File identifier.
-- FileName (string, required): File name.
-- Message (object): Payload to send with the file message.
-- Meta (Dictionary<string, object>): Metadata for filtering.
+- Channel (required, string): Channel to publish file message.
+- FileId (required, string): File identifier.
+- FileName (required, string): File name.
+- Message (string): Payload.
+- Meta (string): Metadata for filtering.
 - ShouldStore (bool, default true): Store message in history.
-- CustomMessageType (string): 3–50 char case-sensitive label. Alphanumeric, dashes -, underscores _. Cannot start with special characters or pn_/pn-. Examples: text, action, poll.
-- Execute (System.Action<PNPublishFileMessageResult, PNStatus>): Callback.
+- CustomMessageType (string): 3–50 chars, case-sensitive alphanumeric; dashes/underscores allowed; cannot start with special chars or pn_/pn-. Examples: text, action, poll.
+- Execute (System.Action): System.Action of type PNPublishFileMessageResult.
 - ExecuteAsync: Returns Task<PNResult<PNPublishFileMessageResult>>.
 
 ### Sample code
@@ -302,6 +309,7 @@ Parameters:
 ```
 1
   
+
 ```
 
 ### Response
@@ -315,7 +323,11 @@ Parameters:
 
 ### Returns
 
-PublishFileMessage returns PNResult<PNPublishFileMessageResult>:
-- Result (PNPublishFileMessageResult):
-  - Timetoken (long)
+Returns PNResult<PNPublishFileMessageResult>:
+- Result (PNPublishFileMessageResult)
 - Status (PNStatus)
+
+PNPublishFileMessageResult:
+- Timetoken (long): Publish timetoken.
+
+Last updated on Sep 3, 2025

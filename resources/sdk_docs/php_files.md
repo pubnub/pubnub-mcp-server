@@ -1,12 +1,12 @@
 # File Sharing API for PHP SDK
 
-Upload and share files up to 5 MB. When a file is uploaded to a channel, it’s stored and associated with your key. Channel subscribers receive a file event containing file ID, filename, and optional description.
+Upload and share files up to 5 MB on a channel. When a file is uploaded, subscribers receive a file event with file ID, filename, and optional description.
 
-## Send file[​](#send-file)
+## Send file
 
-Upload a file to a channel, then publish a file message so others can access it. Internally calls publishFileMessage.
+Uploads a file to a channel and publishes a file message. Internally calls Publish file message to notify the channel.
 
-### Method(s)[​](#methods)
+### Method(s)
 
 ```
 `1$pubnub->sendFile()  
@@ -25,37 +25,36 @@ Upload a file to a channel, then publish a file message so others can access it.
 ```
 
 Parameters:
-- channel* (Type: string, Default: n/a) Channel for the file.
-- fileName* (Type: string, Default: n/a) Name of the file to send.
-- message (Type: string|array, Default: n/a) Message to send with the file.
-- shouldStore (Type: Boolean, Default: True) Store the published file message in channel history.
-- shouldCompress (Type: Boolean, Default: True) Compress the request payload.
-- ttl (Type: Int, Default: n/a) How long the message should be stored in the channel’s storage.
-- fileHandle* (Type: Resource, Default: n/a) Pointer to a resource to read and buffer.
-- fileContent* (Type: bytes or PHP file object, Default: n/a) Input stream with file content.
-- meta (Type: string|array, Default: n/a) Metadata usable for filtering.
-- customMessageType (Type: string, Default: n/a) Case-sensitive, 3–50 chars, alphanumeric, dashes and underscores allowed; cannot start with special characters or pn_/pn-. Examples: text, action, poll.
+- channel (required) – Type: string – Default: n/a – Channel for the file.
+- fileName (required) – Type: string – Default: n/a – Name of the file to send.
+- message – Type: string or array – Default: n/a – Message to send along with the file.
+- shouldStore – Type: Boolean – Default: True – Whether to store the published file message in channel history.
+- shouldCompress – Type: Boolean – Default: True – Whether to compress the request payload.
+- ttl – Type: Integer – Default: n/a – How long the message should be stored.
+- fileHandle (required) – Type: Resource – Default: n/a – Pointer to a resource to read into the buffer.
+- fileContent (required) – Type: bytes or PHP file object – Default: n/a – Input stream with file content.
+- meta – Type: string or array – Default: n/a – Metadata for message filtering.
+- customMessageType – Type: string – Default: n/a – 3–50 char, case-sensitive alphanumeric; dashes and underscores allowed; cannot start with special chars or pn_/pn-. Examples: text, action, poll.
 
-### Sample code[​](#sample-code)
+### Sample code
 
-##### Reference code
 ```
 1
   
 
 ```
 
-### Returns[​](#returns)
+### Returns
 
-Returns PNSendFileResult:
-- name (string) Name of the uploaded file.
-- fileId (string) ID of the uploaded file.
+PNSendFileResult:
+- name (string): Name of the uploaded file.
+- fileId (string): ID of the uploaded file.
 
-## List channel files[​](#list-channel-files)
+## List channel files
 
-Retrieve files uploaded to a channel.
+Retrieve a list of files uploaded to a channel.
 
-### Method(s)[​](#methods-1)
+### Method(s)
 
 ```
 `1$pubnub->listFiles()  
@@ -65,9 +64,9 @@ Retrieve files uploaded to a channel.
 ```
 
 Parameters:
-- channel* (Type: string, Default: n/a) Channel to list files from.
+- channel (required) – Type: string – Default: n/a – Channel to get the list of files.
 
-### Sample code[​](#sample-code-1)
+### Sample code
 
 ```
 1
@@ -75,25 +74,25 @@ Parameters:
 
 ```
 
-### Returns[​](#returns-1)
+### Returns
 
-Returns PNGetFilesResult:
-- next (string) Token for forward pagination.
-- prev (string) Token for backward pagination.
-- count (Int) Number of files returned.
-- data (Array of PNGetFilesItem)
+PNGetFilesResult:
+- next (string): Token for forward pagination.
+- prev (string): Token for backward pagination.
+- count (Int): Number of files returned.
+- data (Array): Array of PNGetFilesItem.
 
 PNGetFilesItem:
-- id (string) File ID.
-- name (string) File name.
-- size (string) File size.
-- creationTime (string) Creation time.
+- id (string): Id of the uploaded file.
+- name (string): Name of the uploaded file.
+- size (string): Size of the uploaded file.
+- creationTime (string): Time of creation.
 
-## Get file URL[​](#get-file-url)
+## Get file URL
 
-Generate a URL to download a file from a channel.
+Generate a URL to download a file from the target channel.
 
-### Method(s)[​](#methods-2)
+### Method(s)
 
 ```
 `1$pubnub.getFileDownloadUrl()  
@@ -105,11 +104,11 @@ Generate a URL to download a file from a channel.
 ```
 
 Parameters:
-- channel* (Type: string) Channel to which the file was uploaded.
-- fileName* (Type: string) Stored filename.
-- fileId* (Type: string) Unique identifier assigned during upload.
+- channel (required) – Type: string – Name of channel to which the file has been uploaded.
+- fileName (required) – Type: string – Name under which the uploaded file is stored.
+- fileId (required) – Type: string – Unique identifier for the file.
 
-### Sample code[​](#sample-code-2)
+### Sample code
 
 ```
 1
@@ -117,16 +116,16 @@ Parameters:
 
 ```
 
-### Returns[​](#returns-2)
+### Returns
 
-Returns PNGetFileDownloadURLResult:
-- fileUrl (string) URL to download the file.
+PNGetFileDownloadURLResult:
+- fileUrl (string): URL to download the requested file.
 
-## Download file[​](#download-file)
+## Download file
 
-Download a file from a channel.
+Download a file from the specified channel.
 
-### Method(s)[​](#methods-3)
+### Method(s)
 
 ```
 `1$pubnub.downloadFile()  
@@ -138,11 +137,11 @@ Download a file from a channel.
 ```
 
 Parameters:
-- channel* (Type: string) Channel to which the file was uploaded.
-- fileName* (Type: string) Stored filename.
-- fileId* (Type: string) Unique identifier assigned during upload.
+- channel (required) – Type: string – Name of channel to which the file has been uploaded.
+- fileName (required) – Type: string – Name under which the uploaded file is stored.
+- fileId (required) – Type: string – Unique identifier for the file.
 
-### Sample code[​](#sample-code-3)
+### Sample code
 
 ```
 1
@@ -150,16 +149,16 @@ Parameters:
 
 ```
 
-### Returns[​](#returns-3)
+### Returns
 
-Returns PNDownloadFileResult:
-- fileContent (bytes) The downloaded file content.
+PNDownloadFileResult:
+- fileContent (bytes): The file that was uploaded.
 
-## Delete file[​](#delete-file)
+## Delete file
 
-Delete a file from a channel.
+Delete a file from the specified channel.
 
-### Method(s)[​](#methods-4)
+### Method(s)
 
 ```
 `1$pubnub.deleteFile()  
@@ -171,11 +170,11 @@ Delete a file from a channel.
 ```
 
 Parameters:
-- channel* (Type: string) Channel to delete from.
-- fileId* (Type: string) File identifier.
-- fileName* (Type: string) File name.
+- channel (required) – Type: string – The channel from which to delete the file.
+- fileId (required) – Type: string – Unique identifier of the file to be deleted.
+- fileName (required) – Type: string – Name of the file to be deleted.
 
-### Sample code[​](#sample-code-4)
+### Sample code
 
 ```
 1
@@ -183,16 +182,16 @@ Parameters:
 
 ```
 
-### Returns[​](#returns-4)
+### Returns
 
-Returns PNDeleteFileResult:
-- status (Int) Status code.
+PNDeleteFileResult:
+- status (Int): Status code.
 
-## Publish file message[​](#publish-file-message)
+## Publish file message
 
-Publish an uploaded file message to a channel. Called by sendFile. Use directly if sendFile fails with status.operation === PNPublishFileMessageOperation to resend the message without re-uploading.
+Publish the uploaded file message to a specified channel. Called by sendFile to notify the channel that a file is available. Use directly if sendFile upload succeeded but publishing failed.
 
-### Method(s)[​](#methods-5)
+### Method(s)
 
 ```
 `1$pubnub.publishFileMessage()  
@@ -209,16 +208,16 @@ Publish an uploaded file message to a channel. Called by sendFile. Use directly 
 ```
 
 Parameters:
-- channel* (Type: String, Default: n/a) Channel name.
-- file_id* (Type: String, Default: n/a) File identifier.
-- file_name* (Type: String, Default: n/a) File name.
-- message (Type: Dictionary, Default: n/a) Payload.
-- meta (Type: Dictionary, Default: n/a) Metadata usable for filtering.
-- should_store (Type: Boolean, Default: True) Store in history; set False to skip.
-- ttl (Type: Int, Default: 0) How long to store the message; defaults to key set retention if not specified.
-- customMessageType (Type: string, Default: n/a) Case-sensitive, 3–50 chars, alphanumeric, dashes/underscores allowed; cannot start with special characters or pn_/pn-. Examples: text, action, poll.
+- channel (required) – Type: String – Default: n/a – Name of channel to publish file message.
+- file_id (required) – Type: String – Default: n/a – Unique identifier of the file.
+- file_name (required) – Type: String – Default: n/a – Name of the file.
+- message – Type: Dictionary – Default: n/a – The payload.
+- meta – Type: Dictionary – Default: n/a – Metadata for filtering.
+- should_store – Type: Boolean – Default: True – Whether to store this message in history.
+- ttl – Type: Int – Default: 0 – How long the message should be stored in history.
+- customMessageType – Type: string – Default: n/a – 3–50 char, case-sensitive alphanumeric; dashes and underscores allowed; cannot start with special chars or pn_/pn-. Examples: text, action, poll.
 
-### Sample code[​](#sample-code-5)
+### Sample code
 
 ```
 1
@@ -226,7 +225,7 @@ Parameters:
 
 ```
 
-### Returns[​](#returns-5)
+### Returns
 
-Returns PNPublishFileMessageResult:
-- timestamp (string) Timetoken when the message was published.
+PNPublishFileMessageResult:
+- timestamp (string): Timetoken when the message was published.

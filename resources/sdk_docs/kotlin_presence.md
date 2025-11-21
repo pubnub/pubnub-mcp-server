@@ -1,15 +1,13 @@
 # Presence API for Kotlin SDK
 
 ##### Breaking changes in v9.0.0
-PubNub Kotlin SDK v9.0.0 unifies Kotlin and Java SDKs, changes client instantiation, and updates asynchronous callbacks and emitted status events. Review the Java/Kotlin SDK migration guide for details.
+PubNub Kotlin SDK 9.0.0 unifies Kotlin and Java SDKs, changes client instantiation, asynchronous API callbacks, and emitted status events. Apps built with versions < 9.0.0 may be impacted. See Java/Kotlin SDK migration guide.
 
 Presence provides:
-- Join/leave events
-- Channel occupancy counts
-- Channels a UUID is subscribed to
-- Presence state per UUID
-
-Learn more in the Presence overview.
+- Join/leave notifications
+- Occupancy counts
+- Channels per user/device
+- Presence state per user
 
 ##### Request execution
 Most SDK methods return an Endpoint. You must call .sync() or .async() to execute.
@@ -27,18 +25,17 @@ Most SDK methods return an Endpoint. You must call .sync() or .async() to execut
 9}  
 ```
 
-## Here now[​](#here-now)
+## Here now
 
 ##### Requires Presence
-Presence add-on must be enabled for your key in the Admin Portal. See Presence Events to receive presence updates.
+Enable the Presence add-on for your key in the Admin Portal. See Presence Events to receive presence events.
 
-Returns current channel state: list of UUIDs subscribed and total occupancy.
+Returns current state of channels: list of UUIDs and total occupancy.
 
 ##### Cache
 3-second response cache.
 
-### Method(s)[​](#methods)
-
+### Method(s)
 ```
 `1pubnub.hereNow(  
 2    channels: ListString>,  
@@ -52,52 +49,52 @@ Returns current channel state: list of UUIDs subscribed and total occupancy.
 ```
 
 Parameters:
-- channels (List<String>, default: emptyList()) — Channels to query.
-- channelGroups (List<String>, default: emptyList()) — Channel groups to query. Wildcards not supported.
-- includeState (Boolean, default: false) — Include users’ presence state.
-- includeUUIDs (Boolean, default: true) — Include UUIDs of connected clients.
-- limit (Int, default: 1000) — Max occupants per channel. Range: 0–1000. 0 = occupancy only (UUIDs omitted).
-- offset (Int?, default: null) — Zero-based start index for pagination. Must be >= 0 and requires limit > 0.
+- channels: List<String>, default emptyList() — Channels to query.
+- channelGroups: List<String>, default emptyList() — Channel groups to query. Wildcards not supported.
+- includeState: Boolean, default false — Include presence states for occupants.
+- includeUUIDs: Boolean, default true — Include occupant UUIDs.
+- limit: Int, default 1000 — Max occupants per channel, range 0–1000. 0 returns occupancy only (UUIDs omitted).
+- offset: Int?, default null — Zero-based start index for pagination. Must be >= 0 and requires limit > 0.
 
-### Sample code[​](#sample-code)
+### Sample code
 
 ##### Reference code
-Use as a template for executing examples below.
-
-#### Get a list of UUIDs subscribed to channel[​](#get-a-list-of-uuids-subscribed-to-channel)
-
 ```
 1
   
-
 ```
 
-### Returns[​](#returns)
-hereNow() returns PNHereNowResult? with:
-- totalChannels (Int) — Total channels
-- totalOccupancy (Int) — Total occupancy
-- channels (Map<String, PNHereNowChannelData>) — Per-channel details
+#### Get a list of UUIDs subscribed to channel
+```
+1
+  
+```
+
+### Returns
+hereNow() returns PNHereNowResult?:
+- totalChannels: Int — Total channels.
+- totalOccupancy: Int — Total occupancy.
+- channels: Map<String, PNHereNowChannelData> — Per-channel data.
 
 PNHereNowChannelData:
-- channelName (String)
-- occupancy (Int)
-- occupants (List<PNHereNowOccupantData>)
+- channelName: String — Channel name.
+- occupancy: Int — Occupancy.
+- occupants: List<PNHereNowOccupantData> — Occupants list.
 
 PNHereNowOccupantData:
-- uuid (String)
-- state (JsonElement?)
+- uuid: String — User UUID.
+- state: JsonElement? — User state.
 
-### Other examples[​](#other-examples)
+### Other examples
 
-#### Returning state[​](#returning-state)
+#### Returning state
 
 ##### Requires Presence
-Presence add-on must be enabled. See Presence Events.
+Enable the Presence add-on for your key in the Admin Portal.
 
 ```
 1
   
-
 ```
 
 Example response:
@@ -122,17 +119,15 @@ Example response:
 `
 ```
 
-#### Return occupancy only[​](#return-occupancy-only)
+#### Return occupancy only
 
 ##### Requires Presence
-Presence add-on must be enabled. See Presence Events.
+Enable the Presence add-on for your key in the Admin Portal.
 
-Return occupancy only for a single channel by disabling UUIDs:
-
+Specify the channel and disable UUIDs (or set limit=0) to return occupancy only.
 ```
 1
   
-
 ```
 
 Example response:
@@ -153,12 +148,10 @@ Example response:
 `
 ```
 
-#### Here now for channel groups[​](#here-now-for-channel-groups)
-
+#### Here now for channel groups
 ```
 1
   
-
 ```
 
 Example response:
@@ -176,18 +169,17 @@ Example response:
 `
 ```
 
-## Where now[​](#where-now)
+## Where now
 
 ##### Requires Presence
-Presence add-on must be enabled. See Presence Events.
+Enable the Presence add-on for your key in the Admin Portal.
 
 Returns the list of channels a UUID is subscribed to.
 
 ##### Timeout events
 If the app restarts within the heartbeat window, no timeout event is generated.
 
-### Method(s)[​](#methods-1)
-
+### Method(s)
 ```
 `1pubnub.whereNow(  
 2    uuid: String  
@@ -196,46 +188,41 @@ If the app restarts within the heartbeat window, no timeout event is generated.
 ```
 
 Parameters:
-- uuid (String) — UUID to query.
+- uuid: String — UUID whose channel subscriptions to fetch.
 
-### Sample code[​](#sample-code-1)
+### Sample code
 
-#### Get a list of channels a UUID is subscribed to[​](#get-a-list-of-channels-a-uuid-is-subscribed-to)
-
+#### Get a list of channels a UUID is subscribed to
 ```
 1
   
-
 ```
 
-### Returns[​](#returns-1)
-whereNow() returns PNWhereNowResult? with:
-- channels (List<String>) — Channels where the uuid is present.
+### Returns
+whereNow() returns PNWhereNowResult?:
+- channels: List<String> — Channels where the UUID is present.
 
-### Other examples[​](#other-examples-1)
+### Other examples
 
-#### Obtain information about the current list of channels of some other UUID[​](#obtain-information-about-the-current-list-of-channels-of-some-other-uuid)
-
+#### Obtain information about the current list of channels of some other UUID
 ```
 1
   
-
 ```
 
-## User state[​](#user-state)
+## User state
 
 ##### Requires Presence
-Presence add-on must be enabled. See Presence State for details.
+Enable the Presence add-on for your key in the Admin Portal.
 
-Clients can set dynamic custom state for their users on one or more channels while subscribed. State isn’t persisted and is lost on disconnect.
+Clients can set dynamic custom state for users on one or more channels for as long as they’re subscribed. State isn’t persisted after disconnect.
 
 ##### Presence state format
 State must be a JsonObject (or a POJO serializable to JsonObject).
 
-### Method(s)[​](#methods-2)
+### Method(s)
 
-#### Set state[​](#set-state)
-
+#### Set state
 ```
 `1pubnub.setPresenceState(  
 2    channels: ListString>,  
@@ -247,13 +234,12 @@ State must be a JsonObject (or a POJO serializable to JsonObject).
 ```
 
 Parameters:
-- channels (List<String>) — Channels to set state on.
-- channelGroups (List<String>) — Channel groups to set state on.
-- state (Any) — The state to set (JsonObject/serializable).
-- uuid (String) — UUID to set state for.
+- channels: List<String> — Channels to set state on.
+- channelGroups: List<String> — Channel groups to set state on.
+- state: Any — State to set (JsonObject/serializable).
+- uuid: String — UUID to set state for.
 
-#### Get state[​](#get-state)
-
+#### Get state
 ```
 `1pubnub.getPresenceState(  
 2    channels: ListString>,  
@@ -264,37 +250,32 @@ Parameters:
 ```
 
 Parameters:
-- channels (List<String>) — Channels to get state of.
-- channelGroups (List<String>) — Channel groups to get state of.
-- uuid (String) — UUID to get state for.
+- channels: List<String> — Channels to get state for.
+- channelGroups: List<String> — Channel groups to get state for.
+- uuid: String — UUID to get state for.
 
-### Sample code[​](#sample-code-2)
-
+### Sample code
 ```
 1
   
-
 ```
 
-### Returns[​](#returns-2)
-setPresenceState() returns PNSetStateResult? with:
-- state (JsonElement) — The actual state object
+### Returns
+setPresenceState() returns PNSetStateResult?:
+- state: JsonElement — The state object.
 
-getPresenceState() returns PNSetStateResult? with:
-- stateByUUID (Map<String, JsonElement>) — Map of UUIDs to user states
+getPresenceState() returns PNSetStateResult?:
+- stateByUUID: Map<String, JsonElement> — Map of UUIDs to user states.
 
-### Other examples[​](#other-examples-2)
+### Other examples
 
-#### Set state for channels in channel group[​](#set-state-for-channels-in-channel-group)
-
+#### Set state for channels in channel group
 ```
 1
   
-
 ```
 
-#### Get state for UUID[​](#get-state-for-uuid)
-
+#### Get state for UUID
 ```
 1
 **

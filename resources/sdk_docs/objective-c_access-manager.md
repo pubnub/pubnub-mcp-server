@@ -1,13 +1,16 @@
 # Access Manager v3 API for Objective-C SDK
 
-Access Manager v3 issues time-limited tokens with embedded permissions for PubNub resources (channels, channel groups, UUID metadata). Permissions can target explicit resources or regex patterns and can differ per resource in a single grant. You can restrict token usage to a single client by setting the authorized UUID in the grant request. Objective-C SDK supports client-side usage only: parse and set tokens received from your server.
+Access Manager v3 provides tokens with embedded permissions for PubNub resources (channels, channel groups, UUID metadata). Tokens can:
+- Be time-limited (ttl).
+- Target resources by explicit lists or regex patterns.
+- Include mixed permission levels in a single grant.
+- Optionally restrict usage to an authorized UUID.
 
-Client device support only
-- Objective-C SDK cannot grant permissions. Use it to parse and set tokens issued by a server.
+Note: Objective-C SDK is client-only for Access Manager v3. It cannot grant permissions; it can only parse and set tokens from your server.
 
 ## Parse token
 
-Decodes a token and returns its embedded permissions and metadata (useful for debugging, checking ttl, resources, authorized UUID).
+Decodes an existing token and returns permissions and metadata for inspection (e.g., ttl, authorized UUID, resource permissions).
 
 ### Method(s)
 
@@ -16,8 +19,8 @@ Decodes a token and returns its embedded permissions and metadata (useful for de
 `
 ```
 
-Parameters
-- token (String): Current token with embedded permissions.
+Parameter:
+- token (String, required): Current token with embedded permissions.
 
 ### Sample code
 
@@ -58,7 +61,8 @@ Parameters
   
 29    // 6. Access explicit resources  
 30    NSLog(@"\nExplicit Resources:");  
-31  
+31
+  
 32    NSLog(@"Authorized channels:");  
 33    if (token.resources.channels.count > 0) {  
 34        [token.resources.channels enumerateKeysAndObjectsUsingBlock:^(NSString *channel, PNPAMResourcePermission *permission, BOOL *stop) {  
@@ -110,7 +114,8 @@ Parameters
 76    } else {  
 77        NSLog(@"  None");  
 78    }  
-79  
+79
+  
 80    NSLog(@"UUID patterns:");  
 81    if (token.patterns.uuids.count > 0) {  
 82        [token.patterns.uuids enumerateKeysAndObjectsUsingBlock:^(NSString *pattern, PNPAMResourcePermission *permission, BOOL *stop) {  
@@ -119,7 +124,8 @@ Parameters
 85    } else {  
 86        NSLog(@"  None");  
 87    }  
-88  
+88
+  
 89    // 8. Access metadata if present  
 90    if (token.meta.count > 0) {  
 91        NSLog(@"\nToken metadata:");  
@@ -135,7 +141,7 @@ Parameters
 
 ### Returns
 
-`PNPAMToken` instance with token metadata and permissions:
+Returns a PNPAMToken instance:
 
 ```
 1@interface PNPAMToken : NSObject  
@@ -197,25 +203,29 @@ Parameters
   
 43// Permissions granted to specific / regexp matching uuids  
 44@property (nonatomic, readonly, strong) NSDictionaryNSString *, PNPAMResourcePermission *> *uuids;  
-45  
+45
+  
 46@end  
-47  
+47
+  
 48@interface PNPAMResourcePermission : NSObject  
-49  
+49
+  
 50// Bit field with a given permission value  
 51@property (nonatomic, readonly, assign) PNPAMPermission value;  
-52  
+52
+  
 53@end  
 
 ```
 
 ### Error Responses
 
-If parsing fails, the token may be damaged. Request a new token from your server.
+If parsing fails, the token may be damaged. Request a new token from the server.
 
 ## Set token
 
-Updates the authentication token on the client.
+Sets or updates the authentication token provided by your server.
 
 ### Method(s)
 
@@ -224,8 +234,8 @@ Updates the authentication token on the client.
 `
 ```
 
-Parameters
-- token (String): Current token with embedded permissions.
+Parameter:
+- token (String, required): Current token with embedded permissions.
 
 ### Sample code
 

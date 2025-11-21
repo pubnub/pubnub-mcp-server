@@ -1,19 +1,20 @@
 # Access Manager v3 API for Swift SDK
 
-Access Manager v3 issues tokens with embedded permissions granting client access to PubNub resources (channels, channel groups, UUID metadata):
-- For a limited time (ttl in minutes).
-- Via explicit resources or pattern-based (regular expression) matches.
-- Mixed permission levels in one token (for example, `read` to `channel1`, `write` to `channel2`).
-- Optional authorized UUID: restricts token usage to a single `uuid`.
+Access Manager enforces security controls for client access to PubNub resources (channels, channel groups, UUID metadata) using time-limited tokens with embedded permissions. Permissions can be granted:
+- For a limited time (TTL).
+- To resource lists or patterns (regular expressions).
+- In a single request with differing permission levels.
 
-For details on Access Manager v3, see Manage Permissions with Access Manager v3.
+You can add the [authorized UUID](/docs/general/security/access-control#authorized-uuid) to restrict token usage to a single client UUID.
+
+For details, see [Manage Permissions with Access Manager v3](/docs/general/security/access-control).
 
 ##### Client device support only
-Swift SDK is client-only for Access Manager: you can parse and set server-issued tokens; you cannot grant permissions from the client.
+Swift SDK implements client-side Access Manager only: clients can parse and set tokens received from a server; they cannot grant permissions.
 
 ## Parse token
 
-The `parse()` method decodes an existing token and returns the permissions embedded in that token.
+Decodes an existing token and returns its embedded permissions and TTL.
 
 ### Method(s)
 
@@ -22,12 +23,12 @@ The `parse()` method decodes an existing token and returns the permissions embed
 `
 ```
 
-- token (required) Type: String. Current token with embedded permissions.
+- token
+  - Type: String
+  - Default: n/a
+  - Description: Current token with embedded permissions.
 
 ### Sample code
-
-##### Reference code
-This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
 
 ```
 1
@@ -37,7 +38,7 @@ This example is a self-contained code snippet ready to be run. It includes neces
 
 ### Returns
 
-Returns a `PAMToken` struct:
+This method responds with a struct of `PAMToken`:
 
 ```
 1struct PAMToken {  
@@ -91,11 +92,11 @@ Resource and pattern permissions are stored in `PAMTokenResource`:
 
 ### Error responses
 
-Errors during parsing may indicate a damaged token. Request a new token from your server.
+If parsing fails, the token may be damaged. Request a new token from the server.
 
 ## Set token
 
-The `set()` method updates the client’s authentication token granted by the server.
+Updates the authentication token on the client device.
 
 ### Method(s)
 
@@ -104,7 +105,10 @@ The `set()` method updates the client’s authentication token granted by the se
 `
 ```
 
-- token (required) Type: String. Current token with embedded permissions.
+- token
+  - Type: String
+  - Default: n/a
+  - Description: Current token with embedded permissions.
 
 ### Sample code
 

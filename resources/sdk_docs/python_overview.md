@@ -1,51 +1,45 @@
 # Python API & SDK Docs 10.4.1
 
-This guide demonstrates core PubNub concepts in Python:
-- Setting up a connection
-- Sending messages
-- Receiving messages in real-time
+This guide demonstrates how to connect, publish, and subscribe with the PubNub Python SDK.
 
-## Overview[​](#overview)
+## Overview
 
-Get PubNub running in your Python app to add real-time messaging for web, desktop, or IoT.
+Use the Python SDK to add real-time messaging to Python apps (web, desktop, IoT).
 
-## Prerequisites[​](#prerequisites)
+## Prerequisites
 
-- Basic Python knowledge
 - Python 3.9+
-- PubNub account and keyset
+- PubNub account and keyset (publish and subscribe keys)
 
-## Setup[​](#setup)
+## Setup
 
-### Get your PubNub keys[​](#get-your-pubnub-keys)
+### Get your PubNub keys
 
-- [Sign in](https://admin.pubnub.com/#/login) or [create an account](https://admin.pubnub.com/#/signup).
-- Create an app (or use an existing one).
-- Retrieve publish and subscribe keys from the app dashboard.
-- Use separate keysets for dev/prod when possible.
+- Sign in to the PubNub Admin Portal, create an app, and copy your publish and subscribe keys.
+- Use separate keysets for development and production.
 
-### Install the SDK[​](#install-the-sdk)
+### Install the SDK
 
 ##### SDK version
 
-Use the latest SDK for features, fixes, and security updates.
+Use the latest SDK for features, security, and performance.
 
-#### Use pip[​](#use-pip)
+#### Use pip
 
 ```
 `1pip install 'pubnub>=10.4.1'  
 `
 ```
 
-#### Source code[​](#source-code)
+#### Source code
 
-Download from the [Python SDK](https://github.com/pubnub/python/) repository. See [supported platforms](/docs/sdks/python/platform-support).
+You can also download the source from the Python SDK repository. See supported platforms for compatibility.
 
-## Steps[​](#steps)
+## Steps
 
-### Initialize PubNub[​](#initialize-pubnub)
+### Initialize PubNub
 
-Replace demo keys with your app keys from the Admin Portal.
+Replace demo keys with your own.
 
 ```
 1# Import required modules  
@@ -66,11 +60,9 @@ Replace demo keys with your app keys from the Admin Portal.
 
 ```
 
-See [Configuration](/docs/sdks/python/api-reference/configuration).
+### Set up event listeners
 
-### Set up event listeners[​](#set-up-event-listeners)
-
-Handle connection status updates with a listener:
+Handle connection status changes with a listener.
 
 ```
 1from pubnub.pubnub import SubscribeListener  
@@ -91,11 +83,9 @@ Handle connection status updates with a listener:
 
 ```
 
-See [Listeners](/docs/sdks/python/api-reference/configuration#event-listeners).
+### Create a subscription
 
-### Create a subscription[​](#create-a-subscription)
-
-Subscribe to a channel and handle messages:
+Subscribe to a channel and handle messages with a subscription-specific handler.
 
 ```
 1# Define the channel you want to subscribe to  
@@ -118,11 +108,9 @@ Subscribe to a channel and handle messages:
 
 ```
 
-Subscription-specific handlers are recommended. See [Subscribe](/docs/sdks/python/api-reference/publish-and-subscribe#subscribe).
+### Publish messages
 
-### Publish messages[​](#publish-messages)
-
-Messages must be JSON-serializable and < 32 KiB.
+Messages must be JSON-serializable and smaller than 32 KiB. Use sync() to block for a response; asynchronous alternatives include future() or async().
 
 ```
 1import time  
@@ -148,9 +136,7 @@ Messages must be JSON-serializable and < 32 KiB.
 
 ```
 
-The sync() method blocks for a response. For non-blocking, use future() or async().
-
-### Run the app[​](#run-the-app)
+### Run the app
 
 Save as pubnub_demo.py and run:
 
@@ -170,7 +156,7 @@ Published message with timetoken: 16967543908123456
 `
 ```
 
-## Complete example[​](#complete-example)
+## Complete example
 
 ```
 1import time  
@@ -246,31 +232,21 @@ Published message with timetoken: 16967543908123456
 
 ```
 
-### Troubleshooting[​](#troubleshooting)
+## Troubleshooting
 
-- No connection message:
-  - Check internet connectivity.
-  - Verify publish/subscribe keys.
-  - Ensure firewall/proxy allows PubNub.
+- No connection:
+  - Check internet, verify keys, ensure firewall allows PubNub.
 - Message not received:
-  - Confirm channel name and active subscription.
-  - Check publish errors.
-  - Allow time for delivery.
+  - Confirm channel name, check publish errors, allow time for delivery.
 - Import errors:
-  - Confirm package installation.
-  - Use a compatible Python version.
-  - Verify imports.
+  - Verify PubNub package installed, Python version compatible, imports correct.
 
-See [Troubleshooting](/docs/sdks/python/troubleshoot).
+## Next steps
 
-## Next steps[​](#next-steps)
-
-- Add [Channel Groups](/docs/sdks/python/api-reference/channel-groups).
-- Use [Presence](/docs/sdks/python/api-reference/presence).
-- Enable [Message Persistence](/docs/sdks/python/api-reference/storage-and-playback).
-- Secure with [Access Manager](/docs/sdks/python/api-reference/access-manager).
-- Explore the [GitHub repo](https://github.com/pubnub/python/) and [examples](https://github.com/pubnub/python/tree/master/examples).
-- See the [SDK reference](/docs/sdks/python/api-reference/configuration).
-- Join the [Discord community](https://discord.gg/pubnub) or visit [support](https://support.pubnub.com/).
+- Channel Groups
+- Presence
+- Message Persistence
+- Access Manager
+- SDK reference, examples, GitHub repository, Discord, and Support Portal
 
 Last updated on Sep 3, 2025

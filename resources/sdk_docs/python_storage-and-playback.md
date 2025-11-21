@@ -1,17 +1,10 @@
 # Message Persistence API for Python SDK
 
-Real-time access to stored messages with 10 ns timestamps. Messages are replicated across multiple zones and can be AES-256 encrypted. Retention options: 1 day, 7 days, 30 days, 3 months, 6 months, 1 year, Unlimited. You can retrieve:
-- Messages
-- Message reactions
-- Files (via File Sharing API)
+Real-time access to stored messages with 10 ns timetokens and optional AES-256 encryption. Configure message retention (1 day to Unlimited) in the Admin Portal. You can retrieve messages, message reactions, and files (via File Sharing API).
 
-## Request execution and return values
+##### Request execution and return values
 
-Operations support synchronous and asynchronous execution.
-
-`.sync()` returns an `Envelope` with:
-- `Envelope.result` (type depends on API)
-- `Envelope.status` (`PnStatus`)
+Synchronous: `.sync()` returns an `Envelope` with `Envelope.result` (type varies per API) and `Envelope.status` (`PnStatus`).
 
 ```
 `1pubnub.publish() \  
@@ -21,7 +14,7 @@ Operations support synchronous and asynchronous execution.
 `
 ```
 
-`.pn_async(callback)` returns `None` and invokes your callback with `result` and `status`.
+Asynchronous: `.pn_async(callback)` returns `None` and invokes your callback with `result` and `status`.
 
 ```
 1def my_callback_function(result, status):  
@@ -37,19 +30,19 @@ Operations support synchronous and asynchronous execution.
 
 ## Fetch history
 
-Requires Message Persistence (enable in the Admin Portal).
+##### Requires Message Persistence
 
-Fetch historical messages from one or more channels. Use `include_message_actions` to include message actions.
+Enable in the Admin Portal.
 
-Time range:
+Fetch historical messages for one or more channels. Use `include_message_actions` to include message actions. Result ordering/time window:
 - Only `start`: returns messages older than `start` (exclusive).
 - Only `end`: returns messages from `end` (inclusive) and newer.
-- Both `start` and `end`: returns messages between them (inclusive of `end`).
+- Both `start` and `end`: messages between, inclusive of `end`.
 
 Limits:
 - Single channel: up to 100 messages.
 - Multiple channels (up to 500): up to 25 per channel.
-- Page with iterative calls adjusting `start` as needed.
+- With `include_message_actions=True`: single channel only, max 25.
 
 ### Method(s)
 
@@ -68,11 +61,11 @@ Limits:
 ```
 
 Parameters:
-- channels (List<string>, required): Channels to return history for (max 500).
-- maximum_per_channel (Integer): Single channel default/max 100; if `include_message_actions=True` default/max 25 and limited to single channel. For multiple channels, default/max 25.
+- channels (List<string>, required): Channels to fetch (max 500).
+- maximum_per_channel (Integer): Default 100 (single channel) or 25 (multi-channel). With `include_message_actions=True`, default and max 25 on a single channel.
 - start (Integer): Exclusive start timetoken.
 - end (Integer): Inclusive end timetoken.
-- include_message_actions (Boolean, default False): Include associated message actions; limits to one channel, max 25.
+- include_message_actions (Boolean, default False): Include message actions; restricts to one channel and max 25.
 - include_meta (Boolean, default False): Include message metadata.
 - include_message_type (Boolean): Include PubNub message type.
 - include_custom_message_type (Boolean): Include custom message type.
@@ -80,7 +73,10 @@ Parameters:
 
 ### Sample code
 
-Reference code (async, builder pattern):
+Retrieve the last message on a channel:
+
+- Builder Pattern
+- Named Arguments
 
 ```
 1import os  
@@ -144,8 +140,6 @@ Reference code (async, builder pattern):
 
 ```
 
-Named arguments, sync:
-
 ```
 1message_envelope = pubnub.fetch_messages(channels=["my_channel"], maximum_per_channel=1, include_message_actions=True,  
 2    include_meta=True, include_message_type=True, include_custom_message_type=True, include_uuid=True).sync()  
@@ -176,28 +170,34 @@ Named arguments, sync:
 ### Returns
 
 `fetch_messages()` returns an `Envelope`:
-- result: `PNFetchMessagesResult`
-- status: `PNStatus`
+- result: PNFetchMessagesResult
+- status: PNStatus
 
-`PNFetchMessagesResult`:
-- channels (Dictionary<string, List<PNFetchMessageItem>>)
-- start_timetoken (Int)
-- end_timetoken (Int)
+PNFetchMessagesResult:
+- channels: Dictionary of PNFetchMessageItem
+- start_timetoken: Int
+- end_timetoken: Int
 
-`PNFetchMessageItem`:
-- message (String)
-- meta (Any)
-- message_type (Any)
-- custom_message_type (Any)
-- uuid (String)
-- timetoken (Int)
-- actions (List) — 3D list grouped by action type and value
+PNFetchMessageItem:
+- message: String
+- meta: Any
+- message_type: Any
+- custom_message_type: Any
+- uuid: String
+- timetoken: Int
+- actions: List (3D list grouped by action type and value)
 
 ## Delete messages from history
 
-Requires Message Persistence. Also requires enabling Delete-From-History in Admin Portal and initializing the SDK with a secret key.
+##### Requires Message Persistence
 
-Removes messages from a channel within a time range.
+Enable in the Admin Portal.
+
+##### Required setting
+
+Enable Delete-From-History and initialize the SDK with a secret key.
+
+Remove messages for a channel within a timetoken range.
 
 ### Method(s)
 
@@ -217,7 +217,8 @@ Parameters:
 
 ### Sample code
 
-Builder pattern:
+- Builder Pattern
+- Named Arguments
 
 ```
 `1envelope = PubNub(pnconf).delete_messages() \  
@@ -227,8 +228,6 @@ Builder pattern:
 5    .sync()  
 `
 ```
-
-Named arguments:
 
 ```
 `1envelope = pubnub.delete_messages(channels=["my_channel"], start=123, end=456).sync()  
@@ -241,9 +240,12 @@ Named arguments:
 
 ### Other examples
 
-Delete a specific message (use publish timetoken as `end`, and `start = timetoken - 1`):
+#### Delete specific message from history
 
-Builder pattern:
+Use publish timetoken as `end` and `timetoken -/+ 1` for `start`.
+
+- Builder Pattern
+- Named Arguments
 
 ```
 `1envelope = PubNub(pnconf).delete_messages() \  
@@ -254,8 +256,6 @@ Builder pattern:
 `
 ```
 
-Named arguments:
-
 ```
 `1envelope = pubnub.delete_messages(channels="my-ch", start=15526611838554309, end=15526611838554310).sync()  
 `
@@ -263,9 +263,9 @@ Named arguments:
 
 ## Message counts
 
-Requires Message Persistence.
+##### Requires Message Persistence
 
-Returns the number of messages published since the given timetoken(s). Only messages from the last 30 days are counted (even with unlimited retention).
+Counts messages with timetokens >= each provided value. With Unlimited retention, only the last 30 days are counted.
 
 ### Method(s)
 
@@ -277,12 +277,13 @@ Returns the number of messages published since the given timetoken(s). Only mess
 ```
 
 Parameters:
-- channel (String, required): Single or comma-separated channels.
-- channel_timetokens (List, required): List of timetokens (str or int), ordered to match channels.
+- channel (String, required): Single or comma-separated multiple channels.
+- channel_timetokens (List): Timetokens aligned to channels (str or int).
 
 ### Sample code
 
-Builder pattern:
+- Builder Pattern
+- Named Arguments
 
 ```
 `1envelope = pn.message_counts() \  
@@ -293,8 +294,6 @@ Builder pattern:
 `
 ```
 
-Named arguments:
-
 ```
 `1envelope = pubnub.message_counts(channels="my-ch", channel_timetokens=[15510391957007182]).sync()  
 `
@@ -303,17 +302,18 @@ Named arguments:
 ### Returns
 
 `message_counts()` returns an `Envelope`:
-- result: `PNMessageCountResult`
-- status: `PNStatus`
+- result: PNMessageCountResult
+- status: PNStatus
 
-`PNMessageCountResult`:
-- channels (Dictionary<string, int>): Missed message counts per channel.
+PNMessageCountResult:
+- channels: Dictionary of counts per channel
 
 ### Other examples
 
-Different timetokens for each channel:
+#### Retrieve count of messages using different timetokens for each channel
 
-Builder pattern:
+- Builder Pattern
+- Named Arguments
 
 ```
 `1envelope = pn.message_counts() \  
@@ -324,8 +324,6 @@ Builder pattern:
 `
 ```
 
-Named arguments:
-
 ```
 `1envelope = pubnub.message_counts(channels="unique_1,unique_100",  
 2    channel_timetokens=[15510391957007182, 15510391957007184]).sync()  
@@ -334,9 +332,17 @@ Named arguments:
 
 ## History (deprecated)
 
-Requires Message Persistence. Deprecated: use Fetch history instead.
+##### Requires Message Persistence
 
-Fetches historical messages of a channel with controls for order and pagination.
+Deprecated. Use Fetch history instead.
+
+Fetches historical messages for a channel with ordering, paging, and limits.
+
+Start/End usage:
+- Only `start`: returns messages older than and up to `start` (exclusive).
+- Only `end`: messages matching `end` and newer (inclusive).
+- Both: returns messages between (inclusive on `end`).
+- Max 100 per call; page by iterating with updated `start`.
 
 ### Method(s)
 
@@ -353,15 +359,17 @@ Fetches historical messages of a channel with controls for order and pagination.
 ```
 
 Parameters:
-- channel (String, required): Channel to fetch from.
-- include_meta (Boolean, default False): Include message meta.
-- reverse (Boolean, default False): If True, traverses from oldest first when paging beyond count.
-- include_timetoken (Boolean, default False): Include event timetokens in response.
+- channel (String, required): Channel to fetch.
+- include_meta (Boolean, default False): Include meta.
+- reverse (Boolean, default False): Traverse from oldest first; affects which end of the interval to start when more than `count` messages.
+- include_timetoken (Boolean, default False): Include event timetokens.
 - start (Integer): Exclusive start timetoken.
 - end (Integer): Inclusive end timetoken.
-- count (Integer): Number of messages to return (max 100).
+- count (Integer): Number of messages to return.
 
-Note on `reverse`: Results are always ascending by time within a page; `reverse` affects which end of the interval to page from when more than `count` messages exist.
+##### tip
+Using the `reverse` parameter
+Messages are returned in ascending time; `reverse` selects which end to start when paging beyond `count`.
 
 ### Sample code
 
@@ -377,18 +385,18 @@ Retrieve the last 100 messages on a channel:
 
 ### Returns
 
-`history()` returns a `PNHistoryResult`:
-- messages (List<PNHistoryItemResult>)
-- start_timetoken (Integer)
-- end_timetoken (Integer)
+`history()` returns `PNHistoryResult`:
+- messages: List<PNHistoryItemResult>
+- start_timetoken: Integer
+- end_timetoken: Integer
 
-`PNHistoryItemResult`:
-- timetoken (Integer)
-- entry (Object)
+PNHistoryItemResult:
+- timetoken: Integer
+- entry: Object
 
 ### Other examples
 
-Retrieve three oldest messages (reverse):
+#### Use history() to retrieve the three oldest messages by retrieving from the time line in reverse
 
 ```
 `1envelope = pubnub.history() \  
@@ -399,7 +407,7 @@ Retrieve three oldest messages (reverse):
 `
 ```
 
-Response:
+##### Response
 
 ```
 `1{  
@@ -422,7 +430,7 @@ Response:
 `
 ```
 
-Retrieve messages newer than a given timetoken (exclusive), paging oldest to newest:
+#### Use history() to retrieve messages newer than a given timetoken by paging from oldest message to newest message starting at a single point in time (exclusive)
 
 ```
 `1pubnub.history()\  
@@ -433,7 +441,7 @@ Retrieve messages newer than a given timetoken (exclusive), paging oldest to new
 `
 ```
 
-Response:
+##### Response
 
 ```
 `1{  
@@ -456,7 +464,7 @@ Response:
 `
 ```
 
-Retrieve messages until a given timetoken (inclusive), paging newest to oldest:
+#### Use history() to retrieve messages until a given timetoken by paging from newest message to oldest message until a specific end point in time (inclusive)
 
 ```
 `1pubnub.history()\  
@@ -469,7 +477,7 @@ Retrieve messages until a given timetoken (inclusive), paging newest to oldest:
 `
 ```
 
-Response:
+##### Response
 
 ```
 `1{  
@@ -492,7 +500,11 @@ Response:
 `
 ```
 
-History paging example:
+#### History paging example
+
+##### Usage
+
+Call with 0 or a valid timetoken.
 
 ```
 1def get_all_messages(start_tt):  
@@ -524,7 +536,7 @@ History paging example:
 
 ```
 
-Include timetoken in history response:
+#### Include timetoken in history response
 
 ```
 `1pubnub.history()\**2    .channel("my_channel")\  

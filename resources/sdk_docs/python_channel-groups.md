@@ -1,14 +1,12 @@
 # Channel Groups API for Python SDK
 
-Channel groups let you bundle many channels under one name and subscribe to them. You can't publish to a channel group; publish to individual channels.
+Channel groups bundle thousands of channels into a named group you can subscribe to. You can’t publish to a channel group—publish to individual channels instead.
 
 ##### Request execution and return values
 
-Operations can be run synchronously or asynchronously.
-
-`.sync()` returns an `Envelope` with:
-- `Envelope.result` (type varies by API)
-- `Envelope.status` (`PnStatus`)
+- `.sync()` returns an `Envelope` with:
+  - `Envelope.result` (type varies by API)
+  - `Envelope.status` (`PnStatus`)
 
 ```
 `1pubnub.publish() \  
@@ -18,7 +16,7 @@ Operations can be run synchronously or asynchronously.
 `
 ```
 
-`.pn_async(callback)` returns `None` and invokes your callback with `(result, status)`.
+- `.pn_async(callback)` returns `None` and passes `Envelope.result` and `Envelope.status` to your callback:
 
 ```
 1def my_callback_function(result, status):  
@@ -29,20 +27,19 @@ Operations can be run synchronously or asynchronously.
 5    .channel("myChannel") \  
 6    .message("Hello from PubNub Python SDK") \  
 7    .pn_async(my_callback_function)  
-
 ```
 
 ## Add channels to a channel group
 
 ##### Requires Stream Controller add-on
 
-Enable the Stream Controller add-on for your key in the Admin Portal.
+Enable the Stream Controller add-on for your key in the PubNub Admin Portal. See the support page for enabling add-ons.
 
 Adds channels to a channel group.
 
 ### Method(s)
 
-Maximum number of channels: 200 per API call.
+Maximum 200 channels per API call.
 
 ```
 `1pubnub.add_channel_to_channel_group() \  
@@ -51,9 +48,9 @@ Maximum number of channels: 200 per API call.
 `
 ```
 
-Parameters:
-- channels (String | List | Tuple): Channel(s) to add.
-- channel_group (String): Target channel group.
+- Required parameters:
+  - `channels` Type: String | List | Tuple — Channels to add to the `channel_group`.
+  - `channel_group` Type: String — Group to add the channels to.
 
 ### Sample code
 
@@ -104,7 +101,6 @@ Parameters:
   
 32if __name__ == "__main__":  
 33    main()  
-
 ```
 
 ```
@@ -150,15 +146,13 @@ Parameters:
 32if __name__ == "__main__":  
 33    main()  
 34
-  
-
 ```
 
 ### Returns
 
 `add_channel_to_channel_group()` returns an `Envelope` with:
-- result: `PNChannelGroupsAddChannelResult`
-- status: `PNStatus`
+- `result` PNChannelGroupsAddChannelResult
+- `status` PNStatus
 
 #### PNChannelGroupsAddChannelResult
 
@@ -171,6 +165,8 @@ Parameters:
 
 ##### Requires Stream Controller add-on
 
+Enable the Stream Controller add-on for your key in the Admin Portal. See the support page for enabling add-ons.
+
 Lists all channels in a channel group.
 
 ### Method(s)
@@ -181,8 +177,8 @@ Lists all channels in a channel group.
 `
 ```
 
-Parameters:
-- channel_group (String): Group to list.
+- Required parameters:
+  - `channel_group` Type: String — Group to fetch channels from.
 
 ### Sample code
 
@@ -206,17 +202,18 @@ Parameters:
 ### Returns
 
 `list_channels_in_channel_group()` returns an `Envelope` with:
-- result: `PNChannelGroupsListResult`
-- status: `PNStatus`
+- `result` PNChannelGroupsListResult
+- `status` PNStatus
 
 #### PNChannelGroupsListResult
 
-Field:
-- channels (Dictionary): A list of channels in a channel group.
+- `channels` Dictionary — List of channels in the group.
 
 ## Remove channels from a channel group
 
 ##### Requires Stream Controller add-on
+
+Enable the Stream Controller add-on for your key in the Admin Portal. See the support page for enabling add-ons.
 
 Removes channels from a channel group.
 
@@ -229,9 +226,9 @@ Removes channels from a channel group.
 `
 ```
 
-Parameters:
-- channels (String | List | Tuple): Channel(s) to remove.
-- channel_group (String): Group to remove from.
+- Required parameters:
+  - `channels` Type: String | List | Tuple — Channels to remove from the group.
+  - `channel_group` Type: String — Group to remove channels from.
 
 ### Sample code
 
@@ -256,8 +253,8 @@ Parameters:
 ### Returns
 
 `remove_channel_from_channel_group()` returns an `Envelope` with:
-- result: `PNChannelGroupsRemoveChannelResult`
-- status: `PNStatus`
+- `result` PNChannelGroupsRemoveChannelResult
+- `status` PNStatus
 
 #### PNChannelGroupsRemoveChannelResult
 
@@ -270,6 +267,8 @@ Parameters:
 
 ##### Requires Stream Controller add-on
 
+Enable the Stream Controller add-on for your key in the Admin Portal. See the support page for enabling add-ons.
+
 Deletes a channel group.
 
 ### Method(s)
@@ -279,8 +278,8 @@ Deletes a channel group.
 `
 ```
 
-Parameters:
-- channel_group (String): Group to remove.
+- Required parameters:
+  - `channel_group` Type: String — Group to remove.
 
 ### Sample code
 
@@ -304,10 +303,11 @@ Parameters:
 ### Returns
 
 `remove_channel_group()` returns an `Envelope` with:
-- result: `PNChannelGroupsRemoveGroupResult`
-- status: `PNStatus`
+- `result` PNChannelGroupsRemoveGroupResult
+- `status` PNStatus
 
 #### PNChannelGroupsRemoveGroupResult
 
 ```
 `1Group successfully removed**`
+```

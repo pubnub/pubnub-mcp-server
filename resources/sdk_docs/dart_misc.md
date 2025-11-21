@@ -4,7 +4,7 @@ Utility methods that don't fit into other categories.
 
 ## Pause
 
-Force the SDK to stop all requests to PubNub when there are active subscribe channels.
+Force the SDK to stop all requests to the PubNub server when there are active subscribe channels. This method doesn't take any arguments.
 
 ### Method(s)
 
@@ -13,11 +13,7 @@ Force the SDK to stop all requests to PubNub when there are active subscribe cha
 `
 ```
 
-This method doesn't take any arguments.
-
 ### Sample code
-
-##### Reference code
 
 ```
 1import 'package:pubnub/pubnub.dart';  
@@ -53,7 +49,7 @@ This method doesn't take any arguments.
 
 ## Resume
 
-Force the SDK to resume data transmission and reach PubNub.
+Force the SDK to try and reach out to PubNub. This method doesn't take any arguments.
 
 ### Method(s)
 
@@ -61,8 +57,6 @@ Force the SDK to resume data transmission and reach PubNub.
 `resume()  
 `
 ```
-
-This method doesn't take any arguments.
 
 ### Sample code
 
@@ -93,6 +87,8 @@ Example of creating a timetoken for a specific time and date:
 
 ### Method(s)
 
+To fetch Time:
+
 ```
 `1time()  
 `
@@ -107,5 +103,7 @@ Example of creating a timetoken for a specific time and date:
 
 ### Returns
 
-- Returns a Timetoken.
-- Timetoken.value(): int — current timetoken.
+The `time()` operation returns a `Timetoken`:
+- MethodDescription`value`Type: `int`Returns an `int` representation of current timetoken.
+
+Last updated on Aug 6, 2025

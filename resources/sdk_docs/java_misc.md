@@ -1,17 +1,14 @@
 # Utility Methods API for Java SDK
 
 ##### Breaking changes in v9.0.0
+PubNub Java SDK v9.0.0 unifies Java and Kotlin SDKs, introduces a new PubNub client instantiation, and changes async callbacks and emitted status events. These changes affect apps built with versions < 9.0.0. See Java/Kotlin SDK migration guide for details.
 
-Java SDK v9.0.0 unifies Java and Kotlin SDKs, introduces a new PubNub client instantiation approach, and changes async callbacks and emitted status events. Review the Java/Kotlin SDK migration guide for details.
+The methods below are utility helpers.
 
-The methods on this page are utility methods that don't fit into other categories.
+## Create push payload
+Create a push payload for use in endpoint calls.
 
-## Create push payload[​](#create-push-payload)
-
-Creates the push payload for use in endpoint calls.
-
-### Method(s)[​](#methods)
-
+### Method(s)
 ```
 1PushPayloadHelper helper = new PushPayloadHelper();  
 2    helper.setApnsPayload(PushPayloadHelper.APNSPayload());  
@@ -20,201 +17,164 @@ Creates the push payload for use in endpoint calls.
 5
   
 6MapString, Object> payload = helper.build();  
-
 ```
 
-- helper.setApnsPayload()  
-  Type: APNSPayload  
-  Sets APNs/APNs2 payload. Associated devices receive this under pn_apns.
+Parameters:
+- helper.setApnsPayload()
+  - Type: APNSPayload
+  - Sets APNs/APNs2 payload; delivered under pn_apns.
+- helper.setFcmPayloadV2()
+  - Type: FCMPayloadV2
+  - Sets FCM V2 payload; delivered under pn_fcm.
+- helper.setCommonPayload()
+  - Type: Map<String, Object>
+  - Sets common payload; delivered to native PubNub subscribers together with pn_apns and pn_fcm.
+- helper.build()
+  - Type: Map<String, Object>
+  - Builds the payload from the values set.
 
-- helper.setFcmPayloadV2()  
-  Type: FCMPayloadV2  
-  Sets FCM Payload V2. Associated devices receive this under pn_fcm.
-
-- helper.setCommonPayload()  
-  Type: Map<String, Object>  
-  Sets common payload. Native PubNub subscribers receive this together with pn_apns and pn_fcm objects.
-
-- helper.build()  
-  Type: Map<String, Object>  
-  Builds the payload from the values set.
-
-### Sample code[​](#sample-code)
+### Sample code
 
 ##### Reference code
-
-#### Create push payload[​](#create-push-payload-1)
-
 ```
 1
   
-
 ```
 
-### Response[​](#response)
+#### Create push payload
+```
+1
+  
+```
 
-PushPayloadHelper#build() returns a Map<String, Object> that can be passed as message() to pubnub.publish().
+### Response
+PushPayloadHelper#build() returns a Map<String, Object> that can be passed as the message() parameter to pubnub.publish().
 
-## Destroy[​](#destroy)
+## Destroy
+Frees up threads and allows clean exit.
 
-Frees up threads for a clean exit.
-
-### Method(s)[​](#methods-1)
-
+### Method(s)
 ```
 `1destroy()  
 `
 ```
 
-### Sample code[​](#sample-code-1)
-
+### Sample code
 ```
 1
   
-
 ```
 
-### Returns[​](#returns)
-
+### Returns
 None
 
-## Get subscribed channel groups[​](#get-subscribed-channel-groups)
+## Get subscribed channel groups
+Returns all subscribed channel groups as List<String>.
 
-Returns all subscribed channel groups.
-
-### Method(s)[​](#methods-2)
-
+### Method(s)
 ```
 `1public final ListString> getSubscribedChannelGroups()  
 `
 ```
 
-### Sample code[​](#sample-code-2)
-
-#### Get subscribed channel groups[​](#get-subscribed-channel-groups-1)
-
+### Sample code
+#### Get subscribed channel groups
 ```
 1
   
-
 ```
 
-### Response[​](#response-1)
-
+### Response
 List<String>
-
 ```
 `1["channelGroup1", "channelGroup2"]  
 `
 ```
 
-## Get subscribed channels[​](#get-subscribed-channels)
+## Get subscribed channels
+Returns all subscribed channels as List<String>.
 
-Returns all subscribed channels.
-
-### Method(s)[​](#methods-3)
-
+### Method(s)
 ```
 `1public final ListString> getSubscribedChannels()  
 `
 ```
 
-### Sample code[​](#sample-code-3)
-
-#### Get subscribed channels[​](#get-subscribed-channels-1)
-
+### Sample code
+#### Get subscribed channels
 ```
 1
   
-
 ```
 
-### Response[​](#response-2)
-
+### Response
 List<String>
-
 ```
 `1["channel1", "channel2"]  
 `
 ```
 
-## Disconnect[​](#disconnect)
-
+## Disconnect
 Stops all requests to PubNub when there are active subscribe channels.
 
-### Method(s)[​](#methods-4)
-
+### Method(s)
 ```
 `1disconnect()  
 `
 ```
+No arguments.
 
-This method doesn't take any arguments.
-
-### Sample code[​](#sample-code-4)
-
+### Sample code
 ```
 1
   
-
 ```
 
-## Reconnect[​](#reconnect)
+## Reconnect
+Forces the SDK to try to reach PubNub.
 
-Forces the SDK to try and reach PubNub.
-
-### Method(s)[​](#methods-5)
-
+### Method(s)
 ```
 `1reconnect(long timetoken)  
 `
 ```
 
-- timetoken  
-  Type: long  
-  Timetoken to reconnect from.
+Parameters:
+- timetoken
+  - Type: long
+  - Timetoken to reconnect from.
 
-### Sample code[​](#sample-code-5)
-
+### Sample code
 ```
 1
   
-
 ```
 
-## Timetoken to date[​](#timetoken-to-date)
+## Timetoken to date
+Convert a PubNub timetoken (100-ns intervals since 1970-01-01) to Instant.
 
-Converts a PubNub timetoken (100-ns intervals since Jan 1, 1970) to an Instant.
-
-### Method signature[​](#method-signature)
-
+### Method signature
 ```
 `1Instant TimetokenUtil.timetokenToInstant(long timetoken)  
 `
 ```
 
-#### Input[​](#input)
+Input:
+- timetoken
+  - Type: long
+  - PubNub timetoken to convert.
 
-- timetoken  
-  Type: long  
-  PubNub timetoken to convert.
+Output:
+- Instant — human-readable date-time.
 
-#### Output[​](#output)
-
-- Instant — human-readable date/time representation.
-
-### Sample code[​](#sample-code-6)
-
-Convert a timetoken value of 17276954606232118:
-
+### Sample code
+Convert 17276954606232118 to date/time.
 ```
 1
   
-
 ```
 
 Output:
-
 ```
 `PubNub timetoken: 17276954606232118  
 Current date: 2024-09-30  
@@ -222,35 +182,28 @@ Current time: 11:24:20.623211800
 `
 ```
 
-## Date to timetoken[​](#date-to-timetoken)
+## Date to timetoken
+Convert an Instant to a PubNub timetoken.
 
-Converts an Instant to a PubNub timetoken (100-ns intervals since Jan 1, 1970).
-
-### Method signature[​](#method-signature-1)
-
+### Method signature
 ```
 `1long TimetokenUtil.instantToTimetoken(Instant instant)  
 `
 ```
 
-#### Input[​](#input-1)
+Input:
+- instant
+  - Type: Instant
+  - Date/time to convert.
 
-- instant  
-  Type: Instant  
-  Date/time to convert.
-
-#### Output[​](#output-1)
-
+Output:
 - long — converted timetoken.
 
-### Sample code[​](#sample-code-7)
-
-Convert September 30, 2024 12:12:24 GMT:
-
+### Sample code
+Convert September 30, 2024 12:12:24 GMT to timetoken.
 ```
 1
   
-
 ```
 
 ```
@@ -260,39 +213,31 @@ PubNub timetoken: 17276983641234567
 `
 ```
 
-## Unix timestamp to timetoken[​](#unix-timestamp-to-timetoken)
+## Unix timestamp to timetoken
+Convert a Unix timestamp (seconds since 1970-01-01) to a PubNub timetoken.
 
-Converts a Unix timestamp (seconds since Jan 1, 1970) to a PubNub timetoken.
-
-### Method signature[​](#method-signature-2)
-
+### Method signature
 ```
 `1long TimetokenUtil.unixToTimetoken(long unixTime)  
 `
 ```
 
-#### Input[​](#input-2)
+Input:
+- unixTime
+  - Type: long
+  - Unix timestamp to convert.
 
-- unixTime  
-  Type: long  
-  Unix timestamp to convert.
-
-#### Output[​](#output-2)
-
+Output:
 - long — converted timetoken.
 
-### Sample code[​](#sample-code-8)
-
-Convert Unix timestamp 1727866935316 (2024-10-02 11:02:15.316):
-
+### Sample code
+Convert Unix timestamp 1727866935316 (2024-10-02 11:02:15.316) to timetoken:
 ```
 1
   
-
 ```
 
 Output:
-
 ```
 `PubNub timetoken: 17278669353160000  
 Current date: 2024-10-02  
@@ -300,39 +245,31 @@ Current time: 11:02:15.316
 `
 ```
 
-## Timetoken to Unix timestamp[​](#timetoken-to-unix-timestamp)
+## Timetoken to Unix timestamp
+Convert a PubNub timetoken to a Unix timestamp (seconds since 1970-01-01).
 
-Converts a PubNub timetoken to a Unix timestamp (seconds since Jan 1, 1970).
-
-### Method signature[​](#method-signature-3)
-
+### Method signature
 ```
 `1long TimetokenUtil.timetokenToUnix(long timetoken)  
 `
 ```
 
-#### Input[​](#input-3)
+Input:
+- timetoken
+  - Type: long
+  - Timetoken to convert.
 
-- timetoken  
-  Type: long  
-  PubNub timetoken to convert.
-
-#### Output[​](#output-3)
-
+Output:
 - long — converted Unix timestamp.
 
-### Sample code[​](#sample-code-9)
-
-Convert PubNub timetoken 17276954606232118 (2024-09-30 11:24:20.623211800):
-
+### Sample code
+Convert PubNub timetoken 17276954606232118 (2024-09-30 11:24:20.623211800) to Unix time:
 ```
 1
   
-
 ```
 
 Output:
-
 ```
 `Current date: 2024-09-30**Current time: 11:24:20.623  
 PubNub timetoken: 17276954606232118  

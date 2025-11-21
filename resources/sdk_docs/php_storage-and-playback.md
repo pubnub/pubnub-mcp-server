@@ -1,29 +1,26 @@
 # Message Persistence API for PHP SDK
 
-Message Persistence stores each message with a timetoken (10-ns precision) across multiple availability zones. Optional AES-256 encryption is supported. See Message Persistence docs for details and retention options (1 day, 7 days, 30 days, 3 months, 6 months, 1 year, Unlimited).
-
-Retrievable data:
+Message Persistence provides real-time access to stored, timestamped messages across multiple regions with optional AES-256 encryption. Retention options: 1 day, 7 days, 30 days, 3 months, 6 months, 1 year, Unlimited. You can retrieve:
 - Messages
 - Message reactions
 - Files (via File Sharing API)
 
 ## Fetch history
 
-##### Requires Message Persistence
-Enable Message Persistence for your key in the Admin Portal.
+Requires Message Persistence: enable for your key in the Admin Portal.
 
-Fetch historical messages from one or more channels. Use includeMessageActions to include message actions.
+Fetch historical messages from one or more channels, optionally including message actions, meta, message type, custom type, and publisher UUID.
 
-Time window behavior:
-- Only start: returns messages older than start.
-- Only end: returns messages from end and newer.
-- Both start and end: returns messages between them (end inclusive).
+Ordering and time window:
+- start only: returns messages older than start (exclusive).
+- end only: returns messages from end (inclusive) and newer.
+- start and end: returns messages between them (inclusive of end).
 
 Limits:
 - Single channel: up to 100 messages.
 - Multiple channels (up to 500): up to 25 per channel.
-- With includeMessageActions: max one channel and 25 messages.
-- Page by iteratively adjusting start.
+- With includeMessageActions: limited to 1 channel and 25 messages.
+Use iterative calls and adjust start to page through results.
 
 ### Method(s)
 
@@ -42,15 +39,15 @@ Limits:
 ```
 
 Parameters:
-- channels (string | Array<string>): Required. Channels to fetch (up to 500).
-- maximumPerChannel (Int): Default/Max: 100 (single), 25 (multi), 25 with includeMessageActions.
-- start (string): Timetoken start (exclusive).
-- end (string): Timetoken end (inclusive).
-- includeMessageActions (Boolean): Default false. Include message actions. When true: one channel, 25 messages.
-- includeMeta (Boolean): Default false. Include meta object (if published with meta).
-- includeMessageType (Boolean): Include message type.
-- includeCustomMessageType (Boolean): Include custom message type.
-- includeUuid (Boolean): Include publisher uuid.
+- channels (required) — Type: string or Array<string>; Channels to fetch from (up to 500).
+- maximumPerChannel — Type: Int; Default: 25 or 100; Max messages to return. Defaults/maximums: 100 (single channel), 25 (multi-channel), 25 with includeMessageActions.
+- start — Type: string; Timetoken start (exclusive).
+- end — Type: string; Timetoken end (inclusive).
+- includeMessageActions — Type: Boolean; Default: False; Include message actions; when True, limited to one channel and 25 messages.
+- includeMeta — Type: Boolean; Default: False; Include meta object if provided at publish.
+- includeMessageType — Type: Boolean; Include message type.
+- includeCustomMessageType — Type: Boolean; Include custom message type.
+- includeUuid — Type: Boolean; Include publisher uuid.
 
 ### Sample code
 
@@ -67,40 +64,35 @@ This example is a self-contained code snippet ready to be run. It includes neces
 
 ### Returns
 
-fetchMessages() returns PNFetchMessagesResult:
+PNFetchMessagesResult:
+- channels — Type: Array; Array of PNFetchMessageItem.
+- startTimetoken — Type: Int; Start timetoken.
+- endTimetoken — Type: Int; End timetoken.
 
-#### PNFetchMessagesResult
-- channels (Array): Array of PNFetchMessageItem
-- startTimetoken (Int): Start timetoken
-- endTimetoken (Int): End timetoken
-
-#### PNFetchMessageItem
-- message (string): The message
-- meta (Any): Meta value
-- messageType (Any): Message type
-- customMessageType (Any): Custom message type
-- uuid (string): Sender UUID
-- timetoken (Int): Message timetoken
-- actions (List): 3D list of message actions grouped by type and value
+PNFetchMessageItem:
+- message — Type: string; Message.
+- meta — Type: Any; Meta value.
+- messageType — Type: Any; Message type.
+- customMessageType — Type: Any; Custom message type.
+- uuid — Type: string; Sender UUID.
+- timetoken — Type: Int; Message timetoken.
+- actions — Type: List; 3D list of message actions grouped by type and value.
 
 ## History
 
-##### Requires Message Persistence
-Enable Message Persistence for your key in the Admin Portal.
+Requires Message Persistence: enable for your key in the Admin Portal.
 
-Fetch historical messages for a channel. Control order and range:
+Fetch historical messages for a single channel. Control order and window:
+- reverse = false (default): search from newest end of the timeline.
+- reverse = true: search from oldest end.
+- Page with start OR end; slice with both (end inclusive).
+- Limit with count (max 100 messages per request).
 
-- reverse=false (default): Search from newest end.
-- reverse=true: Search from oldest end.
-- Page with start OR end.
-- Slice with both start AND end (end inclusive).
-- Limit count via count (max 100 per request).
-
-Start/End clarity:
-- Only start: older than start.
-- Only end: end and newer.
-- Both: between start and end (end inclusive).
-Max 100 messages per call; page by updating start.
+Start/End usage:
+- start only: messages older than start (exclusive).
+- end only: messages at end and newer.
+- start and end: messages between them (end inclusive).
+Page by iteratively calling history and adjusting start if more than count/100 messages match.
 
 ### Method(s)
 
@@ -117,15 +109,14 @@ Max 100 messages per call; page by updating start.
 ```
 
 Parameters:
-- channel (String): Required. Channel to fetch.
-- reverse (Boolean): Default false. Traverse from oldest to newest when true.
-- includeTimetoken (Boolean): Default false. Include message timetokens.
-- start (Integer): Start timetoken (exclusive).
-- end (Integer): End timetoken (inclusive).
-- count (Integer): Number of messages to return (max 100).
+- channel (required) — Type: String; Channel to return history from.
+- reverse — Type: Boolean; Default: false; Traverse from oldest to newest when true.
+- includeTimetoken — Type: Boolean; Default: false; Include message timetokens.
+- start — Type: Integer; Start timetoken (exclusive).
+- end — Type: Integer; End timetoken (inclusive).
+- count — Type: Integer; Number of messages to return.
 
-Tip on reverse:
-- Messages are returned in ascending time order. reverse affects which end to begin retrieving when more than count messages exist in the interval.
+Tip: Messages are returned sorted ascending by time. reverse affects which end of the interval to start from when more than count messages match.
 
 ### Sample code
 
@@ -139,15 +130,14 @@ Retrieve the last 5 messages on a channel:
 
 ### Response
 
-history() returns PNHistoryResult:
+PNHistoryResult:
+- getMessages() — Type: Array; Array of PNHistoryItemResult.
+- getStartTimetoken() — Type: Integer; Start timetoken.
+- getEndTimetoken() — Type: Integer; End timetoken.
 
-- getMessages() (Array): Array of PNHistoryItemResult
-- getStartTimetoken() (Integer): Start timetoken
-- getEndTimetoken() (Integer): End timetoken
-
-#### PNHistoryItemResult
-- getTimetoken() (Integer): Message timetoken
-- getEntry() (Object): Message
+PNHistoryItemResult:
+- getTimetoken() — Type: Integer; Message timetoken.
+- getEntry() — Type: Object; Message.
 
 ### Other examples
 
@@ -236,13 +226,16 @@ history() returns PNHistoryResult:
 24                [a] => 55  
 25                [b] => 66  
 26            )  
-27  
+27
+  
 28            [crypto:PubNub\Models\Consumer\History\PNHistoryItemResult:private] =>  
 29            [timetoken:PubNub\Models\Consumer\History\PNHistoryItemResult:private] => 2222  
 30        )  
-31  
+31
+  
 32    )  
-33  
+33
+  
 34    [startTimetoken:PubNub\Models\Consumer\History\PNHistoryResult:private] => 13406746729185766  
 35    [endTimetoken:PubNub\Models\Consumer\History\PNHistoryResult:private] => 13406746780720711  
 36)  
@@ -267,7 +260,8 @@ history() returns PNHistoryResult:
 5                [a] => 11  
 6                [b] => 22  
 7            )  
-8  
+8
+  
 9            [crypto:PubNub\Models\Consumer\History\PNHistoryItemResult:private] =>  
 10            [timetoken:PubNub\Models\Consumer\History\PNHistoryItemResult:private] => 1111  
 11        )  
@@ -276,7 +270,8 @@ history() returns PNHistoryResult:
 14                [a] => 33  
 15                [b] => 44  
 16            )  
-17  
+17
+  
 18            [crypto:PubNub\Models\Consumer\History\PNHistoryItemResult:private] =>  
 19            [timetoken:PubNub\Models\Consumer\History\PNHistoryItemResult:private] => 2222  
 20        )  
@@ -285,7 +280,8 @@ history() returns PNHistoryResult:
 23                [a] => 55  
 24                [b] => 66  
 25            )  
-26  
+26
+  
 27            [crypto:PubNub\Models\Consumer\History\PNHistoryItemResult:private] =>  
 28            [timetoken:PubNub\Models\Consumer\History\PNHistoryItemResult:private] => 2222  
 29        )  
@@ -311,14 +307,11 @@ history() returns PNHistoryResult:
 
 ## Delete messages from history
 
-##### Requires Message Persistence
-Enable Message Persistence for your key in the Admin Portal.
+Requires Message Persistence: enable for your key in the Admin Portal.
 
-Remove messages from a channel’s history.
+Required setting: Enable Delete-From-History for your key and initialize the SDK with a secret key.
 
-Required setting:
-- Enable Delete-From-History in Admin Portal.
-- Initialize the SDK with a secret key.
+Remove messages from a channel’s history within a time window.
 
 ### Method(s)
 
@@ -332,9 +325,9 @@ Required setting:
 ```
 
 Parameters:
-- channel (String): Required. Channel to delete from.
-- start (Integer): Start timetoken (inclusive).
-- end (Integer): End timetoken (exclusive).
+- channel (required) — Type: String; Channel to delete from.
+- start — Type: Integer; Start timetoken (inclusive).
+- end — Type: Integer; End timetoken (exclusive).
 
 ### Sample code
 
@@ -348,7 +341,7 @@ Parameters:
 
 #### Delete specific message from history
 
-Pass the publish timetoken as End and timetoken-1 as Start.
+Delete a specific message by passing its publish timetoken in end and timetoken-1 in start. Example: publish timetoken 15526611838554310 → start 15526611838554309, end 15526611838554310.
 
 ```
 1
@@ -358,13 +351,9 @@ Pass the publish timetoken as End and timetoken-1 as Start.
 
 ## Message counts
 
-##### Requires Message Persistence
-Enable Message Persistence for your key in the Admin Portal.
+Requires Message Persistence: enable for your key in the Admin Portal.
 
-Return the number of messages published since the given time. Counts messages with timetoken >= channelsTimetoken.
-
-Unlimited message retention:
-- Only messages from the last 30 days are counted.
+Return the number of messages published since the given time. Count equals messages with timetoken >= channelsTimetoken. With Unlimited retention, only the last 30 days are counted.
 
 ### Method(s)
 
@@ -376,8 +365,8 @@ Unlimited message retention:
 ```
 
 Parameters:
-- channels (Array): Required. Channels to count.
-- channelsTimetoken (Array): Required. Single timetoken applies to all channels, or provide one per channel (same order). Otherwise returns PNStatus error.
+- channels (required) — Type: Array; Channels to count messages for.
+- channelsTimetoken (required) — Type: Array; Timetokens aligned with channels. A single timetoken applies to all channels; otherwise, array lengths must match or a PNStatus error is returned.
 
 ### Sample code
 
@@ -390,7 +379,7 @@ Parameters:
 ### Returns
 
 PNMessageCountsResult:
-- getChannels() (Array): Associative array channel => count. Channels with no messages: 0. Channels with >= 10,000 messages: 10000.
+- getChannels() — Type: Array; Associative array of channel => count. Channels with 0 messages return 0. Channels with >= 10,000 messages return 10000.
 
 ### Other examples
 

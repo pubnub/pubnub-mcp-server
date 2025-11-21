@@ -1,20 +1,30 @@
 # Message Persistence API for Unreal SDK
 
-Message Persistence provides real-time access to stored messages (timestamped to ~10 ns). Messages can be AES-256 encrypted. Configure retention per key (1 day, 7 days, 30 days, 3 months, 6 months, 1 year, Unlimited). You can retrieve:
+Message Persistence provides access to stored, timestamped messages (10 ns precision) replicated across multiple regions. Stored messages can be encrypted with AES-256. See Message Persistence.
+
+Retention policy options: 1 day, 7 days, 30 days, 3 months, 6 months, 1 year, Unlimited.
+
+Retrievable data:
 - Messages
 - Message reactions
 - Files (via File Sharing API)
 
-Use via Blueprints (Pubnub Subsystem) or C++.
+You can use PubNub via Blueprints or C++.
 
-To use in C++, add a dependency to PubnubLibrary in Source/YourProject/YourProject.Build.cs:
+In Blueprints, use the Pubnub Subsystem node.
+
+In C++, add a dependency to PubnubLibrary:
+
+In `Source/_{YourProject}_/_{YourProject}_.Build.cs`:
 
 ```
 `PrivateDependencyModuleNames.AddRange(new string[] { "PubnubLibrary" });  
 `
 ```
 
-Initialize and access the subsystem:
+Compile and run the project.
+
+Access the subsystem in C++:
 
 ```
 #include "Kismet/GameplayStatics.h"  
@@ -35,18 +45,20 @@ Example:
 
 ### Usage in Blueprints and C++
 
-## Fetch history[​](#fetch-history)
+## Fetch history
 
 Requires Message Persistence enabled for your key in the Admin Portal.
 
-Fetch historical messages from one or multiple channels. You can include message actions. Ordering and window:
-- Start only: returns messages older than Start timetoken.
-- End only: returns messages from End timetoken and newer.
-- Start and End: returns messages between them (End inclusive).
+Fetch historical messages from channels. IncludeMessageActions can fetch actions along with messages.
 
-Limits: up to 100 messages on a single channel, or 25 per channel on up to 500 channels. For pagination, iteratively update Start.
+Ordering:
+- Start only: messages older than Start timetoken.
+- End only: messages from End timetoken and newer.
+- Start and End: messages between Start and End (End inclusive).
 
-### Method(s)[​](#methods)
+Limits: up to 100 messages on a single channel, or 25 per channel on up to 500 channels. For paging, iteratively update Start. If IncludeMessageActions = true, limited to one channel and 25 messages.
+
+### Method(s)
 
 ```
 `1PubnubSubsystem->FetchHistory(  
@@ -57,29 +69,34 @@ Limits: up to 100 messages on a single channel, or 25 per channel on up to 500 c
 `
 ```
 
-- Channel (FString): Target channel.
-- OnFetchHistoryResponse (FOnFetchHistoryResponse): Operation result delegate. Native callback alternative: FOnFetchHistoryResponseNative.
-- FetchHistorySettings (FPubnubFetchHistorySettings): History request configuration.
+Parameters:
+- Channel — Type: FString. The channel to fetch messages from.
+- OnFetchHistoryResponse — Type: FOnFetchHistoryResponse. Delegate for the result. You can also use FOnFetchHistoryResponseNative to handle the result using a lambda.
+- FetchHistorySettings — Type: FPubnubFetchHistorySettings. History configuration.
 
-#### FPubnubFetchHistorySettings[​](#fpubnubfetchhistorysettings)
+#### FPubnubFetchHistorySettings
 
-- MaxPerChannel (int): Messages to return. Default/max 100 for single channel; 25 for multiple channels; 25 if IncludeMessageActions is true.
-- Reverse (bool): If true, oldest first. Default false.
-- Start (FString): Start timetoken (exclusive).
-- End (FString): End timetoken (inclusive).
-- IncludeMeta (bool): Include meta.
-- IncludeMessageType (bool): Include message type. Default false.
-- IncludeUserID (bool): Include publisher uuid. Default false.
-- IncludeMessageActions (bool): Include message actions. If true, limited to one channel and 25 messages. Default false.
-- IncludeCustomMessageType (bool): Include custom message type.
+- MaxPerChannel — Type: int. Number of messages to return. Default/max: 100 for single channel; 25 for multiple channels; 25 if IncludeMessageActions = true.
+- Reverse — Type: bool. If true, traverse from oldest first. Default false.
+- Start — Type: FString. Timetoken delimiting the start (exclusive).
+- End — Type: FString. Timetoken delimiting the end (inclusive).
+- IncludeMeta — Type: bool. Include meta in response.
+- IncludeMessageType — Type: bool. Include message type. Default false.
+- IncludeUserID — Type: bool. Include publisher uuid. Default false.
+- IncludeMessageActions — Type: bool. Retrieve messages with message actions. If true, limited to one channel and 25 messages. Default false.
+- IncludeCustomMessageType — Type: bool. Retrieve custom message type.
 
-### Sample code[​](#sample-code)
+For more details, see Retrieving Messages.
+
+### Sample code
+
+Reference code
+Set up your Unreal project and follow the instructions in the lines marked with ACTION REQUIRED before running the code.
 
 - C++
 - Blueprint
 
-#### Actor.h[​](#actorh)
-  
+#### Actor.h
 
 ```
 1
@@ -87,8 +104,7 @@ Limits: up to 100 messages on a single channel, or 25 per channel on up to 500 c
 
 ```
 
-#### Actor.cpp[​](#actorcpp)
-  
+#### Actor.cpp
 
 ```
 1
@@ -98,57 +114,50 @@ Limits: up to 100 messages on a single channel, or 25 per channel on up to 500 c
 
 ##### Truncated response
 
-If truncated, a more property is returned with additional parameters. Page by adjusting parameters.
+If truncated, a more property will be returned with additional parameters. Make iterative calls adjusting parameters.
 
-### Returns[​](#returns)
+### Returns
 
-Void. Delegate yields FOnFetchHistoryResponse.
+This function is void, but the delegate returns the FOnFetchHistoryResponse struct.
 
-#### FOnFetchHistoryResponse[​](#fonfetchhistoryresponse)
+#### FOnFetchHistoryResponse
 
-- Result (FPubnubOperationResult): Operation result.
-- Messages (TArray<FPubnubHistoryMessageData>&): Retrieved history messages.
+- Result — FPubnubOperationResult. The result of the operation.
+- Messages — TArray<FPubnubHistoryMessageData>&. Historical messages.
 
-#### FOnFetchHistoryResponseNative[​](#fonfetchhistoryresponsenative)
+#### FOnFetchHistoryResponseNative
 
-- Result (const FPubnubOperationResult&): Operation result.
-- Messages (const TArray<FPubnubHistoryMessageData>&): Retrieved history messages.
+- Result — const FPubnubOperationResult&. The result of the operation.
+- Messages — const TArray<FPubnubHistoryMessageData>&. Historical messages.
 
-#### FPubnubHistoryMessageData[​](#fpubnubhistorymessagedata)
+#### FPubnubHistoryMessageData
 
-- Message (FString): Message text.
-- UserID (FString): Sender user ID.
-- timetoken (FString): Message timetoken.
-- Meta (FString): Additional info.
-- MessageType (FString): Message type.
-- CustomMessageType (FString): Custom message type.
-- MessageActions (TArray<FPubnubMessageActionData>): Message actions.
+- Message — FString. Message text.
+- UserID — FString. Sender user ID.
+- timetoken — FString. When the message was sent.
+- Meta — FString. Additional information.
+- MessageType — FString. See Message types.
+- CustomMessageType — FString. Custom message type.
+- MessageActions — TArray<FPubnubMessageActionData>. Message actions linked to the message.
 
-#### FPubnubMessageActionData[​](#fpubnubmessageactiondata)
+#### FPubnubMessageActionData
 
-- Type (FString): Action type.
-- Value (FString): Action value.
-- UserID (FString): User who added the action.
-- ActionTimetoken (FString): When action was added.
-- MessageTimetoken (FString): Target message timetoken.
+- Type — FString. Action type.
+- Value — FString. Action value.
+- UserID — FString. User who added the action.
+- ActionTimetoken — FString. When the action was added.
+- MessageTimetoken — FString. When the target message was sent.
 
-### Other examples[​](#other-examples)
+### Other examples
 
-#### Fetch history for a specific time window[​](#fetch-history-for-a-specific-time-window)
+Reference code
+Set up your Unreal project and follow the instructions in the lines marked with ACTION REQUIRED before running the code.
 
-#### Actor.h[​](#actorh-1)
+#### Fetch history for a specific time window
 
-  
+You can add a time window to the request:
 
-```
-1
-  
-
-```
-
-#### Actor.cpp[​](#actorcpp-1)
-
-  
+#### Actor.h
 
 ```
 1
@@ -156,11 +165,7 @@ Void. Delegate yields FOnFetchHistoryResponse.
 
 ```
 
-#### Fetch history with all additional parameters[​](#fetch-history-with-all-additional-parameters)
-
-#### Actor.h[​](#actorh-2)
-
-  
+#### Actor.cpp
 
 ```
 1
@@ -168,21 +173,11 @@ Void. Delegate yields FOnFetchHistoryResponse.
 
 ```
 
-#### Actor.cpp[​](#actorcpp-2)
+#### Fetch history with all additional parameters
 
-  
+You can add additional parameters to the request:
 
-```
-1
-  
-
-```
-
-#### Fetch history with lambda[​](#fetch-history-with-lambda)
-
-#### Actor.h[​](#actorh-3)
-
-  
+#### Actor.h
 
 ```
 1
@@ -190,9 +185,7 @@ Void. Delegate yields FOnFetchHistoryResponse.
 
 ```
 
-#### Actor.cpp[​](#actorcpp-3)
-
-  
+#### Actor.cpp
 
 ```
 1
@@ -200,15 +193,36 @@ Void. Delegate yields FOnFetchHistoryResponse.
 
 ```
 
-## Delete messages from history[​](#delete-messages-from-history)
+#### Fetch history with lambda
 
-Requires Message Persistence enabled.
+You can use a lambda function to handle the response:
+
+#### Actor.h
+
+```
+1
+  
+
+```
+
+#### Actor.cpp
+
+```
+1
+  
+
+```
+
+## Delete messages from history
+
+Requires Message Persistence enabled for your key.
 
 Removes messages from a channel’s history.
 
-Required setting: enable Delete-From-History in key settings and initialize with a secret key.
+Required setting:
+- Enable Delete-From-History in key settings and initialize with a secret key.
 
-### Method(s)[​](#methods-1)
+### Method(s)
 
 ```
 `1PubnubSubsystem->DeleteMessages(  
@@ -219,22 +233,25 @@ Required setting: enable Delete-From-History in key settings and initialize with
 `
 ```
 
-- Channel (FString): Target channel.
-- OnDeleteMessagesResponse (FOnDeleteMessagesResponse): Operation result delegate. Native callback alternative: FOnDeleteMessagesResponseNative.
-- DeleteMessagesSettings (FPubnubDeleteMessagesSettings): Delete configuration.
+Parameters:
+- Channel — Type: FString. Channel to delete messages from.
+- OnDeleteMessagesResponse — Type: FOnDeleteMessagesResponse. Delegate for the result. You can also use FOnDeleteMessagesResponseNative to handle the result using a lambda.
+- DeleteMessagesSettings — Type: FPubnubDeleteMessagesSettings. Delete configuration.
 
-#### FPubnubDeleteMessagesSettings[​](#fpubnubdeletemessagessettings)
+#### FPubnubDeleteMessagesSettings
 
-- Start (FString): Start timetoken (inclusive).
-- End (FString): End timetoken (exclusive).
+- Start — Type: FString. Start timetoken (inclusive).
+- End — Type: FString. End timetoken (exclusive).
 
-### Sample code[​](#sample-code-1)
+### Sample code
+
+Reference code
+Set up your Unreal project and follow the instructions in the lines marked with ACTION REQUIRED before running the code.
 
 - C++
 - Blueprint
 
-#### Actor.h[​](#actorh-4)
-  
+#### Actor.h
 
 ```
 1
@@ -242,8 +259,7 @@ Required setting: enable Delete-From-History in key settings and initialize with
 
 ```
 
-#### Actor.cpp[​](#actorcpp-4)
-  
+#### Actor.cpp
 
 ```
 1
@@ -251,37 +267,28 @@ Required setting: enable Delete-From-History in key settings and initialize with
 
 ```
 
-### Returns[​](#returns-1)
+### Returns
 
-Void. Delegate yields FOnDeleteMessagesResponse.
+This function is void, but the delegate returns the FOnDeleteMessagesResponse struct.
 
-#### FOnDeleteMessagesResponse[​](#fondeletemessagesresponse)
+#### FOnDeleteMessagesResponse
 
-- Result (FPubnubOperationResult): Operation result.
+- Result — FPubnubOperationResult. The result of the operation.
 
-#### FOnDeleteMessagesResponseNative[​](#fondeletemessagesresponsenative)
+#### FOnDeleteMessagesResponseNative
 
-- Result (const FPubnubOperationResult&): Operation result.
+- Result — const FPubnubOperationResult&. The result of the operation.
 
-### Other examples[​](#other-examples-1)
+### Other examples
 
-#### Delete specific message from history[​](#delete-specific-message-from-history)
+Reference code
+Set up your Unreal project and follow the instructions in the lines marked with ACTION REQUIRED before running the code.
 
-Delete a specific message using its publish timetoken T: set Start = T - 1 and End = T (e.g., Start 15526611838554309, End 15526611838554310).
+#### Delete specific message from history
 
-#### Actor.h[​](#actorh-5)
+To delete a specific message, pass the publish timetoken in End and timetoken - 1 in Start. Example: for 15526611838554310, use Start 15526611838554309 and End 15526611838554310.
 
-  
-
-```
-1
-  
-
-```
-
-#### Actor.cpp[​](#actorcpp-5)
-
-  
+#### Actor.h
 
 ```
 1
@@ -289,11 +296,7 @@ Delete a specific message using its publish timetoken T: set Start = T - 1 and E
 
 ```
 
-#### Delete messages with result struct[​](#delete-messages-with-result-struct)
-
-#### Actor.h[​](#actorh-6)
-
-  
+#### Actor.cpp
 
 ```
 1
@@ -301,21 +304,11 @@ Delete a specific message using its publish timetoken T: set Start = T - 1 and E
 
 ```
 
-#### Actor.cpp[​](#actorcpp-6)
+#### Delete messages with result struct
 
-  
+You can use the result struct to handle the response:
 
-```
-1
-  
-
-```
-
-#### Delete messages with lambda[​](#delete-messages-with-lambda)
-
-#### Actor.h[​](#actorh-7)
-
-  
+#### Actor.h
 
 ```
 1
@@ -323,9 +316,7 @@ Delete a specific message using its publish timetoken T: set Start = T - 1 and E
 
 ```
 
-#### Actor.cpp[​](#actorcpp-7)
-
-  
+#### Actor.cpp
 
 ```
 1
@@ -333,13 +324,35 @@ Delete a specific message using its publish timetoken T: set Start = T - 1 and E
 
 ```
 
-## Message counts[​](#message-counts)
+#### Delete messages with lambda
 
-Requires Message Persistence enabled.
+You can use a lambda function to handle the response:
 
-Returns the number of messages published on one or more channels since a given timetoken (inclusive). For keys with unlimited retention, considers only messages from the last 30 days.
+#### Actor.h
 
-### Method(s)[​](#methods-2)
+```
+1
+  
+
+```
+
+#### Actor.cpp
+
+```
+1
+  
+
+```
+
+## Message counts
+
+Requires Message Persistence enabled for your key.
+
+Returns the number of messages published on one or more channels since a given timetoken (inclusive).
+
+Unlimited message retention: considers only messages published in the last 30 days.
+
+### Method(s)
 
 ```
 `1PubnubSubsystem->MessageCounts(  
@@ -350,17 +363,20 @@ Returns the number of messages published on one or more channels since a given t
 `
 ```
 
-- Channel (FString): Target channel.
-- timetoken (FString): Starting timetoken.
-- OnMessageCountsResponse (FOnMessageCountsResponse): Operation result delegate. Native callback alternative: FOnMessageCountsResponseNative.
+Parameters:
+- Channel — Type: FString. Channel to get counts for.
+- timetoken — Type: FString. Starting timetoken.
+- OnMessageCountsResponse — Type: FOnMessageCountsResponse. Delegate for the result. You can also use FOnMessageCountsResponseNative to handle the result using a lambda.
 
-### Sample code[​](#sample-code-2)
+### Sample code
+
+Reference code
+Set up your Unreal project and follow the instructions in the lines marked with ACTION REQUIRED before running the code.
 
 - C++
 - Blueprint
 
-#### Actor.h[​](#actorh-8)
-  
+#### Actor.h
 
 ```
 1
@@ -368,8 +384,7 @@ Returns the number of messages published on one or more channels since a given t
 
 ```
 
-#### Actor.cpp[​](#actorcpp-8)
-  
+#### Actor.cpp
 
 ```
 1
@@ -377,27 +392,30 @@ Returns the number of messages published on one or more channels since a given t
 
 ```
 
-### Returns[​](#returns-2)
+### Returns
 
-Void. Delegate yields FOnMessageCountsResponse.
+This function is void, but the delegate returns the FOnMessageCountsResponse struct.
 
-#### FOnMessageCountsResponse[​](#fonmessagecountsresponse)
+#### FOnMessageCountsResponse
 
-- Result (FPubnubOperationResult): Operation result.
-- MessageCounts (int): Count since timetoken.
+- Result — FPubnubOperationResult. The result of the operation.
+- MessageCounts — int. Number of messages since the timetoken.
 
-#### FOnMessageCountsResponseNative[​](#fonmessagecountsresponsenative)
+#### FOnMessageCountsResponseNative
 
-- Result (const FPubnubOperationResult&): Operation result.
-- MessageCounts (int): Count since timetoken.
+- Result — const FPubnubOperationResult&. The result of the operation.
+- MessageCounts — int. Number of messages since the timetoken.
 
-### Other examples[​](#other-examples-2)
+### Other examples
 
-#### Message counts with lambda[​](#message-counts-with-lambda)
+Reference code
+Set up your Unreal project and follow the instructions in the lines marked with ACTION REQUIRED before running the code.
 
-#### Actor.h[​](#actorh-9)
+#### Message counts with lambda
 
-  
+You can use a lambda function to handle the response:
+
+#### Actor.h
 
 ```
 1
@@ -405,9 +423,7 @@ Void. Delegate yields FOnMessageCountsResponse.
 
 ```
 
-#### Actor.cpp[​](#actorcpp-9)
-
-  
+#### Actor.cpp
 
 ```
 1
