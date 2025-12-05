@@ -1,13 +1,17 @@
 # Mobile Push Notifications API for Python SDK
 
-Connect PubNub publishing with third-party push services: Google Android FCM (Firebase Cloud Messaging) and Apple iOS APNs (Apple Push Notification service). See Mobile Push Notifications overview: /docs/general/push/send.
+Connects PubNub publishing to third-party push services:
+- Google Android FCM (Firebase Cloud Messaging)
+- Apple iOS APNs (Apple Push Notification service)
+
+Prerequisite: Enable the Mobile Push Notifications add-on for your key in the Admin Portal.
 
 ##### Request execution and return values
 
-You can run Python SDK operations synchronously or asynchronously.
+You can execute operations synchronously or asynchronously.
 
 `.sync()` returns an `Envelope` with:
-- `Envelope.result` (type varies by API)
+- `Envelope.result` (type differs per API)
 - `Envelope.status` (`PnStatus`)
 
 ```
@@ -18,7 +22,7 @@ You can run Python SDK operations synchronously or asynchronously.
 `
 ```
 
-`.pn_async(callback)` returns `None` and invokes your callback with `Envelope.result` and `Envelope.status`.
+`.pn_async(callback)` returns `None` and passes `Envelope.result` and `Envelope.status` to the callback.
 
 ```
 1def my_callback_function(result, status):  
@@ -29,13 +33,9 @@ You can run Python SDK operations synchronously or asynchronously.
 5    .channel("myChannel") \  
 6    .message("Hello from PubNub Python SDK") \  
 7    .pn_async(my_callback_function)  
-
 ```
 
 ## Add a device to a push notifications channel
-
-##### Requires Mobile Push Notifications add-on
-Enable for your key in the Admin Portal: https://admin.pubnub.com/. How to enable add-ons: https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-.
 
 Enable mobile push notifications on a set of channels.
 
@@ -52,11 +52,11 @@ Enable mobile push notifications on a set of channels.
 ```
 
 Parameters:
-- push_type (PNPushType, required): Accepted values: `PNPushType.GCM`, `PNPushType.APNS2`.
-- channels (List, required): Channels to enable for mobile push notifications.
-- device_id (String, required): Device token/ID to associate.
-- topic (String, APNS2 only): APNs topic (bundle identifier).
-- environment (PNPushEnvironment, default `PNPushEnvironment.DEVELOPMENT`, APNS2 only): APNs environment to manage channels.
+- push_type (PNPushType; required): PNPushType.FCM, PNPushType.APNS2.
+- channels (List; required): Channels to add.
+- device_id (String; required): Device token.
+- topic (String; APNS2 only): APNs topic (bundle identifier).
+- environment (PNPushEnvironment; default PNPushEnvironment.DEVELOPMENT; APNS2 only): APNs environment.
 
 ### Sample code
 
@@ -77,13 +77,13 @@ Parameters:
   
 8def add_device_to_channel(pubnub: PubNub):  
 9    try:  
-10        # For FCM/GCM  
+10        # For FCM  
 11        pubnub.add_channels_to_push() \  
-12            .push_type(PNPushType.GCM) \  
+12            .push_type(PNPushType.FCM) \  
 13            .channels(["ch1", "ch2", "ch3"]) \  
 14            .device_id("deviceId") \  
 15            .sync()  
-16        print("Device added to channels for FCM/GCM successfully.")  
+16        print("Device added to channels for FCM successfully.")  
 17
   
 18        # For APNS2 device token should be 32 or 100 byte hex  
@@ -124,8 +124,6 @@ Parameters:
 46if __name__ == "__main__":  
 47    main()  
 48
-  
-
 ```
 
 ```
@@ -140,13 +138,13 @@ Parameters:
   
 8def add_device_to_channel(pubnub: PubNub):  
 9    try:  
-10        # For FCM/GCM  
+10        # For FCM  
 11        pubnub.add_channels_to_push(  
-12            push_type=PNPushType.GCM,  
+12            push_type=PNPushType.FCM,  
 13            channels=["ch1", "ch2", "ch3"],  
 14            device_id="deviceId"  
 15        ).sync()  
-16        print("Device added to channels for FCM/GCM successfully.")  
+16        print("Device added to channels for FCM successfully.")  
 17
   
 18        # For APNS2  
@@ -187,20 +185,15 @@ Parameters:
 46if __name__ == "__main__":  
 47    main()  
 48
-  
-
 ```
 
 ### Returns
 
-No actionable data. Inspect `status.is_error()` for outcome.
+No actionable data; check `status.is_error()` on the returned `Envelope.status`.
 
 ## List channels for device
 
-##### Requires Mobile Push Notifications add-on
-Enable in Admin Portal: https://admin.pubnub.com/. Add-on enablement info: https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-.
-
-List channels that have push enabled for the specified device token.
+List channels that have push notifications enabled for the specified device token.
 
 ### Method(s)
 
@@ -214,10 +207,10 @@ List channels that have push enabled for the specified device token.
 ```
 
 Parameters:
-- push_type (PNPushType, required): Accepted values: `PNPushType.GCM`, `PNPushType.APNS2`.
-- device_id (String, required): Device token.
-- topic (String, APNS2 only): APNs topic (bundle identifier).
-- environment (PNPushEnvironment, default `PNPushEnvironment.DEVELOPMENT`, APNS2 only): APNs environment.
+- push_type (PNPushType; required): PNPushType.FCM, PNPushType.APNS2.
+- device_id (String; required): Device token.
+- topic (String; APNS2 only): APNs topic (bundle identifier).
+- environment (PNPushEnvironment; default PNPushEnvironment.DEVELOPMENT; APNS2 only): APNs environment.
 
 ### Sample code
 
@@ -230,53 +223,48 @@ Parameters:
 1from pubnub.enums import PNPushType, PNPushEnvironment  
 2
   
-3# for FCM/GCM  
+3# For FCM  
 4envelope = pubnub.list_push_channels() \  
-5    .push_type(PNPushType.GCM) \  
+5    .push_type(PNPushType.FCM) \  
 6    .device_id("deviceId") \  
 7    .sync()  
 8
   
-9# for APNS2  
+9# For APNS2  
 10envelope = pubnub.list_push_channels() \  
 11    .push_type(PNPushType.APNS2) \  
 12    .device_id("deviceId") \  
 13    .topic("myapptopic") \  
 14    .environment(PNPushEnvironment.DEVELOPMENT) \  
 15    .sync()  
-
 ```
 
 ```
 1from pubnub.enums import PNPushType, PNPushEnvironment  
 2
   
-3# for FCM/GCM  
-4envelope = pubnub.list_push_channels(push_type=PNPushType.GCM, device_id="deviceId").sync()  
+3# For FCM  
+4envelope = pubnub.list_push_channels(push_type=PNPushType.FCM, device_id="deviceId").sync()  
 5
   
-6# for APNS2  
+6# For APNS2  
 7envelope = pubnub.list_push_channels(push_type=PNPushType.APNS2,  
 8                                     device_id="deviceId",  
 9                                     topic="myapptopic",  
 10                                     environment=PNPushEnvironment.DEVELOPMENT) \  
 11    .sync()  
-
 ```
 
 ### Returns
 
-`list_push_channels()` returns an `Envelope`:
-- result: `PNPushListProvisionsResult`
-- status: `PNStatus`
+`Envelope`:
+- result: PNPushListProvisionsResult
+- status: PNStatus
 
-`PNPushListProvisionsResult`:
+PNPushListProvisionsResult:
 - Channels (List): Channels associated for mobile push notifications.
 
 ## Remove device from channel
-
-##### Requires Mobile Push Notifications add-on
-Enable in Admin Portal: https://admin.pubnub.com/. Add-on enablement info: https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-.
 
 Disable mobile push notifications on a set of channels.
 
@@ -293,11 +281,11 @@ Disable mobile push notifications on a set of channels.
 ```
 
 Parameters:
-- push_type (PNPushType, required): Accepted values: `PNPushType.GCM`, `PNPushType.APNS2`.
-- channels (List, required): Channels to disable for push notifications.
-- device_id (String, required): Device token.
-- topic (String, APNS2 only): APNs topic (bundle identifier).
-- environment (PNPushEnvironment, default `PNPushEnvironment.DEVELOPMENT`, APNS2 only): APNs environment.
+- push_type (PNPushType; required): PNPushType.FCM, PNPushType.APNS2.
+- channels (List; required): Channels to disable.
+- device_id (String; required): Device token.
+- topic (String; APNS2 only): APNs topic (bundle identifier).
+- environment (PNPushEnvironment; default PNPushEnvironment.DEVELOPMENT; APNS2 only): APNs environment.
 
 ### Sample code
 
@@ -310,56 +298,49 @@ Parameters:
 1from pubnub.enums import PNPushType, PNPushEnvironment  
 2
   
-3# for FCM/GCM  
+3# For FCM  
 4envelope = pubnub.remove_channels_from_push() \  
-5    .push_type(PNPushType.GCM) \  
+5    .push_type(PNPushType.FCM) \  
 6    .channels("ch1", "ch2", "ch3") \  
 7    .device_id("deviceId") \  
 8    .sync()  
 9
   
-10# for APNS2  
-11
-  
-12envelope = pubnub.remove_channels_from_push() \  
-13    .push_type(PNPushType.APNS2) \  
-14    .channels("ch1", "ch2", "ch3") \  
-15    .device_id("deviceId") \  
-16    .topic("myapptopic") \  
-17    .environment(PNPushEnvironment.DEVELOPMENT) \  
-18    .sync()  
-
+10# For APNS2  
+11envelope = pubnub.remove_channels_from_push() \  
+12    .push_type(PNPushType.APNS2) \  
+13    .channels("ch1", "ch2", "ch3") \  
+14    .device_id("deviceId") \  
+15    .topic("myapptopic") \  
+16    .environment(PNPushEnvironment.DEVELOPMENT) \  
+17    .sync()  
 ```
 
 ```
 1from pubnub.enums import PNPushType, PNPushEnvironment  
 2
   
-3# for FCM/GCM  
+3# For FCM  
 4envelope = pubnub.remove_channels_from_push(channels=["ch1", "ch2", "ch3"],  
-5                                            push_type=PNPushType.GCM,  
+5                                            push_type=PNPushType.FCM,  
 6                                            device_id="deviceId") \  
 7    .sync()  
 8
   
-9# for APNS2  
+9# For APNS2  
 10envelope = pubnub.remove_channels_from_push(channels=["ch1", "ch2", "ch3"],  
 11                                            push_type=PNPushType.APNS2,  
 12                                            device_id="deviceId",  
 13                                            topic="myapptopic",  
 14                                            environment=PNPushEnvironment.DEVELOPMENT) \  
 15    .sync()  
-
 ```
 
 ### Returns
 
-No actionable data. Inspect `status.is_error()` for outcome.
+No actionable data; check `status.is_error()` on the returned `Envelope.status`.
 
 ## Remove all mobile push notifications
-
-##### Requires Mobile Push Notifications add-on
-Enable in Admin Portal: https://admin.pubnub.com/. Add-on enablement info: https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-.
 
 Disable mobile push notifications from all channels for the specified device token.
 
@@ -375,10 +356,10 @@ Disable mobile push notifications from all channels for the specified device tok
 ```
 
 Parameters:
-- push_type (PNPushType, required): Accepted values: `PNPushType.GCM`, `PNPushType.MPNS`, `PNPushType.APNS2`.
-- device_id (String, required): Device token.
-- topic (String, APNS2 only): APNs topic (bundle identifier).
-- environment (PNPushEnvironment, default `PNPushEnvironment.DEVELOPMENT`, APNS2 only): APNs environment.
+- push_type (PNPushType; required): PNPushType.FCM, PNPushType.APNS2.
+- device_id (String; required): Device token.
+- topic (String; APNS2 only): APNs topic (bundle identifier).
+- environment (PNPushEnvironment; default PNPushEnvironment.DEVELOPMENT; APNS2 only): APNs environment.
 
 ### Sample code
 
@@ -391,40 +372,38 @@ Parameters:
 1from pubnub.enums import PNPushType, PNPushEnvironment  
 2
   
-3# for FCM/GCM  
+3# For FCM  
 4envelope = pubnub.remove_device_from_push() \  
-5    .push_type(PNPushType.GCM) \  
+5    .push_type(PNPushType.FCM) \  
 6    .device_id("deviceId") \  
 7    .sync()  
 8
   
-9# for APNS2  
+9# For APNS2  
 10envelope = pubnub.remove_device_from_push() \  
 11    .push_type(PNPushType.APNS2) \  
 12    .device_id("deviceId") \  
 13    .topic("myapptopic") \  
 14    .environment(PNPushEnvironment.DEVELOPMENT) \  
 15    .sync()  
-
 ```
 
 ```
 1from pubnub.enums import PNPushType, PNPushEnvironment  
 2
   
-3# for FCM/GCM  
-4envelope = pubnub.remove_device_from_push(device_id="deviceId", push_type=PNPushType.GCM).sync()  
-5# for APNS2  
-6envelope = pubnub.remove_device_from_push(device_id="deviceId",  
-7                                          push_type=PNPushType.APNS2,  
-8                                          topic="myapptopic",  
-9                                          environment=PNPushEnvironment.DEVELOPMENT) \  
-10    .sync()  
-
+3# For FCM  
+4envelope = pubnub.remove_device_from_push(device_id="deviceId", push_type=PNPushType.FCM).sync()  
+5
+  
+6# For APNS2  
+7envelope = pubnub.remove_device_from_push(device_id="deviceId",  
+8                                          push_type=PNPushType.APNS2,  
+9                                          topic="myapptopic",  
+10                                          environment=PNPushEnvironment.DEVELOPMENT) \  
+11    .sync()  
 ```
 
 ### Returns
 
-No actionable data. Inspect `status.is_error()` for outcome.
-
-Last updated on Oct 29, 2025
+No actionable data; check `status.is_error()` on the returned `Envelope.status`.

@@ -1,344 +1,301 @@
 # File Sharing API for C# SDK
 
-Upload and share files (up to 5 MB) on a channel. Subscribers receive a file event with file ID, filename, and optional description.
+Upload and share files up to 5 MB. When a file is uploaded to a channel, subscribers receive a file event containing file ID, filename, and optional description.
 
 ##### Request execution
 
-Use try/catch. Invalid parameters throw exceptions. Server/network errors are in the returned status.
+Use try/catch. Invalid parameters throw exceptions. Server/network errors are in the returned PNStatus.
 
 ```
-1try  
-2{  
-3    PNResultPNPublishResult> publishResponse = await pubnub.Publish()  
-4        .Message("Why do Java developers wear glasses? Because they can't C#.")  
-5        .Channel("my_channel")  
-6        .ExecuteAsync();  
-7
-  
-8    PNStatus status = publishResponse.Status;  
-9
-  
-10    Console.WriteLine("Server status code : " + status.StatusCode.ToString());  
-11}  
-12catch (Exception ex)  
-13{  
-14    Console.WriteLine($"Request can't be executed due to error: {ex.Message}");  
-15}  
+try
+{
+    PNResult<PNPublishResult> publishResponse = await pubnub.Publish()
+        .Message("Why do Java developers wear glasses? Because they can't C#.")
+        .Channel("my_channel")
+        .ExecuteAsync();
 
+    PNStatus status = publishResponse.Status;
+
+    Console.WriteLine("Server status code : " + status.StatusCode.ToString());
+}
+catch (Exception ex)
+{
+    Console.WriteLine($"Request can't be executed due to error: {ex.Message}");
+}
 ```
 
-## Send file[​](#send-file)
+## Send file
 
-Uploads a file to a channel, then publishes a message (internally calls PublishFileMessage) with file metadata so others can access it.
+Uploads the file and publishes a file message to the channel (internally calls PublishFileMessage).
 
-### Method(s)[​](#methods)
+### Method(s)
 
 ```
-`1pubnub.SendFile()  
-2        .Channel(string)  
-3        .File(string|byte[])  
-4        .FileName(string)  
-5        .Message(string)  
-6        .ShouldStore(bool)  
-7        .Meta(Dictionarystring, object>)  
-8        .Ttl(int)  
-9        .CustomMessageType(string)  
-`
+pubnub.SendFile()
+    .Channel(string)
+    .File(string|byte[])
+    .FileName(string)
+    .Message(string)
+    .ShouldStore(bool)
+    .Meta(Dictionary<string, object>)
+    .Ttl(int)
+    .CustomMessageType(string)
 ```
 
 Parameters:
-- Channel (string, required): Channel for the file.
-- File (string | byte[], required): Path to file or file bytes. If byte[], you must set FileName.
-- FileName (string): Overrides default file name.
-- Message (string): Message sent with the file.
-- ShouldStore (bool): Whether the published file message is stored in history.
-- Meta (Dictionary<string, object>): Values used for message filtering.
-- Ttl (int): How long the message is stored.
-- CustomMessageType (string): Case-sensitive, 3–50 alphanumeric chars; dashes and underscores allowed; cannot start with special chars or pn_/pn-. Examples: text, action, poll.
+- Channel (string, required): Target channel.
+- File (string | byte[], required): Full file path or byte array. If byte[], you must set FileName.
+- FileName (string): Name to send (overrides default or required for byte[] input).
+- Message (string): Message sent along with the file.
+- ShouldStore (bool): Store the published file message in history.
+- Meta (Dictionary<string, object>): Used for server-side message filtering.
+- Ttl (int): How long the message should be stored.
+- CustomMessageType (string): 3–50 char, case-sensitive alphanumeric label; dashes and underscores allowed. Cannot start with special characters or pn_/pn-. Examples: text, action, poll.
 
 Deprecated parameter:
-- CipherKey: Deprecated. Configure the crypto module on your PubNub instance instead. Passing CipherKey overrides crypto module config and uses legacy 128-bit encryption.
+- CipherKey: Deprecated. Configure the crypto module instead: /docs/sdks/c-sharp/api-reference/configuration#cryptomodule. If passed, it overrides the crypto module and uses legacy 128-bit encryption.
 
-### Sample code[​](#sample-code)
-
-##### Reference code
-```
-1
-  
+### Sample code
 
 ```
 
-### Response[​](#response)
-
-```
-`1{  
-2    "Timetoken":15957709330808500,  
-3    "FileId":"d9515cb7-48a7-41a4-9284-f4bf331bc770",  
-4    "FileName":"cat_picture.jpg"  
-5}  
-`
 ```
 
-### Returns[​](#returns)
+### Response
 
-SendFile() returns PNResult<PNFileUploadResult>:
+```
+{
+  "Timetoken": 15957709330808500,
+  "FileId": "d9515cb7-48a7-41a4-9284-f4bf331bc770",
+  "FileName": "cat_picture.jpg"
+}
+```
+
+### Returns
+
+PNResult<PNFileUploadResult>:
 - Result (PNFileUploadResult)
+  - Timetoken (long)
+  - FileId (string)
+  - FileName (string)
 - Status (PNStatus)
 
-PNFileUploadResult:
-- Timetoken (long)
-- FileId (string)
-- FileName (string)
+## List channel files
 
-## List channel files[​](#list-channel-files)
+Retrieve the list of files uploaded to a channel.
 
-Retrieve files uploaded to a channel.
-
-### Method(s)[​](#methods-1)
+### Method(s)
 
 ```
-`1pubnub.ListFiles()  
-2        .Channel(string)  
-`
+pubnub.ListFiles()
+    .Channel(string)
 ```
 
 Parameters:
-- Channel (string, required): Channel to list files.
+- Channel (string, required): Channel to list files from.
 - Limit (int, default 100): Number of files to return.
-- Next (string): Server-provided pagination cursor for next page.
+- Next (string): Cursor for forward pagination.
 
-### Sample code[​](#sample-code-1)
-
-```
-1
-  
+### Sample code
 
 ```
 
-### Response[​](#response-1)
-
-```
-`1{  
-2    "FilesList":[  
-3    {  
-4        "Name":"cat_picture.jpg",  
-5        "Id":"d9515cb7-48a7-41a4-9284-f4bf331bc770",  
-6        "Size":25778,  
-7        "Created":"2020-07-26T13:42:06Z"  
-8    }],  
-9    "Count":1,  
-10    "Next":null  
-11}  
-`
 ```
 
-### Returns[​](#returns-1)
+### Response
 
-ListFiles() returns PNResult<PNListFilesResult>:
+```
+{
+  "FilesList": [
+    {
+      "Name": "cat_picture.jpg",
+      "Id": "d9515cb7-48a7-41a4-9284-f4bf331bc770",
+      "Size": 25778,
+      "Created": "2020-07-26T13:42:06Z"
+    }
+  ],
+  "Count": 1,
+  "Next": null
+}
+```
+
+### Returns
+
+PNResult<PNListFilesResult>:
 - Result (PNListFilesResult)
+  - FilesList (List<PNFileResult>)
+    - Name (string)
+    - Id (string)
+    - Size (int)
+    - Created (string)
+  - Count (int)
+  - Next (string)
 - Status (PNStatus)
 
-PNListFilesResult:
-- FilesList (List<PNFileResult>)
-- Count (int)
-- Next (string)
+## Get file URL
 
-PNFileResult:
-- Name (string)
-- Id (string)
-- Size (int)
-- Created (string)
+Generate a downloadable URL for a file in a channel.
 
-## Get file URL[​](#get-file-url)
-
-Generate a URL to download a file from a channel.
-
-### Method(s)[​](#methods-2)
+### Method(s)
 
 ```
-`1pubnub.GetFileUrl()  
-2        .Channel(string)  
-3        .FileId(string)  
-4        .FileName(string)  
-`
+pubnub.GetFileUrl()
+    .Channel(string)
+    .FileId(string)
+    .FileName(string)
 ```
 
 Parameters:
-- Channel (string, required): Channel name where the file was uploaded.
-- FileId (string, required): Unique file identifier.
-- FileName (string, required): Name under which the file is stored.
+- Channel (string, required)
+- FileId (string, required)
+- FileName (string, required)
 
-### Sample code[​](#sample-code-2)
-
-```
-1
-  
+### Sample code
 
 ```
 
-### Response[​](#response-2)
-
-```
-`1{  
-2    "Url":"http://ps.pndsn.com/v1/files/demo/channels/my_channel/files/d9515cb7-48a7-41a4-9284-f4bf331bc770/cat_picture.jpg?pnsdk=NET461CSharp4.9.0.0&timestamp=1595771548&uuid=pn-9ce9e988-8e04-40bf-90c4-ebe170478f7d"  
-3}  
-`
 ```
 
-### Returns[​](#returns-2)
+### Response
 
-GetFileUrl() returns PNResult<PNFileUrlResult>:
+```
+{
+  "Url": "http://ps.pndsn.com/v1/files/demo/channels/my_channel/files/d9515cb7-48a7-41a4-9284-f4bf331bc770/cat_picture.jpg?pnsdk=NET461CSharp4.9.0.0&timestamp=1595771548&uuid=pn-9ce9e988-8e04-40bf-90c4-ebe170478f7d"
+}
+```
+
+### Returns
+
+PNResult<PNFileUrlResult>:
 - Result (PNFileUrlResult)
+  - Url (string)
 - Status (PNStatus)
 
-PNFileUrlResult:
-- Url (string)
-
-## Download file[​](#download-file)
+## Download file
 
 Download a file from a channel.
 
-### Method(s)[​](#methods-3)
+### Method(s)
 
 ```
-`1pubnub.DownloadFile()  
-2        .Channel(string)  
-3        .FileId(string)  
-4        .FileName(string)  
-`
+pubnub.DownloadFile()
+    .Channel(string)
+    .FileId(string)
+    .FileName(string)
 ```
 
 Parameters:
-- Channel (string, required): Channel name where the file was uploaded.
-- FileId (string, required): Unique file identifier.
-- FileName (string, required): Stored file name.
+- Channel (string, required)
+- FileId (string, required)
+- FileName (string, required)
 
 Deprecated parameter:
-- CipherKey: Deprecated. Use the crypto module. Passing CipherKey overrides module config and uses legacy 128-bit encryption.
+- CipherKey: Deprecated. Use the crypto module: /docs/sdks/c-sharp/api-reference/configuration#cryptomodule. If passed, it overrides the crypto module and uses legacy 128-bit encryption.
 
-### Sample code[​](#sample-code-3)
-
-```
-1
-  
+### Sample code
 
 ```
 
-### Response[​](#response-3)
-
-```
-`1{  
-2    //Call fileDownloadResult.SaveFileToLocal() to save file.  
-3    "FileBytes":"/9j/4AAQSkZJRgABAQEAkACQAAD/4RCERXhpZgAATU0AKgAAAAgABAE7AAIAAAAGAAAISodpAAQAAAABAAAIUJydAAEAAAA...,  
-4    "FileName":"cat_picture.jpg"  
-5}  
-`
 ```
 
-### Returns[​](#returns-3)
+### Response
 
-DownloadFile() returns PNResult<PNDownloadFileResult>:
+```
+{
+  // Call fileDownloadResult.SaveFileToLocal() to save file.
+  "FileBytes": "/9j/4AAQSkZJRgABAQEAkACQAAD/4RCERXhpZgAATU0AKgAAAAgABAE7AAIAAAAGAAAISodpAAQAAAABAAAIUJydAAEAAAA...",
+  "FileName": "cat_picture.jpg"
+}
+```
+
+### Returns
+
+PNResult<PNDownloadFileResult>:
 - Result (PNDownloadFileResult)
+  - FileBytes (byte[]): File content. Use SaveFileToLocal to save.
+  - FileName (string)
+  - SaveFileToLocal(string destinationPath): Save the downloaded file locally.
 - Status (PNStatus)
 
-PNDownloadFileResult:
-- FileBytes (byte[]): Downloaded file bytes. Use SaveFileToLocal to save locally.
-- FileName (string)
-- SaveFileToLocal(string): Provide full destination path to save the file locally.
-
-## Delete file[​](#delete-file)
+## Delete file
 
 Delete a file from a channel.
 
-### Method(s)[​](#methods-4)
+### Method(s)
 
 ```
-`1pubnub.DeleteFile()  
-2        .Channel(string)  
-3        .FileId(string)  
-4        .FileName(string)  
-`
+pubnub.DeleteFile()
+    .Channel(string)
+    .FileId(string)
+    .FileName(string)
 ```
 
 Parameters:
-- Channel (string, required): Channel containing the file.
-- FileId (string, required): File identifier to delete.
-- FileName (string, required): Name of the file to delete.
+- Channel (string, required)
+- FileId (string, required)
+- FileName (string, required)
 
-### Sample code[​](#sample-code-4)
-
-```
-1
-  
+### Sample code
 
 ```
 
-### Response[​](#response-4)
-
-```
-`1{}  
-`
 ```
 
-### Returns[​](#returns-4)
+### Response
 
-DeleteFile() returns PNResult<PNDeleteFileResult>:
-- Result (PNDeleteFileResult)
+```
+{}
+```
+
+### Returns
+
+PNResult<PNDeleteFileResult>:
+- Result (PNDeleteFileResult): Empty object.
 - Status (PNStatus)
 
-PNDeleteFileResult returns an empty object.
+## Publish file message
 
-## Publish file message[​](#publish-file-message)
+Publishes a message to a channel referencing an already uploaded file. Called internally by SendFile. Useful if SendFile upload succeeded but message publish failed; retry with this method using data from PNStatus when status.operation === PNPublishFileMessageOperation.
 
-Publish the uploaded file message to a channel. Called internally by SendFile. Use this if SendFile fails with status.operation === PNPublishFileMessageOperation to resend the file message without re-uploading.
-
-### Method(s)[​](#methods-5)
+### Method(s)
 
 ```
-`1pubnub.PublishFileMessage()  
-2        .Channel(string)  
-3        .FileId(string)  
-4        .FileName(string)  
-5        .Message(object)  
-6        .Meta(Dictionarystring, object>)  
-7        .ShouldStore(bool)  
-8        .CustomMessageType(string)  
-`
+pubnub.PublishFileMessage()
+    .Channel(string)
+    .FileId(string)
+    .FileName(string)
+    .Message(object)
+    .Meta(Dictionary<string, object>)
+    .ShouldStore(bool)
+    .CustomMessageType(string)
 ```
 
 Parameters:
-- Channel (string, required): Channel to publish the file message.
-- FileId (string, required): Unique file identifier.
-- FileName (string, required): File name.
-- Message (string): Payload.
-- Meta (string): Metadata for message filtering.
+- Channel (string, required)
+- FileId (string, required)
+- FileName (string, required)
+- Message (object, required): Payload.
+- Meta (Dictionary<string, object>): Metadata for filtering.
 - ShouldStore (bool, default true): Store in history.
-- CustomMessageType (string): Case-sensitive, 3–50 alphanumeric chars; dashes and underscores allowed; cannot start with special chars or pn_/pn-. Examples: text, action, poll.
+- CustomMessageType (string): 3–50 char, case-sensitive alphanumeric label; dashes/underscores allowed; cannot start with special characters or pn_/pn-. Examples: text, action, poll.
 
-### Sample code[​](#sample-code-5)
-
-```
-1
-  
+### Sample code
 
 ```
 
-### Response[​](#response-5)
-
-```
-`1{  
-2    "Timetoken":15957738720237858  
-3}  
-`
 ```
 
-### Returns[​](#returns-5)
+### Response
 
-PublishFileMessage() returns PNResult<PNPublishFileMessageResult>:
+```
+{
+  "Timetoken": 15957738720237858
+}
+```
+
+### Returns
+
+PNResult<PNPublishFileMessageResult>:
 - Result (PNPublishFileMessageResult)
+  - Timetoken (long)
 - Status (PNStatus)
-
-PNPublishFileMessageResult:
-- Timetoken (long)
-
-Last updated on Jul 15, 2025

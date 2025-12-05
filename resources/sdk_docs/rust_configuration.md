@@ -1,157 +1,143 @@
 # Configuration API for Rust SDK
 
-Concise reference for configuring and initializing PubNub clients with the Rust SDK.
+Complete API reference for configuring, initializing, and handling events with the PubNub Rust SDK.
 
-Add any of the following features to Cargo.toml:
+Add any of the following features to Cargo.toml to use this API:
+```toml
+[dependencies]
+# default
+pubnub = "0.7.0"
 
+# full
+pubnub = { version = "0.7.0", features = ["full"] }
+
+# Access Manager
+pubnub = { version = "0.7.0", features = ["access"] }
+
+# no default features, just Publish
+pubnub = { version = "0.7.0", default-features = false, features = ["publish"] }
+
+# Subscribe
+pubnub = { version = "0.7.0", features = ["subscribe"] }
+
+# Presence
+pubnub = { version = "0.7.0", features = ["presence"] }
 ```
-`[dependencies]  
-# default  
-pubnub = "0.7.0"   
-# full  
-pubnub = { version = "0.7.0", features = ["full"] }  
-# Access Manager  
-pubnub = { version = "0.7.0", features = ["access"] }  
-# no default features, just Publish   
-pubnub = { version = "0.7.0", default-features = false, features = ["publish"] }  
-# Subscribe  
-pubnub = { version = "0.7.0", features = ["subscribe"] }  
-# Presence  
-pubnub = { version = "0.7.0", features = ["presence"] }  
-`
-```
-
-For a full list, see Available features.
+For a list of all features, refer to Available features.
 
 Available in features: default, full, access, publish, subscribe, presence
 
 ## Initialization
 
-Use `PubNubClientBuilder` to create API clients. The client is transport-agnostic (any type implementing `Transport`).
+Use PubNubClientBuilder to create and initialize clients. The client is transport-agnostic; any transport implementing the Transport trait can be used.
 
 ### Method(s)
-
-```
-`1let client = PubNubClientBuilder::with_transport(Transport)  
-2    .with_keyset(Keyset {  
-3        publish_key: Some(String),  
-4        subscribe_key: String,  
-5        secret_key: String,  
-6    })  
-7    .with_user_id(String)  
-8    .with_instance_id(IntoString>)  
-9    .with_config(PubNubConfig)  
-10    .with_retry_configuration(RequestRetryConfiguration)  
-11    .with_cryptor(T: CryptoProvider)  
-12    .with_heartbeat_value(u64)  
-13    .with_heartbeat_interval(u64)  
-14    .with_suppress_leave_events(bool)  
-15    .with_filter_expression(String)  
-16    .build()?;  
-`
+```rust
+let client = PubNubClientBuilder::with_transport(Transport)
+    .with_keyset(Keyset {
+        publish_key: Some(String),
+        subscribe_key: String,
+        secret_key: String,
+    })
+    .with_user_id(String)
+    .with_instance_id(Into<String>)
+    .with_config(PubNubConfig)
+    .with_retry_configuration(RequestRetryConfiguration)
+    .with_cryptor(T: CryptoProvider)
+    .with_heartbeat_value(u64)
+    .with_heartbeat_interval(u64)
+    .with_suppress_leave_events(bool)
+    .with_filter_expression(String)
+    .build()?;
 ```
 
-- with_transport(transport)
+- with_transport()
   - Type: Transport
   - Default: with_reqwest_transport() (requires the reqwest feature; enabled by default)
   - Transport layer to use.
-- with_keyset(keyset)
+- with_keyset()
   - Type: Keyset
   - Default: n/a
-  - Provide Admin Portal credentials. See Keyset.
-- with_user_id(user_id)
+  - Provide Admin Portal keys. See Keyset below.
+- with_user_id()
   - Type: String
   - Default: n/a
-  - Required. UTF-8 string up to 92 alphanumeric chars. Without it, you cannot connect.
-- with_instance_id(instance_id)
+  - Required. UTF-8 string up to 92 alphanumeric characters. Without it, the client can’t connect.
+- with_instance_id()
   - Type: Into<String>
   - Default: n/a
   - Client instance ID.
-- with_config(config)
+- with_config()
   - Type: PubNubConfig
-  - Default: data provided in the builder
-  - Overwrite Keyset and user_id; useful for multiple builders.
-- with_retry_configuration(policy)
+  - Default: Data provided in the builder
+  - Overwrites Keyset and user_id; useful for multiple client builders.
+- with_retry_configuration()
   - Type: RequestRetryConfiguration
   - Default: RequestRetryConfiguration::None
-  - Custom reconnection policy. You can exclude endpoint groups from retry policy.
-  - Values:
+  - Configure reconnection policy; you may exclude endpoint groups from retry.
+  - Variants:
     - RequestRetryConfiguration::None
     - RequestRetryConfiguration::Linear { delay, max_retry, excluded_endpoints }
     - RequestRetryConfiguration::Exponential { min_delay, max_delay, max_retry, excluded_endpoints }
-  - excluded_endpoints: Some(vec![Endpoint::Publish]), etc.
-- with_cryptor(cryptor)
+  - excluded_endpoints: Some(vec![Endpoint::Publish]) (enums defined in core/retry_policy.rs).
+- with_cryptor()
   - Type: T: CryptoProvider
   - Default: n/a
-  - Configure message encryption/decryption. See Encryption API.
-- with_heartbeat_value(seconds)
+  - Configure encryption/decryption. See Encryption API.
+- with_heartbeat_value()
   - Type: u64
   - Default: 300
-  - Presence timeout window. Min: 20. If no heartbeat within timeout, client is marked inactive (timeout event on presence channel).
-- with_heartbeat_interval(seconds)
+  - Presence timeout (seconds). Min 20. If missed, triggers timeout on presence channel.
+- with_heartbeat_interval()
   - Type: u64
   - Default: n/a
-  - Heartbeat frequency. Recommended: (heartbeat_value / 2) - 1. Min: 0 (no announce).
-- with_suppress_leave_events(flag)
+  - Heartbeat frequency (seconds). Recommended: (heartbeat_value / 2) - 1. Min 0 disables announcements.
+- with_suppress_leave_events()
   - Type: bool
   - Default: false
-  - Suppress presence leave events during unsubscribe.
-- with_filter_expression(expr)
+  - Suppress presence leave events on unsubscribe.
+- with_filter_expression()
   - Type: String
   - Default: n/a
-  - Subscribe with a custom filter. See Message Filters.
+  - Subscribe with a custom filter expression. See Message Filters.
 - build()
-  - Creates and returns the PubNub instance.
+  - Creates and returns the PubNub instance or an error.
 
 #### CryptoModule
-
-Implements `CryptoProvider` to encrypt/decrypt messages. From 0.3.0, algorithms are configurable.
-
-- Options included: legacy 128-bit encryption and recommended 256-bit AES-CBC.
-- To use 256-bit AES-CBC, explicitly configure it in PubNub config.
-- See Encryption for configuration and examples.
+Implements CryptoProvider to encrypt/decrypt messages. From 0.3.0, algorithm selection is configurable. Options include legacy 128-bit and recommended 256-bit AES-CBC. See Encryption.
 
 #### Keyset
-
-Provide credentials via the `Keyset` struct:
-
-- publishKey: Some(String) — Admin Portal publishKey.
-- subscribeKey: String — Admin Portal subscribeKey.
-- secretKey: String — Admin Portal secretKey. Required for Access Manager operations.
+Provide account credentials to the SDK:
+- publishKey: Some(String) — publishKey from Admin Portal.
+- subscribeKey: String — subscribeKey from Admin Portal.
+- secretKey: String — secretKey from Admin Portal; required for Access Manager.
 
 ### Sample code
 
 ##### Required User ID
-
-Persist a unique `user_id` for the user/device. Without it, you cannot connect.
-
+Always set a stable user_id for the life of the user/device. Without it, connection fails.
 ```
 1
   
-
 ```
 
 ### Returns
-
-Result with the PubNub instance, or an error if configuration is invalid.
+A result with PubNub instance or error if the configuration is wrong.
 
 ### Other examples
 
 #### Initialize with custom origin
-
+You can initialize the client with a custom domain.
 ```
 1
   
-
 ```
 
 ## Event listeners
+- PubNub client: updates from all subscriptions (channels, channel groups, channel metadata, users).
+- Subscription: updates for a single entity (channel, channel group, channel metadata, user).
+- SubscriptionsSet: updates for all entities represented by its subscription list.
 
-Sources for real-time updates:
-- The PubNub client receives updates from all subscriptions.
-- Subscription receives updates for its specific channel/group/metadata/user.
-- SubscriptionsSet receives updates for all included subscriptions.
-
-Subscribe and add handlers per entity. See Publish & Subscribe for details.
+See Publish & Subscribe for adding handlers per entity.
 
 Last updated on Sep 3, 2025

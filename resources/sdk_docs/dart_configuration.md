@@ -1,10 +1,10 @@
 # Configuration API for Dart SDK
 
-Dart API reference for configuring PubNub for real-time apps. Keep code blocks, parameters, and critical details.
+Dart API reference for configuring PubNub in real-time apps. Preserve unique keysets, set a required userId, and initialize PubNub with optional networking, parsing, and crypto modules.
 
 ## Configuration
 
-Create configurations for different subscribe keys using a Keyset. Use KeysetStore to store your Keysets. Names must be unique; only one default keyset is allowed.
+Create configurations per subscribe key using a Keyset. Use KeysetStore to hold Keysets; names must be unique and only one default keyset is allowed.
 
 ### Method(s)
 
@@ -23,11 +23,11 @@ Keyset properties:
 - subscribeKey
   - Type: String
   - Default: n/a
-  - Your subscribeKey from the Admin Portal.
+  - Required. From Admin Portal.
 - publishKey
   - Type: String
   - Default: n/a
-  - Required for publishing.
+  - From Admin Portal (required if publishing).
 - secretKey
   - Type: String
   - Default: n/a
@@ -39,11 +39,11 @@ Keyset properties:
 - userId
   - Type: String
   - Default: n/a
-  - Required unique identifier (UTF-8, up to 92 alphanumeric characters). Must be set to connect.
+  - Required unique identifier for the user/device (UTF-8, up to 92 alphanumeric characters). If not set, you cannot connect.
 - cipherKey
   - Type: String
   - Default: n/a
-  - Deprecated here; pass via crypto instead. If provided, all communications are encrypted.
+  - Deprecated here; pass via crypto module instead. If passed, traffic is encrypted.
 - UUID
   - Type: String
   - Default: n/a
@@ -51,9 +51,7 @@ Keyset properties:
 
 ### Sample code
 
-##### Required User ID
-
-Always set userId to uniquely identify the user/device. Persist it for the lifetime of the user/device.
+Required User ID: Persist a stable userId for the user/device. Without it, the client cannot connect.
 
 ```
 1import 'package:pubnub/pubnub.dart';  
@@ -75,14 +73,10 @@ Always set userId to uniquely identify the user/device. Persist it for the lifet
 
 ## Initialization
 
-Add the SDK via Getting Started. Instantiate PubNub with a default Keyset.
-
-### Description
-
-Keyset resolution:
+Instantiate PubNub with a default Keyset. Keyset resolution:
 - If provided, the keyset parameter is used.
-- Otherwise, the method uses the using parameter.
-- Otherwise, the default keyset is used.
+- Else, the method uses the using parameter.
+- Else, the default keyset is used.
 - If no default keyset is defined, an error is thrown.
 
 ### Methods
@@ -101,32 +95,35 @@ Constructor arguments:
 - defaultKeyset
   - Type: Keyset
   - Default: n/a
-  - The default keyset to use.
+  - Default keyset to use.
 - networking
   - Type: INetworkingModule
   - Default: NetworkingModule
   - Configure custom origin, SSL, and subscribe retry policy.
-  - Default retry policy: RetryPolicy.exponential (subscribe only).
-  - RetryPolicy options:
+  - Default subscribe retry policy: RetryPolicy.exponential.
+  - Available values:
     - RetryPolicy.none()
     - RetryPolicy.linear({backoff, maxRetries, maximumDelay})
     - RetryPolicy.exponential({maxRetries, maximumDelay})
 - parser
   - Type: IParserModule
   - Default: ParserModule
-  - Parser for data.
 - crypto
   - Type: ICryptoModule
   - Default: CryptoModule
-  - Encrypts/decrypts messages/files; takes cipherKey. See cryptoModule.
+  - Handles encryption/decryption of messages/files. Takes cipherKey. See cryptoModule.
 
 #### cryptoModule
 
-Encrypts/decrypts messages and files. From 4.2.4, algorithms can be configured. Options: legacy 128-bit and recommended 256-bit AES-CBC. If cryptoModule is not set but cipherKey is set in config, legacy encryption is used. For full setup and examples, see Encryption.
+Encrypts/decrypts messages/files. From 4.2.4 onward, algorithm configuration is supported.
+
+- Options: legacy 128-bit encryption and recommended 256-bit AES-CBC.
+- If cryptoModule is not explicitly set and cipherKey is set in config, the client defaults to legacy encryption.
+- For configuration and examples, see Encryption docs.
 
 ##### Legacy encryption with 128-bit cipher key entropy
 
-No change needed to keep legacy. To use 256-bit AES-CBC, explicitly set it in PubNub config.
+To keep legacy behavior, no changes are required. To use 256-bit AES-CBC, explicitly set it in PubNub config.
 
 ### Sample code
 
@@ -151,7 +148,7 @@ No change needed to keep legacy. To use 256-bit AES-CBC, explicitly set it in Pu
 
 ### Returns
 
-A PubNub instance for invoking APIs like publish(), subscribe(), etc.
+Returns a PubNub instance for APIs like publish() and subscribe().
 
 ### Other examples
 
@@ -177,8 +174,6 @@ A PubNub instance for invoking APIs like publish(), subscribe(), etc.
 
 #### Initialization with custom origin
 
-Route all traffic through example.com:
-
 ```
 `1final pubnub = PubNub(  
 2  defaultKeyset: myKeyset,  
@@ -199,7 +194,9 @@ Route all traffic through example.com:
 
 #### Initializing with Access Manager
 
-Requires Access Manager add-on. Secure your secretKey (server-side only). Initializing with secretKey grants root permissions for Access Manager operations:
+Requires Access Manager add-on (enable in Admin Portal).
+
+Secure your secretKey: only use server-side; it grants root permissions.
 
 ```
 `1final pubnub = PubNub(  
@@ -212,7 +209,12 @@ Requires Access Manager add-on. Secure your secretKey (server-side only). Initia
 
 ## Event listeners
 
-Use listeners for connectivity status, messages, presence, etc. Requires a Subscription.
+Requires a Subscription. Listeners:
+- message
+- signal
+- objects
+- messageAction
+- file
 
 ```
 1subscription.messages.listen((envelope) {  
@@ -277,7 +279,7 @@ Use listeners for connectivity status, messages, presence, etc. Requires a Subsc
 
 ## userID
 
-Set/get a user ID.
+Set/get a user ID on the fly.
 
 ### Methods
 
@@ -289,9 +291,12 @@ Set/get a user ID.
 
 - userId
   - Type: String
-  - User ID to be used as device identifier.
+  - Default: n/a
+  - User ID used as a device identifier.
 
 ### Sample code
+
+Required User ID: persist and keep stable for the user/device.
 
 ```
 1final pubnub = PubNub(  
@@ -307,7 +312,7 @@ Set/get a user ID.
 
 ## Authentication key
 
-Setter/getter for users' authentication key.
+Setter/getter for users’ authentication key.
 
 ### Method(s)
 
@@ -321,7 +326,7 @@ Setter/getter for users' authentication key.
 
 - authKey
   - Type: String
-  - Used for restricted requests when Access Manager is enabled.
+  - Used with Access Manager for restricted requests.
 
 ### Sample code
 
@@ -336,7 +341,7 @@ Setter/getter for users' authentication key.
 
 ## Filter expression
 
-Requires Stream Controller add-on. Server-side filtering to deliver only messages matching the filter.
+Requires Stream Controller add-on. Filters are applied server-side to only deliver matching messages.
 
 ### Method(s)
 
@@ -364,11 +369,13 @@ Requires Stream Controller add-on. Server-side filtering to deliver only message
 
 ## Handling disconnects
 
-Client may disconnect due to network issues. By default, subscribe connections use exponential reconnection only.
+Client may disconnect due to network conditions. By default, subscribe operations reconnect with exponential backoff. Non-subscribe requests never retry.
 
 ### Retry policy
 
-Configure subscribe retry behavior via NetworkingModule. Non-subscribe requests never retry. Set the policy at PubNub construction time.
+Configure subscribe retries via NetworkingModule when constructing PubNub (changing later doesn’t re-register networking).
+
+Default: exponential retries for subscribe on network-related errors (host down, lookup failed, timeouts, unknown HTTP exceptions). Use RetryPolicy.none() to disable all retries.
 
 ```
 `1var pubnub = PubNub(  
@@ -377,15 +384,14 @@ Configure subscribe retry behavior via NetworkingModule. Non-subscribe requests 
 `
 ```
 
-Available policies:
-- RetryPolicy.exponential({int? maxRetries, int? maximumDelay})
+Available retry policies:
+- RetryPolicy.exponential({int? maxRetries, int? maximumDelay});
 - RetryPolicy.linear({int? backoff, int? maxRetries, int? maximumDelay})
-- RetryPolicy.none()
 
 Arguments:
-- maximumDelay (int): Max milliseconds to wait before retry.
-- backoff (int): Milliseconds added per retry (plus jitter) for linear.
-- maxRetries (int): Maximum retries. Use none() to disable all retries.
+- maximumDelay (int): Max milliseconds to wait before next retry.
+- backoff (int): Backoff in milliseconds.
+- maxRetries (int): Max retry attempts.
 
 #### Examples
 
@@ -430,3 +436,4 @@ Disable retries entirely:
 6);  
 `
 ```
+Last updated on Sep 3, 2025**

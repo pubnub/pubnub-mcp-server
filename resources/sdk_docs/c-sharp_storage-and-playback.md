@@ -1,13 +1,13 @@
 # Message Persistence API for C# SDK
 
-Message Persistence provides real-time access to stored messages with 10ns timetokens across multiple regions. Messages can be encrypted with AES-256. Configure retention in the Admin Portal (1 day to Unlimited). You can retrieve:
+Message Persistence provides real-time access to published message history. Messages are timestamped to the nearest 10 ns and stored across multiple availability zones globally. Optional AES-256 encryption secures stored messages. Retention options: 1 day, 7 days, 30 days, 3 months, 6 months, 1 year, Unlimited. You can retrieve:
 - Messages
 - Message reactions
 - Files (via File Sharing API)
 
-## Request execution
+##### Request execution
 
-Use try/catch. Invalid parameters throw exceptions; network/server errors return details in PNStatus.
+Use try/catch. Invalid parameters throw an exception. Server/network errors are returned in PNResult.Status.
 
 ```
 1try  
@@ -19,8 +19,7 @@ Use try/catch. Invalid parameters throw exceptions; network/server errors return
 7
   
 8    PNStatus status = publishResponse.Status;  
-9
-  
+9  
 10    Console.WriteLine("Server status code : " + status.StatusCode.ToString());  
 11}  
 12catch (Exception ex)  
@@ -32,20 +31,21 @@ Use try/catch. Invalid parameters throw exceptions; network/server errors return
 
 ## Fetch history
 
-Requires Message Persistence enabled in Admin Portal.
+##### Requires Message Persistence
 
-Fetch historical messages from one or more channels. Use IncludeMessageActions to include message actions.
+Enable in the Admin Portal. Use IncludeMessageActions to include message actions.
 
 Ordering and range:
-- start only: messages older than start timetoken.
-- end only: messages from end timetoken and newer.
-- start and end: messages between them (end inclusive).
+- start only: messages older than start (exclusive).
+- end only: messages from end (inclusive) and newer.
+- start and end: messages between them (inclusive of end).
 
 Limits:
 - Single channel: up to 100 messages.
 - Multiple channels (up to 500): up to 25 per channel.
-- IncludeMessageActions = true: one channel, max 25 messages.
-- Page results by iterating with updated start.
+- IncludeMessageActions = true: 1 channel, max 25 messages.
+- Page by iterating with updated start timetoken.
+- Truncated responses include a more property.
 
 ### Method(s)
 
@@ -66,26 +66,24 @@ Limits:
 ```
 
 Parameters:
-- Channels (string[], required): Channels to fetch from (up to 500).
-- IncludeMeta (bool): Include meta object published with the message.
-- IncludeMessageType (bool): Include message type. Default true.
-- IncludeCustomMessageType (bool): Retrieve custom message type.
-- IncludeUUID (bool): Include publisher uuid. Default true.
-- IncludeMessageActions (bool): Include message actions. If true, limited to one channel and 25 messages. Default false.
-- Reverse (bool): Oldest-to-newest when true.
-- Start (long): Start timetoken (exclusive).
-- End (long): End timetoken (inclusive).
-- MaximumPerChannel (int): Max messages returned. Defaults: 100 single channel; 25 multiple channels; 25 if IncludeMessageActions is true.
-- QueryParam (Dictionary<string, object>): Extra query params for features/debugging.
-- Execute: PNCallback of PNFetchHistoryResult.
-- ExecuteAsync: Returns PNResult<PNFetchHistoryResult>.
-
-Truncated response:
-- A more property indicates additional pages; iterate with adjusted parameters.
+- Channels (required) Type: string[] — Channels to fetch from (up to 500).
+- IncludeMeta Type: bool — Include meta object published with the message.
+- IncludeMessageType Type: bool — Include message type. Default true.
+- IncludeCustomMessageType Type: bool — Retrieve custom message type.
+- IncludeUUID Type: bool — Include publisher uuid. Default true.
+- IncludeMessageActions Type: bool — Include message actions. If true, limited to 1 channel and 25 messages. Default false.
+- Reverse Type: bool — Traverse oldest to newest when true.
+- Start Type: long — Start timetoken (exclusive).
+- End Type: long — End timetoken (inclusive).
+- MaximumPerChannel Type: int — Max messages to return (100 single channel; 25 multi-channel; 25 with IncludeMessageActions).
+- QueryParam Type: Dictionary<string, object> — Extra query params.
+- Execute Type: PNCallback — PNCallback of type PNFetchHistoryResult.
+- ExecuteAsync Type: None — Returns PNResult<PNFetchHistoryResult>.
 
 ### Sample code
 
 Retrieve the last message on a channel:
+
 ```
 1
   
@@ -116,7 +114,8 @@ Retrieve the last message on a channel:
 
 ### Other examples
 
-Retrieve the last 25 messages on a channel synchronously
+#### Retrieve the last 25 messages on a channel synchronously
+
 ```
 1
   
@@ -125,9 +124,15 @@ Retrieve the last 25 messages on a channel synchronously
 
 ## Delete messages from history
 
-Requires Message Persistence enabled.
+##### Requires Message Persistence
 
-To accept delete requests, enable Delete-From-History for your key and initialize the SDK with a secret key.
+Enable in the Admin Portal.
+
+Removes messages from a channel’s history.
+
+##### Required setting
+
+Enable Delete-From-History for your key and initialize the SDK with a secret key.
 
 ### Method(s)
 
@@ -141,13 +146,13 @@ To accept delete requests, enable Delete-From-History for your key and initializ
 ```
 
 Parameters:
-- Channel (string, required): Channel to delete from.
-- Start (long): Start timetoken (inclusive).
-- End (long): End timetoken (exclusive).
-- QueryParam (Dictionary<string, object>): Extra query params.
-- Async: PNCallback of PNDeleteMessageResult. Deprecated; use ExecuteAsync.
-- Execute: PNCallback of PNDeleteMessageResult.
-- ExecuteAsync: Returns PNResult<PNDeleteMessageResult>.
+- Channel (required) Type: string — Channel to delete from.
+- Start Type: long — Start timetoken (inclusive).
+- End Type: long — End timetoken (exclusive).
+- QueryParam Type: Dictionary<string, object> — Extra query params.
+- Async Type: PNCallback — PNCallback of type PNDeleteMessageResult. (Deprecated; use ExecuteAsync.)
+- Execute Type: PNCallback — PNCallback of type PNDeleteMessageResult.
+- ExecuteAsync Type: None — Returns PNResult<PNDeleteMessageResult>.
 
 ### Sample code
 
@@ -163,16 +168,18 @@ PNResult<PNDeleteMessageResult> with an empty PNDeleteMessageResult.
 
 ### Other examples
 
-Delete messages sent in a particular timeframe
+#### Delete messages sent in a particular timeframe
+
 ```
 1
   
 
 ```
 
-Delete specific message from history
+#### Delete specific message from history
 
-To delete a specific message, set End to the message’s publish timetoken and Start to that timetoken minus 1 (for example Start=15526611838554309, End=15526611838554310).
+Set End to message publish timetoken; set Start to timetoken - 1. Example: publish timetoken 15526611838554310 → Start 15526611838554309, End 15526611838554310.
+
 ```
 1
   
@@ -181,11 +188,10 @@ To delete a specific message, set End to the message’s publish timetoken and S
 
 ## Message counts
 
-Requires Message Persistence enabled.
+##### Requires Message Persistence
 
-Returns the number of messages published since a given time (timetoken >= ChannelsTimetoken).
-
-Unlimited retention: Only last 30 days are counted.
+Returns counts of messages with timetokens >= ChannelsTimetoken.
+Note: With Unlimited retention enabled, counts include only the last 30 days.
 
 ### Method(s)
 
@@ -198,12 +204,12 @@ Unlimited retention: Only last 30 days are counted.
 ```
 
 Parameters:
-- Channels (string[], required): Channels to count.
-- ChannelsTimetoken (long[], required): Array of timetokens aligned with Channels. A single timetoken applies to all channels; otherwise, lengths must match or PNStatus error is returned.
-- QueryParam (Dictionary<string, object>): Extra query params.
-- Async: PNCallback of PNMessageCountResult. Deprecated; use ExecuteAsync.
-- Execute: PNCallback of PNMessageCountResult.
-- ExecuteAsync: Returns PNResult<PNMessageCountResult>.
+- Channels (required) Type: string[] — Channels to count.
+- ChannelsTimetoken (required) Type: long[] — Timetokens aligned with Channels. A single timetoken applies to all channels; otherwise, arrays must match length or a PNStatus error is returned.
+- QueryParam Type: Dictionary<string, object> — Extra query params.
+- Async Type: PNCallback — PNCallback of type PNMessageCountResult. (Deprecated; use ExecuteAsync.)
+- Execute Type: PNCallback — PNCallback of type PNMessageCountResult.
+- ExecuteAsync Type: None — Returns PNResult<PNMessageCountResult>.
 
 ### Sample code
 
@@ -220,18 +226,20 @@ PNResult<PNMessageCountResult>:
 - Status: PNStatus
 
 PNMessageCountResult:
-- Channels (Dictionary<string, long>): Per-channel counts. Channels without messages return 0. Channels with 10,000+ messages return 10000.
+- Channels: Dictionary<string, long> — Channel counts. Channels with no messages return 0. Counts >= 10,000 are capped at 10000.
 
 ### Other examples
 
-Retrieve count of messages for a single channel
+#### Retrieve count of messages for a single channel
+
 ```
 1
   
 
 ```
 
-Retrieve count of messages using different timetokens for each channel
+#### Retrieve count of messages using different timetokens for each channel
+
 ```
 1
   
@@ -240,25 +248,27 @@ Retrieve count of messages using different timetokens for each channel
 
 ## History (deprecated)
 
-Requires Message Persistence enabled.
+##### Requires Message Persistence
 
-Deprecated: Use fetchHistory() instead.
+##### Deprecated
 
-Fetch historical messages for a single channel with optional paging and ordering.
+Use fetchHistory() instead.
 
-Range and paging:
-- Reverse=false (default): search from newest end of timeline.
-- Reverse=true: search from oldest end.
-- Page with Start or End; slice with both.
-- Count limits returned messages.
+Fetch historical messages for a single channel with paging and direction controls.
 
-Start & End clarity:
+Behavior:
+- Reverse = false (default): search from newest end.
+- Reverse = true: search from oldest end.
+- Page via Start or End timetoken; slice via both.
+- Count limits the number of messages.
+
+Start/End clarity:
 - Start only: messages older than and up to Start.
-- End only: messages matching End and newer.
-- Start and End: between them (End inclusive).
-- Up to 100 messages per call; page using Start.
+- End only: messages at End and newer.
+- Both: messages between them (inclusive of End).
+- Up to 100 messages per call; page by adjusting Start.
 
-### Method(s) (deprecated)
+#### Method(s) (deprecated)
 
 ```
 `1pubnub.History()  
@@ -274,31 +284,33 @@ Start & End clarity:
 ```
 
 Parameters:
-- Channel (string, required): Channel to fetch from.
-- IncludeMeta (bool): Include meta object.
-- Reverse (bool): Oldest-to-newest when true.
-- IncludeTimetoken (bool): Include message timetokens.
-- Start (long): Start timetoken (exclusive).
-- End (long): End timetoken (inclusive).
-- Count (int): Number of messages to return.
-- QueryParam (Dictionary<string, object>): Extra query params.
-- Async: PNCallback of PNHistoryResult. Deprecated; use ExecuteAsync.
-- Execute: PNCallback of PNHistoryResult.
-- ExecuteAsync: Returns PNResult<PNHistoryResult>.
+- Channel (required) Type: string — Channel to fetch from.
+- IncludeMeta Type: bool — Include meta object.
+- Reverse Type: bool — Oldest to newest when true.
+- IncludeTimetoken Type: bool — Include message timetokens.
+- Start Type: long — Start timetoken (exclusive).
+- End Type: long — End timetoken (inclusive).
+- Count Type: int — Number of messages to return.
+- QueryParam Type: Dictionary<string, object> — Extra query params.
+- Async Type: PNCallback — PNCallback of type PNHistoryResult. (Deprecated; use ExecuteAsync.)
+- Execute Type: PNCallback — PNCallback of type PNHistoryResult.
+- ExecuteAsync Type: None — Returns PNResult<PNHistoryResult>.
 
-Using the reverse parameter:
-- History always returns messages in ascending time order. Reverse affects which end of the interval retrieval begins when there are more messages than Count (or 100 default).
+##### Using the reverse parameter
 
-### Sample code (deprecated)
+Results are always sorted ascending by time. Reverse determines which end of the interval to start retrieving from when more than Count (or 100 default) messages exist in range.
+
+#### Sample code (deprecated)
 
 Retrieve the last 100 messages on a channel:
+
 ```
 1
   
 
 ```
 
-### Returns (deprecated)
+#### Returns (deprecated)
 
 PNResult<PNHistoryResult>:
 - Result: PNHistoryResult
@@ -309,27 +321,31 @@ PNHistoryResult:
 - StartTimetoken: long
 - EndTimetoken: long
 
-PNHistoryItemResult (deprecated):
-- Timetoken: long
-- Entry: object
+##### PNHistoryItemResult (deprecated)
 
-### Other examples (deprecated)
+- Timetoken: long — Message timetoken.
+- Entry: object — Message.
 
-Retrieve the last 100 messages on a channel synchronously (deprecated)
+#### Other examples (deprecated)
+
+##### Retrieve the last 100 messages on a channel synchronously (deprecated)
+
 ```
 1
   
 
 ```
 
-Use history() to retrieve the three oldest messages by retrieving from the time line in reverse (deprecated)
+##### Use history() to retrieve the three oldest messages by retrieving from the time line in reverse (deprecated)
+
 ```
 1
   
 
 ```
 
-Response (deprecated)
+##### Response (deprecated)
+
 ```
 `1{  
 2    "Messages":[  
@@ -352,14 +368,16 @@ Response (deprecated)
 `
 ```
 
-Use history() to retrieve messages newer than a given timetoken by paging from oldest message to newest message starting at a single point in time (exclusive) (deprecated)
+##### Use history() to retrieve messages newer than a given timetoken by paging from oldest message to newest message starting at a single point in time (exclusive) (deprecated)
+
 ```
 1
   
 
 ```
 
-Response (deprecated)
+##### Response (deprecated)
+
 ```
 `1{  
 2    "Messages":[  
@@ -382,14 +400,16 @@ Response (deprecated)
 `
 ```
 
-Use history() to retrieve messages until a given timetoken by paging from newest message to oldest message until a specific end point in time (inclusive) (deprecated)
+##### Use history() to retrieve messages until a given timetoken by paging from newest message to oldest message until a specific end point in time (inclusive) (deprecated)
+
 ```
 1
   
 
 ```
 
-Response (deprecated)
+##### Response (deprecated)
+
 ```
 `1{  
 2    "Messages":[  
@@ -412,18 +432,22 @@ Response (deprecated)
 `
 ```
 
-History paging example (deprecated)
+##### History paging example (deprecated)
 
-Usage:
-- Call the method by passing 0 or a valid timetoken as the argument.
+##### Usage
+
+Pass 0 or a valid timetoken.
+
 ```
 1
   
 
 ```
 
-Include timetoken in history response (deprecated)
+##### Include timetoken in history response (deprecated)
+
 ```
 1
 **
 ```
+Last updated on Sep 3, 2025**

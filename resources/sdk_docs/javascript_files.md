@@ -1,14 +1,14 @@
 # File Sharing API for JavaScript SDK
 
-Upload and share files (up to 5 MB) on a channel. Subscribers receive a file event with file ID, filename, and optional description.
+Upload and share files up to 5 MB. Files uploaded to a channel are stored using a storage service and associated with your key. Subscribers to that channel receive a file event containing file ID, filename, and optional description.
 
 ##### Supported and recommended asynchronous patterns
-
-PubNub supports Callbacks, Promises, and Async/Await. Recommended: Async/Await. Add try...catch to receive error status.
+- Supports Callbacks, Promises, and Async/Await (recommended).
+- Async/Await returns status only on error; use try...catch to handle errors.
 
 ## Send file
 
-Upload a file to a channel and publish its metadata message. Internally calls publishFile.
+Uploads a file to a channel and publishes a file message. Internally calls publishFile to announce the uploaded file to subscribers.
 
 ### Method(s)
 
@@ -19,21 +19,20 @@ Upload a file to a channel and publish its metadata message. Internally calls pu
 `
 ```
 
-- params Type: SendFileParameters — Parameters used to upload the file to a channel.
+- params: SendFileParameters (required)
 
 #### SendFileParameters
 
-- channel Type: string Default: n/a — Channel to send the file to.
-- file Type: FileInput Default: n/a — File to send.
-- message Type: any Default: n/a — Optional message to attach to the file.
-- storeInHistory Type: boolean Default: true — Whether to store published file messages in channel history. If not specified, uses key configuration.
-- ttl Type: number Default: 0 — How long the message is stored in history. Defaults to key set retention.
-- meta Type: any Default: n/a — Metadata for the message.
-- customMessageType Type: string Default: n/a — Case-sensitive, alphanumeric string (3–50 chars). Dashes - and underscores _ allowed. Cannot start with special characters or pn_ / pn-. Examples: text, action, poll.
+- channel (string, required): Channel to send the file to.
+- file (FileInput, required): File to send.
+- message (any, optional): Optional message to attach.
+- storeInHistory (boolean, default: true): Store published file messages in history; if omitted, key’s history config applies.
+- ttl (number, default: 0): Message history TTL; defaults to key set’s retention.
+- meta (any, optional): Metadata for the message.
+- customMessageType (string, optional): Case-sensitive, 3–50 chars, alphanumeric; dashes and underscores allowed; cannot start with special chars or pn_/pn-. Examples: text, action, poll.
 
-##### Deprecated parameter
-
-cipherKey is deprecated. Configure the crypto module on your PubNub instance instead. If passed, it overrides crypto module config and uses legacy 128-bit cipher key entropy.
+Deprecated parameter:
+- cipherKey: Deprecated. Configure the crypto module instead. Passing cipherKey overrides crypto module and uses legacy 128-bit encryption.
 
 ### Sample code
 
@@ -85,13 +84,13 @@ Retrieve a list of files uploaded to a channel.
 `
 ```
 
-- params Type: ListFilesParameters — Parameters used to retrieve the list of uploaded files.
+- params: ListFilesParameters (required)
 
 #### ListFilesParameters
 
-- channel Type: string Default: n/a — Channel to list files for.
-- limit Type: number Default: 100 — Number of files to return.
-- next Type: string Default: n/a — Token for next page.
+- channel (string, required): Channel to list files from.
+- limit (number, default: 100): Number of files to return.
+- next (string, optional): Token for next page.
 
 ### Sample code
 
@@ -120,7 +119,7 @@ Retrieve a list of files uploaded to a channel.
 
 ## Get file URL
 
-Construct the file’s direct download URL. No API call; does not decrypt.
+Construct a file’s direct download URL. No API calls; does not decrypt encrypted files.
 
 ### Method(s)
 
@@ -131,13 +130,13 @@ Construct the file’s direct download URL. No API call; does not decrypt.
 `
 ```
 
-- params Type: GetFileUrlParams — Parameters used to construct file URL.
+- params: GetFileUrlParams (required)
 
 #### GetFileUrlParams
 
-- channel Type: string — Channel that the file was sent to.
-- id Type: string — File’s unique identifier.
-- name Type: string — File name.
+- channel (string, required): Channel the file was sent to.
+- id (string, required): File identifier.
+- name (string, required): File name.
 
 ### Sample code
 
@@ -167,17 +166,16 @@ Download a file from a channel.
 `
 ```
 
-- params Type: DownloadFileParams — Parameters used to download the file.
+- params: DownloadFileParams (required)
 
 #### DownloadFileParams
 
-- channel Type: string Default: n/a — Channel that the file was sent to.
-- id Type: string Default: n/a — File’s unique identifier.
-- name Type: string Default: n/a — File name.
+- channel (string, required): Channel the file was sent to.
+- id (string, required): File identifier.
+- name (string, required): File name.
 
-##### Deprecated parameter
-
-cipherKey is deprecated. Configure the crypto module on your PubNub instance instead. If passed, it overrides crypto module config and uses legacy 128-bit cipher key entropy.
+Deprecated parameter:
+- cipherKey: Deprecated. Configure the crypto module instead. Passing cipherKey overrides crypto module and uses legacy 128-bit encryption.
 
 ### Sample code
 
@@ -201,7 +199,7 @@ cipherKey is deprecated. Configure the crypto module on your PubNub instance ins
 
 ### Returns
 
-Returns instance of PubNubFile.
+Returns instance of [PubNubFile](#pubnub-file).
 
 ### Other examples
 
@@ -226,13 +224,13 @@ Delete a file from a channel.
 `
 ```
 
-- params Type: DeleteFileParams — Parameters used to delete the file.
+- params: DeleteFileParams (required)
 
 #### DeleteFileParams
 
-- channel Type: string — Channel that the file was sent to.
-- id Type: string — File’s unique identifier.
-- name Type: string — File name.
+- channel (string, required): Channel the file was sent to.
+- id (string, required): File identifier.
+- name (string, required): File name.
 
 ### Sample code
 
@@ -255,7 +253,7 @@ Example of successful deletion:
 
 ## Publish file message
 
-Publish the uploaded file message to a channel. Called by sendFile; use directly if sendFile fails with status.operation === PNPublishFileMessageOperation to resend the message without re-uploading.
+Publish a message about an already-uploaded file to a channel. Called by sendFile after upload. If sendFile fails with status.operation === PNPublishFileMessageOperation, you can retry by calling publishFile using data from the status object without re-uploading.
 
 ### Method(s)
 
@@ -266,18 +264,18 @@ Publish the uploaded file message to a channel. Called by sendFile; use directly
 `
 ```
 
-- params Type: PublishFileParams — Parameters used to publish the file.
+- params: PublishFileParams (required)
 
 #### PublishFileParams
 
-- channel Type: string Default: n/a — Channel to which the file was sent.
-- message Type: any Default: n/a — Optional message to attach.
-- fileId Type: string Default: n/a — File’s unique identifier.
-- fileName Type: string Default: n/a — File name.
-- storeInHistory Type: boolean Default: true — Whether to store published file messages in history. If not specified, uses key configuration.
-- ttl Type: number Default: 0 — How long the message is stored in history. Defaults to key set retention.
-- meta Type: any Default: n/a — Metadata for the message.
-- customMessageType Type: string Default: n/a — Case-sensitive, alphanumeric string (3–50 chars). Dashes - and underscores _ allowed. Cannot start with special characters or pn_ / pn-. Examples: text, action, poll.
+- channel (string, required): Channel where the file was sent.
+- message (any, optional): Optional message to attach.
+- fileId (string, required): File identifier.
+- fileName (string, required): File name.
+- storeInHistory (boolean, default: true): Store published file messages in history; if omitted, key’s history config applies.
+- ttl (number, default: 0): Message history TTL; defaults to key set’s retention.
+- meta (any, optional): Metadata for the message.
+- customMessageType (string, optional): Case-sensitive, 3–50 chars, alphanumeric; dashes and underscores allowed; cannot start with special chars or pn_/pn-. Examples: text, action, poll.
 
 ### Sample code
 
@@ -298,7 +296,7 @@ Publish the uploaded file message to a channel. Called by sendFile; use directly
 
 ## FileInput
 
-Represents file inputs across environments.
+Represents environment-specific file inputs.
 
 #### Node.js
 
@@ -370,23 +368,23 @@ Represents file inputs across environments.
 
 ## PubNub file
 
-Internal file representation with environment-specific extractors.
+Internal file representation with environment-specific extraction methods.
 
 ##### Methods supported in Node.js
 
-- file.toBuffer() returns Promise<Buffer>
-- file.toStream() returns Promise<Readable>
-- file.toString(encoding: string) returns a string encoded using encoding (defaults to utf8)
+- file.toBuffer(): Promise<Buffer>
+- file.toStream(): Promise<Readable>
+- file.toString(encoding: string): string (defaults to utf8 if not available)
 
 ##### Methods supported in a browser
 
-- file.toFile() returns Promise<File>
-- file.toBlob() returns Promise<Blob>
-- file.toArrayBuffer() returns Promise<ArrayBuffer>
-- file.toString(encoding: string) returns a string encoded using encoding (defaults to utf8)
+- file.toFile(): Promise<File>
+- file.toBlob(): Promise<Blob>
+- file.toArrayBuffer(): Promise<ArrayBuffer>
+- file.toString(encoding: string): string (defaults to utf8 if not available)
 
 ##### React and React Native
 
-- file.toBlob() returns Promise<Blob>
+- file.toBlob(): Promise<Blob>
 
 Last updated on Sep 3, 2025

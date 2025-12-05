@@ -1,17 +1,45 @@
 {
   "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
   "name": "io.github.pubnub/mcp-server",
+  "title": "PubNub MCP Server",
   "description": "PubNub MCP for Real-time messaging. API Access and SDK documentation.",
-  "version": "1.0.124",
+  "version": "1.0.125",
   "repository": {
     "url": "https://github.com/pubnub/pubnub-mcp-server",
     "source": "github"
   },
   "websiteUrl": "https://pubnub.github.io/pubnub-mcp-server",
+  "icons": [
+    {
+      "src": "https://avatars.githubusercontent.com/u/297109?s=64&v=4",
+      "sizes": ["64x64"],
+      "mimeType": "image/png"
+    },
+    {
+      "src": "https://avatars.githubusercontent.com/u/297109?s=128&v=4",
+      "sizes": ["128x128"],
+      "mimeType": "image/png"
+    }
+  ],
   "packages": [{
     "registryType": "npm",
     "identifier": "@pubnub/mcp",
-    "version": "1.0.124",
-    "transport": {"type": "stdio"}
+    "version": "1.0.125",
+    "runtimeHint": "npx",
+    "transport": {"type": "stdio"},
+    "environmentVariables": [
+      {
+        "name": "PUBNUB_PUBLISH_KEY",
+        "description": "Your PubNub publish key for sending messages",
+        "isRequired": false,
+        "isSecret": true
+      },
+      {
+        "name": "PUBNUB_SUBSCRIBE_KEY",
+        "description": "Your PubNub subscribe key for receiving messages and history",
+        "isRequired": false,
+        "isSecret": true
+      }
+    ]
   }]
 }

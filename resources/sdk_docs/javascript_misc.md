@@ -4,137 +4,126 @@ Utility methods that don't fit other categories.
 
 ## PubNubFile
 
-Internal file representation used by the SDK. Extraction methods vary by environment.
+Internal file representation. Methods differ by environment.
 
 ### Extracting the file
 
 ##### Methods supported in Node.js
 
-- `file.toBuffer()` returns `Promise<Buffer>`
-- `file.toStream()` returns `Promise<Readable>`
-- `file.toString(encoding: string)` returns a string encoded using `encoding` (defaults to `utf8`)
+- file.toBuffer() returns Promise<Buffer>
+- file.toStream() returns Promise<Readable>
+- file.toString(encoding: string) returns a string encoded using encoding (defaults to utf8)
 
 ##### Methods supported in a browser
 
-- `file.toFile()` returns `Promise<File>`
-- `file.toBlob()` returns `Promise<Blob>`
-- `file.toArrayBuffer()` returns `Promise<ArrayBuffer>`
-- `file.toString(encoding: string)` returns a string encoded using `encoding` (defaults to `utf8`)
+- file.toFile() returns Promise<File>
+- file.toBlob() returns Promise<Blob>
+- file.toArrayBuffer() returns Promise<ArrayBuffer>
+- file.toString(encoding: string) returns a string encoded using encoding (defaults to utf8)
 
 ##### React and React Native
 
-- `file.toBlob()` returns `Promise<Blob>`
+- file.toBlob() returns Promise<Blob>
 
 ### Creating a file
 
 ```
-`1pubnub.File.create(input: FileInput): PubNubFile;  
-`
+pubnub.File.create(input: FileInput): PubNubFile;
 ```
 
-`FileInput` supports multiple input types by environment.
+FileInput supports multiple sources depending on environment.
 
 #### Node.js
 
-**Using streams:**
+Using streams:
 ```
-`1{  
-2    stream: Readable,  
-3    name: string,  
-4    mimeType?: string  
-5}  
-`
-```
-
-**Using buffers:**
-```
-`1{  
-2    data: Buffer,  
-3    name: string,  
-4    mimeType?: string  
-5}  
-`
+{
+  stream: Readable,
+  name: string,
+  mimeType?: string
+}
 ```
 
-**Using strings:**
+Using buffers:
 ```
-`1{  
-2    data: string,  
-3    encoding: string,  
-4    name: string,  
-5    mimeType?: string  
-6}  
-`
+{
+  data: Buffer,
+  name: string,
+  mimeType?: string
+}
+```
+
+Using strings:
+```
+{
+  data: string,
+  encoding: string,
+  name: string,
+  mimeType?: string
+}
 ```
 
 #### Browsers
 
-**Using File API:**
+Using File API:
 ```
-`1File  
-`
-```
-
-**Using strings:**
-```
-`1{  
-2    data: string,  
-3    name: string,  
-4    mimeType?: string  
-5}  
-`
+File
 ```
 
-**Using ArrayBuffer:**
+Using strings:
 ```
-`1{  
-2    data: ArrayBuffer,  
-3    name: string,  
-4    mimeType?: string  
-5}  
-`
+{
+  data: string,
+  name: string,
+  mimeType?: string
+}
+```
+
+Using ArrayBuffer:
+```
+{
+  data: ArrayBuffer,
+  name: string,
+  mimeType?: string
+}
 ```
 
 ## Disconnect
 
-Stop all requests to PubNub servers when there are active subscribe channels.
+Stops all requests to PubNub when there are active subscribe channels.
 
 ### Method(s)
 
 ```
-`1disconnect()  
-`
+disconnect()
 ```
 
-No arguments.
+This method doesn't take any arguments.
 
 ### Sample code
 
 ```
 1
   
-
 ```
 
 ## Reconnect
 
-Force the SDK to attempt reconnection to PubNub.
+Forces the SDK to try to reach PubNub again.
 
 ### Method(s)
 
 ```
-`1reconnect()  
-`
+reconnect()
 ```
 
-No arguments.
+This method doesn't take any arguments.
 
 ### Sample code
 
 ```
 1
   
-
 ```
 
 ## setProxy
@@ -144,21 +133,27 @@ Assign or reassign a proxy configuration at runtime. Node.js only.
 ### Method(s)
 
 ```
-`1setProxy({String hostname, Number port, String protocol})  
-`
+setProxy({String hostname, Number port, String protocol})
 ```
 
-Parameters:
-- hostname (String): IP address or URI to use.
-- port (Number): Proxy listening port.
-- protocol (String, default: http): Supported values: `http`, `https`, `socks5`, `socks4`, `pac`.
+- hostname
+  - Type: String
+  - Default: n/a
+  - Description: IP address or URI to use.
+- port
+  - Type: Number
+  - Default: n/a
+  - Description: Port the proxy will listen on.
+- protocol
+  - Type: String
+  - Default: http
+  - Supported: http, https, socks5, socks4, pac
 
 ### Sample code
 
 ```
 1
   
-
 ```
 
 ### Other examples

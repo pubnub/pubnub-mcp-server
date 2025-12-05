@@ -1,34 +1,27 @@
 # Message Persistence API for Dart SDK
 
-Message Persistence provides real-time access to stored messages (timestamped to 10 ns) across multiple regions with optional AES-256 encryption. Storage duration is controlled by your retention policy: 1 day, 7 days, 30 days, 3 months, 6 months, 1 year, or Unlimited.
-
-You can retrieve:
-- Messages
-- Message reactions
-- Files (via File Sharing API)
+Message Persistence provides real-time access to stored, timestamped messages (10 ns precision) across multiple zones/regions. Messages can be encrypted with AES-256. Configure message retention (1 day to Unlimited) in the Admin Portal. You can retrieve messages, message reactions, and files.
 
 ## Batch history
 
 Requires Message Persistence (enable in Admin Portal).
 
-Fetches historical messages from multiple channels. You can:
-- Search from newest or oldest end (reverse).
-- Page using start or end timetoken.
-- Retrieve a slice using both start and end.
-- Limit results using count.
+Fetch historical messages from multiple channels, optionally including message actions. Control order and pagination with start/end timetokens.
 
-Limits:
-- Up to 100 messages on a single channel.
-- Up to 25 per channel across a maximum of 500 channels when includeMessageActions is true.
-- Use start and end to page through further results.
+- Search newest-first or oldest-first.
+- Page using start OR end timetoken, or slice using both start AND end.
+- Limit results with count.
+- Limits: up to 100 messages on a single channel; or 25 per channel across max 500 channels. Use start/end to page further.
 
-Start & End parameter usage:
-- Only start: returns messages older than start (values < start).
-- Only end: returns messages from end and newer (values >= end).
-- Both: returns between start and end (inclusive of end).
-- You will still receive a maximum per request; page using start to traverse all matching messages.
+Start & End usage:
+- start only: returns messages older than start.
+- end only: returns messages from end and newer.
+- both: returns messages between them (inclusive of end).
+- You still receive a max of 100 (or 25 with actions/multi-channel). Page by adjusting start.
 
 ### Method(s)
+
+To run fetchMessages() use:
 
 ```
 `1pubnub.batch.fetchMessages(  
@@ -49,22 +42,24 @@ Start & End parameter usage:
 ```
 
 Parameters:
-- channels (Set<String>) required: Channels to fetch history from.
-- keyset (Keyset): Override default keyset.
-- using (String): Keyset name from keysetStore to use.
-- count (int): Messages per channel. If includeMessageActions is false, default and max is 100; otherwise 25.
-- start (Timetoken): Start of range (exclusive). Return values will be less than start.
-- end (Timetoken): End of range (inclusive). Return values will be greater than or equal to end.
-- reverse (bool, default false): true to traverse oldest first.
-- includeMeta (bool, default false): Include message metadata.
-- includeMessageActions (bool, default false): Include message actions. If true, limited to one channel.
-- includeMessageType (bool, default true): Include internal message type.
-- includeCustomMessageType (bool, default false): Include custom message type.
-- includeUUID (bool): Include sender UUID.
+- channels (required) Type: Set<String> Specifies channels to return history from.
+- keyset Type: Keyset Override default keyset.
+- using Type: String Keyset name from keysetStore to use.
+- count Type: int Number of messages per channel. If includeMessageActions is false: default/max 100; otherwise 25.
+- start Type: Timetoken Start of time slice (exclusive). Returned values will be less than start.
+- end Type: Timetoken End of time slice (inclusive). Returned values will be greater than or equal to end.
+- reverse Type: bool Default false. true traverses oldest-first.
+- includeMeta Type: bool Default false. Include message metadata.
+- includeMessageActions Type: bool Default false. If true, limited to one channel and returns actions.
+- includeMessageType Type: bool Default true. Include message type.
+- includeCustomMessageType Type: bool Default false. Include custom message type.
+- includeUUID Type: bool Include message sender's UUID.
 
 For more information, refer to Retrieving Messages.
 
 ### Sample code
+
+Reference code
 
 Retrieve the last 25 messages on a channel:
 
@@ -108,22 +103,24 @@ Retrieve the last 25 messages on a channel:
 
 ### Returns
 
-fetchMessages() returns:
-- channels (Map<String, List<BatchHistoryResultEntry>>): Map of channels to entries.
+fetchMessages() returns a map of channels and a List<BatchHistoryResultEntry>:
 
-BatchHistoryResultEntry:
-- message (dynamic): Message content.
-- timetoken (Timetoken): Message timetoken.
-- uuid (String): Sender UUID.
-- actions (Map<String, dynamic>?): Message actions when includeMessageActions is true; otherwise null.
-- messageType (MessageType): Internal message type.
-- customMessageType (String?): Custom message type; null if not set.
-- meta (Map<String, dynamic>): Message metadata when includeMeta is true; otherwise null.
-- error (PubNubException?): Decryption error for the message, if any.
+- channels Type: Map<String, List<BatchHistoryResultEntry>> Map of channels to lists of BatchHistoryResultEntry.
+
+#### BatchHistoryResultEntry
+
+- message Type: dynamic Message content.
+- timetoken Type: Timetoken Message timetoken (always returned).
+- uuid Type: String Sender UUID.
+- actions Type: Map<String, dynamic>? Message actions if includeMessageActions was true; otherwise null.
+- messageType Type: MessageType Internal message type.
+- customMessageType Type: String? Custom message type or null.
+- meta Type: Map<String, dynamic> Message metadata if includeMeta was true; otherwise null.
+- error Type: PubNubException? Error if message decryption failed.
 
 ### Other examples
 
-Paging history Responses
+#### Paging history Responses
 
 ```
 1  var messages = BatchHistoryResultEntry>[];  
@@ -150,13 +147,13 @@ Paging history Responses
 
 Requires Message Persistence (enable in Admin Portal).
 
-Removes messages from a specific channel’s history.
+Removes messages from a channel’s history.
 
-Required setting:
-- In Admin Portal, enable “Delete-From-History” for your key.
-- Requires initialization with secret key.
+Required setting: Enable Delete-From-History for the key in Admin Portal. Requires initialization with secret key.
 
 ### Method(s)
+
+To deleteMessages() use:
 
 ```
 `1pubnub.delete()   
@@ -164,9 +161,9 @@ Required setting:
 ```
 
 Parameters:
-- channels (List<String>): Channels to delete from.
-- start (Long): Start timetoken (inclusive).
-- end (Long): End timetoken (exclusive).
+- channels Type: List<String> Channels to delete from.
+- start Type: Long Start timetoken (inclusive).
+- end Type: Long End timetoken (exclusive).
 
 ### Sample code
 
@@ -185,7 +182,7 @@ Parameters:
 
 #### Delete specific message from history
 
-Use the publish timetoken in End and timetoken +/- 1 in Start.
+Provide the publish timetoken in End and timetoken +/- 1 in Start. Example: publish timetoken 15526611838554310 → Start 15526611838554309, End 15526611838554310.
 
 ```
 `1await pubnub  
@@ -202,12 +199,13 @@ Use the publish timetoken in End and timetoken +/- 1 in Start.
 
 Requires Message Persistence (enable in Admin Portal).
 
-Returns the number of messages published on one or more channels since a given time. Count includes messages with timetoken >= the provided value.
+Returns the number of messages published on channels since a given time. Count is the number of messages with timetoken >= the provided value in channelsTimetoken.
 
-Unlimited message retention:
-- For keys with unlimited retention, counts include only messages from the last 7 days.
+Unlimited message retention: counts consider only messages from the last 7 days.
 
 ### Method(s)
+
+To run messageCounts() use:
 
 ```
 `1pubnub.batch.countMessages(  
@@ -220,10 +218,10 @@ Unlimited message retention:
 ```
 
 Parameters:
-- channels (Map<String, Timetoken> or Set<String>): Set of channels, or a map of channel to timetoken.
-- keyset (Keyset): Override default keyset.
-- using (String): Keyset name from keysetStore.
-- timetoken (Timetoken): Required when channels is a Set.
+- channels Type: Map<String, Timetoken> or Set<String> Channel set or map of channel→timetoken.
+- keyset Type: Keyset Override default keyset.
+- using Type: String Keyset name from keysetStore.
+- timetoken Type: Timetoken Required when channels is a Set<String>.
 
 ### Sample code
 
@@ -236,21 +234,26 @@ Parameters:
 ### Returns
 
 CountMessagesResult:
-- channels (Map<String, int>): Channel names to message counts.
+- channels Map<String, int> Channel names with message count.
 
 ## History (deprecated)
 
-Requires Message Persistence (enable in Admin Portal).
+Requires Message Persistence enabled.
 
-Fetches historical messages of a channel with ordering and pagination controls.
+Fetch historical messages of a channel with ordering and pagination controls.
 
-Start & End parameter usage:
-- Only start: messages older than and up to start.
-- Only end: messages from end and newer.
-- Both: between start and end (inclusive on end).
-- Max 100 messages per call; iterate by adjusting start to page.
+- Newest-first by default (reverse=false).
+- Oldest-first with reverse=true.
+- Page with start or end timetoken, or slice with both.
+- Limit messages with count.
 
-### Method(s)
+Start & End usage:
+- start only: older than and up to start.
+- end only: end and newer.
+- both: between them (inclusive of end).
+- Max 100 per call; page by adjusting start.
+
+#### Method(s)
 
 ```
 1pubnub.channel(String).history(  
@@ -267,15 +270,16 @@ Start & End parameter usage:
 ```
 
 Parameters:
-- order (ChannelHistoryOrder, default ChannelHistoryOrder.descending): Message order by timetoken.
-- chunkSize (int): Number of returned messages.
+- order Type: ChannelHistoryOrder Default ChannelHistoryOrder.descending.
+- chunkSize Type: int Number of returned messages.
 
-Channel history order:
-- ascending: Ascending by timetoken.
-- descending: Descending by timetoken.
-- values: Constant list of enum values.
+#### Channel history order
 
-### Sample code
+- ascending Type: const ChannelHistoryOrder Ascending by timetoken.
+- descending Type: const ChannelHistoryOrder Descending by timetoken.
+- values Type: const List<ChannelHistoryOrder> Enum values list.
+
+#### Sample code
 
 Retrieve the last 100 messages on a channel:
 
@@ -284,30 +288,32 @@ Retrieve the last 100 messages on a channel:
 `
 ```
 
-### Returns
+#### Returns
 
-PaginatedChannelHistory:
-- chunkSize (int): Max messages fetched per more().
-- endTimetoken (Timetoken): Upper boundary of fetched timetokens.
-- hasMore (bool): True if more messages are available. Before first more call, always true.
-- messages (List<BaseMessage>): Messages; empty before first more call.
-- order (ChannelHistoryOrder): Order used.
-- startTimetoken (Long): Lower boundary of fetched timetokens.
+history() returns PaginatedChannelHistory:
 
-Methods:
-- more -> Future<FetchHistoryResult>: Fetch more messages and store in messages.
-- reset -> void: Reset history to the beginning.
+- chunkSize Type: int Max number of fetched messages when calling more().
+- endTimetoken Type: Timetoken Upper boundary of fetched messages.
+- hasMore Type: bool True if more messages can be fetched. Before first more call, always true.
+- messages Type: List<BaseMessage> Readonly; empty before first more() call.
+- order Type: ChannelHistoryOrder Ordering.
+- startTimetoken Type: Long Lower boundary of fetched messages.
 
-Base message:
-- content (dynamic): Message content.
-- message (dynamic): Alias for content.
-- originalMessage (dynamic): Original JSON message from server.
-- publishedAt (Timetoken): Server acceptance timetoken.
-- timetoken (Timetoken): Alias.
+PaginatedChannelHistory methods:
+- more Returns Future<FetchHistoryResult> Fetch more messages; stored in messages.
+- reset Returns void Reset to beginning.
 
-### Other examples
+#### Base message
 
-Use history() to retrieve the three oldest messages by retrieving from the time line in reverse
+- content Type: dynamic Message content.
+- message Type: dynamic Alias for content.
+- originalMessage Type: dynamic Original JSON message.
+- publishedAt Type: Timetoken Server-accepted timetoken.
+- timetoken Type: Timetoken Alias for timetoken.
+
+#### Other examples
+
+##### Use history() to retrieve the three oldest messages by retrieving from the time line in reverse
 
 ```
 `1var history = pubnub  
@@ -316,7 +322,7 @@ Use history() to retrieve the three oldest messages by retrieving from the time 
 `
 ```
 
-Response
+###### Response
 
 ```
 `1{  
@@ -340,7 +346,7 @@ Response
 `
 ```
 
-History paging example
+##### History paging example
 
 ```
 `1var history = pubnub.channel('asdf').history(chunkSize: 100, order: ChannelHistoryOrder.descending);**2// To fetch next page:  

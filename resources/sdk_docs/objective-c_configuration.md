@@ -1,10 +1,10 @@
 # Configuration API for Objective-C SDK
 
-Complete API reference for building real-time applications on PubNub with the Objective-C Software Development Kit (SDK). This page covers configuration, initialization, and event handling with concise, working examples.
+Complete API reference for configuring PubNub Objective-C SDK. Includes credentials, connection behavior, retries, encryption, logging, and examples.
 
 ## Configuration
 
-PNConfiguration stores credentials and options controlling how the client connects, retries, encrypts, logs, and processes messages.
+`PNConfiguration` stores client settings (credentials, connection options, retries, encryption, logging).
 
 ##### Privacy
 
@@ -21,40 +21,44 @@ Create a configuration instance with:
 `
 ```
 
-Parameters (types, defaults, notes):
-- publishKey (NSString): Publish key, for example "demo".
-- subscribeKey (NSString): Subscribe key, for example "demo".
-- userID (NSString, required): UTF-8, up to 92 chars. Must be set for the client to connect.
-- heartbeatNotificationOptions (PNHeartbeatNotificationOptions): Heartbeat notifications. Success, Failure (default), All, or None.
-- stripMobilePayload (BOOL): If YES, remove APNs/FCM payload metadata from received messages.
-- subscribeMaximumIdleTime (NSTimeInterval): Max seconds to wait for events. Default: 310.
-- nonSubscribeRequestTimeout (NSTimeInterval): Timeout for non-subscribe operations (seconds). Default: 10.
-- presenceHeartbeatValue (NSInteger): Presence timeout (seconds). Default: 300. Triggers timeout if no heartbeat.
-- presenceHeartbeatInterval (NSInteger): Heartbeat interval (seconds). Typical: (presenceHeartbeatValue / 2) - 1. Minimum: 3.
-- keepTimeTokenOnListChange (BOOL): Keep previous timetoken on subscribe list change. Default: YES.
-- catchUpOnSubscriptionRestore (BOOL): Catch up on missed events after restore. Default: YES.
-- applicationExtensionSharedGroupIdentifier (NSString): Shared App Group ID for extensions (iOS 8.0+, macOS 10.10+).
-- requestMessageCountThreshold (NSUInteger): Max messages per response before PNRequestMessageCountExceededCategory.
-- maximumMessagesCacheSize (NSUInteger): De-duplication cache size. Default: 100.
-- completeRequestsBeforeSuspension (BOOL): Finish in-flight API calls before suspension. Default: YES.
-- suppressLeaveEvents (BOOL): If YES, don’t send presence leave events on unsubscribe.
-- origin (NSString): Custom origin (domain), e.g., "ps.pndsn.com".
-- requestRetry (PNRequestRetryConfiguration): Retry policy. See requestRetry below.
-- cryptoModule: Encryption/decryption module (preferred). See cryptoModule below.
-  - [PNCryptoModule AESCBCCryptoModuleWithCipherKey: NSString randomInitializationVector: BOOL];
-  - [PNCryptoModule legacyCryptoModuleWithCipherKey: NSString randomInitializationVector: BOOL];
-- logLevel (PNLogLevel): Minimum log level. Values: PNNoneLogLevel (default), PNTraceLogLevel, PNDebugLogLevel, PNInfoLogLevel, PNWarnLogLevel, PNErrorLogLevel.
-- enableDefaultConsoleLogger (BOOL): Enable built-in console logger. Default: YES. If NO, only custom loggers are used.
-- loggers (NSArray<id<PNLogger>>): Custom logger implementations conforming to PNLogger. Used alongside console logger if enabled.
-- cipherKey (NSString) [Deprecated]: Set via cryptoModule instead. Used to encrypt/decrypt messages.
-- useRandomInitializationVector (BOOL) [Deprecated]: Set via cryptoModule instead. When YES, random IV for all requests (default behavior). When NO, hard-coded IV (except file upload).
+- Required parameters:
+  - publishKey (NSString) — Publish key. Example: "demo".
+  - subscribeKey (NSString) — Subscribe key. Example: "demo".
+  - userID (NSString) — UTF‑8 string up to 92 characters. Required.
+
+- Core options:
+  - heartbeatNotificationOptions (PNHeartbeatNotificationOptions) — PNHeartbeatNotifySuccess, PNHeartbeatNotifyFailure (default), PNHeartbeatNotifyAll, or PNHeartbeatNotifyNone.
+  - stripMobilePayload (BOOL) — If YES, remove APNs/FCM push metadata from received messages.
+  - subscribeMaximumIdleTime (NSTimeInterval) — Max seconds to wait for events. Default: 310.
+  - nonSubscribeRequestTimeout (NSTimeInterval) — Timeout for non‑subscribe ops, seconds. Default: 10.
+  - presenceHeartbeatValue (NSInteger) — Presence timeout (seconds). Default: 300.
+  - presenceHeartbeatInterval (NSInteger) — Heartbeat interval (seconds). Typical: (presenceHeartbeatValue / 2) - 1. Min: 3.
+  - keepTimeTokenOnListChange (BOOL) — Keep previous timetoken on subscribe list change. Default: YES.
+  - catchUpOnSubscriptionRestore (BOOL) — Catch up on missed events after restore. Default: YES.
+  - applicationExtensionSharedGroupIdentifier (NSString) — Shared App Group ID (iOS 8.0+, macOS 10.10+).
+  - requestMessageCountThreshold (NSUInteger) — Max messages per response before PNRequestMessageCountExceededCategory.
+  - maximumMessagesCacheSize (NSUInteger) — De‑duplication cache size. Default: 100.
+  - completeRequestsBeforeSuspension (BOOL) — Finish in‑flight API calls before suspension. Default: YES.
+  - suppressLeaveEvents (BOOL) — If YES, don’t send presence leave events on unsubscribe.
+  - origin (NSString) — Custom origin (domain), e.g., "ps.pndsn.com".
+  - requestRetry (PNRequestRetryConfiguration) — Retry policy. See requestRetry below.
+  - cryptoModule — Encryption module:
+    - [PNCryptoModule AESCBCCryptoModuleWithCipherKey: NSString randomInitializationVector: BOOL];
+    - [PNCryptoModule legacyCryptoModuleWithCipherKey: NSString randomInitializationVector: BOOL];
+    - Takes cipherKey and useRandomInitializationVector. See cryptoModule below.
+  - logLevel (PNLogLevel) — PNNoneLogLevel (default/disabled), PNTraceLogLevel, PNDebugLogLevel, PNInfoLogLevel, PNWarnLogLevel, PNErrorLogLevel.
+  - enableDefaultConsoleLogger (BOOL) — Enable built-in console logger. Default: YES.
+  - loggers (NSArray<id<PNLogger>>) — Custom loggers conforming to PNLogger (used alongside console logger if enabled).
+  - cipherKey (NSString) — Deprecated; pass to cryptoModule instead.
+  - useRandomInitializationVector (BOOL) — Deprecated; pass to cryptoModule instead. When YES, the IV is random for all requests (recommended and default behavior).
 
 ##### Disabling random initialization vector
-Disable random IV only for backward compatibility with apps older than 4.16.0. Do not disable for new applications.
+
+Disable random IV only for backward compatibility (<4.16.0). Never disable random IV for new applications.
 
 #### requestRetry
 
-Use PNRequestRetryConfiguration to control retry behavior. For policy details, see Reconnection Policy.
+Use `PNRequestRetryConfiguration` to control retry behavior. For reconnection policy details, see Reconnection Policy.
 
 ##### Create a default linear retry policy
 
@@ -77,8 +81,7 @@ Use PNRequestRetryConfiguration to control retry behavior. For policy details, s
 `
 ```
 
-Parameters:
-- endpoints (PNEndpoint): Endpoints to exclude. See NS_ENUM(NSUInteger, PNEndpoint) in PNStructures.h.
+- endpoints (PNEndpoint) — Endpoints to exclude. See NS_ENUM(NSUInteger, PNEndpoint) in PNStructures.h.
 
 ###### Example
 
@@ -96,10 +99,9 @@ Parameters:
 `
 ```
 
-Parameters:
-- delay (NSTimeInterval): Delay between failed requests (seconds).
-- maximumRetry (NSUInteger): Max retry attempts before error.
-- excludedEndpoints (PNEndpoint): Endpoints to exclude (see PNStructures.h).
+- delay (NSTimeInterval) — Delay in seconds between failed requests.
+- maximumRetry (NSUInteger) — Retries before error.
+- excludedEndpoints (PNEndpoint) — Endpoints to exclude.
 
 ###### Example
 
@@ -132,8 +134,7 @@ Parameters:
 `
 ```
 
-Parameters:
-- endpoints (PNEndpoint): Endpoints to exclude (see PNStructures.h).
+- endpoints (PNEndpoint) — Endpoints to exclude.
 
 ###### Example
 
@@ -152,11 +153,10 @@ Parameters:
 `
 ```
 
-Parameters:
-- minimumDelay (NSTimeInterval): Base delay (seconds) used to compute next delay.
-- maximumDelay (NSTimeInterval): Max computed delay (seconds) between attempts.
-- maximumRetry (NSUInteger): Max retry attempts before error.
-- excludedEndpoints (PNEndpoint): Endpoints to exclude (see PNStructures.h).
+- minimumDelay (NSTimeInterval) — Base delay for next delay calculation.
+- maximumDelay (NSTimeInterval) — Max allowed computed delay.
+- maximumRetry (NSUInteger) — Retries before error.
+- excludedEndpoints (PNEndpoint) — Endpoints to exclude.
 
 ###### Example
 
@@ -170,18 +170,23 @@ Parameters:
 
 #### cryptoModule
 
-cryptoModule encrypts and decrypts messages and files. From 5.1.3, algorithms are configurable.
+`cryptoModule` encrypts/decrypts messages and files. From 5.1.3, you can choose algorithms:
+- Legacy 128‑bit encryption (backward compatible).
+- Recommended 256‑bit AES‑CBC.
 
-- Options: legacy 128‑bit encryption and recommended 256‑bit AES‑CBC.
-- If cryptoModule is not set but cipherKey/useRandomInitializationVector are set, legacy encryption is used.
+If `cryptoModule` is not set but `cipherKey`/`useRandomInitializationVector` are set, legacy encryption is used.
+
+For configuration and examples, see Encryption.
 
 ##### Legacy encryption with 128-bit cipher key entropy
-Keep existing legacy encryption as-is. To use recommended 256‑bit AES‑CBC, explicitly configure cryptoModule.
+
+You may keep legacy encryption; to use 256‑bit AES‑CBC, set it explicitly in `cryptoModule`.
 
 ### Sample code
 
 ##### Required User ID
-Always set userID to uniquely identify the user or device. Persist it and keep it stable. Without userID, the client cannot connect.
+
+Always set a stable User ID (`userID`). If not set, the client cannot connect.
 
 ```
 1// Basic configuration  
@@ -255,7 +260,7 @@ Returns a configured client configuration instance.
 
 #### Configure logging
 
-Enable logging to monitor SDK activity and troubleshoot issues.
+Enable logging to monitor SDK activity and troubleshoot.
 
 ##### Basic logging configuration
 

@@ -1,128 +1,126 @@
 # PHP API & SDK Docs 9.0.0
 
-This guide shows how to connect to PubNub, subscribe to channels, and publish messages in PHP (works in web and CLI; note environment considerations where relevant).
+This guide walks you through a simple "Hello, World" application that demonstrates the core concepts of PubNub:
+- Setting up a connection
+- Sending messages
+- Receiving messages in real-time
 
-## Overview[​](#overview)
+## Overview
 
-- Connect to PubNub
-- Subscribe to channels
-- Publish and receive real-time messages
+Get up and running with PubNub in PHP. Connect, subscribe to channels, and publish messages. Examples work in web and CLI environments (notes included when relevant).
 
-## Prerequisites[​](#prerequisites)
+## Prerequisites
 
-- PHP 7.0+
-- Composer (recommended)
-- PubNub account with publish and subscribe keys
+- PHP 7.0+ (web server or CLI)
+- Composer (recommended) or manual dependency management
+- PubNub account and keyset
 
-## Setup[​](#setup)
+## Setup
 
-### Get your PubNub keys[​](#get-your-pubnub-keys)
+### Get your PubNub keys
 
-- Sign in or create an account in the Admin Portal.
-- Create an app; use the generated keyset.
-- Use separate keysets for dev/prod when possible.
+- Sign in or create an account in the PubNub Admin Portal.
+- Create an app or use an existing one.
+- Retrieve publish and subscribe keys from the app dashboard.
+- Use separate keysets for dev and prod when possible.
 
-### Install the SDK[​](#install-the-sdk)
+### Install the SDK
 
 ##### SDK version
+Use the latest SDK for features, security, and performance.
 
-Use the latest SDK.
+Install with Composer.
 
-For a fresh project:
-
+For a new project:
 ```
 `1composer init  
 `
 ```
 
-Install dependency (for new or existing Composer projects):
-
+Then (for new or existing Composer projects):
 ```
 `1composer require pubnub/pubnub‌  
 `
 ```
 
-## Steps[​](#steps)
+## Steps
 
-### Initialize PubNub[​](#initialize-pubnub)
+### Initialize PubNub
 
 Create a PHP file to initialize the PubNub client:
-
 ```
 1
   
 
 ```
+See Configuration: /docs/sdks/php/api-reference/configuration
 
-See Configuration for options.
+### Set up event listeners
 
-### Set up event listeners[​](#set-up-event-listeners)
-
-Add listeners to handle:
-- Status events (connection state, operational events)
-- Messages and presence events
-
+Listeners handle status (connection/operational) and events (messages/presence):
 ```
 1
   
 
 ```
+See Listeners: /docs/sdks/php/api-reference/configuration#event-listeners
 
-See Listeners for details.
-
-### Create a subscription[​](#create-a-subscription)
+### Create a subscription
 
 Subscribe to a channel to receive messages:
+```
+1
+  
 
+```
+Notes:
+- Subscription is a long-running, blocking operation.
+- For web apps, consider:
+  - Running subscriptions in a separate process (log to DB).
+  - Using AJAX/server-sent events to push updates.
+  - Using the PubNub JavaScript SDK for client-side updates.
+
+See Subscribe: /docs/sdks/php/api-reference/publish-and-subscribe#subscribe
+
+### Publish messages
+
+Publish delivers to all subscribers of the channel. Messages must be JSON-serializable and < 32 KiB.
+
+Use publish():
 ```
 1
   
 
 ```
 
-Note: Subscribing is a long-running, blocking operation.
-- For web apps, run subscriptions in a separate process, push updates via AJAX/SSE, or use the PubNub JavaScript SDK.
+### Run the app
 
-See Subscribe for details.
+Use two PHP files:
 
-### Publish messages[​](#publish-messages)
+1. $1
+2. $1
 
-Publish messages to a channel; subscribers receive them.
-- Payload: any JSON-serializable data under 32 KiB.
+Open two terminals.
 
-Use the publish() method:
-
-```
-1
-  
-
-```
-
-### Run the app[​](#run-the-app)
-
-Use separate subscriber and publisher scripts.
-
-In one terminal:
-
+Subscriber:
 ```
 `php subscribe.php  
 `
 ```
 
-In another:
-
+Publisher:
 ```
 `php publish.php  
 `
 ```
 
-Expected outputs:
-
+Expected subscriber connection:
 ```
 `Connected to PubNub!  
 `
 ```
 
+After publishing:
 ```
 `Received message: {"text":"Hello from PHP SDK!","timestamp":1678912345,"sender":{"name":"PHP Publisher","id":"php-demo"}}  
 Publisher: php-publisher-demo  
@@ -132,47 +130,56 @@ Timetoken: 16789123450000000
 ```
 
 ##### Web environment
+For browser real-time updates, prefer the PubNub JavaScript SDK, or use polling/history as an alternative.
 
-For browser real-time updates: prefer PubNub JavaScript SDK or implement polling/history retrieval.
+## Complete example
 
-## Complete example[​](#complete-example)
+Two files:
 
-#### `subscribe.php`[​](#subscribephp)
-
+#### `subscribe.php`
 ```
 1
   
 
 ```
 
-#### `publish.php`[​](#publishphp)
-
+#### `publish.php`
 ```
 1
   
 
 ```
 
-### Troubleshooting[​](#troubleshooting)
+### Troubleshooting
 
-- No connection:
-  - Check internet, keys, firewall rules.
-- Message not received:
-  - Verify channel names, check publish errors, start subscriber before publishing.
-- Build errors:
-  - Confirm Composer dependency, PHP 7.0+, correct imports.
-- Script terminates:
-  - Web: PHP timeouts; avoid long-running processes.
-  - CLI: ensure nothing exits the script.
+Issue: No connection message
+- Check internet connectivity.
+- Verify publish and subscribe keys.
+- Confirm no firewall blocks PubNub.
 
-## Next steps[​](#next-steps)
+Issue: Message not received
+- Verify the subscribed channel.
+- Check for publish errors.
+- Ensure the subscriber is running before publish.
 
-- Presence
-- Message Persistence
-- Access Manager
-- PHP SDK GitHub repository and examples
-- SDK reference documentation
-- Support portal
-- AI assistant
+Issue: Build errors
+- Confirm PubNub dependency via Composer.
+- Use PHP 7.0+.
+- Validate imports.
+
+Issue: Script terminates
+- Web: PHP timeouts can occur; use alternatives for long-running processes.
+- CLI: Ensure nothing exits the script prematurely.
+
+## Next steps
+
+- Presence: /docs/sdks/php/api-reference/presence
+- Message Persistence: /docs/sdks/php/api-reference/storage-and-playback
+- Access Manager: /docs/sdks/php/api-reference/access-manager
+- PHP SDK GitHub: https://github.com/pubnub/php/
+- Examples: https://github.com/pubnub/php/tree/master/examples
+- SDK reference: /docs/sdks/php/api-reference/configuration
+- Support: https://support.pubnub.com/
+- Ask the AI assistant (looking glass icon)
 
 Last updated on Nov 6, 2025

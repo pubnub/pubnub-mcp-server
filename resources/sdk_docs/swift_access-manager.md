@@ -1,20 +1,16 @@
 # Access Manager v3 API for Swift SDK
 
-Access Manager enforces security controls for client access to PubNub resources (channels, channel groups, UUID metadata) using time-limited tokens with embedded permissions. Permissions can be granted:
-- For a limited time (TTL).
-- To resource lists or patterns (regular expressions).
-- In a single request with differing permission levels.
+Access Manager grants time-bound, token-based permissions to PubNub resources (channels, channel groups, UUID metadata). Tokens can:
+- Apply to resource lists or regex patterns.
+- Contain mixed permissions across resources in one grant.
+- Be restricted to an authorized UUID, allowing only that UUID to use the token.
 
-You can add the [authorized UUID](/docs/general/security/access-control#authorized-uuid) to restrict token usage to a single client UUID.
-
-For details, see [Manage Permissions with Access Manager v3](/docs/general/security/access-control).
-
-##### Client device support only
-Swift SDK implements client-side Access Manager only: clients can parse and set tokens received from a server; they cannot grant permissions.
+Client device support only
+- Swift SDK supports only client-side Access Manager operations: parse and set tokens issued by server-side SDKs.
 
 ## Parse token
 
-Decodes an existing token and returns its embedded permissions and TTL.
+Decodes a token and returns embedded permissions and TTL.
 
 ### Method(s)
 
@@ -23,10 +19,7 @@ Decodes an existing token and returns its embedded permissions and TTL.
 `
 ```
 
-- token
-  - Type: String
-  - Default: n/a
-  - Description: Current token with embedded permissions.
+- token (required): Type: String; Default: n/a. Current token with embedded permissions.
 
 ### Sample code
 
@@ -72,7 +65,7 @@ This method responds with a struct of `PAMToken`:
 
 ```
 
-Resource and pattern permissions are stored in `PAMTokenResource`:
+See the resource and pattern permissions stored in the `PAMTokenResource` structure:
 
 ```
 1struct PAMTokenResource {  
@@ -96,7 +89,7 @@ If parsing fails, the token may be damaged. Request a new token from the server.
 
 ## Set token
 
-Updates the authentication token on the client device.
+Updates the authentication token granted by the server.
 
 ### Method(s)
 
@@ -105,10 +98,7 @@ Updates the authentication token on the client device.
 `
 ```
 
-- token
-  - Type: String
-  - Default: n/a
-  - Description: Current token with embedded permissions.
+- token (required): Type: String; Default: n/a. Current token with embedded permissions.
 
 ### Sample code
 
@@ -120,6 +110,6 @@ Updates the authentication token on the client device.
 
 ### Returns
 
-No return value.
+This method doesn't return any response value.
 
 Last updated on Sep 3, 2025

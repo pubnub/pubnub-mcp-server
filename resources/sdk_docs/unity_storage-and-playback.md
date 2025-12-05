@@ -1,69 +1,65 @@
 # Message Persistence API for Unity SDK
 
-Message Persistence provides real-time access to stored, timestamped messages (10 ns precision) replicated across regions. You can encrypt stored messages with AES-256. Configure retention in the Admin Portal: 1 day, 7 days, 30 days, 3 months, 6 months, 1 year, or Unlimited. You can retrieve:
+Message Persistence provides real-time access to stored, timestamped messages (10 ns precision) across multiple availability zones and regions. Messages can be AES-256 encrypted. Retention options: 1 day, 7 days, 30 days, 3 months, 6 months, 1 year, Unlimited. You can retrieve:
 - Messages
 - Message reactions
 - Files (via File Sharing API)
 
 ## Fetch history
 
-Requires Message Persistence enabled for your key in the Admin Portal.
+Requires: Message Persistence enabled for your key in the Admin Portal.
 
-Fetch historical messages from one or more channels. Use includeMessageActions to include message actions.
+Fetch historical messages from one or more channels. Ordering and range:
+- start only: messages older than start (exclusive)
+- end only: messages from end and newer (inclusive of end)
+- start and end: messages between them (inclusive of end)
 
-Ordering and time window:
-- Only start (no end): returns messages older than start.
-- Only end (no start): returns messages from end and newer.
-- Both start and end: returns messages between them (end inclusive; start exclusive).
-- reverse = true returns oldest first.
+Limits:
+- Up to 100 messages for a single channel
+- Up to 25 per channel for up to 500 channels
+- If IncludeMessageActions = true: one channel only, max 25 messages
 
-Limits and pagination:
-- Up to 100 messages for a single channel, or 25 per channel on up to 500 channels.
-- If IncludeMessageActions = true: limited to 1 channel and 25 messages.
-- Page by iteratively updating the start timetoken. If the response is truncated, a more object is returned to continue.
+Pagination: use the returned more parameters and iteratively update start.
 
 ### Method(s)
 
-Use the following method(s) in the Unity SDK:
-
 ```
-`1pubnub.FetchHistory()  
-2    .Channels(string[])  
-3    .IncludeMeta(bool)  
-4    .IncludeMessageType(bool)  
-5    .IncludeCustomMessageType(bool)  
-6    .IncludeUUID(bool)  
-7    .IncludeMessageActions(bool)  
-8    .Reverse(bool)  
-9    .Start(int)  
-10    .End(int)  
-11    .MaximumPerChannel(int)  
-12    .QueryParam(Dictionarystring, object>)  
-`
+pubnub.FetchHistory()
+    .Channels(string[])
+    .IncludeMeta(bool)
+    .IncludeMessageType(bool)
+    .IncludeCustomMessageType(bool)
+    .IncludeUUID(bool)
+    .IncludeMessageActions(bool)
+    .Reverse(bool)
+    .Start(long)
+    .End(long)
+    .MaximumPerChannel(int)
+    .QueryParam(Dictionary<string, object>)
 ```
 
-Parameters and options:
-- Channels (required): Type: string[]. Channels to fetch from (max 500).
-- IncludeMeta: Type: bool. Include meta passed on publish. Default: false.
-- IncludeMessageType: Type: bool. Include message type. Default: true.
-- IncludeCustomMessageType: Type: bool. Include custom message type messages.
-- IncludeUUID: Type: bool. Include publisher UUID. Default: true.
-- IncludeMessageActions: Type: bool. Include message actions. If true, limited to 1 channel and 25 messages. Default: false.
-- Reverse: Type: bool. True to return oldest-first.
-- Start: Type: long. Start timetoken (exclusive).
-- End: Type: long. End timetoken (inclusive).
-- MaximumPerChannel: Type: int. Max messages per channel. Max/Default: 100 (single channel), 25 (multiple channels), 25 if IncludeMessageActions = true.
-- QueryParam: Type: Dictionary<string, object>. Additional query string parameters.
-- Execute: Type: System.Action of PNFetchHistoryResult.
-- ExecuteAsync: Returns Task<PNResult<PNFetchHistoryResult>>.
+Parameters
+- Channels (required) Type: string[] — Channels to fetch history from (max 500).
+- IncludeMeta Type: bool — Include meta payload if it was published.
+- IncludeMessageType Type: bool — Include message type. Default true.
+- IncludeCustomMessageType Type: bool — Retrieve messages with a custom message type.
+- IncludeUUID Type: bool — Include publisher UUID. Default true.
+- IncludeMessageActions Type: bool — Include message actions. If true, restricted to one channel and 25 messages. Default false.
+- Reverse Type: bool — If true, return oldest first.
+- Start Type: long — Start timetoken (exclusive).
+- End Type: long — End timetoken (inclusive).
+- MaximumPerChannel Type: int — Number of messages to return. Default/max: 100 for single channel, 25 for multiple channels, 25 if IncludeMessageActions is true.
+- QueryParam Type: Dictionary<string, object> — Extra query parameters.
 
-Truncated response:
-- A more object may be returned with additional parameters (Start, End, Limit). Make iterative calls adjusting parameters.
+Execution
+- Execute Type: System.Action — Action<PNFetchHistoryResult>.
+- ExecuteAsync Type: Task<PNResult<PNFetchHistoryResult>>.
+
+Truncated response: A more property is returned with additional pagination parameters. Make iterative calls adjusting parameters.
 
 ### Sample code
 
-Reference code. Retrieve the last message on a channel:
-
+Retrieve the last message on a channel:
 ```
 1
   
@@ -72,48 +68,46 @@ Reference code. Retrieve the last message on a channel:
 
 ### Returns
 
-FetchHistory() returns PNFetchHistoryResult:
-- Messages: Dictionary<string, List<PNHistoryItemResult>>. Per-channel list of messages.
-- More: MoreInfo pagination info (or null).
+FetchHistory returns PNFetchHistoryResult:
+- Messages: Dictionary<string, List<PNHistoryItemResult>> — Messages per channel.
+- More: MoreInfo — Pagination info or null.
 
 PNHistoryItemResult fields:
-- Channel Name: string
-- Timetoken: long
-- Entry: object (payload)
-- Meta: object
-- Uuid: string
-- MessageType: string
-- CustomMessageType: string
-- Actions: object
+- Timetoken: long — Message timetoken.
+- Entry: object — Message payload.
+- Meta: object — Message metadata.
+- Uuid: string — Publisher UUID.
+- MessageType: string — Message type.
+- CustomMessageType: string — Custom message type.
+- Actions: object — Message actions.
 
-MoreInfo fields:
-- Start: long
-- End: long
-- Limit: int
+More fields:
+- Start: long — Start timetoken of requested range.
+- End: long — End timetoken of requested range.
+- Limit: int — Number of messages returned.
 
+Example:
 ```
-`1{  
-2    "Messages":  
-3        {  
-4            "my_channel":  
-5            [{  
-6                "Timetoken":15717278253295153,  
-7                "Entry":"sample message",  
-8                "Meta":"",  
-9                "Uuid":"user-1",  
-10                "MessageType":null,  
-11                "Actions":null  
-12            }]  
-13        },  
-14    "More":null  
-15}  
-`
+{
+  "Messages": {
+    "my_channel": [
+      {
+        "Timetoken": 15717278253295153,
+        "Entry": "sample message",
+        "Meta": "",
+        "Uuid": "user-1",
+        "MessageType": null,
+        "Actions": null
+      }
+    ]
+  },
+  "More": null
+}
 ```
 
 ### Other examples
 
 Retrieve the last 25 messages on a channel synchronously
-
 ```
 1
   
@@ -122,31 +116,37 @@ Retrieve the last 25 messages on a channel synchronously
 
 ## Delete messages from history
 
-Requires Message Persistence enabled. Also enable Delete-From-History in key settings and initialize with a secret key.
+Requires: 
+- Message Persistence enabled for your key in the Admin Portal.
+- Delete-From-History enabled in key settings.
+- Initialize with a secret key.
 
-Removes messages from the history of a specific channel.
+Removes messages from a channel’s history within a timetoken range.
+
+Range semantics:
+- Start: inclusive
+- End: exclusive
 
 ### Method(s)
 
-To Delete Messages from History use:
-
 ```
-`1pubnub.DeleteMessages()  
-2    .Channel(string)  
-3    .Start(long)  
-4    .End(long)  
-5    .QueryParam(Dictionarystring,object>)  
-`
+pubnub.DeleteMessages()
+    .Channel(string)
+    .Start(long)
+    .End(long)
+    .QueryParam(Dictionary<string, object>)
 ```
 
-Parameters and options:
-- Channel (required): Type: string. Channel to delete from.
-- Start: Type: long. Start timetoken (inclusive).
-- End: Type: long. End timetoken (exclusive).
-- QueryParam: Type: Dictionary<string, object>. Additional query string parameters.
-- Async: Type: PNCallback of PNDeleteMessageResult.
-- Execute: Type: System.Action of PNDeleteMessageResult.
-- ExecuteAsync: Returns Task<PNResult<PNDeleteMessageResult>>.
+Parameters
+- Channel (required) Type: string — Channel to delete from.
+- Start Type: long — Inclusive start timetoken.
+- End Type: long — Exclusive end timetoken.
+- QueryParam Type: Dictionary<string, object> — Extra query parameters.
+
+Execution
+- Async Type: PNCallback — PNCallback<PNDeleteMessageResult>.
+- Execute Type: System.Action — Action<PNDeleteMessageResult>.
+- ExecuteAsync Type: Task<PNResult<PNDeleteMessageResult>>.
 
 ### Sample code
 
@@ -158,12 +158,11 @@ Parameters and options:
 
 ### Returns
 
-DeleteMessages() returns PNResult<PNDeleteMessageResult> with an empty PNDeleteMessageResult object.
+DeleteMessages returns PNResult<PNDeleteMessageResult> with an empty PNDeleteMessageResult.
 
 ### Other examples
 
 Delete messages sent in a particular timeframe
-
 ```
 1
   
@@ -172,8 +171,7 @@ Delete messages sent in a particular timeframe
 
 Delete specific message from history
 
-To delete a specific message, pass the publish timetoken (from a successful publish) in End and timetoken +/- 1 in Start. Example: for publish timetoken 15526611838554310, use Start=15526611838554309 and End=15526611838554310.
-
+To delete a specific message, pass the publish timetoken (from a successful publish) in End, and timetoken - 1 in Start. For example, for publish timetoken 15526611838554310, use Start = 15526611838554309 and End = 15526611838554310:
 ```
 1
   
@@ -182,31 +180,30 @@ To delete a specific message, pass the publish timetoken (from a successful publ
 
 ## Message counts
 
-Requires Message Persistence enabled.
+Requires: Message Persistence enabled for your key in the Admin Portal.
 
-Returns the number of messages published since the given timetoken (count of messages with timetoken ≥ provided value).
+Returns the count of messages published since the given timetoken (count includes messages with timetoken ≥ provided).
 
-Unlimited message retention keys: counts only messages published in the last 30 days.
+Note for unlimited retention: Only messages from the last 30 days are considered.
 
 ### Method(s)
 
-Use:
-
 ```
-`1pubnub.MessageCounts()  
-2    .Channels(string[])  
-3    .ChannelsTimetoken(long[])  
-4    .QueryParam(Dictionarystring, object>)  
-`
+pubnub.MessageCounts()
+    .Channels(string[])
+    .ChannelsTimetoken(long[])
+    .QueryParam(Dictionary<string, object>)
 ```
 
-Parameters and options:
-- Channels (required): Type: string[]. Channels to fetch counts for.
-- ChannelsTimetoken (required): Type: long[]. Timetokens in the same order as channels; specify one value to apply to all channels. If provided array length doesn’t match channels length (and isn’t a single value), a PNStatus error is returned.
-- QueryParam: Type: Dictionary<string, object>. Additional query string parameters.
-- Async: Type: PNCallback of PNMessageCountResult.
-- Execute: Type: System.Action of PNMessageCountResult.
-- ExecuteAsync: Returns Task<PNResult<PNMessageCountResult>>.
+Parameters
+- Channels (required) Type: string[] — Channels to count messages for.
+- ChannelsTimetoken (required) Type: long[] — Timetokens aligned with channels. Provide a single timetoken to apply to all channels, or one per channel (must match length). Otherwise returns PNStatus with error.
+- QueryParam Type: Dictionary<string, object> — Extra query parameters.
+
+Execution
+- Async Type: PNCallback — PNCallback<PNMessageCountResult>.
+- Execute Type: System.Action — Action<PNMessageCountResult>.
+- ExecuteAsync Type: Task<PNResult<PNMessageCountResult>>.
 
 ### Sample code
 
@@ -218,17 +215,16 @@ Parameters and options:
 
 ### Returns
 
-Operation returns PNResult<PNMessageCountResult>:
+Returns PNResult<PNMessageCountResult>:
 - Result: PNMessageCountResult
 - Status: PNStatus
 
 PNMessageCountResult:
-- Channels: Dictionary<string, long>. Message counts per channel. Channels without messages return 0; channels with 10,000+ messages return 10000.
+- Channels: Dictionary<string, long> — Message counts per channel. Channels with no messages have 0. Channels with 10,000+ messages return 10000.
 
 ### Other examples
 
 Retrieve count of messages for a single channel
-
 ```
 1
   
@@ -236,10 +232,7 @@ Retrieve count of messages for a single channel
 ```
 
 Retrieve count of messages using different timetokens for each channel
-
 ```
 1
 **
 ```
-
-Last updated on Sep 3, 2025**

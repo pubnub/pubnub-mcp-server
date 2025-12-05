@@ -1,15 +1,15 @@
 # Message Actions API for Unity SDK
 
-Use message actions to add or remove metadata on published messages (for example, receipts and reactions). Clients subscribe to a channel to receive message action events. Past message actions can be fetched from Message Persistence, either independently or alongside original messages.
+Use Message Actions to add/remove metadata on published messages (for reactions, receipts, confirmations, custom data). Subscribe to a channel to receive action events. Fetch past actions from Message Persistence alone or when fetching messages.
 
-- Reactions: "Message Reactions" is a specific use of Message Actions for emoji/social reactions.
-- Message Actions vs. Reactions: Message Actions is the low-level, flexible API for arbitrary metadata; Message Reactions refers to using it for emoji reactions. In PubNub Core and Chat SDKs, this same API may be referred to as Message Reactions.
+- Reactions: Using Message Actions for emoji/social reactions.
+- Message Actions vs. Message Reactions: Same underlying API; “Message Reactions” refers to the emoji use case in Core/Chat SDKs.
 
 ## Add message action
 
 Requires Message Persistence enabled for your key in the Admin Portal.
 
-Add an action to a published message. The response includes the added action.
+Add an action to a published message. Response includes the added action.
 
 ### Method(s)
 
@@ -27,7 +27,7 @@ Use this Unity method:
 Parameters:
 - Channel (string): Channel name to add the message action to.
 - MessageTimetoken (long): Timetoken of the target message.
-- Action (PNMessageAction): Message action payload (see PNMessageAction below).
+- Action (PNMessageAction): Message action payload.
 - Execute (System.Action): System.Action of type PNAddMessageActionResult.
 - ExecuteAsync: Returns Task<PNResult<PNAddMessageActionResult>>.
 
@@ -37,6 +37,8 @@ Parameters:
 - Value (string): Message action value.
 
 ### Sample code
+
+Reference code
 
 ```
 1
@@ -71,7 +73,7 @@ AddMessageAction() returns PNAddMessageActionResult:
 
 Requires Message Persistence enabled for your key in the Admin Portal.
 
-Remove a previously added action from a published message. The response is empty.
+Remove a previously added action from a published message. Response is empty.
 
 ### Method(s)
 
@@ -88,9 +90,9 @@ Use this Unity method:
 ```
 
 Parameters:
-- Channel (string): Channel name to remove the message action from.
+- Channel (string): Channel name to remove the action from.
 - MessageTimetoken (long): Publish timetoken of the original message.
-- ActionTimetoken (long): Publish timetoken of the message action to be removed.
+- ActionTimetoken (long): Publish timetoken of the message action to remove.
 - Uuid (string): UUID of the message.
 - Execute (System.Action): System.Action of type PNRemoveMessageActionResult.
 - ExecuteAsync: Returns Task<PNResult<PNRemoveMessageActionResult>>.
@@ -111,9 +113,10 @@ RemoveMessageAction() returns no actionable data.
 
 Requires Message Persistence enabled for your key in the Admin Portal.
 
-Get a list of message actions in a channel, sorted by the action’s timetoken in ascending order.
+Get a list of message actions in a channel. Sorted by action timetoken ascending.
 
-Truncated response: If internal limits are hit, the response may include a more property. Use the provided parameters to issue subsequent calls to page through results.
+Truncated response:
+- If truncated, response includes a more object. Use its parameters to paginate subsequent requests.
 
 ### Method(s)
 
@@ -130,10 +133,10 @@ Use this Unity method:
 ```
 
 Parameters:
-- Channel (string, required): The channel name.
-- Start (long, optional, default: n/a): Message Action timetoken marking the start of the requested range (inclusive).
-- End (long, optional, default: n/a): Message Action timetoken marking the end of the requested range (exclusive).
-- Limit (int, optional, default/max: 100): Number of actions to return.
+- Channel (string): The channel name.
+- Start (long): Message Action timetoken for start of range (inclusive).
+- End (long): Message Action timetoken for end of range (exclusive).
+- Limit (int): Number of actions to return. Default/Max 100.
 - Execute (System.Action): System.Action of type PNGetMessageActionsResult.
 - ExecuteAsync: Returns Task<PNResult<PNGetMessageActionsResult>>.
 
@@ -148,21 +151,21 @@ Parameters:
 ### Returns
 
 GetMessageActions() returns PNGetMessageActionsResult:
-- MessageActions (List<PNMessageActionItem>): List of Message Actions.
+- Message Actions (List<PNMessageActionItem>): List of message actions.
 - More (MoreInfo): Pagination info.
 
 PNMessageActionItem:
-- MessageTimetoken (long): Timetoken of the message.
+- MessageTimetoken (long): Timetoken associated with the message.
 - Action (PNMessageAction):
   - Type (string)
   - Value (string)
 - Uuid (string): UUID associated with the action.
-- ActionTimetoken (long): Timetoken of the action.
+- ActionTimetoken (long): Timetoken associated with the action.
 
 More:
-- Start (long): Timetoken denoting the start of the requested range.
-- End (long): Timetoken denoting the end of the requested range.
-- Limit (int): Number of Message Actions returned.
+- Start (long): Start timetoken of the range.
+- End (long): End timetoken of the range.
+- Limit (int): Number of actions returned.
 
 ```
 `1{**2    "MessageActions":  
@@ -183,3 +186,5 @@ More:
 17}  
 `
 ```
+
+Last updated on Sep 3, 2025**

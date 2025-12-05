@@ -1,124 +1,53 @@
 # Configuration API for Python SDK
 
-Complete API reference for building real-time applications on PubNub with the Python Software Development Kit (SDK). This page covers configuration, initialization, and event handling with concise, working examples.
+Essential configuration, initialization, and event handling details for the PubNub Python SDK. All code blocks and critical technical details are preserved.
 
-## Configuration[​](#configuration)
+## Configuration
 
-`PNConfiguration` stores user-provided settings that control PubNub client behavior.
+`PNConfiguration` holds client settings.
 
-### Method(s)[​](#methods)
+### Method(s)
 
-To create `configuration` instance use:
+To create a `configuration` instance:
 
 ```
 `1pnconfig = PNConfiguration()  
 `
 ```
 
-Configuration properties:
+Required User ID
+- Always set user_id (UTF-8, up to 92 alphanumeric chars). If not set, you can't connect.
 
-- subscribe_key
-  - Type: String
-  - Default: n/a
-  - Description: subscribe_key from Admin Portal. Required.
-- publish_key
-  - Type: String
-  - Default: None
-  - Description: publish_key from Admin Portal (required if publishing).
-- secret_key
-  - Type: String
-  - Default: None
-  - Description: secret_key (only required for modifying/revealing access permissions).
-- user_id
-  - Type: String
-  - Default: n/a
-  - Description: Unique user_id for the user/device (UTF-8, up to 92 alphanumeric chars). Required to connect.
-- auth_key
-  - Type: String
-  - Default: None
-  - Description: If Access Manager is utilized, client uses this authKey in all restricted requests.
-- ssl
-  - Type: Boolean
-  - Default: True
-  - Description: Use Secure Sockets Layer (SSL).
-- connect_timeout
-  - Type: Int
-  - Default: 5
-  - Description: Connection timeout in seconds.
-- subscribe_request_timeout
-  - Type: Int
-  - Default: 310
-  - Description: How long to keep the subscribe loop running before disconnect (seconds).
-- non_subscribe_request_timeout
-  - Type: Int
-  - Default: 10
-  - Description: Non-subscribe operation response timeout (seconds).
-- filter_expression
-  - Type: String
-  - Default: None
-  - Description: Subscribe with a custom filter expression.
-- heartbeat_notification_options
-  - Type: PNHeartbeatNotificationOptions
-  - Default: PNHeartbeatNotificationOptions.FAILURES
-  - Description: Heartbeat notifications. Options: ALL, FAILURES, NONE.
-- reconnect_policy
-  - Type: PNReconnectionPolicy
-  - Default: PNReconnectionPolicy.EXPONENTIAL (subscribe only)
-  - Description: Reconnection policy. Values: NONE, LINEAR (see maximum_reconnection_retries and reconnection_interval), EXPONENTIAL. For more information, refer to SDK connection lifecycle.
-- maximum_reconnection_retries
-  - Type: int
-  - Default: 10
-  - Description: Number of retries. Applicable to PNReconnectionPolicy.LINEAR only.
-- reconnection_interval
-  - Type: float
-  - Default: 2.0
-  - Description: Delay between failed retry attempts (seconds). Applicable to PNReconnectionPolicy.LINEAR only.
-- suppress_leave_events
-  - Type: Boolean
-  - Default: False
-  - Description: If True, client doesn't send presence leave events during unsubscribe.
-- enable_subscribe
-  - Type: Boolean
-  - Default: True
-  - Description: Disable the subscribe loop if you don't need subscribe operations. Extra threads/loops start by default; stop them explicitly with pubnub.stop().
-- daemon
-  - Type: Boolean
-  - Default: False
-  - Description: If True, spawned threads won't keep the app running after SIGTERM.
-- disable_token_manager
-  - Type: Boolean
-  - Default: False
-  - Description: If True, Token Manager System is disabled; no requests will be authorized via tokens.
-- cipher_mode
-  - Type: AES.MODE_CBC or AES.MODE_GCM
-  - Default: AES.MODE_CBC
-  - Description: Cipher method for message encryption for the legacy crypto module. Warning: If set to GCM, ensure all other clients can decode GCM.
-- fallback_cipher_mode
-  - Type: AES.MODE_CBC or AES.MODE_GCM
-  - Default: None
-  - Description: Secondary cipher method used for decryption if primary cipher_mode fails (legacy crypto module).
-- cipher_key
-  - Type: String
-  - Default: None
-  - Description: If set, encrypts communications to/from PubNub.
-- use_random_initialization_vector
-  - Type: Boolean
-  - Default: True
-  - Description: When True the IV is random for all requests (not just file upload). When False the IV is hard-coded for all requests except file upload.
-- crypto_module
-  - Type: PubNubCryptoModule
-  - Default: None
-  - Description: Cryptography module for encryption/decryption of messages and files. Takes config (PNConfiguration with cipher_key and use_random_initialization_vector). See crypto_module section below.
-- uuid (deprecated)
-  - Type: String
-  - Default: n/a
-  - Description: Deprecated; use user_id instead. Required to connect if used.
+PNConfiguration properties (type, default, description):
+- subscribe_key (String, n/a): Required. Subscribe key from Admin Portal.
+- publish_key (String, None): Required only if publishing.
+- secret_key (String, None): Required only for modifying/revealing access permissions.
+- user_id (String, n/a): Required unique user/device identifier.
+- auth_key (String, None): If Access Manager is used, this auth key is sent with restricted requests.
+- ssl (Boolean, True): Use SSL/TLS.
+- connect_timeout (Int, 5): Connection timeout in seconds.
+- subscribe_request_timeout (Int, 310): How long the subscribe loop stays connected before disconnect, in seconds.
+- non_subscribe_request_timeout (Int, 10): Timeout for non-subscribe operations, in seconds.
+- filter_expression (String, None): Stream Controller filter expression for subscribe.
+- heartbeat_notification_options (PNHeartbeatNotificationOptions, PNHeartbeatNotificationOptions.FAILURES): Configure heartbeat notifications. Options: ALL, FAILURES, NONE.
+- reconnect_policy (PNReconnectionPolicy, PNReconnectionPolicy.EXPONENTIAL): Reconnection strategy (subscribe only). Options: NONE, LINEAR (uses maximum_reconnection_retries and reconnection_interval), EXPONENTIAL. For more info, see SDK connection lifecycle.
+- maximum_reconnection_retries (int, 10): Retry attempts for LINEAR policy.
+- reconnection_interval (float, 2.0): Delay in seconds between retries for LINEAR policy.
+- suppress_leave_events (Boolean, False): If True, do not send presence leave events on unsubscribe.
+- enable_subscribe (Boolean, True): If False, disables subscribe loop. Call pubnub.stop() to stop loops when enabled.
+- daemon (Boolean, False): If True, spawned threads won't keep app alive after SIGTERM.
+- disable_token_manager (Boolean, False): If True, disables Token Manager; no requests will be authorized with tokens.
+- cipher_mode (AES.MODE_CBC or AES.MODE_GCM, AES.MODE_CBC): Legacy crypto module cipher for message encryption. Warning: If using GCM, ensure all other clients can decode GCM.
+- fallback_cipher_mode (AES.MODE_CBC or AES.MODE_GCM, None): Secondary cipher for decryption if primary cipher_mode fails.
+- cipher_key (String, None): If set, encrypts messages/files.
+- use_random_initialization_vector (Boolean, True): Random IV for all requests (not just file upload). Set False only for backward compatibility (<5.1.0).
+- crypto_module (PubNubCryptoModule, None): Pluggable crypto module for messages/files. Takes PNConfiguration (with cipher_key and use_random_initialization_vector) as argument. See crypto_module section below.
+- uuid (String, n/a): Deprecated. Use user_id instead.
 
-##### Disabling random initialization vector
-
-- Disable random IV only for backward compatibility (< 5.1.0). Never disable random IV in new applications.
-- By default SDKs use CBC. If you set Python SDK cipher_mode to GCM, only Python SDKs with AES.MODE_GCM can decode.
-- If using GCM but need to decode CBC (other SDKs) or fetch persisted messages, set fallback_cipher_mode to AES.MODE_CBC.
+Disabling random initialization vector
+- Disable only for backward compatibility (<5.1.0). Do not disable for new apps.
+- Default cipher is CBC. If using GCM in Python, only Python SDKs set to AES.MODE_GCM can decode those messages.
+- To decode CBC messages while using GCM, set fallback_cipher_mode=AES.MODE_CBC.
 
 The following example shows how to work with messages sent using different cipher modes:
 
@@ -131,23 +60,22 @@ The following example shows how to work with messages sent using different ciphe
 ### Working with cipher mode
 example
 
-#### `crypto_module`[​](#crypto_module)
+#### crypto_module
 
-- crypto_module encrypts/decrypts messages and files. From 7.2.0, you can configure algorithms.
-- Two options included: legacy 128‑bit encryption and recommended 256‑bit AES‑CBC. See Message Encryption and File Encryption.
+crypto_module encrypts/decrypts messages and files. From 7.2.0, you can configure algorithms.
+
+- Options included: legacy 128-bit encryption and recommended 256-bit AES-CBC.
 - If crypto_module is not set but cipher_key and use_random_initialization_vector are set, the client uses legacy encryption.
-- For configuration details, utilities, and examples, see Encryption.
+- For configuration details and examples, see Encryption.
 
 ##### Legacy encryption with 128-bit cipher key entropy
+- No change required to keep legacy encryption.
+- To use recommended 256-bit AES-CBC, explicitly set crypto_module in config.
 
-- No changes required to keep legacy encryption.
-- To use recommended 256-bit AES-CBC, explicitly set it in PubNub config.
-
-### Sample code[​](#sample-code)
+### Sample code
 
 ##### Required User ID
-
-Always set the user_id to uniquely identify the user or device that connects to PubNub. Persist it for the lifetime of the user/device. If not set, you won't be able to connect.
+Always set user_id to uniquely identify the user/device and keep it stable across sessions.
 
 ##### Reference code
 
@@ -193,15 +121,17 @@ Always set the user_id to uniquely identify the user or device that connects to 
 
 ```
 
-## Initialization[​](#initialization)
+## Initialization
 
-Add PubNub to your project using one of the procedures defined in the Getting Started guide.
+Add PubNub to your project as per the Getting Started guide.
 
-### Description[​](#description)
+### Description
 
-Initialize the PubNub Client API context before calling any APIs. Establishes credentials such as publish_key and subscribe_key.
+Initialize the PubNub client with account credentials (publish_key, subscribe_key) before calling APIs.
 
-### Method(s)[​](#methods-1)
+### Method(s)
+
+To Initialize PubNub:
 
 ```
 `1pubnub = PubNub(pn_configuration, custom_request_handler)  
@@ -209,31 +139,16 @@ Initialize the PubNub Client API context before calling any APIs. Establishes cr
 ```
 
 Parameters:
+- pn_configuration (PNConfiguration, required): See Configuration.
+- custom_request_handler (subclass of BaseRequestHandler, default HttpxRequestHandler): Optional custom HTTP request handler. If omitted, SDK checks PUBNUB_REQUEST_HANDLER env var; if invalid, defaults to HttpxRequestHandler.
 
-- pn_configuration
-  - Type: PNConfiguration
-  - Default: n/a
-  - Description: The configuration object. See Configuration.
-- custom_request_handler
-  - Type: subclass of BaseRequestHandler
-  - Default: HttpxRequestHandler
-  - Description: Optional custom HTTP request handler. See Custom request handler.
+Handlers:
+- HttpxRequestHandler: Synchronous requests via httpx.
+- RequestsRequestHandler: Synchronous requests via requests.
 
-#### Custom request handler[​](#custom-request-handler)
+### Sample code
 
-- Optional custom_request_handler lets you select the HTTP library.
-- If omitted, SDK checks PUBNUB_REQUEST_HANDLER env var. If it's not a subclass of BaseRequestHandler, defaults to HttpxRequestHandler.
-- Available handlers:
-  - HttpxRequestHandler: synchronous handler based on httpx.
-  - RequestsRequestHandler: synchronous handler based on requests.
-
-### Sample code[​](#sample-code-1)
-
-#### Initialize the PubNub client API[​](#initialize-the-pubnub-client-api)
-
-##### Required User ID
-
-Always set the user_id to uniquely identify the user or device that connects to PubNub.
+#### Initialize the PubNub client API
 
 ```
 1from pubnub.pnconfiguration import PNConfiguration  
@@ -249,13 +164,13 @@ Always set the user_id to uniquely identify the user or device that connects to 
 
 ```
 
-### Returns[​](#returns)
+### Returns
 
 Returns a PubNub instance for APIs like publish(), subscribe(), history(), and here_now().
 
-### Other examples[​](#other-examples)
+### Other examples
 
-#### Use a custom request handler[​](#use-a-custom-request-handler)
+#### Use a custom request handler
 
 ```
 1from pubnub.pnconfiguration import PNConfiguration  
@@ -273,7 +188,7 @@ Returns a PubNub instance for APIs like publish(), subscribe(), history(), and h
 
 ```
 
-#### Initialize a non-secure client[​](#initialize-a-non-secure-client)
+#### Initialize a non-secure client
 
 ```
 1from pubnub.pnconfiguration import PNConfiguration  
@@ -289,9 +204,7 @@ Returns a PubNub instance for APIs like publish(), subscribe(), history(), and h
 
 ```
 
-#### Initialization for a Read-Only client[​](#initialization-for-a-read-only-client)
-
-Omit publish_key if the client only reads.
+#### Initialization for a Read-Only client
 
 ```
 1from pubnub.pnconfiguration import PNConfiguration  
@@ -306,7 +219,7 @@ Omit publish_key if the client only reads.
 
 ```
 
-#### Use a custom user ID[​](#use-a-custom-user-id)
+#### Use a custom user ID
 
 ```
 1from pubnub.pnconfiguration import PNConfiguration  
@@ -325,7 +238,7 @@ Omit publish_key if the client only reads.
 
 ```
 
-#### Initializing with SSL enabled[​](#initializing-with-ssl-enabled)
+#### Initializing with SSL enabled
 
 ```
 1from pubnub.pnconfiguration import PNConfiguration  
@@ -341,11 +254,12 @@ Omit publish_key if the client only reads.
 
 ```
 
-#### Initializing with Access Manager[​](#initializing-with-access-manager)
+#### Initializing with Access Manager
 
-Requires Access Manager add-on enabled for your key.
+Requires Access Manager add-on enabled in Admin Portal.
 
-Secure your secret_key: Anyone with the secret_key can grant/revoke permissions. Never expose it; use only on secure server-side platforms. When you init with secret_key, you get root permissions; servers get all access on all channels.
+Secure your secret_key
+- secret_key grants root permissions; keep it server-side and secure.
 
 ```
 1from pubnub.pnconfiguration import PNConfiguration  
@@ -364,24 +278,24 @@ Secure your secret_key: Anyone with the secret_key can grant/revoke permissions.
 
 ```
 
-Now the pubnub object can access Access Manager functions and will sign messages with secret_key.
+The client will sign Access Manager messages using secret_key.
 
-## Event listeners[​](#event-listeners)
+## Event listeners
 
-PubNub SDKs provide real-time updates from:
-- The PubNub client: all subscriptions (channels, channel groups, channel metadata, users).
-- Subscription: updates for its specific object.
-- SubscriptionsSet: updates for a list of subscriptions.
+Sources for real-time updates:
+- PubNub client: all subscriptions (channels, groups, metadata, users).
+- Subscription: only for its specific entity (channel, group, metadata, or user).
+- SubscriptionsSet: for all entities represented by its subscription list.
 
-See Publish & Subscribe for details on listeners.
+See Publish & Subscribe for subscribing and adding handlers per entity.
 
-## Filter expression[​](#filter-expression)
+## Filter expression
 
 Requires Stream Controller add-on.
 
-Stream filtering lets a subscriber receive only messages that match a filter.
+Stream filtering lets subscribers receive only messages that match a filter.
 
-### Method(s)[​](#methods-2)
+### Method(s)
 
 ```
 `1Set Filter Expression  
@@ -397,9 +311,9 @@ The property accepts a string.
 
 The property returns a string.
 
-### Sample code[​](#sample-code-2)
+### Sample code
 
-#### Set filter expression[​](#set-filter-expression)
+#### Set filter expression
 
 ```
 1from pubnub.pnconfiguration import PNConfiguration  
@@ -410,7 +324,7 @@ The property returns a string.
 
 ```
 
-#### Get filter expression[​](#get-filter-expression)
+#### Get filter expression
 
 ```
 `1filter = pnconfig.filter_expression**`

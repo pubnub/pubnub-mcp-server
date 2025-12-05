@@ -1,10 +1,10 @@
 # App Context API for C# SDK
 
-App Context (formerly Objects v2) provides serverless storage for user and channel metadata and their membership associations. PubNub triggers events when object data is set, updated, or removed. Setting the same data that already exists does not trigger an event.
-
-Use try/catch when working with the C# SDK. Invalid parameters throw exceptions; server/network errors are returned in PNStatus.
+App Context (formerly Objects v2) provides serverless storage for user and channel metadata and their memberships. PubNub emits events when object data is set, updated, or removed. Setting identical data doesn’t trigger events. To upgrade from Objects v1, see the migration guide.
 
 ##### Request execution
+
+Use try/catch. Invalid parameters throw exceptions. Server/network errors return details in status.
 
 ```
 1try  
@@ -31,11 +31,9 @@ Use try/catch when working with the C# SDK. Invalid parameters throw exceptions;
 
 ### Get metadata for all users
 
-Returns a paginated list of UUID Metadata objects. Optional: include custom data and total count.
+Returns a paginated list of UUID Metadata objects.
 
 #### Method(s)
-
-To Get All UUID Metadata:
 
 ```
 `1pubnub.GetAllUuidMetadata()  
@@ -48,16 +46,14 @@ To Get All UUID Metadata:
 `
 ```
 
-- IncludeCustom (bool): Include Custom object.
-- IncludeCount (bool): Include total count (default false).
-- Page (PNPageObject): Cursor-based pagination.
-- Sort (List<string>): Sort by id, name, updated with asc/desc.
-- Filter (string): Filter expression. See filtering.
-- Limit (int): Number of objects to return. Default/Max: 100.
+- IncludeCustom (bool): include Custom object in response.
+- IncludeCount (bool): include total count (default false).
+- Page (PNPageObject): cursor-based pagination.
+- Sort (List<string>): sort by id, name, updated with asc/desc (for example, {name: 'asc'}).
+- Filter (string): filter expression (see filtering).
+- Limit (int): number of objects; Default/Max 100.
 
 #### Sample code
-
-##### Reference code
 
 ```
 1
@@ -102,11 +98,9 @@ To Get All UUID Metadata:
 
 ### Get user metadata
 
-Returns metadata for the specified UUID. Optional: include custom data.
+Returns metadata for the specified UUID.
 
 #### Method(s)
-
-To Get UUID Metadata:
 
 ```
 `1pubnub.GetUuidMetadata()  
@@ -115,8 +109,8 @@ To Get UUID Metadata:
 `
 ```
 
-- Uuid (string): Unique user identifier. Defaults to current user's UUID if not supplied.
-- IncludeCustom (bool): Include Custom object.
+- Uuid (string): unique user identifier; defaults to current user if omitted.
+- IncludeCustom (bool): include Custom object.
 
 #### Sample code
 
@@ -143,11 +137,11 @@ To Get UUID Metadata:
 
 ### Set user metadata
 
-Note: Custom metadata is fully overwritten (no partial merge). Use a read-modify-write approach to add fields.
+Sets metadata for a UUID.
+
+Unsupported partial updates of custom metadata: the Custom object overwrites existing data. To add/merge, first fetch existing, merge client-side, then set.
 
 #### Method(s)
-
-To Set UUID Metadata:
 
 ```
 `1pubnub.SetUuidMetadata()  
@@ -162,18 +156,16 @@ To Set UUID Metadata:
 `
 ```
 
-- Uuid (string): Unique user identifier. Defaults to current user's UUID.
-- Name (string): Display name.
-- Email (string): Email address.
-- ExternalId (string): External system identifier.
-- ProfileUrl (string): Profile image URL.
-- Custom (Dictionary<string, object>): Custom JSON (strings, numbers, booleans). Filtering by Custom isn’t supported.
-- IncludeCustom (bool): Include Custom object in response.
-- IfMatchesEtag (string): Conditional update with eTag; mismatches return HTTP 412.
+- Uuid (string): unique user identifier; defaults to current user if omitted.
+- Name (string): display name.
+- Email (string): email address.
+- ExternalId (string): external system ID.
+- ProfileUrl (string): profile picture URL.
+- Custom (Dictionary<string, object>): custom JSON (strings, numbers, booleans). Filtering by Custom isn’t supported.
+- IncludeCustom (bool): include Custom object in response.
+- IfMatchesEtag (string): conditional update using eTag; mismatched eTag returns HTTP 412.
 
-##### API limits
-
-See REST API docs for parameter limits.
+API limits: see REST API docs for set user metadata.
 
 #### Sample code
 
@@ -200,11 +192,9 @@ See REST API docs for parameter limits.
 
 ### Remove user metadata
 
-Removes metadata for a specified UUID.
+Removes metadata for a UUID.
 
 #### Method(s)
-
-To Remove UUID Metadata:
 
 ```
 `1pubnub.RemoveUuidMetadata()  
@@ -212,7 +202,7 @@ To Remove UUID Metadata:
 `
 ```
 
-- Uuid (string): Unique user identifier. Defaults to current user's UUID.
+- Uuid (string): unique user identifier; defaults to current user if omitted.
 
 #### Sample code
 
@@ -233,11 +223,9 @@ To Remove UUID Metadata:
 
 ### Get metadata for all channels
 
-Returns a paginated list of Channel Metadata objects. Optional: include custom data and total count.
+Returns a paginated list of Channel Metadata objects.
 
 #### Method(s)
-
-To Get All Channel Metadata:
 
 ```
 `1pubnub.GetAllChannelMetadata()  
@@ -249,11 +237,11 @@ To Get All Channel Metadata:
 `
 ```
 
-- IncludeCustom (bool): Include Custom object.
-- IncludeCount (bool): Include total count (default false).
-- Page (PNPageObject): Cursor-based pagination.
-- Sort (List<string>): Sort by id, name, updated with asc/desc.
-- Filter (string): Filter expression. See filtering.
+- IncludeCustom (bool): include Custom object.
+- IncludeCount (bool): include total count (default false).
+- Page (PNPageObject): cursor-based pagination.
+- Sort (List<string>): sort by id, name, updated with asc/desc.
+- Filter (string): filter expression (see filtering).
 
 #### Sample code
 
@@ -297,11 +285,9 @@ To Get All Channel Metadata:
 
 ### Get channel metadata
 
-Returns metadata for the specified channel. Optional: include custom data.
+Returns metadata for a channel.
 
 #### Method(s)
-
-To Get Channel Metadata:
 
 ```
 `1pubnub.GetChannelMetadata()  
@@ -310,8 +296,8 @@ To Get Channel Metadata:
 `
 ```
 
-- Channel (string): Channel name.
-- IncludeCustom (bool): Include Custom object.
+- Channel (string): channel name.
+- IncludeCustom (bool): include Custom object.
 
 #### Sample code
 
@@ -336,11 +322,11 @@ To Get Channel Metadata:
 
 ### Set channel metadata
 
-Note: Custom metadata is fully overwritten (no partial merge). Use a read-modify-write approach to add fields.
+Sets metadata for a channel.
+
+Unsupported partial updates of custom metadata: Custom overwrites existing data. To merge, fetch current, merge client-side, then set.
 
 #### Method(s)
-
-To Set Channel Metadata:
 
 ```
 `1pubnub.SetChannelMetadata()  
@@ -353,16 +339,14 @@ To Set Channel Metadata:
 `
 ```
 
-- Channel (string): Channel name.
-- Name (string): Channel name.
-- Description (string): Channel description.
-- Custom (Dictionary<string, object>): Custom JSON (strings, numbers, booleans). Filtering by Custom isn’t supported.
-- IncludeCustom (bool): Include Custom object in response.
-- IfMatchesEtag (string): Conditional update with eTag; mismatches return HTTP 412.
+- Channel (string): channel name.
+- Name (string): channel name.
+- Description (string): channel description.
+- Custom (Dictionary<string, object>): custom JSON (strings, numbers, booleans). Filtering by Custom isn’t supported.
+- IncludeCustom (bool): include Custom object.
+- IfMatchesEtag (string): conditional update using eTag; mismatched eTag returns HTTP 412.
 
-##### API limits
-
-See REST API docs for parameter limits.
+API limits: see REST API docs for set channel metadata.
 
 #### Sample code
 
@@ -399,11 +383,9 @@ See REST API docs for parameter limits.
 
 ### Remove channel metadata
 
-Removes the metadata for a specified channel.
+Removes metadata for a channel.
 
 #### Method(s)
-
-To Remove Channel Metadata:
 
 ```
 `1pubnub.RemoveChannelMetadata()  
@@ -411,7 +393,7 @@ To Remove Channel Metadata:
 `
 ```
 
-- Channel (string): Channel name.
+- Channel (string): channel name.
 
 #### Sample code
 
@@ -436,8 +418,6 @@ Returns a list of channel memberships for a user (not subscriptions).
 
 #### Method(s)
 
-To Get Memberships:
-
 ```
 `1pubnub.GetMemberships()  
 2        .Uuid(string)  
@@ -447,10 +427,10 @@ To Get Memberships:
 `
 ```
 
-- Uuid (string): Unique user identifier. Defaults to current user's UUID.
-- Include (PNMembershipField[]): Include additional fields.
-- IncludeCount (bool): Include total count (default false).
-- Page (PNPageObject): Cursor-based pagination.
+- Uuid (string): user UUID; defaults to current user if omitted.
+- Include (PNMembershipField[]): include additional fields.
+- IncludeCount (bool): include total count (default false).
+- Page (PNPageObject): cursor-based pagination.
 
 #### Sample code
 
@@ -506,11 +486,9 @@ To Get Memberships:
 
 ### Set channel memberships
 
-Set channel memberships for a UUID.
+Sets channel memberships for a UUID.
 
 #### Method(s)
-
-To Set Memberships:
 
 ```
 `1pubnub.SetMemberships()  
@@ -525,25 +503,23 @@ To Set Memberships:
 `
 ```
 
-- Uuid (string): Unique user identifier. Defaults to current user's UUID.
-- Channels (List<PNMembership>): Channels to add (names or objects with optional custom).
-- Include (PNMembershipField[]): Include additional fields.
-- IncludeCount (bool): Include total count (default false).
-- Page (PNPageObject): Cursor-based pagination.
-- Sort (List<string>): Sort by id, name, updated with asc/desc.
-- Filter (string): Filter expression. See filtering.
-- Limit (int): Number of objects to return. Default/Max: 100.
+- Uuid (string): user UUID; defaults to current user if omitted.
+- Channels (List<PNMembership>): channels to add (names or objects with optional custom data).
+- Include (PNMembershipField[]): include additional fields.
+- IncludeCount (bool): include total count (default false).
+- Page (PNPageObject): cursor-based pagination.
+- Sort (List<string>): sort by id, name, updated with asc/desc.
+- Filter (string): filter expression (see filtering).
+- Limit (int): number of objects; Default/Max 100.
 
-##### API limits
-
-See REST API docs for parameter limits.
+API limits: see REST API docs for set membership metadata.
 
 #### PNMembership
 
-- Channel (string): Channel name for this membership.
-- Custom (Dictionary<string, object>): Custom metadata (strings, numbers, booleans).
-- Status (string): Membership status (for example, active, inactive).
-- Type (string): Membership type for categorization.
+- Channel (string): channel name for this membership.
+- Custom (Dictionary<string, object>): custom metadata (strings, numbers, booleans).
+- Status (string): membership status (for example, active or inactive).
+- Type (string): membership type/category.
 
 #### Sample code
 
@@ -599,11 +575,9 @@ See REST API docs for parameter limits.
 
 ### Remove channel memberships
 
-Remove channel memberships for a UUID.
+Removes channel memberships for a UUID.
 
 #### Method(s)
-
-To Remove Memberships:
 
 ```
 `1pubnub.RemoveMemberships()  
@@ -618,14 +592,14 @@ To Remove Memberships:
 `
 ```
 
-- Uuid (string): Unique user identifier. Defaults to current user's UUID.
-- Channels (List<string>): Channels to remove.
-- Include (PNMembershipField[]): Include additional fields.
-- IncludeCount (bool): Include total count (default false).
-- Page (PNPageObject): Cursor-based pagination.
-- Sort (List<string>): Sort by id, name, updated with asc/desc.
-- Filter (string): Filter expression. See filtering.
-- Limit (int): Number of objects to return. Default/Max: 100.
+- Uuid (String): user UUID; defaults to current user if omitted.
+- Channels (List<string>): channels to remove.
+- Include (PNMembershipField[]): include additional fields.
+- IncludeCount (bool): include total count (default false).
+- Page (PNPageObject): cursor-based pagination.
+- Sort (List<string>): sort by id, name, updated with asc/desc.
+- Filter (string): filter expression (see filtering).
+- Limit (int): number of objects; Default/Max 100.
 
 #### Sample code
 
@@ -681,11 +655,9 @@ To Remove Memberships:
 
 ### Manage channel memberships
 
-Set and remove channel memberships for a user.
+Sets and removes channel memberships for a user.
 
 #### Method(s)
-
-To Manage Memberships:
 
 ```
 `1pubnub.ManageMemberships()  
@@ -699,13 +671,13 @@ To Manage Memberships:
 `
 ```
 
-- Uuid (string): Unique user identifier. Defaults to current user's UUID.
-- Set (List<PNMembership>): Channel memberships to set.
-- Remove (List<string>): Channel memberships to remove.
-- Include (PNMembershipField[]): Include additional fields.
-- IncludeCount (bool): Include total count (default false).
-- Page (PNPageObject): Cursor-based pagination.
-- Sort (List<string>): Sort by id, name, updated with asc/desc.
+- Uuid (string): user UUID; defaults to current user if omitted.
+- Set (List<PNMembership>): memberships to set.
+- Remove (List<string>): memberships to remove.
+- Include (PNMembershipField[]): include additional fields.
+- IncludeCount (bool): include total count (default false).
+- Page (PNPageObject): cursor-based pagination.
+- Sort (List<string>): sort by id, name, updated with asc/desc.
 
 #### Sample code
 
@@ -763,11 +735,9 @@ To Manage Memberships:
 
 ### Get channel members
 
-Returns a list of members in a channel. Includes user metadata when available.
+Returns a list of members in a channel (with user metadata where available).
 
 #### Method(s)
-
-To Get Channel Members:
 
 ```
 `1pubnub.GetChannelMembers()  
@@ -781,13 +751,13 @@ To Get Channel Members:
 `
 ```
 
-- Channel (string): Channel name.
-- Include (PNChannelMemberField[]): Include additional fields.
-- IncludeCount (bool): Include total count (default false).
-- Page (PNPageObject): Cursor-based pagination.
-- Sort (List<string>): Sort by id, name, updated with asc/desc.
-- Filter (string): Filter expression. See filtering.
-- Limit (int): Number of objects to return. Default/Max: 100.
+- Channel (string): channel name.
+- Include (PNChannelMemberField[]): include additional fields.
+- IncludeCount (bool): include total count (default false).
+- Page (PNPageObject): cursor-based pagination.
+- Sort (List<string>): sort by id, name, updated with asc/desc.
+- Filter (string): filter expression (see filtering).
+- Limit (int): number of objects; Default/Max 100.
 
 #### Sample code
 
@@ -844,28 +814,24 @@ To Get Channel Members:
 
 ### Set channel members
 
-Set members in a channel.
+Sets members in a channel.
 
 #### Method(s)
-
-To Set Channel Members:
 
 ```
 `1pubnub.SetChannelMembers().Channel(string).Uuids(ListPNChannelMember>).Include(PNChannelMemberField[]).Page(PNPageObject).Sort(Liststring>).Filter(string).Limit(int)  
 `
 ```
 
-- Channel (String): Channel name.
-- Uuids (List<PNChannelMember>): Members to add (UUIDs or objects with optional custom).
-- Include (PNChannelMemberField[]): Include additional fields.
-- Page (PNPageObject): Cursor-based pagination.
-- Sort (List<string>): Sort by id, name, updated with asc/desc.
-- Filter (string): Filter expression. See filtering.
-- Limit (int): Number of objects to return. Default/Max: 100.
+- Channel (String): channel name.
+- Uuids (List<PNChannelMember>): members to add (UUIDs or objects with optional custom data).
+- Include (PNChannelMemberField[]): include additional fields.
+- Page (PNPageObject): cursor-based pagination.
+- Sort (List<string>): sort by id, name, updated with asc/desc.
+- Filter (string): filter expression (see filtering).
+- Limit (int): number of objects; Default/Max 100.
 
-##### API limits
-
-See REST API docs for parameter limits.
+API limits: see REST API docs for set channel members metadata.
 
 #### Sample code
 
@@ -922,11 +888,9 @@ See REST API docs for parameter limits.
 
 ### Remove channel members
 
-Remove members from a channel.
+Removes members from a channel.
 
 #### Method(s)
-
-To Remove Channel Members:
 
 ```
 `1pubnub.RemoveChannelMembers()  
@@ -942,14 +906,14 @@ To Remove Channel Members:
 `
 ```
 
-- Channel (string): Channel name.
-- Uuids (List<string>): Members to remove.
-- Include (PNChannelMemberField[]): Include additional fields.
-- IncludeCount (bool): Include total count (default false).
-- Page (PNPageObject): Cursor-based pagination.
-- Sort (List<string>): Sort by id, name, updated with asc/desc.
-- Filter (string): Filter expression. See filtering.
-- Limit (int): Number of objects to return. Default/Max: 100.
+- Channel (string): channel name.
+- Uuids (List<string>): members to remove.
+- Include (PNChannelMemberField[]): include additional fields.
+- IncludeCount (bool): include total count (default false).
+- Page (PNPageObject): cursor-based pagination.
+- Sort (List<string>): sort by id, name, updated with asc/desc.
+- Filter (string): filter expression (see filtering).
+- Limit (int): number of objects; Default/Max 100.
 
 #### Sample code
 

@@ -2,13 +2,13 @@
 
 ##### Breaking changes in v9.0.0
 
-PubNub Kotlin SDK v9.0.0 unifies Kotlin and [Java](/docs/sdks/java) SDKs, changes client instantiation, async callbacks, and emitted [status events](/docs/sdks/kotlin/status-events). Apps using < 9.0.0 may be affected. See the [Java/Kotlin SDK migration guide](/docs/general/resources/migration-guides/java-kotlin-sdk-migration-guide).
+Kotlin SDK v9.0.0 unifies Kotlin and Java SDKs, introduces a new client instantiation model, and changes async API callbacks and emitted status events. These changes may impact apps built with versions < 9.0.0. See Java/Kotlin SDK migration guide.
 
-PubNub delivers messages worldwide in <30 ms. For concepts, see [Connection Management](/docs/general/setup/connection-management) and [Publish Messages](/docs/general/messages/publish).
+PubNub delivers messages in <30 ms. For conceptual info, see Connection Management and Publish Messages.
 
 ##### Request execution
 
-Most API calls return an Endpoint. You must call `.sync()` or `.async()` to execute.
+Most SDK method calls return an Endpoint. You must call .sync() or .async() on the Endpoint to execute the request.
 
 ```
 1val channel = pubnub.channel("channelName")  
@@ -21,41 +21,42 @@ Most API calls return an Endpoint. You must call `.sync()` or `.async()` to exec
 7        // Handle successful method result  
 8    }  
 9}  
+
 ```
 
-## Publish
+## Publish[​](#publish)
 
-This method is available to use with the `Channel` entity. For more information, refer to [Channel](/docs/sdks/kotlin/entities/channel).
+Available in entities
+- Channel
 
-### Available in entities
-Channel
-
-`publish()` sends a message to all channel subscribers.
+publish() sends a message to all channel subscribers.
 
 - Prerequisites and limitations
-  - Initialize with `publishKey`.
-  - Create a [Channel](/docs/sdks/kotlin/entities/channel) to publish to.
+  - Initialize with publishKey.
+  - Create a Channel entity to publish to.
   - You don't have to be subscribed to publish.
   - You cannot publish to multiple channels simultaneously.
 - Security
-  - Enable TLS/SSL by setting `ssl = true` during [initialization](/docs/sdks/kotlin/api-reference/configuration). Optional [encryption](/docs/sdks/kotlin/api-reference/configuration#cryptomodule).
+  - Enable TLS/SSL by setting ssl = true during initialization.
+  - Optional message encryption via CryptoModule.
 - Message data
-  - Any JSON-serializable data (objects, arrays, numbers, strings). Avoid custom classes/functions.
-  - Don't JSON serialize `message` or `meta`; the SDK handles serialization.
+  - Any JSON-serializable data (objects, arrays, integers, strings). Avoid special classes/functions.
+  - Don't JSON serialize: Pass message and meta as objects; SDK serializes automatically.
 - Size
-  - Max 32 KiB (includes escaped characters and channel name). Aim < ~1,800 bytes. Exceeding returns `Message Too Large`. See [limits](/docs/general/messages/publish#message-size-limit).
+  - Max 32 KiB (includes escaped chars and channel name). Aim < ~1,800 bytes. Over-limit returns Message Too Large.
 - Publish rate
-  - Publish as fast as bandwidth allows; there is a [soft limit](/docs/general/setup/limits). In-memory queue stores only 100 messages; excess may drop if subscribers lag.
+  - Soft throughput limit; in-memory queue holds 100 messages. Large bursts can drop messages if subscribers lag.
 - Custom message type
-  - Optional `customMessageType` to label messages (for example `text`, `action`, `poll`).
+  - Optional customMessageType (e.g., text, action, poll).
 - Best practices
-  - Publish serially; verify success; publish next only after success.
+  - Publish serially, verify success code, publish next only on success.
   - Retry on failure.
-  - Keep queue <100 messages; throttle bursts (for example ≤5 msg/s).
+  - Keep in-memory queue < 100 messages.
+  - Throttle bursts (e.g., ≤5 msg/s) to meet latency needs.
 
-### Method(s)
+### Method(s)[​](#methods)
 
-Create a [`Channel` entity](/docs/sdks/kotlin/entities/channel) and call:
+Create a Channel entity, then call publish:
 
 ```
 1val channel = pubnub.channel("channelName")  
@@ -70,92 +71,96 @@ Create a [`Channel` entity](/docs/sdks/kotlin/entities/channel) and call:
 9    ttl: Integer,  
 10    customMessageType: String  
 11).async { result -> /* check result */ }  
+
 ```
 
-Parameters:
-- message (required)
-  - Type: Any. Default: n/a. The payload.
-- shouldStore
-  - Type: Boolean. Default: account default. Store in history if enabled for key.
-- meta
-  - Type: Any. Default: not set. Metadata for filtering.
-- queryParam
-  - Type: Map<String, String>. Default: not set. Custom query params (analytics). Overridden by reserved PubNub params. Not returned in responses.
-- usePost
-  - Type: Boolean. Default: false. Use HTTP POST.
-- ttl
-  - Type: Integer. Default: n/a. Time to live (hours) in Message Persistence.
-    1. If shouldStore = true and ttl = 0 → stored, no expiry.
-    2. If shouldStore = true and ttl = X → stored, expires in X hours (unless keyset retention is Unlimited).
-    3. If shouldStore = false → ttl ignored.
-    4. If ttl not specified → falls back to key’s expiry value.
-- customMessageType
-  - Type: String. Default: n/a. Case-sensitive 3–50 char alphanumeric; dashes and underscores allowed; cannot start with special chars or with `pn_`/`pn-`. Examples: `text`, `action`, `poll`.
+Parameters
+- message (required): Any. The payload.
+- shouldStore: Boolean. Default: account default. Store message in history. If not specified, storage depends on Message Persistence enablement.
+- meta: Any. Default: not set. Metadata object for filtering.
+- queryParam: Map<String, String>. Default: not set. Additional query params (analytics). Overridden on conflict with reserved params. Visible in Admin Portal, never returned in responses.
+- usePost: Boolean. Default: false. Use HTTP POST.
+- ttl: Integer. Per-message TTL in hours for Message Persistence.
+  1. If shouldStore = true and ttl = 0: stored with no expiry.
+  2. If shouldStore = true and ttl = X: stored with expiry X hours (unless retention Unlimited).
+  3. If shouldStore = false: ttl ignored.
+  4. If ttl not specified: defaults to key expiry value.
+- customMessageType: String. Case-sensitive, alphanumeric, 3–50 chars; dashes and underscores allowed; cannot start with special chars or pn_/pn-. Examples: text, action, poll.
 
-### Sample code
+### Sample code[​](#sample-code)
 
 ##### Reference code
+
 ```
 1
   
+
 ```
 
 ##### Subscribe to the channel
 
-Before publishing, [subscribe to the same channel](#subscribe) (for example, using the [Debug Console](https://www.pubnub.com/docs/console/)).
+Before running the publish example, subscribe to the same channel (Debug Console or separate script).
 
-### Response
+### Response[​](#response)
 
-`publish()` returns `PNPublishResult?`:
+publish() returns PNPublishResult?:
 - timetoken: Long. Timetoken when the message was published.
 
-### Other examples
+### Other examples[​](#other-examples)
 
-#### Publish with metadata
+#### Publish with metadata[​](#publish-with-metadata)
+
 ```
 1
   
+
 ```
 
-#### Publishing JsonArray (Google GSON)
+#### Publishing JsonArray (Google GSON)[​](#publishing-jsonarray-google-gson)
+
 ```
 1
   
+
 ```
 
-#### Publishing JSONObject (org.json)
-```
-1
-  
-```
+#### Publishing JSONObject (org.json)[​](#publishing-jsonobject-orgjson)
 
-#### Publishing JSONArray (org.json)
 ```
 1
   
+
 ```
 
-#### Store the published message for 10 hours
+#### Publishing JSONArray (org.json)[​](#publishing-jsonarray-orgjson)
+
 ```
 1
   
+
 ```
 
-## Fire
+#### Store the published message for 10 hours[​](#store-the-published-message-for-10-hours)
 
-This method is available to use with the `Channel` entity. For more information, refer to [Channel](/docs/sdks/kotlin/entities/channel).
+```
+1
+  
 
-### Available in entities
-Channel
+```
 
-`fire()` sends a message to Functions event handlers and [Illuminate](/docs/illuminate/business-objects/external-data-sources) on the target channel. Not replicated to subscribers and not stored.
+## Fire[​](#fire)
+
+Available in entities
+- Channel
+
+fire() sends a message to Functions event handlers and Illuminate. Messages go directly to handlers on the channel, are not replicated to subscribers, and are not stored in history.
 
 - Prerequisites and limitations
-  - Initialize with `publishKey`.
-  - Create a [Channel](/docs/sdks/kotlin/entities/channel).
-  - Not replicated to subscribers; not stored.
+  - Initialize with publishKey.
+  - Create a Channel entity to fire to.
+  - Not replicated to subscribers; not stored in history.
 
-### Method(s)
+### Method(s)[​](#methods-1)
 
 ```
 1val channel = pubnub.channel("channelName")  
@@ -166,54 +171,49 @@ Channel
 5    meta: Any,  
 6    usePost: Boolean,  
 7).async { result -> /* check result */ }  
+
 ```
 
-Parameters:
-- message (required)
-  - Type: Any. Default: n/a. The payload.
-- meta
-  - Type: Any. Default: not set. Metadata for filtering.
-- usePost
-  - Type: Boolean. Default: false. Use POST.
+Parameters
+- message (required): Any. The payload.
+- meta: Any. Metadata object for filtering.
+- usePost: Boolean. Default: false. Use POST.
 
-### Sample code
+### Sample code[​](#sample-code-1)
+
 ```
 1
   
+
 ```
 
-### Response
+### Response[​](#response-1)
 
-`fire()` returns `PNPublishResult?`:
+fire() returns PNPublishResult?:
 - timetoken: Long. Timetoken when the message was published.
 
-## Signal
+## Signal[​](#signal)
 
-This method is available to use with the `Channel` entity. For more information, refer to [Channel](/docs/sdks/kotlin/entities/channel).
+Available in entities
+- Channel
 
-### Available in entities
-Channel
-
-`signal()` sends a lightweight signal to all channel subscribers.
+signal() sends a signal to all subscribers of a channel.
 
 - Prerequisites and limitations
-  - Initialize with `publishKey`.
-  - Create a [Channel](/docs/sdks/kotlin/entities/channel).
-  - Payload size max 64 bytes (excluding URI/headers). For larger, [contact support](mailto:support@pubnub.com).
-
+  - Initialize with publishKey.
+  - Create a Channel entity to signal to.
+  - Payload size limit: 64 bytes (without URI/headers). Contact support for larger needs.
 - Signal vs. Message
-  - Payload size: Signals 64B; Messages 32KB.
-  - Cost: Signals cost less.
-  - Persistence: Signals not stored; Messages can be stored.
-  - Push: Signals cannot trigger push; Messages can.
-  - Use cases: Signals for non-critical data (for example, location pings).
-  - Metadata: Signals don’t support metadata; Messages do.
+  - Payload size: signals 64B; messages up to 32KB.
+  - Cost: signals cost less.
+  - Persistence: signals cannot be stored; messages can be stored/accessed.
+  - Push notifications: signals cannot trigger push; messages can.
+  - Use cases: signals best for non-critical/low-latency (e.g., geolocation); messages suit both.
+  - Metadata: signals do not support meta; messages do.
+- Channel separation
+  - Send signals and messages on separate channels for better recovery.
 
-##### Channel separation
-
-Send signals and messages on separate channels for better recovery.
-
-### Method(s)
+### Method(s)[​](#methods-2)
 
 ```
 1val channel = pubnub.channel("myChannel")  
@@ -223,47 +223,47 @@ Send signals and messages on separate channels for better recovery.
 4    message: Any,  
 5    customMessageType: String  
 6).async { result -> }  
+
 ```
 
-Parameters:
-- message (required)
-  - Type: Any. Default: n/a. The payload (≤64B).
-- customMessageType
-  - Type: String. Default: n/a. Same constraints as Publish.
+Parameters
+- message (required): Any. The payload.
+- customMessageType: String. Case-sensitive, alphanumeric, 3–50 chars; dashes/underscores allowed; cannot start with special chars or pn_/pn-. Examples: text, action, poll.
 
-### Sample code
+### Sample code[​](#sample-code-2)
+
 ```
 1
   
+
 ```
 
-### Response
+### Response[​](#response-2)
 
-`signal()` returns `PNPublishResult?`:
+signal() returns PNPublishResult?:
 - timetoken: Long. Timetoken when the signal was published.
 
-## Subscribe
+## Subscribe[​](#subscribe)
 
-Opens a TCP socket and listens for messages and events. Set `subscribeKey` during [initialization](/docs/sdks/kotlin/api-reference/configuration#initialization). Configure [`retryConfiguration`](/docs/sdks/kotlin/api-reference/configuration) to auto-reconnect.
+Opens a socket and listens for messages/events. Set subscribeKey during initialization. See Subscriptions for conceptual details.
 
-Entities you can subscribe to:
-- [`Channel`](/docs/sdks/kotlin/entities/channel)
-- [`ChannelGroup`](/docs/sdks/kotlin/entities/channel-group)
-- [`UserMetadata`](/docs/sdks/kotlin/entities/user-metadata)
-- [`ChannelMetadata`](/docs/sdks/kotlin/entities/channel-metadata)
+Subscribe using:
+- Channel
+- ChannelGroup
+- UserMetadata
+- ChannelMetadata
 
-### Subscription scope
+After subscribe(), client receives new messages. Configure retryConfiguration to reconnect after disconnects.
 
-- [`Subscription`](#create-a-subscription): created from an entity; scoped to that entity.
-- [`SubscriptionSet`](#create-a-subscription-set): created from the client; scoped to the client; can include multiple subscriptions.
+### Subscription scope[​](#subscription-scope)
 
-Events are delivered through listeners. See [Event listeners](#event-listeners).
+- Subscription: created from an entity; scoped to that entity.
+- SubscriptionSet: created from the client; scoped to the client; can include multiple subscriptions.
+- A single event listener is used to receive messages/signals/events. See Event listeners.
 
-### Create a subscription
+### Create a subscription[​](#create-a-subscription)
 
-##### Managing subscription lifecycle
-
-`Subscription` implements AutoCloseable. Always call `Subscription.close()` when done.
+Subscription implements AutoCloseable. Always call close() when done.
 
 ```
 1// Entity-based, local-scoped  
@@ -283,17 +283,15 @@ Events are delivered through listeners. See [Event listeners](#event-listeners).
   
 12// Activate the subscription to start receiving events  
 13subscription.subscribe()  
+
 ```
 
-Parameters:
-- options
-  - Type: `SubscriptionOptions`. Use `null` for no specific options.
+Parameter
+- options: SubscriptionOptions. Use null for no options.
 
-### Create a subscription set
+### Create a subscription set[​](#create-a-subscription-set)
 
-##### Managing subscription lifecycle
-
-`SubscriptionSet` implements AutoCloseable. Always call `SubscriptionSet.close()` when done.
+SubscriptionSet implements AutoCloseable. Always call close() when done.
 
 ```
 1// client-based, general-scoped  
@@ -304,129 +302,140 @@ Parameters:
 5    channelGroups: SetString>,  
 6    options: SubscriptionOptions  
 7)  
+
 ```
 
-Parameters:
-- channels: Set<String>. Empty set for none.
-- channelGroups: Set<String>. Empty set for none.
-- options: `SubscriptionOptions`. If not set, `EmptyOptions` is used.
+Parameters
+- channels: Set<String>. Channels to subscribe to. Use empty set for none.
+- channelGroups: Set<String>. Channel groups to subscribe to. Use empty set for none.
+- options: SubscriptionOptions. Additional configuration. If unset, EmptyOptions is used.
 
-##### Add/remove sets
+Add/remove sets: you can create new sets by adding/removing. See Other examples.
 
-You can add and remove subscription sets to create new sets. See [Other examples](#other-examples-1).
+#### SubscriptionOptions[​](#subscriptionoptions)
 
-#### `SubscriptionOptions`
+Optional modifiers; EmptyOptions by default.
+- receivePresenceEvents(): deliver presence updates via listener streams.
+- filter(predicate: (PNEvent) -> Boolean): custom event filtering for the subscription.
 
-Optional modifiers for subscription behavior. Default: `EmptyOptions`.
+### Method(s)[​](#methods-3)
 
-- receivePresenceEvents()
-  - Deliver presence updates for `userId`s. See [Presence Events](/docs/general/presence/presence-events#subscribe-to-presence-channel).
-- filter(predicate: (PNEvent) -> Boolean)
-  - Filter events with a predicate for event-specific handling.
+Both Subscription and SubscriptionSet use the same methods:
+- Subscribe
+- Subscribe with timetoken
 
-### Method(s)
-
-Shared by `Subscription` and `SubscriptionSet`:
-- [Subscribe](#subscribe-1)
-- [Subscribe with timetoken](#subscribe-with-timetoken)
-
-#### Subscribe
+#### Subscribe[​](#subscribe-1)
 
 ```
 1
   
+
 ```
 
-##### Sample code
-```
-1
-  
-```
+##### Sample code[​](#sample-code-3)
 
-##### Other examples
-
-###### Create a subscription set from 2 individual subscriptions
 ```
 1
   
+
 ```
 
-##### Returns
+##### Other examples[​](#other-examples-1)
 
-No return value.
+###### Create a subscription set from 2 individual subscriptions[​](#create-a-subscription-set-from-2-individual-subscriptions)
 
-#### Subscribe with timetoken
+```
+1
+  
 
-##### Impact on other subscriptions
+```
 
-Subscribing with a timetoken overwrites the single connection’s timetoken, affecting all subscriptions. Subscriptions won’t deliver messages older than already delivered.
+##### Returns[​](#returns)
+
+subscribe() has no return value.
+
+#### Subscribe with timetoken[​](#subscribe-with-timetoken)
+
+- Impact on other subscriptions: subscribing with a timetoken overwrites the single connection timetoken; other subscriptions won’t deliver messages older than those already delivered.
 
 ```
 `1subscriptionSet.subscribe(SubscriptionCursor(timetoken = yourTimeToken))  
 `
 ```
 
-Parameters:
-- cursor (required)
-  - Type: `SubscriptionCursor`. Typically includes a `timetoken` (Long) from which to receive updates.
+Parameter
+- cursor (required): SubscriptionCursor, typically with timetoken (Long) from which to receive updates.
 
-##### Sample code
+##### Sample code[​](#sample-code-4)
+
 ```
 1
   
+
 ```
 
-##### Returns
+##### Returns[​](#returns-1)
 
 No return value.
 
-## Event listeners
+## Event listeners[​](#event-listeners)
 
-Attach listeners to `Subscription`, `SubscriptionSet`, and (for connection status) the PubNub client. Single point for messages, signals, and events.
+Receive messages and events via listeners attached to Subscription, SubscriptionSet, and (for connection status) the PubNub client.
 
-### Add listeners
+### Add listeners[​](#add-listeners)
 
-Handle multiple event types with a general listener, or attach dedicated listeners per event type (Message, File, Actions, Presence, etc.).
+You can handle multiple event types with a general listener or attach listeners for specific types (Message, File, etc.).
 
-#### Handle multiple event types
+#### Handle multiple event types[​](#handle-multiple-event-types)
 
-##### Method(s)
+##### Method(s)[​](#methods-4)
+
 ```
 `1fun addListener(listener: EventListener)  
 `
 ```
 
-##### Sample code
+##### Sample code[​](#sample-code-5)
+
 ```
 1
   
+
 ```
 
-#### Handle one event type
+#### Handle one event type[​](#handle-one-event-type)
 
-#### Method(s)
+#### Method(s)[​](#methods-5)
 
-Attach lambdas directly to a subscription for specific event types. Only one listener per event type; assigning a new one overwrites the previous.
+Assign lambdas directly to handle specific event types (messages, signals, message actions, files, objects, presence). Only one listener per event type via this method; assigning a new one overwrites the previous.
 
-##### Sample code
-```
-1
-  
-```
+##### Sample code[​](#sample-code-6)
 
-##### Remove event listener
-
-Assign `null` to remove a specific event listener.
 ```
 1
   
+
 ```
 
-### Add connection status listener
+##### Remove event listener[​](#remove-event-listener)
 
-Use `StatusListener` on the `PubNub` instance for connection updates. Client scope only.
+Assign null to remove a specific event listener.
 
-#### Method(s)
+```
+1
+  
+
+```
+
+### Add connection status listener[​](#add-connection-status-listener)
+
+Use StatusListener on PubNub to receive connection status updates.
+
+##### Client scope
+
+Only available on the PubNub object.
+
+#### Method(s)[​](#methods-6)
 
 ```
 `1pubnub.addListener(object : StatusListener() {  
@@ -438,52 +447,66 @@ Use `StatusListener` on the `PubNub` instance for connection updates. Client sco
 `
 ```
 
-#### Sample code
+#### Sample code[​](#sample-code-7)
+
 ```
 1
   
+
 ```
 
-#### Returns
+#### Returns[​](#returns-2)
 
-Emits various statuses depending on network state. See [Status Events for Subscribe](/docs/sdks/kotlin/status-events#subscribe) and [SDK Connection Lifecycle](/docs/general/setup/connection-management#sdk-connection-lifecycle).
+Emits various connection statuses. See Status Events for Subscribe and SDK Connection Lifecycle.
 
-## Unsubscribe
+## Unsubscribe[​](#unsubscribe)
 
-Stop receiving updates from a `Subscription` or a `SubscriptionSet`.
+Stop receiving real-time updates from a Subscription or a SubscriptionSet.
 
-### Method(s)
-```
-1
-  
-```
+### Method(s)[​](#methods-7)
 
-### Sample code
 ```
 1
   
+
 ```
 
-### Returns
+### Sample code[​](#sample-code-8)
+
+```
+1
+  
+
+```
+
+### Returns[​](#returns-3)
 
 None
 
-## Unsubscribe all
+## Unsubscribe all[​](#unsubscribe-all)
 
-Stop receiving updates from all listeners and remove associated entities. Client scope only.
+Stop receiving real-time updates from all listeners and remove associated entities.
 
-### Method(s)
+##### Client scope
+
+Only available on the PubNub object.
+
+### Method(s)[​](#methods-8)
+
 ```
 1
   
+
 ```
 
-### Sample code
+### Sample code[​](#sample-code-9)
+
 ```
 1
   
+
 ```
 
-### Returns
+### Returns[​](#returns-4)
 
 None

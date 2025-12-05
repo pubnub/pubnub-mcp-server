@@ -1,18 +1,25 @@
 # Message Actions API for Unreal SDK
 
-Add or remove actions (reactions, receipts, custom metadata) on published messages. Subscribe to channels to receive message action events and fetch past actions from Message Persistence. Use via Blueprints (Pubnub Subsystem node) or C++.
+Add or remove actions on published messages (for receipts, reactions, or custom metadata). Subscribe to channels to receive message action events. Fetch past message actions from Message Persistence independently or with message history.
 
-- Blueprints: Start with the Pubnub Subsystem node.
-- C++: Add dependency to PubnubLibrary and use the Game Instance Subsystem.
+##### Reactions
+“Message Reactions” is a specific use of Message Actions for emoji/social reactions. In PubNub Core and Chat SDKs, this same API may be referred to as Message Reactions when used for emoji reactions.
 
-In your IDE, navigate to `Source/_{YourProject}_/_{YourProject}_.Build.cs` and add:
+You can use PubNub via Blueprints or C++.
+
+- Blueprints: Use the Pubnub Subsystem node.
+- C++: Add a dependency to PubnubLibrary.
+
+In your IDE, navigate to Source/_{YourProject}_/_{YourProject}_.Build.cs and add a dependency to PubnubLibrary.
 
 ```
 `PrivateDependencyModuleNames.AddRange(new string[] { "PubnubLibrary" });  
 `
 ```
 
-Example: Get the subsystem and call SDK functions:
+Compile and run the project.
+
+In C++, use the PubNub SDK as any other Game Instance Subsystem.
 
 ```
 #include "Kismet/GameplayStatics.h"  
@@ -24,23 +31,27 @@ UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>(
 
 ```
 
+Example:
+
 ```
 `PubnubSubsystem->SubscribeToChannel("MyChannel");  
 `
 ```
 
-### Message Actions vs. Message Reactions
+### Usage in Blueprints and C++
 
-- Message Actions: generic low-level API for adding metadata (receipts, confirmations, custom data).
-- Message Reactions: use of Message Actions for emoji/social reactions in PubNub Core and Chat SDKs (same underlying API).
+##### Message Actions vs. Message Reactions
+- Message Actions: low-level API for metadata (read receipts, delivery confirmation, custom data).
+- Message Reactions: using Message Actions specifically for emoji/social reactions.
 
-## Add message action
+## Add message action[​](#add-message-action)
 
+##### Requires Message Persistence
 Requires Message Persistence to be enabled for your key in the Admin Portal.
 
 Add an action to a published message.
 
-### Method(s)
+### Method(s)[​](#methods)
 
 ```
 `1PubnubSubsystem->AddMessageAction(  
@@ -55,91 +66,106 @@ Add an action to a published message.
 
 Parameters:
 - Channel (FString): Channel to publish the message action to.
-- MessageTimeToken (FString): Timetoken of the target message.
+- MessageTimeToken (FString): Timetoken of the published message to apply the action to.
 - ActionType (FString): Message action type.
 - Value (FString): Message action value.
-- OnAddMessageActionResponse (FOnAddMessageActionsResponse): Delegate for operation result.
-- Optional: Use FOnAddMessageActionsResponseNative for a lambda callback.
+- OnAddMessageActionResponse (FOnAddMessageActionsResponse): Delegate for the operation result. You can also use a native callback of type FOnAddMessageActionsResponseNative to handle the result using a lambda.
 
-### Sample code
+### Sample code[​](#sample-code)
 
-#### Actor.h
+- C++
+- Blueprint
+
+#### Actor.h[​](#actorh)
+  
+
 ```
 1
   
 
 ```
 
-#### Actor.cpp
+#### Actor.cpp[​](#actorcpp)
+  
+
 ```
 1
   
 
 ```
 
-### Returns
+### Returns[​](#returns)
+Void. Result is provided via FOnAddMessageActionsResponse.
 
-Void. Result provided via delegate FOnAddMessageActionsResponse.
+#### FOnAddMessageActionsResponse[​](#fonaddmessageactionsresponse)
+- Result (FPubnubOperationResult): Result of the operation.
+- MessageActionData (FPubnubMessageActionData): Message action data.
 
-#### FOnAddMessageActionsResponse
+#### FOnAddMessageActionsResponseNative[​](#fonaddmessageactionsresponsenative)
+- Result (const FPubnubOperationResult&): Result of the operation.
+- MessageActionData (const FPubnubMessageActionData&): Message action data.
 
-- Result: FPubnubOperationResult
-- MessageActionData: FPubnubMessageActionData
+#### FPubnubMessageActionData[​](#fpubnubmessageactiondata)
+- Type (FString): Message action type.
+- Value (FString): Message action value.
+- UserID (FString): User ID of the user who added the action.
+- ActionTimetoken (FString): When the message action was added.
+- MessageTimetoken (FString): When the target message was sent.
 
-#### FOnAddMessageActionsResponseNative
+### Other examples[​](#other-examples)
 
-- Result: const FPubnubOperationResult&
-- MessageActionData: const FPubnubMessageActionData&
+#### Add a message action with lambda[​](#add-a-message-action-with-lambda)
 
-#### FPubnubMessageActionData
+#### Actor.h[​](#actorh-1)
 
-- Type: FString
-- Value: FString
-- UserID: FString
-- ActionTimetoken: FString
-- MessageTimetoken: FString
+  
 
-### Other examples
-
-#### Add a message action with lambda
-
-#### Actor.h
 ```
 1
   
 
 ```
 
-#### Actor.cpp
+#### Actor.cpp[​](#actorcpp-1)
+
+  
+
 ```
 1
   
 
 ```
 
-#### Add a message action with result struct
+#### Add a message action with result struct[​](#add-a-message-action-with-result-struct)
 
-#### Actor.h
+#### Actor.h[​](#actorh-2)
+
+  
+
 ```
 1
   
 
 ```
 
-#### Actor.cpp
+#### Actor.cpp[​](#actorcpp-2)
+
+  
+
 ```
 1
   
 
 ```
 
-## Remove message action
+## Remove message action[​](#remove-message-action)
 
+##### Requires Message Persistence
 Requires Message Persistence to be enabled for your key in the Admin Portal.
 
-Remove a previously added action from a published message. Response payload is empty.
+Remove a previously added action from a published message. The response is empty.
 
-### Method(s)
+### Method(s)[​](#methods-1)
 
 ```
 `1PubnubSubsystem->RemoveMessageAction(  
@@ -152,84 +178,100 @@ Remove a previously added action from a published message. Response payload is e
 ```
 
 Parameters:
-- Channel (FString): Channel the action was published to.
-- MessageTimeToken (FString): Timetoken of the target message.
-- ActionTimeToken (FString): Timetoken of the action to delete.
-- OnRemoveMessageActionResponse (FOnRemoveMessageActionResponse): Delegate for operation result.
-- Optional: Use FOnRemoveMessageActionResponseNative for a lambda callback.
+- Channel (FString): Channel the message action was published to.
+- MessageTimeToken (FString): Timetoken of the published message whose action to delete.
+- ActionTimeToken (FString): Timetoken of the published action to delete.
+- OnRemoveMessageActionResponse (FOnRemoveMessageActionResponse): Delegate for the operation result. You can also use a native callback of type FOnRemoveMessageActionResponseNative to handle the result using a lambda.
 
-#### FOnRemoveMessageActionResponse
+#### FOnRemoveMessageActionResponse[​](#fonremovemessageactionresponse)
+- Result (FPubnubOperationResult): Result of the operation.
 
-- Result: FPubnubOperationResult
+#### FOnRemoveMessageActionResponseNative[​](#fonremovemessageactionresponsenative)
+- Result (const FPubnubOperationResult&): Result of the operation.
 
-#### FOnRemoveMessageActionResponseNative
+### Sample code[​](#sample-code-1)
 
-- Result: const FPubnubOperationResult&
+- C++
+- Blueprint
 
-### Sample code
+#### Actor.h[​](#actorh-3)
+  
 
-#### Actor.h
 ```
 1
   
 
 ```
 
-#### Actor.cpp
+#### Actor.cpp[​](#actorcpp-3)
+  
+
 ```
 1
   
 
 ```
 
-### Returns
+### Returns[​](#returns-1)
+No return value.
 
-No return value. Result provided via delegate.
+### Other examples[​](#other-examples-1)
 
-### Other examples
+#### Remove a message action with lambda[​](#remove-a-message-action-with-lambda)
 
-#### Remove a message action with lambda
+#### Actor.h[​](#actorh-4)
 
-#### Actor.h
+  
+
 ```
 1
   
 
 ```
 
-#### Actor.cpp
+#### Actor.cpp[​](#actorcpp-4)
+
+  
+
 ```
 1
   
 
 ```
 
-#### Remove a message action with result struct
+#### Remove a message action with result struct[​](#remove-a-message-action-with-result-struct)
 
-#### Actor.h
+#### Actor.h[​](#actorh-5)
+
+  
+
 ```
 1
   
 
 ```
 
-#### Actor.cpp
+#### Actor.cpp[​](#actorcpp-5)
+
+  
+
 ```
 1
   
 
 ```
 
-## Get message actions
+## Get message actions[​](#get-message-actions)
 
+##### Requires Message Persistence
 Requires Message Persistence to be enabled for your key in the Admin Portal.
 
-Get a list of message actions in a channel, sorted by action timetoken (ascending).
+Get a list of message actions in a channel. Actions are sorted by the action’s timetoken in ascending order.
 
-Truncated response:
-- If truncated, a more property is returned with cursor parameters. Paginate with Start/End to fetch additional actions.
+##### Truncated response
+If the response is truncated, a more property is returned with additional parameters. Make iterative calls, adjusting parameters to fetch more message actions.
 
-### Method(s)
+### Method(s)[​](#methods-2)
 
 ```
 `1PubnubSubsystem->GetMessageActions(  
@@ -243,103 +285,118 @@ Truncated response:
 ```
 
 Parameters:
-- Channel (FString): Channel to query.
-- OnGetMessageActionsResponse (FOnGetMessageActionsResponse): Delegate for operation result.
-- Optional:
-  - Start (FString): Cursor to fetch next page. Use "" to disable.
-  - End (FString): Cursor to fetch previous page. Ignored if Start is provided. Use "" to disable.
-  - Limit (int): Number of objects to return. Default 100.
-- Optional: Use FOnGetMessageActionsResponseNative for a lambda callback.
+- Channel (FString): Channel the message action was published to.
+- OnGetMessageActionsResponse (FOnGetMessageActionsResponse): Delegate for the operation result. You can also use a native callback of type FOnGetMessageActionsResponseNative to handle the result using a lambda.
+- Start (FString): Cursor bookmark for next page. Use "" to not paginate with start.
+- End (FString): Cursor bookmark for previous page. Ignored if start is supplied. Use "" to not paginate with end.
+- Limit (int): Number of objects to return. Default is 100.
 
-### Sample code
+### Sample code[​](#sample-code-2)
 
-#### Actor.h
+- C++
+- Blueprint
+
+#### Actor.h[​](#actorh-6)
+  
+
 ```
 1
   
 
 ```
 
-#### Actor.cpp
+#### Actor.cpp[​](#actorcpp-6)
+  
+
 ```
 1
   
 
 ```
 
-### Returns
+### Returns[​](#returns-2)
+Void. Result is provided via FOnGetMessageActionsResponse.
 
-Void. Result provided via delegate FOnGetMessageActionsResponse.
+#### FOnGetMessageActionsResponse[​](#fongetmessageactionsresponse)
+- Result (FPubnubOperationResult): Result of the operation.
+- MessageActions (TArray<FPubnubMessageActionData>&): Actions sent on the channel.
 
-#### FOnGetMessageActionsResponse
+#### FOnGetMessageActionsResponseNative[​](#fongetmessageactionsresponsenative)
+- Result (const FPubnubOperationResult&): Result of the operation.
+- MessageActions (const TArray<FPubnubMessageActionData>&): Actions sent on the channel.
 
-- Result: FPubnubOperationResult
-- MessageActions: TArray<FPubnubMessageActionData>&
+#### FPubnubMessageActionData[​](#fpubnubmessageactiondata-1)
+- Type (FString): Message action type.
+- Value (FString): Message action value.
+- UserID (FString): User identifier of the user who added the action.
+- ActionTimetoken (FString): When the message action was added.
+- MessageTimetoken (FString): When the target message was sent.
 
-#### FOnGetMessageActionsResponseNative
+### Other examples[​](#other-examples-2)
 
-- Result: const FPubnubOperationResult&
-- MessageActions: const TArray<FPubnubMessageActionData>&
+#### Get message actions with lambda[​](#get-message-actions-with-lambda)
 
-#### FPubnubMessageActionData
+#### Actor.h[​](#actorh-7)
 
-- Type: FString
-- Value: FString
-- UserID: FString
-- ActionTimetoken: FString
-- MessageTimetoken: FString
+  
 
-### Other examples
-
-#### Get message actions with lambda
-
-#### Actor.h
 ```
 1
   
 
 ```
 
-#### Actor.cpp
+#### Actor.cpp[​](#actorcpp-7)
+
+  
+
 ```
 1
   
 
 ```
 
-#### Get message actions from a channel with a specific time window and limit
+#### Get message actions from a channel with a specific time window and limit[​](#get-message-actions-from-a-channel-with-a-specific-time-window-and-limit)
 
-#### Actor.h
+#### Actor.h[​](#actorh-8)
+
+  
+
 ```
 1
   
 
 ```
 
-#### Actor.cpp
+#### Actor.cpp[​](#actorcpp-8)
+
+  
+
 ```
 1
   
 
 ```
 
-## History with message reactions
+## History with message reactions[​](#history-with-message-reactions)
 
-You can return message actions when fetching historical messages. See Fetch History for details.
+You can include message actions when fetching historical messages. See Fetch History.
 
-## Complete example
+## Complete example[​](#complete-example)
 
-#### ASample_MessageActionsFull.h
+#### ASample_MessageActionsFull.h[​](#asample_messageactionsfullh)
+
 ```
 1
   
 
 ```
 
-#### ASample_MessageActionsFull.cpp
+#### ASample_MessageActionsFull.cpp[​](#asample_messageactionsfullcpp)
+
 ```
 1
 **
 ```
 
-Last updated on Sep 3, 2025
+Last updated on Sep 3, 2025**

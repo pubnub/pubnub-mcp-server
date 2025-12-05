@@ -1,16 +1,17 @@
 # Access Manager v3 API for Objective-C SDK
 
-Access Manager v3 provides tokens with embedded permissions for PubNub resources (channels, channel groups, UUID metadata). Tokens can:
-- Be time-limited (ttl).
-- Target resources by explicit lists or regex patterns.
-- Include mixed permission levels in a single grant.
-- Optionally restrict usage to an authorized UUID.
+Access Manager enforces client access controls using tokens with embedded permissions for PubNub resources (channels, channel groups, UUID metadata):
+- Time-limited access (TTL).
+- Resource lists or patterns (regex).
+- Mixed permissions in a single grant (e.g., read for channel1, write for channel2).
+- Restrict token usage to a single authorized UUID via the authorized UUID parameter.
 
-Note: Objective-C SDK is client-only for Access Manager v3. It cannot grant permissions; it can only parse and set tokens from your server.
+##### Client device support only
+Objective-C SDK provides client-side functionality only: parsing and setting tokens received from a server. It does not grant permissions.
 
 ## Parse token
 
-Decodes an existing token and returns permissions and metadata for inspection (e.g., ttl, authorized UUID, resource permissions).
+Decodes a token and returns permissions and metadata.
 
 ### Method(s)
 
@@ -19,8 +20,7 @@ Decodes an existing token and returns permissions and metadata for inspection (e
 `
 ```
 
-Parameter:
-- token (String, required): Current token with embedded permissions.
+- token (required): Type String. Current token with embedded permissions.
 
 ### Sample code
 
@@ -136,87 +136,66 @@ Parameter:
 96} else {  
 97    NSLog(@"Failed to parse token: %@", token.error);  
 98}  
-
 ```
 
 ### Returns
 
-Returns a PNPAMToken instance:
+Responds with a PNPAMToken instance:
 
 ```
 1@interface PNPAMToken : NSObject  
-2
-  
+2  
 3// Token version  
 4@property (nonatomic, readonly, assign) NSUInteger version;  
-5
-  
+5  
 6// Token generation date and time  
 7@property (nonatomic, readonly, assign) NSUInteger timestamp;  
-8
-  
+8  
 9// Maximum amount of time (in minutes) during which the token will be valid  
 10@property (nonatomic, readonly, assign) NSUInteger ttl;  
-11
-  
+11  
 12// The uuid that is exclusively authorized to use this token to make API requests  
 13@property (nonatomic, nullable, readonly, strong) NSString *authorizedUUID;  
-14
-  
+14  
 15// Permissions granted to specific resources  
 16@property (nonatomic, readonly, strong) PNPAMTokenResource *resources;  
-17
-  
+17  
 18// Permissions granted to resources which match a specified regular expression  
 19@property (nonatomic, readonly, strong) PNPAMTokenResource *patterns;  
-20
-  
+20  
 21// Additional information which has been added to the token  
 22@property (nonatomic, readonly, strong) NSDictionary *meta;  
-23
-  
+23  
 24// Access Manager token content signature  
 25@property (nonatomic, readonly, strong) NSData *signature;  
-26
-  
+26  
 27// Whether the provided Access Manager token string was valid and properly processed  
 28@property (nonatomic, readonly, assign) BOOL valid;  
-29
-  
+29  
 30// Contains an error with information on what went wrong, in cases when the token is not valid  
 31@property (nonatomic, nullable, readonly, strong) NSError *error;  
-32
-  
+32  
 33@end  
-34
-  
+34  
 35@interface PNPAMTokenResource : NSObject  
-36
-  
+36  
 37// Permissions granted to specific / regexp matching channels  
 38@property (nonatomic, readonly, strong) NSDictionaryNSString *, PNPAMResourcePermission *> *channels;  
-39
-  
+39  
 40// Permissions granted to specific / regexp matching channel groups  
 41@property (nonatomic, readonly, strong) NSDictionaryNSString *, PNPAMResourcePermission *> *groups;  
-42
-  
+42  
 43// Permissions granted to specific / regexp matching uuids  
 44@property (nonatomic, readonly, strong) NSDictionaryNSString *, PNPAMResourcePermission *> *uuids;  
-45
-  
+45  
 46@end  
-47
-  
+47  
 48@interface PNPAMResourcePermission : NSObject  
-49
-  
+49  
 50// Bit field with a given permission value  
 51@property (nonatomic, readonly, assign) PNPAMPermission value;  
-52
-  
+52  
 53@end  
-
 ```
 
 ### Error Responses
@@ -225,7 +204,7 @@ If parsing fails, the token may be damaged. Request a new token from the server.
 
 ## Set token
 
-Sets or updates the authentication token provided by your server.
+Updates the authentication token provided by the server.
 
 ### Method(s)
 
@@ -234,8 +213,7 @@ Sets or updates the authentication token provided by your server.
 `
 ```
 
-Parameter:
-- token (String, required): Current token with embedded permissions.
+- token (required): Type String. Current token with embedded permissions.
 
 ### Sample code
 
@@ -247,5 +225,3 @@ Parameter:
 ### Returns
 
 No return value.
-
-Last updated on Sep 3, 2025

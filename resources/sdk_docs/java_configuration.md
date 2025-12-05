@@ -1,212 +1,194 @@
 # Configuration API for Java SDK
 
 ##### Breaking changes in v9.0.0
-
-PubNub Java SDK v9.0.0 unifies Java and Kotlin SDK codebases, introduces a new client instantiation approach, and changes asynchronous callbacks and emitted status events. These changes can impact applications built with previous versions (< 9.0.0).
-
-See Java/Kotlin SDK migration guide.
-
-Java complete API reference for building real-time applications on PubNub, including basic usage and sample code.
+PubNub Java SDK 9.0.0 unifies Java and Kotlin SDKs, introduces a new client instantiation pattern, and changes async callbacks and status events. These changes impact apps built with versions < 9.0.0. See Java/Kotlin SDK migration guide.
 
 ## Configuration
 
-PNConfiguration stores user-provided information that controls PubNub client behavior. Once passed to the PubNub constructor, it’s immutable. To change values per-request, use value overrides.
+`PNConfiguration` stores user-provided settings that control client behavior.
 
 ##### Immutable configuration
-
-Once a configuration object has been passed to the PubNub constructor, you can't change its properties.
-
-If you require changing values dynamically consider using value overrides.
+Once passed to the PubNub constructor, configuration properties can’t be changed. For per-request changes, use value overrides.
 
 ### Method(s)
 
-To create configuration instance:
+To create a configuration:
 
 ```
 1import com.pubnub.api.java.v2.PNConfiguration;  
-2
   
 3PNConfiguration.builder(UserId userId, String subscribeKey).build()  
 ```
 
-Configuration properties:
-
-- subscribeKey
-  - Type: String
-  - Default: n/a
-  - Description: subscribeKey from the Admin Portal.
-- publishKey
-  - Type: String
-  - Default: n/a
-  - Description: publishKey from the Admin Portal (only required if publishing).
-- secretKey
-  - Type: String
-  - Default: n/a
-  - Description: secretKey (only required for access operations, keep away from Android).
-- customLoggers
-  - Type: List<CustomLogger>
-  - Default: n/a
-  - Description: Your custom logger implementations. See Logging.
-- cacheBusting
-  - Type: Boolean
-  - Default: n/a
-  - Description: If operating behind a misbehaving proxy, allow the client to shuffle the subdomains.
-- secure
-  - Type: Boolean
-  - Default: true
-  - Description: When true TLS is enabled.
-- connectTimeout
-  - Type: Int
-  - Default: 5
-  - Description: Maximum time to establish a connection, in seconds.
-- subscribeTimeout
-  - Type: Int
-  - Default: 310
-  - Description: Subscribe request timeout, in seconds.
-- nonSubscribeRequestTimeout
-  - Type: Int
-  - Default: 10
-  - Description: Non-subscribe request timeout, in seconds.
-- filterExpression
-  - Type: String
-  - Default: Not set
-  - Description: Subscribe with a custom filter expression.
-- heartbeatNotificationOptions
-  - Type: PNHeartbeatNotificationOptions
-  - Default: PNHeartbeatNotificationOptions.FAILURES
-  - Description: Heartbeat notification options. Other options: ALL, NONE.
-- origin
-  - Type: String
-  - Default: n/a
-  - Description: Custom origin if needed. To request a custom domain, contact support and follow the request process.
-- retryConfiguration
-  - Type: RetryConfiguration
-  - Default: RetryConfiguration.Exponential (subscribe only)
-  - Description: Reconnection policy. Choose None, Linear(delayInSec, maxRetryNumber, excludedOperations), or Exponential(minDelayInSec, maxDelayInSec, maxRetryNumber, excludedOperations). You can exclude endpoint groups (for example, SUBSCRIBE). See SDK connection lifecycle.
-- presenceTimeout
-  - Type: Int
-  - Default: 300
-  - Description: Presence TTL in seconds; minimum 20. Client sends periodic heartbeats. If no heartbeat arrives within the timeout, the client is marked inactive and a "timeout" event is emitted on the presence channel.
-- heartbeatInterval
-  - Type: Int
-  - Default: 0
-  - Description: How often the client sends heartbeats. To shorten presence timeout, set roughly to (presenceTimeout / 2) - 1. Minimum 3. Default 0 (disabled).
-- proxy
-  - Type: Proxy
-  - Default: n/a
-  - Description: Use a proxy configuration for PubNub server communication.
-- proxySelector
-  - Type: ProxySelector
-  - Default: n/a
-  - Description: Sets Java ProxySelector.
-- proxyAuthenticator
-  - Type: Authenticator
-  - Default: n/a
-  - Description: Sets Java Authenticator.
-- googleAppEngineNetworking
-  - Type: Boolean
-  - Default: n/a
-  - Description: Enable Google App Engine networking.
-- suppressLeaveEvents
-  - Type: Boolean
-  - Default: false
-  - Description: When true the SDK doesn't send out the leave requests.
-- maintainPresenceState
-  - Type: Boolean
-  - Default: true
-  - Description: Whether custom presence state set via pubnub.setPresenceState() should be sent with each subscribe call.
-- cryptoModule
-  - Type: CryptoModule.createAesCbcCryptoModule(cipherKey, useRandomInitializationVector) / CryptoModule.createLegacyCryptoModule(cipherKey, useRandomInitializationVector)
-  - Default: None
-  - Description: Cryptography module for message and file encryption/decryption. See cryptoModule section.
-- includesInstanceIdentifier
-  - Type: Boolean
-  - Default: false
-  - Description: Whether to include a PubNubCore.instanceId with every request.
-- includeRequestIdentifier
-  - Type: Boolean
-  - Default: true
-  - Description: Whether to include a PubNubCore.requestId with every request.
-- maximumConnections
-  - Type: Int?
-  - Default: n/a
-  - Description: Sets max requests per host (okhttp3.Dispatcher.setMaxRequestsPerHost).
-- certificatePinner
-  - Type: CertificatePinner
-  - Default: n/a
-  - Description: Sets certificate pinner for HTTPS connections.
-- sslSocketFactory
-  - Type: SSLSocketFactory
-  - Default: n/a
-  - Description: Sets the SSL socket factory for creating SSL sockets.
-- x509ExtendedTrustManager
-  - Type: X509ExtendedTrustManager
-  - Default: n/a
-  - Description: Sets the SSL trust manager for managing SSL certificates.
-- connectionSpec
-  - Type: ConnectionSpec
-  - Default: n/a
-  - Description: Sets the specifications for making connections.
-- hostnameVerifier
-  - Type: HostnameVerifier
-  - Default: n/a
-  - Description: Manages the verification of hostnames.
-- dedupOnSubscribe
-  - Type: Boolean
-  - Default: n/a
-  - Description: Enables deduplication on subscribe.
-- maximumMessagesCacheSize
-  - Type: Int
-  - Default: n/a
-  - Description: Sets the maximum size of messages cache.
-- pnsdkSuffixes
-  - Type: Map<String,String>
-  - Default: n/a
-  - Description: Adds custom suffixes to the SDK version info.
-- managePresenceListManually
-  - Type: Boolean
-  - Default: n/a
-  - Description: Enables explicit presence control when true, affecting heartbeat and presence behavior.
-- authKey
-  - Type: String
-  - Default: Not set
-  - Description: Deprecated. See Manage Access and Java Access Manager API. If Access Manager v2 is utilized, the client will use this authKey in all restricted requests.
+Parameters:
+- subscribeKey  
+  Type: String  
+  Default: n/a  
+  subscribeKey from the Admin Portal.
+- publishKey  
+  Type: String  
+  Default: n/a  
+  publishKey from the Admin Portal (required if publishing).
+- secretKey  
+  Type: String  
+  Default: n/a  
+  secretKey (only for access operations; keep off Android).
+- customLoggers  
+  Type: List<CustomLogger>  
+  Default: n/a  
+  Custom logger implementations. See Logging.
+- cacheBusting  
+  Type: Boolean  
+  Default: n/a  
+  Shuffle subdomains if behind a misbehaving proxy.
+- secure  
+  Type: Boolean  
+  Default: true  
+  Enable TLS when true.
+- connectTimeout  
+  Type: Int  
+  Default: 5  
+  Max connection establishment time (seconds).
+- subscribeTimeout  
+  Type: Int  
+  Default: 310  
+  Subscribe request timeout (seconds).
+- nonSubscribeRequestTimeout  
+  Type: Int  
+  Default: 10  
+  Non-subscribe request timeout (seconds).
+- filterExpression  
+  Type: String  
+  Default: Not set  
+  Subscribe with a custom filter expression.
+- heartbeatNotificationOptions  
+  Type: PNHeartbeatNotificationOptions  
+  Default: PNHeartbeatNotificationOptions.FAILURES  
+  Heartbeat alert behavior. Options: FAILURES, ALL, NONE.
+- origin  
+  Type: String  
+  Default: n/a  
+  Custom origin. For custom domain, contact support.
+- retryConfiguration  
+  Type: RetryConfiguration  
+  Default: RetryConfiguration.Exponential (subscribe only)  
+  Reconnection policy. Choose None, Linear(delayInSec, maxRetryNumber, excludedOperations), or Exponential(minDelayInSec, maxDelayInSec, maxRetryNumber, excludedOperations). You can exclude endpoint groups (e.g., SUBSCRIBE).
+- presenceTimeout  
+  Type: Int  
+  Default: 300  
+  Presence liveness timeout (seconds). Min 20.
+- heartbeatInterval  
+  Type: Int  
+  Default: 0  
+  Heartbeat interval (seconds). Set ~((presenceTimeout / 2) - 1). Min 3. Default 0 (disabled).
+- proxy  
+  Type: Proxy  
+  Default: n/a  
+  Use a proxy. See Java Proxy.
+- proxySelector  
+  Type: ProxySelector  
+  Default: n/a  
+  Sets Java ProxySelector.
+- proxyAuthenticator  
+  Type: Authenticator  
+  Default: n/a  
+  Sets Java Authenticator.
+- googleAppEngineNetworking  
+  Type: Boolean  
+  Default: n/a  
+  Enable GAE networking.
+- suppressLeaveEvents  
+  Type: Boolean  
+  Default: false  
+  Don’t send leave requests when true.
+- maintainPresenceState  
+  Type: Boolean  
+  Default: true  
+  Resend state from pubnub.setPresenceState() on each subscribe call.
+- cryptoModule  
+  Type: CryptoModule.createAesCbcCryptoModule(cipherKey, useRandomInitializationVector) or CryptoModule.createLegacyCryptoModule(cipherKey, useRandomInitializationVector)  
+  Default: None  
+  Cryptography module for message/file encryption and decryption. See cryptoModule section.
+- includesInstanceIdentifier  
+  Type: Boolean  
+  Default: false  
+  Include PubNubCore.instanceId with every request.
+- includeRequestIdentifier  
+  Type: Boolean  
+  Default: true  
+  Include PubNubCore.requestId with every request.
+- maximumConnections  
+  Type: Int?  
+  Default: n/a  
+  Max requests per host (okhttp3.Dispatcher.setMaxRequestsPerHost).
+- certificatePinner  
+  Type: CertificatePinner  
+  Default: n/a  
+  HTTPS certificate pinning.
+- sslSocketFactory  
+  Type: SSLSocketFactory  
+  Default: n/a  
+  SSL socket factory.
+- x509ExtendedTrustManager  
+  Type: X509ExtendedTrustManager  
+  Default: n/a  
+  SSL trust manager.
+- connectionSpec  
+  Type: ConnectionSpec  
+  Default: n/a  
+  TLS connection specification.
+- hostnameVerifier  
+  Type: HostnameVerifier  
+  Default: n/a  
+  Hostname verification.
+- dedupOnSubscribe  
+  Type: Boolean  
+  Default: n/a  
+  Enable subscribe de-duplication.
+- maximumMessagesCacheSize  
+  Type: Int  
+  Default: n/a  
+  Max message cache size.
+- pnsdkSuffixes  
+  Type: Map<String,String>  
+  Default: n/a  
+  Add custom suffixes to SDK version info.
+- managePresenceListManually  
+  Type: Boolean  
+  Default: n/a  
+  Manual presence control; affects heartbeat/presence behavior.
+- authKey  
+  Type: String  
+  Default: Not set  
+  Deprecated. See Manage Access and Access Manager API. If Access Manager v2 is used, client sends this authKey on restricted requests.
 
 #### cryptoModule
+Encrypts/decrypts messages/files. Encryption is disabled by default. Two options available: legacy 128-bit and recommended 256-bit AES-CBC. See Encryption reference for configuration, utilities, and examples.
 
-cryptoModule encrypts and decrypts messages and files. From 6.3.6, you can configure the algorithms. By default, encryption is disabled.
-
-Each SDK includes two options: legacy 128‑bit encryption and recommended 256‑bit AES‑CBC. See Message Encryption and File Encryption. For configuration details, utilities, and examples, see Encryption.
-
-##### Legacy encryption with 128-bit cipher key entropy
-
-You can keep using legacy encryption. To use recommended 256-bit AES-CBC, explicitly set it in PubNub config.
+Legacy 128-bit remains supported; set 256-bit AES-CBC explicitly to use it.
 
 ### Sample code
 
-##### Reference code
-
-This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging.
-
 ##### Required User ID
-
-Always set the userId to uniquely identify the user or device that connects to PubNub. Persist it and keep it unchanged for the lifetime of the user or device. Without userId, you can't connect.
+Always set a stable userId per user/device; it must persist for the user/device lifetime. Without userId, you can’t connect.
 
 ```
 1
   
+
 ```
 
 ### Value override
 
-Provide updated values for certain configuration options for a single request with PnConfigurationOverride.from().
+Provide per-request config overrides via `PnConfigurationOverride.from()`:
 
 ```
 1
   
+
 ```
 
-You can override:
+Overridable options:
 - subscribeKey
 - publishKey
 - secretKey
@@ -220,11 +202,10 @@ You can override:
 
 ## Initialization
 
-Add PubNub to your project using one of the procedures under Getting Started.
+Add PubNub per Getting Started.
 
 ### Description
-
-Initialize the PubNub Client API before using any APIs. This sets credentials such as publishKey and subscribeKey.
+Initialize the PubNub client with account credentials like publishKey and subscribeKey.
 
 ### Method(s)
 
@@ -233,146 +214,134 @@ Initialize PubNub with:
 ```
 1
   
+
 ```
 
-- pnConfiguration
-  - Type: PNConfiguration
-  - Description: See Configuration for details.
+- pnConfiguration  
+  Type: PNConfiguration  
+  See Configuration.
 
 ### Sample code
 
 #### Initialize the PubNub client API
 
 ##### Required User ID
-
-Always set the userId to uniquely identify the user or device that connects to PubNub. Persist it and keep it unchanged. Without userId, you can't connect.
+Always set userId (see above).
 
 ```
 1
   
+
 ```
 
 ### Returns
-
-Returns the PubNub instance to call APIs such as publish(), subscribe(), history(), and hereNow().
+Returns a PubNub instance to call APIs like publish(), subscribe(), history(), hereNow().
 
 ### Other examples
 
 #### Initialize a non-secure client
 
 ##### Required User ID
-
-Always set the userId to uniquely identify the user or device that connects to PubNub. Persist it and keep it unchanged. Without userId, you can't connect.
+Always set userId.
 
 ```
 1
   
+
 ```
 
 #### Initialization for a Read-Only client
-
-If a client only reads (never publishes), omit publishKey when initializing the client.
+Omit publishKey for read-only usage.
 
 ##### Required User ID
-
-Always set the userId to uniquely identify the user or device that connects to PubNub. Persist it and keep it unchanged. Without userId, you can't connect.
+Always set userId.
 
 ```
 1
   
+
 ```
 
 #### Initializing with SSL enabled
-
-Enable TLS by setting secure to true.
+Enable TLS with setSecure(true).
 
 ##### Required User ID
-
-Always set the userId to uniquely identify the user or device that connects to PubNub. Persist it and keep it unchanged. Without userId, you can't connect.
+Always set userId.
 
 ```
 1
   
+
 ```
 
 #### Initializing with Access Manager
 
-Requires Access Manager add-on enabled for your key in the Admin Portal.
-
-Secure your secretKey: Never expose it in client apps. Use only on secure server-side platforms. Initializing with secretKey grants root permissions for Access Manager.
-
-For applications that administer Access Manager permissions, initialize with secretKey:
+Requires Access Manager add-on enabled. Keep secretKey secure; use only on trusted server-side. Initializing with secretKey yields root Access Manager permissions.
 
 ##### Required User ID
-
-Always set the userId to uniquely identify the user or device that connects to PubNub. Persist it and keep it unchanged. Without userId, you can't connect.
+Always set userId.
 
 ```
 1
   
-```
 
-Now the client can access Access Manager functions. The secretKey is used to sign all Access Manager messages.
+```
 
 #### How to set proxy
 
 ##### Required User ID
-
-Always set the userId to uniquely identify the user or device that connects to PubNub. Persist it and keep it unchanged. Without userId, you can't connect.
+Always set userId.
 
 ```
 1
   
+
 ```
 
 ## Event listeners
 
-- The PubNub client can receive updates from all subscriptions: channels, channel groups, channel metadata, users metadata.
-- The Subscription object can receive updates only for its target object (channel, channel group, channel metadata, user).
-- The SubscriptionsSet object can receive updates for all objects for which a list of subscription objects was created.
+- PubNub client: updates from all subscriptions (channels, groups, channel metadata, user metadata).
+- Subscription: updates for its specific entity.
+- SubscriptionsSet: updates for its set of subscriptions.
 
-See Publish & Subscribe for details.
+See Publish & Subscribe event listeners.
 
 ## UserId
 
-Set/get a user ID on the fly.
+Set/get user ID dynamically.
 
 ### Method(s)
 
-To set/get userId:
-
 ```
 1import com.pubnub.api.java.v2.PNConfiguration;  
-2
   
 3pnConfiguration.setUserId(String userId);  
 ```
 
-- userId
-  - Type: String
-  - Default: n/a
-  - Description: userId used as a device identifier. Without userId, you can't connect to PubNub.
+- userId  
+  Type: String  
+  Default: n/a  
+  Device/user identifier. Required to connect.
 
 ```
 1import com.pubnub.api.java.v2.PNConfiguration;  
-2
   
 3pnConfiguration.getUserId();  
 ```
 
-This method doesn't take any arguments.
+No arguments.
 
 ### Sample code
 
 #### Set user ID
 
 ##### Required User ID
-
-Always set the userId to uniquely identify the user or device that connects to PubNub. Persist it and keep it unchanged. Without userId, you can't connect.
+Always set userId.
 
 ```
 1
   
+
 ```
 
 #### Get user ID
@@ -384,11 +353,9 @@ Always set the userId to uniquely identify the user or device that connects to P
 
 ## Filter expression
 
-Requires Stream Controller add-on enabled for your key.
+Requires Stream Controller add-on. Server-side filtering delivers only messages matching the expression.
 
-Stream filtering allows a subscriber to receive only messages that satisfy the filter conditions. The filter is set by the subscriber and applied server-side.
-
-To set or get message filters, use:
+To set/get filter expressions:
 
 ### Method(s)
 
@@ -396,37 +363,35 @@ setFilterExpression()
 
 ```
 1import com.pubnub.api.java.v2.PNConfiguration;  
-2
   
 3pnConfiguration.setFilterExpression(String filterExpression);  
 ```
 
-- filterExpression
-  - Type: String
-  - Description: PSV2 feature to subscribe with a custom filter expression
+- filterExpression  
+  Type: String  
+  PSV2 feature to subscribe with a custom filter expression.
 
 getFilterExpression()
 
 ```
 1import com.pubnub.api.java.v2.PNConfiguration;  
-2
   
 3pnConfiguration.getFilterExpression();  
 ```
 
-This method doesn't take any arguments.
+No arguments.
 
 ### Sample code
 
 #### Set filter expression
 
 ##### Required User ID
-
-Always set the userId to uniquely identify the user or device that connects to PubNub. Persist it and keep it unchanged. Without userId, you can't connect.
+Always set userId.
 
 ```
 1
   
+
 ```
 
 #### Get filter expression
@@ -435,5 +400,3 @@ Always set the userId to uniquely identify the user or device that connects to P
 1
 **
 ```
-
-Last updated on Nov 18, 2025**

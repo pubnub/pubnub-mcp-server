@@ -1,27 +1,35 @@
 # Message Persistence API for JavaScript SDK
 
-Message Persistence provides real-time access to stored published messages. Messages are timestamped to the nearest 10 ns, stored redundantly, and can be AES-256 encrypted. Retention options: 1 day, 7 days, 30 days, 3 months, 6 months, 1 year, Unlimited. You can retrieve:
+Message Persistence provides real-time access to historical messages, reactions, and files. Messages are timestamped to the nearest 10 ns and replicated across regions. Optional AES-256 encryption is supported. See Message Persistence for details.
+
+Retention policy: 1 day, 7 days, 30 days, 3 months, 6 months, 1 year, or Unlimited.
+
+You can retrieve:
 - Messages
 - Message reactions
-- Files (via File Sharing API)
+- Files (using the File Sharing API)
 
-Supported async patterns: Callbacks, Promises, and Async/Await (recommended). Use try...catch to handle errors.
+##### Supported and recommended asynchronous patterns
+Callbacks, Promises, and Async/Await are supported. Async/Await is recommended; use try...catch to handle status errors.
 
-## Fetch history
+## Fetch history[​](#fetch-history)
 
-Requires Message Persistence (enable in Admin Portal). Fetch historical messages from one or more channels; use includeMessageActions to include message actions.
+##### Requires Message Persistence
+Enable Message Persistence in the Admin Portal.
 
-Ordering:
-- start only: messages older than start.
-- end only: messages from end and newer.
-- both: messages between start and end (inclusive of end).
+Fetch historical messages from one or more channels. Use includeMessageActions to include message actions.
+
+Ordering and pagination:
+- Only start: returns messages older than the start timetoken (exclusive).
+- Only end: returns messages from that end timetoken and newer (inclusive).
+- Both start and end: returns messages between them (inclusive of end).
 
 Limits:
 - Single channel: up to 100 messages.
 - Multiple channels (up to 500): up to 25 per channel.
-- With includeMessageActions: only one channel allowed, limit 25. Pagination may be required; use start to iterate.
+- With includeMessageActions: limit is 25 for a single channel and only one channel is allowed. The response may be truncated and include a more link; make iterative calls with provided parameters.
 
-### Method(s)
+### Method(s)[​](#methods)
 
 Use the following method(s) in the JavaScript SDK:
 
@@ -40,37 +48,38 @@ Use the following method(s) in the JavaScript SDK:
 `
 ```
 
-- required
-- Parameter
-- Description
-`channels`  Type: Array`<string>`  Default: n/a  Channels to fetch history messages from (up to 500).
-`count` Type: number  Default: `100` or `25`  Number of historical messages to return per channel. Default is `100` (single) and `25` (multi) or `25` with `includeMessageActions`.
-`includeMessageType` Type: boolean  Default: `true`  Whether to pass `true` to include message type. Default is `true`.
-`includeCustomMessageType` Type: Boolean  Default: n/a  Whether to retrieve messages with the custom message type. For more information, refer to Retrieving Messages.
-`includeUUID` Type: boolean  Default: `true`  Whether to receive the publisher `uuid`. Default is `true`.
-`includeMeta` Type: boolean  Default: n/a  Whether to include the meta object (if provided at publish time) in the response.
-`includeMessageActions` Type: boolean  Default: n/a  Whether to retrieve history messages with message actions. If used, limit is 25 per single channel and only one `channel` is allowed. The response may be truncated; a `more` link is provided.
-`start` Type: string  Default: n/a  Timetoken delimiting the start (exclusive) of the time slice.
-`end` Type: string  Default: n/a  Timetoken delimiting the end (inclusive) of the time slice.
+Parameters:
+- channels (Array<string>) required: Channels to fetch history from (up to 500).
+- count (number): Per-channel message count. Default is 100 (single channel) and 25 (multi-channel) or 25 with includeMessageActions.
+- includeMessageType (boolean): Include message type. Default true.
+- includeCustomMessageType (boolean): Include custom message type.
+- includeUUID (boolean): Include publisher uuid. Default true.
+- includeMeta (boolean): Include meta object (if published with meta).
+- includeMessageActions (boolean): Include message actions. Only one channel allowed; limit 25; responses may be truncated with more.
+- start (string): Start timetoken (exclusive).
+- end (string): End timetoken (inclusive).
 
 ##### Truncated response
-When including message actions, responses may be truncated. A `more` property is returned with parameters for iterative calls.
+When fetching with message actions, the response may be truncated. If so, a more property is returned with additional parameters; call again with those parameters to continue.
 
-### Sample code
+### Sample code[​](#sample-code)
 
-Reference code (self-contained placeholder):
-
-```
-1
-  
-```
+##### Reference code
+Retrieve a message from a channel:
 
 ```
 1
   
+
 ```
 
-### Response
+```
+1
+  
+
+```
+
+### Response[​](#response)
 
 ```
 1//Example of status  
@@ -97,20 +106,24 @@ Reference code (self-contained placeholder):
 21        ]  
 22    }  
 23}  
+
 ```
+show all 23 lines
 
-### Other examples
+### Other examples[​](#other-examples)
 
-#### Fetch messages with metadata and actions
+#### Fetch messages with metadata and actions[​](#fetch-messages-with-metadata-and-actions)
 
 ```
 1
   
+
 ```
 
-#### Fetch messages with metadata and actions response
+#### Fetch messages with metadata and actions response[​](#fetch-messages-with-metadata-and-actions-response)
 
-Return information on message actions using the `actions` object.
+##### Return information on message actions
+Use the actions object (not the deprecated data object) to receive reactions, edits, deletions, or custom actions.
 
 ```
 1// Example of status  
@@ -154,15 +167,21 @@ Return information on message actions using the `actions` object.
 38    "max": 98  
 39}  
 40}  
+
 ```
+show all 40 lines
 
-## Delete messages from history
+## Delete messages from history[​](#delete-messages-from-history)
 
-Requires Message Persistence. Enable Delete-From-History in Admin Portal and initialize the SDK with a secret key.
+##### Requires Message Persistence
+Enable Message Persistence in the Admin Portal.
 
-Removes messages from a specific channel’s history.
+Remove messages from a specific channel’s history.
 
-### Method(s)
+##### Required setting
+Enable Delete-From-History for your key in the Admin Portal and initialize the SDK with a secret key.
+
+### Method(s)[​](#methods-1)
 
 To Delete Messages from History, use:
 
@@ -175,23 +194,23 @@ To Delete Messages from History, use:
 `
 ```
 
-Method behavior: `start` is exclusive; `end` is inclusive.
+##### Method behavior
+start is exclusive; end is inclusive.
 
-- required
-- Parameter
-- Description
-`channel`  Type: string  Specifies `channel` messages to be deleted from history.
-`start` Type: string  Timetoken delimiting the `start` of time slice (exclusive) to delete messages from.
-`end` Type: string  Timetoken delimiting the `end` of time slice (inclusive) to delete messages from.
+Parameters:
+- channel (string) required: Channel to delete from.
+- start (string): Start timetoken (exclusive).
+- end (string): End timetoken (inclusive).
 
-### Sample code
+### Sample code[​](#sample-code-1)
 
 ```
 1
   
+
 ```
 
-### Response
+### Response[​](#response-1)
 
 ```
 `1{  
@@ -202,23 +221,30 @@ Method behavior: `start` is exclusive; `end` is inclusive.
 `
 ```
 
-### Other examples
+### Other examples[​](#other-examples-1)
 
-#### Delete specific message from a Message Persistence
-
-Pass the exact publish timetoken in `end` and timetoken +/- 1 in `start`.
+#### Delete specific message from a Message Persistence[​](#delete-specific-message-from-a-message-persistence)
+To delete a specific message, pass the publish timetoken in End and timetoken +/- 1 in Start. Example: for publish timetoken 15526611838554310, use Start 15526611838554309 and End 15526611838554310.
 
 ```
 1
   
+
 ```
 
-## Message counts
+## Message counts[​](#message-counts)
 
-Requires Message Persistence. Returns number of messages with timetoken >= channelTimetokens.
-Note: With unlimited retention, only the last 30 days are counted.
+##### Requires Message Persistence
+Enable Message Persistence in the Admin Portal.
 
-### Method(s)
+Return the number of messages published since the given time. Count includes messages with timetoken >= channelTimetokens.
+
+##### Unlimited message retention
+Only messages from the last 30 days are counted.
+
+### Method(s)[​](#methods-2)
+
+Use:
 
 ```
 `1pubnub.messageCounts({  
@@ -228,22 +254,22 @@ Note: With unlimited retention, only the last 30 days are counted.
 `
 ```
 
-- required
-- Parameter
-- Description
-`channels`  Type: Array`<string>`  Default: n/a  Channels to fetch the message count.
-`channelTimetokens`  Type: Array`<string>`  Default: n/a  Array in the same order as channels; a single timetoken applies to all channels; otherwise, lengths must match or the function returns a `PNStatus` error.
+Parameters:
+- channels (Array<string>) required: Channels to fetch counts for.
+- channelTimetokens (Array<string>) required: Either a single timetoken for all channels or one per channel (array lengths must match). Otherwise returns PNStatus error.
 
-### Sample code
+### Sample code[​](#sample-code-2)
 
 ```
 1
   
+
 ```
 
-### Returns
+### Returns[​](#returns)
 
-Message count: Channels without messages have a count of 0. Channels with 10,000+ messages return 10000.
+##### Message count
+Channels without messages have count 0. Channels with 10,000 or more messages return 10000.
 
 ```
 `1{  
@@ -254,7 +280,7 @@ Message count: Channels without messages have a count of 0. Channels with 10,000
 `
 ```
 
-### Status response
+### Status response[​](#status-response)
 
 ```
 `1{  
@@ -265,37 +291,39 @@ Message count: Channels without messages have a count of 0. Channels with 10,000
 `
 ```
 
-### Other examples
+### Other examples[​](#other-examples-2)
 
-#### Retrieve count of messages using different timetokens for each channel
+#### Retrieve count of messages using different timetokens for each channel[​](#retrieve-count-of-messages-using-different-timetokens-for-each-channel)
 
 ```
 1
   
+
 ```
 
-## History (deprecated)
+## History (deprecated)[​](#history-deprecated)
 
-Requires Message Persistence.
+##### Requires Message Persistence
+Enable Message Persistence in the Admin Portal.
 
-Alternative method: This method is deprecated. Use fetch history instead.
+##### Alternative method
+Deprecated. Use fetch history instead.
 
-Fetches historical messages of a channel with ordering and pagination controls:
-- Default search from newest end (`reverse = false`).
-- `reverse = true` to search from oldest end.
-- Page with `start` OR `end`.
-- Retrieve a slice with both `start` AND `end`.
-- Limit with `count`.
+Fetch historical messages for a channel with ordering and pagination controls:
+- reverse=false (default): start from newest end of timeline.
+- reverse=true: start from oldest end.
+- Page with start OR end timetoken.
+- Retrieve a slice with both start AND end.
+- Limit results with count (max 100).
 
-Start & End clarity:
-- start only: messages older than start.
-- end only: messages matching end and newer.
-- both: between start and end (inclusive of end).
-Maximum 100 messages per call; use iterative calls adjusting start.
+##### Start & End parameter usage clarity
+- Only start: messages older than and up to start (exclusive).
+- Only end: messages matching end and newer (inclusive).
+- Both: messages between start and end (inclusive of end). Maximum 100 per call; page by adjusting start.
 
-### Method(s)
+### Method(s)[​](#methods-3)
 
-Use the following method(s) in the JavaScript SDK
+Use:
 
 ```
 `1pubnub.history({  
@@ -310,21 +338,19 @@ Use the following method(s) in the JavaScript SDK
 `
 ```
 
-- required
-- Parameter
-- Description
-`channel`  Type: string  Default: n/a  Channel to return history messages from.
-`reverse` Type: boolean  Default: `false`  Whether to traverse from oldest to newest. If both `start` and `end` are provided, `reverse` is ignored and messages return starting with the newest message.
-`count` Type: number  Default: `100`  Number of historical messages to return. Default/Maximum is `100`.
-`stringifiedTimeToken` Type: boolean  Default: `false`  Whether to return timetokens as strings.
-`includeMeta` Type: boolean  Default: n/a  Whether to include the meta object (if provided at publish time) in the response.
-`start` Type: string  Default: n/a  Timetoken delimiting the start (exclusive) of the time slice.
-`end` Type: string  Default: n/a  Timetoken delimiting the end (inclusive) of the time slice.
+Parameters:
+- channel (string) required: Channel to return history from.
+- reverse (boolean, default false): Traverse oldest to newest. Ignored if both start and end provided; messages always returned in ascending time.
+- count (number, default/max 100): Number of messages to return.
+- stringifiedTimeToken (boolean, default false): Return timetokens as strings.
+- includeMeta (boolean): Include meta object if published with meta.
+- start (string): Start timetoken (exclusive).
+- end (string): End timetoken (inclusive).
 
-Using the reverse parameter:
-Messages are always returned sorted ascending by time. `reverse` only affects which end of the interval is used to start when more than `count` messages exist.
+##### Using the reverse parameter:
+Messages are always returned in ascending time. reverse determines which end of the interval to start from when more than count messages exist.
 
-### Sample code
+### Sample code[​](#sample-code-3)
 
 Retrieve the last 100 messages on a channel:
 
@@ -341,7 +367,7 @@ Retrieve the last 100 messages on a channel:
 `
 ```
 
-### Response
+### Response[​](#response-2)
 
 ```
 1// Example of Status  
@@ -366,11 +392,13 @@ Retrieve the last 100 messages on a channel:
 19    ],  
 20    startTimeToken: "14867650866860159"  
 21}  
+
 ```
+show all 21 lines
 
-### Other examples
+### Other examples[​](#other-examples-3)
 
-#### Use history() to retrieve the three oldest messages by retrieving from the time line in reverse
+#### Use history() to retrieve the three oldest messages by retrieving from the time line in reverse[​](#use-history-to-retrieve-the-three-oldest-messages-by-retrieving-from-the-time-line-in-reverse)
 
 ```
 `1try {  
@@ -386,7 +414,7 @@ Retrieve the last 100 messages on a channel:
 `
 ```
 
-#### Use history() to retrieve messages newer than a given timetoken by paging from oldest message to newest message starting at a single point in time (exclusive)
+#### Use history() to retrieve messages newer than a given timetoken by paging from oldest message to newest message starting at a single point in time (exclusive)[​](#use-history-to-retrieve-messages-newer-than-a-given-timetoken-by-paging-from-oldest-message-to-newest-message-starting-at-a-single-point-in-time-exclusive)
 
 ```
 `1try {  
@@ -402,7 +430,7 @@ Retrieve the last 100 messages on a channel:
 `
 ```
 
-#### Use history() to retrieve messages until a given timetoken by paging from newest message to oldest message until a specific end point in time (inclusive)
+#### Use history() to retrieve messages until a given timetoken by paging from newest message to oldest message until a specific end point in time (inclusive)[​](#use-history-to-retrieve-messages-until-a-given-timetoken-by-paging-from-newest-message-to-oldest-message-until-a-specific-end-point-in-time-inclusive)
 
 ```
 `1try {  
@@ -417,9 +445,10 @@ Retrieve the last 100 messages on a channel:
 `
 ```
 
-#### History paging example
+#### History paging example[​](#history-paging-example)
 
-Usage: Call with nothing or a valid timetoken.
+##### Usage
+Call with nothing or a valid timetoken.
 
 ```
 1async function getAllMessages(initialTimetoken = 0) {  
@@ -455,9 +484,11 @@ Usage: Call with nothing or a valid timetoken.
 26// Usage examples:  
 27// await getAllMessages();  
 28// await getAllMessages("12345678901234");  
-```
 
-#### Fetch messages with metadata
+```
+show all 28 lines
+
+#### Fetch messages with metadata[​](#fetch-messages-with-metadata)
 
 ```
 `1try {  
@@ -472,7 +503,7 @@ Usage: Call with nothing or a valid timetoken.
 `
 ```
 
-#### Sample code with promises
+#### Sample code with promises[​](#sample-code-with-promises)
 
 ```
 `1pubnub.history({**2    channel: 'history_channel',  

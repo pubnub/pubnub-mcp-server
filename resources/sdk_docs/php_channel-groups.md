@@ -1,24 +1,20 @@
 # Channel Groups API for PHP SDK
 
-[Channel groups](/docs/general/channels/subscribe#channel-groups) bundle many [channels](/docs/general/channels/overview) into a named group. You can subscribe to a channel group to receive messages from all channels it contains.
+[Channel groups](/docs/general/channels/subscribe#channel-groups) let you bundle thousands of [channels](/docs/general/channels/overview) into a named group you can subscribe to.
 
 ##### Channel group operations
-- You can't publish to a channel group—only subscribe.
-- To publish, send messages to individual channels.
+- You can't publish to a channel group—only subscribe to it. Publish to each channel individually within the group.
 
-## Add channels to a channel group[​](#add-channels-to-a-channel-group)
+## Prerequisites
+- Requires Stream Controller add-on. Enable it for your key in the PubNub [Admin Portal](https://admin.pubnub.com/) and see the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
 
-##### Requires Stream Controller add-on
-Enable the Stream Controller add-on for your key in the PubNub [Admin Portal](https://admin.pubnub.com/). See the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
+## Add channels to a channel group
 
 Adds channels to a channel group.
 
-### Method(s)[​](#methods)
+### Method(s)
 
 `Adding Channels` is accomplished by using the following method(s) in the PHP SDK:
-
-##### Maximum number of channels
-You can add up to 200 channels to a channel group per API call.
 
 ```
 `1$pubnub->addChannelToChannelGroup()  
@@ -28,16 +24,17 @@ You can add up to 200 channels to a channel group per API call.
 `
 ```
 
-Parameters:
-- channels — Type: String|Array — Channels to add to the channel group.
-- channelGroup — Type: String — Target channel group.
+- channels (String|Array): The channels to add to the channel group.
+- channelGroup (String): The channel group to add the channels to.
 
-### Sample code[​](#sample-code)
+##### Maximum number of channels
+- You can add up to 200 channels to a channel group per API call.
 
-#### Add channels[​](#add-channels)
+### Sample code
+
+#### Add channels
 
 ##### Reference code
-This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
 
 ```
 1
@@ -45,7 +42,7 @@ This example is a self-contained code snippet ready to be run. It includes neces
 
 ```
 
-### Rest response from server[​](#rest-response-from-server)
+### Rest response from server
 
 ```
 `1{  
@@ -57,14 +54,11 @@ This example is a self-contained code snippet ready to be run. It includes neces
 `
 ```
 
-## List channels in a channel group[​](#list-channels-in-a-channel-group)
-
-##### Requires Stream Controller add-on
-Enable the Stream Controller add-on for your key in the [Admin Portal](https://admin.pubnub.com/). See the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
+## List channels in a channel group
 
 Lists all channels in a channel group.
 
-### Method(s)[​](#methods-1)
+### Method(s)
 
 `Listing Channels` is accomplished by using the following method(s) in the PHP SDK:
 
@@ -75,12 +69,11 @@ Lists all channels in a channel group.
 `
 ```
 
-Parameters:
-- channelGroup — Type: String — Channel group to list channels for.
+- channelGroup (String): The channel group for which to list channels.
 
-### Sample code[​](#sample-code-1)
+### Sample code
 
-#### List channels[​](#list-channels)
+#### List channels
 
 ```
 1
@@ -88,7 +81,7 @@ Parameters:
 
 ```
 
-### Rest response from server[​](#rest-response-from-server-1)
+### Rest response from server
 
 ```
 `1{  
@@ -103,14 +96,11 @@ Parameters:
 `
 ```
 
-## Remove channels from a channel group[​](#remove-channels-from-a-channel-group)
-
-##### Requires Stream Controller add-on
-Enable the Stream Controller add-on for your key in the [Admin Portal](https://admin.pubnub.com/). See the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
+## Remove channels from a channel group
 
 Removes channels from a channel group.
 
-### Method(s)[​](#methods-2)
+### Method(s)
 
 `Removing Channels` is accomplished by using the following method(s) in the PHP SDK:
 
@@ -122,13 +112,12 @@ Removes channels from a channel group.
 `
 ```
 
-Parameters:
-- channels — Type: String|Array — Channels to remove from the channel group.
-- channelGroup — Type: String — Channel group to remove channels from.
+- channels (String|Array): The channels to remove from the channel group.
+- channelGroup (String): The channel group from which to remove the channels.
 
-### Sample code[​](#sample-code-2)
+### Sample code
 
-#### Remove channels[​](#remove-channels)
+#### Remove channels
 
 ```
 1
@@ -136,7 +125,7 @@ Parameters:
 
 ```
 
-### Rest response from server[​](#rest-response-from-server-2)
+### Rest response from server
 
 ```
 `1{  
@@ -148,14 +137,11 @@ Parameters:
 `
 ```
 
-## Delete a channel group[​](#delete-a-channel-group)
-
-##### Requires Stream Controller add-on
-Enable the Stream Controller add-on for your key in the [Admin Portal](https://admin.pubnub.com/). See the [support page](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
+## Delete a channel group
 
 Deletes a channel group.
 
-### Method(s)[​](#methods-3)
+### Method(s)
 
 `Deleting Channel Group` is accomplished by using the following method(s) in the PHP SDK:
 
@@ -166,12 +152,11 @@ Deletes a channel group.
 `
 ```
 
-Parameters:
-- channelGroup — Type: String — Channel group to remove.
+- channelGroup (String): The channel group to remove.
 
-### Sample code[​](#sample-code-3)
+### Sample code
 
-#### Delete channel group[​](#delete-channel-group)
+#### Delete channel group
 
 ```
 1
@@ -179,7 +164,7 @@ Parameters:
 
 ```
 
-### Rest response from server[​](#rest-response-from-server-3)
+### Rest response from server
 
 ```
 `1{**2    "status" : 200,  
@@ -189,3 +174,5 @@ Parameters:
 6}  
 `
 ```
+
+Last updated on Nov 6, 2025**

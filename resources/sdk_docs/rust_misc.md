@@ -1,64 +1,55 @@
 # Utility Methods API for Rust SDK
 
-Utility methods that don't fit other categories.
+Utility methods for connection management.
 
-## Disconnect[​](#disconnect)
+## Disconnect
 
 Disconnect from PubNub and pause listening for real-time updates. Saves a cursor of the last received message. Reversible via reconnect.
 
 ##### Client scope
+Only available on the PubNub object.
 
-This method is only available on the PubNub object.
+### Method(s)
 
-### Method(s)[​](#methods)
-
-```
-`1pubnub.disconnect()  
-`
+```rust
+pubnub.disconnect()
 ```
 
-### Sample code[​](#sample-code)
+### Sample code
 
+```rust
+pubnub.disconnect();
 ```
-`1pubnub.disconnect();  
-`
-```
 
-### Returns[​](#returns)
-
+### Returns
 None
 
-## Reconnect[​](#reconnect)
+## Reconnect
 
-Reconnect to PubNub and resume listening. Uses the last saved cursor for best-effort message catch-up between disconnect and reconnect.
+Reconnect to PubNub and resume listening. Uses the last saved cursor to attempt message catch-up (best-effort).
 
 ##### Client scope
+Only available on the PubNub object.
 
-This method is only available on the PubNub object.
+### Method(s)
 
-### Method(s)[​](#methods-1)
-
-```
-`1pubnub.reconnect(cursor: OptionSubscriptionCursor>)  
-`
+```rust
+pubnub.reconnect(cursor: Option<SubscriptionCursor>)
 ```
 
-- Parameter: cursor
-  - Type: Option<SubscriptionCursor>
-  - Default: Cursor of the last received message before disconnect() was called
-  - Purpose: Return any available cached messages since disconnect (best-effort; not guaranteed)
-  - Structure: SubscriptionCursor{timetoken: String, region: u32}
-  - Pass None if not needed.
+### Parameters
+- cursor: Option<SubscriptionCursor>  
+  Cursor of the last received message before disconnect. Message retrieval with cursor is best-effort.  
+  Structure: SubscriptionCursor { timetoken: String, region: u32 }  
+  Pass None if not needed.
 
-### Sample code[​](#sample-code-1)
+### Sample code
 
-```
-`1pubnub.reconnect(None);  
-`
+```rust
+pubnub.reconnect(None);
 ```
 
-### Returns[​](#returns-1)
-
+### Returns
 None
 
 Last updated on Jul 15, 2025

@@ -1,12 +1,14 @@
 # Message Actions API for Python SDK
 
-Use message actions to add or remove metadata on published messages (for example, receipts or reactions). Subscribe to channels to receive action events. You can also fetch past actions from Message Persistence.
+Use message actions to add or remove metadata on published messages (for example, receipts and reactions). Clients can subscribe to a channel to receive message action events or fetch past message actions from Message Persistence.
 
 ##### Request execution and return values
 
-Choose synchronous or asynchronous execution.
+Decide whether to perform operations synchronously or asynchronously.
 
-`.sync()` returns an `Envelope` with `Envelope.result` (type varies by API) and `Envelope.status` (`PnStatus`).
+`.sync()` returns an `Envelope` with:
+- `Envelope.result` (type differs per API)
+- `Envelope.status` (`PnStatus`)
 
 ```
 `1pubnub.publish() \  
@@ -16,7 +18,7 @@ Choose synchronous or asynchronous execution.
 `
 ```
 
-`.pn_async(callback)` returns `None`, passing `Envelope.result` and `Envelope.status` to your callback.
+`.pn_async(callback)` returns `None` and passes `Envelope.result` and `Envelope.status` to your callback.
 
 ```
 1def my_callback_function(result, status):  
@@ -32,13 +34,17 @@ Choose synchronous or asynchronous execution.
 
 ##### Reactions
 
-Message Reactions are an application of Message Actions for emoji/social reactions. The same API is referred to as “Message Reactions” in some PubNub SDKs when used for emoji reactions.
+"Message Reactions" is a specific application of the Message Actions API for emoji/social reactions. The same underlying API is referred to as Message Reactions in PubNub Core and Chat SDKs when used for emoji reactions.
 
 ## Add message action[​](#add-message-action)
 
 ##### Requires Message Persistence
 
-Add an action to a published message. Response includes the added action.
+Enable Message Persistence for your key in the Admin Portal:
+- https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-
+- https://admin.pubnub.com/
+
+Add an action to a published message. The response includes the added action.
 
 ### Method(s)[​](#methods)
 
@@ -51,12 +57,12 @@ Add an action to a published message. Response includes the added action.
 ```
 
 Parameters:
-- channel (String): Channel name to add the action to.
-- message_action (PNMessageAction): Action payload.
-  - message_action.type (String): Action type.
-  - message_action.value (String): Action value.
+- channel (String): Channel name to add the message action to.
+- message_action (PNMessageAction): Message action payload.
+  - message_action.type (String): Message action type.
+  - message_action.value (String): Message action value.
   - message_action.message_timetoken (Integer): Timetoken of the target message.
-- message_action_callback (Function): Success or error callback. See PNMessageAction callback.
+- message_action_callback (Function): Callback for success or error. See PNMessageAction callback.
 
 ### Sample code[​](#sample-code)
 
@@ -200,7 +206,11 @@ Parameters:
 
 ##### Requires Message Persistence
 
-Remove a previously added action from a published message. Response is empty.
+Enable Message Persistence for your key in the Admin Portal:
+- https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-
+- https://admin.pubnub.com/
+
+Remove a previously added action from a published message. The response is empty.
 
 ### Method(s)[​](#methods-1)
 
@@ -214,10 +224,10 @@ Remove a previously added action from a published message. Response is empty.
 ```
 
 Parameters:
-- channel (String): Channel name to remove the action from.
-- action_timetoken (Integer): Timetoken of the action to remove.
+- channel (String): Channel name to remove the message action from.
+- action_timetoken (Integer): Timetoken of the message action to remove.
 - message_timetoken (Integer): Timetoken of the target message.
-- message_action_callback (Function): Success or error callback. See PNMessageAction callback.
+- message_action_callback (Function): Callback for success or error. See PNMessageAction callback.
 
 ### Sample code[​](#sample-code-1)
 
@@ -268,7 +278,11 @@ Parameters:
 
 ##### Requires Message Persistence
 
-Get a list of message actions in a channel. Sorted by action timetoken ascending.
+Enable Message Persistence for your key in the Admin Portal:
+- https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-
+- https://admin.pubnub.com/
+
+Get a list of message actions in a channel. The response sorts actions by action timetoken in ascending order.
 
 ### Method(s)[​](#methods-2)
 
@@ -284,10 +298,10 @@ Get a list of message actions in a channel. Sorted by action timetoken ascending
 
 Parameters:
 - channel (String): Channel name to list message actions for.
-- start (String): Action timetoken for start of range (exclusive).
-- end (String): Action timetoken for end of range (inclusive).
-- limit (Integer): Max actions to return; if exceeded, results include a more token. See REST docs.
-- message_action_callback (Function): Success or error callback. See PNMessageAction callback.
+- start (String): Message action timetoken for the start of the range (exclusive).
+- end (String): Message action timetoken for the end of the range (inclusive).
+- limit (Integer): Maximum number of actions to return. If exceeded, results include a more token. See REST docs: /docs/sdks/rest-api/get-actions.
+- message_action_callback (Function): Callback for success or error. See PNMessageAction callback.
 
 ### Sample code[​](#sample-code-2)
 
@@ -343,8 +357,6 @@ Parameters:
 
 ## PNMessageAction[​](#pnmessageaction)
 
-Structure:
-
 ```
 `1action = PNMessageAction({  
 2    'uuid': 'user1',  
@@ -356,7 +368,7 @@ Structure:
 `
 ```
 
-Sample callback:
+Sample `message_action_callback`:
 
 ```
 `1def message_action_callback(envelope, status):**2    if status.is_error():  

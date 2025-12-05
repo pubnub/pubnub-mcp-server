@@ -1,15 +1,16 @@
 # Message Actions API for C# SDK
 
-Use Message Actions to add/remove metadata on published messages (receipts, reactions). Clients can subscribe to channels to receive message action events and fetch past actions from Message Persistence.
+Use Message Actions to add or remove metadata (for example, receipts and reactions) on published messages. Subscribe to channels to receive message action events, and fetch past actions from Message Persistence.
 
 ##### Reactions
-"Message Reactions" is a specific use of Message Actions for emoji/social reactions.
+“Message Reactions” are a specific use of the Message Actions API for emoji/social reactions.
 
 ##### Message Actions vs. Message Reactions
-Message Actions is the low-level API for arbitrary metadata; Message Reactions uses the same API for emoji/social reactions. In PubNub Core and Chat SDKs, this functionality may be referred to as Message Reactions.
+- Message Actions: low-level API for arbitrary metadata (read receipts, delivery confirmations, custom data).
+- Message Reactions: same API used specifically for emoji/social reactions. Terminology differs between Core/Chat SDKs, functionality is the same.
 
 ##### Request execution
-Use try/catch. Invalid parameters throw exceptions; server/network errors are in the returned status.
+Use try/catch. Invalid parameters throw exceptions. If the request reaches the server but fails, error details are in the returned status.
 
 ```
 1try  
@@ -21,19 +22,21 @@ Use try/catch. Invalid parameters throw exceptions; server/network errors are in
 7
   
 8    PNStatus status = publishResponse.Status;  
-9  
+9
+  
 10    Console.WriteLine("Server status code : " + status.StatusCode.ToString());  
 11}  
 12catch (Exception ex)  
 13{  
 14    Console.WriteLine($"Request can't be executed due to error: {ex.Message}");  
 15}  
+
 ```
 
 ## Add message action
 
 ##### Requires Message Persistence
-Enable Message Persistence for your key in the Admin Portal as described in the support article.
+Enable Message Persistence for your key in the Admin Portal: https://admin.pubnub.com/ (see support article: https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
 
 Add an action to a published message. The response includes the added action.
 
@@ -57,6 +60,8 @@ Parameters:
 - Value (string): Message action value.
 
 ### Sample code
+Reference code
+This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
 ```
 1
   
@@ -80,7 +85,7 @@ Parameters:
 ## Remove message action
 
 ##### Requires Message Persistence
-Enable Message Persistence for your key in the Admin Portal as described in the support article.
+Enable Message Persistence for your key in the Admin Portal: https://admin.pubnub.com/ (see support article: https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
 
 Remove a previously added action from a published message. The response is empty.
 
@@ -114,12 +119,12 @@ The RemoveMessageAction() operation returns no actionable data.
 ## Get message actions
 
 ##### Requires Message Persistence
-Enable Message Persistence for your key in the Admin Portal as described in the support article.
+Enable Message Persistence for your key in the Admin Portal: https://admin.pubnub.com/ (see support article: https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
 
-Get a list of message actions in a channel. Actions are sorted by action timetoken (ascending).
+Get a list of message actions in a channel. Actions are sorted by action timetoken in ascending order.
 
 ##### Truncated response
-If truncated, a more property is returned with additional parameters. Use iterative calls, adjusting parameters to fetch more actions.
+If results are truncated, the response includes a more object with parameters to continue pagination. Make iterative calls adjusting these parameters.
 
 ### Method(s)
 Use this C# method:
@@ -136,7 +141,7 @@ Parameters:
 - Channel (string): Channel name to list message actions for.
 - Start (long): Message action timetoken for the start of the range (exclusive).
 - End (long): Message action timetoken for the end of the range (inclusive).
-- Limit (int, default/max 100): Maximum number of actions to return.
+- Limit (int, default and max 100): Maximum number of actions to return.
 
 ### Sample code
 ```
@@ -165,5 +170,3 @@ Parameters:
 17}  
 `
 ```
-
-Last updated on Sep 3, 2025**

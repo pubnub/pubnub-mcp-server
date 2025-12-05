@@ -1,10 +1,10 @@
-# File Sharing API for Dart SDK
+# File Sharing API for Dart SDK (Condensed)
 
-Upload and share files up to 5 MB. Uploaded files on a channel trigger file events with file ID, filename, and optional description.
+Use the Files API to upload and share files up to 5 MB on PubNub. When a file is uploaded to a channel, subscribers receive a file event with file ID, filename, and optional description.
 
 ## Send file
 
-Uploads the file and publishes a file message to the channel. Internally calls Publish file message.
+Uploads a file and publishes its metadata to the channel. Internally calls publishFileMessage.
 
 ### Method(s)
 
@@ -25,23 +25,24 @@ Uploads the file and publishes a file message to the channel. Internally calls P
 ```
 
 Parameters:
-- channel (String, required): Channel to send the file to.
-- fileName (String, required): Name of the file.
-- file (List<int>, required): File content.
-- fileMessage (dynamic, default: null): Message published with the file.
-- storeFileMessage (bool, default: true): Store the message in history. If unset, key’s history config is used.
-- fileMessageTtl (int): TTL hours if stored. 0 = no expiry. Ignored if storeFileMessage is false. If unset, uses key’s expiry unless keyset retention is Unlimited.
-- customMessageType (String): 3–50 chars, alphanumeric, dashes and underscores allowed; cannot start with special chars or pn_/pn- (examples: text, action, poll).
-- fileMessageMeta (dynamic): Additional metadata for stream filtering.
-- keyset (Keyset, default: default keyset): Override default keyset.
-- using (String): Named keyset from keysetStore.
+- channel (String, required) — Target channel.
+- fileName (String, required) — File name.
+- file (List<int>, required) — File content.
+- fileMessage (dynamic, default: null) — Message published with the file.
+- storeFileMessage (bool, default: true) — Store message in history; otherwise uses key configuration.
+- fileMessageTtl (int) — TTL hours if stored. 0 = no expiry. Ignored if storeFileMessage is false. Defaults to key expiry if not set. Retention Unlimited overrides expiry.
+- customMessageType (String) — 3–50 char label; alphanumeric, dash, underscore; cannot start with special chars or pn_/pn- (examples: text, action, poll).
+- fileMessageMeta (dynamic) — Additional info for stream filtering.
+- keyset (Keyset, default: default keyset) — Override default keyset.
+- using (String) — Keyset name from keysetStore.
 
 Deprecated parameter:
-- cipherKey: Deprecated; use crypto module instead. If passed, overrides crypto module and uses legacy 128-bit encryption.
+- cipherKey — Deprecated. Configure the crypto module instead. If provided, overrides crypto module and uses legacy encryption with 128-bit cipher key entropy.
 
 ### Sample code
 
 ##### Reference code
+
 ```
 1import 'dart:convert';  
 2import 'package:pubnub/pubnub.dart';  
@@ -76,6 +77,7 @@ Deprecated parameter:
 27  // Print result  
 28  print('File uploaded and file message published - timetoken ${result.timetoken}');  
 29}  
+
 ```
 
 ### Response
@@ -95,15 +97,15 @@ Deprecated parameter:
 ### Returns
 
 PublishFileMessageResult:
-- timetoken (int): Publish timetoken.
-- isError (Boolean): Error status.
-- description (String): Operation status.
-- fileInfo (FileInfo): Uploaded file info.
+- timetoken (int) — Publish timetoken.
+- isError (Boolean) — Error flag.
+- description (String) — Status description.
+- fileInfo (FileInfo) — Uploaded file info.
 
 FileInfo:
-- id (String): Uploaded file ID.
-- name (String): Uploaded file name.
-- url (String): Uploaded file URL.
+- id (String) — Uploaded file ID.
+- name (String) — Uploaded file name.
+- url (String) — Uploaded file URL.
 
 ## List channel files
 
@@ -123,11 +125,11 @@ Retrieve files uploaded to a channel.
 ```
 
 Parameters:
-- channel (String, required): Channel name.
-- limit (int): Max number of files returned.
-- next (String): Forward pagination cursor.
-- keyset (Keyset, default: default keyset): Override default keyset.
-- using (String): Named keyset from keysetStore.
+- channel (String, required) — Target channel.
+- limit (int) — Max number of files returned.
+- next (String) — Forward pagination cursor from server.
+- keyset (Keyset, default: default keyset) — Override default keyset.
+- using (String) — Keyset name from keysetStore.
 
 ### Sample code
 
@@ -136,6 +138,7 @@ Parameters:
 2
   
 3print('There are ${result.count} no. of files uploaded');  
+
 ```
 
 ### Response
@@ -160,19 +163,19 @@ Parameters:
 ### Returns
 
 ListFilesResult:
-- filesDetail (List<FileDetail>): Files info.
-- next (String): Forward pagination cursor.
-- count (int): Number of files returned.
+- filesDetail (List<FileDetail>) — Files info.
+- next (String) — Forward pagination cursor.
+- count (int) — Number of files returned.
 
 FileDetail:
-- name (String): File name.
-- id (String): File ID.
-- size (int): File size.
-- created (String): Creation time.
+- name (String) — File name.
+- id (String) — File ID.
+- size (int) — File size.
+- created (String) — Creation time.
 
 ## Get file URL
 
-Generate a download URL for a file in a channel.
+Generate a URL to download a file from a channel.
 
 ### Method(s)
 
@@ -187,11 +190,11 @@ Generate a download URL for a file in a channel.
 ```
 
 Parameters:
-- channel (String, required): Channel name.
-- fileId (String, required): File ID.
-- fileName (String, required): File name.
-- keyset (Keyset, default: default keyset): Override default keyset.
-- using (String): Named keyset from keysetStore.
+- channel (String, required)
+- fileId (String, required)
+- fileName (String, required)
+- keyset (Keyset, default: default keyset)
+- using (String)
 
 ### Sample code
 
@@ -216,7 +219,7 @@ Parameters:
 
 ## Download file
 
-Download a file.
+Download the specified file.
 
 ### Method(s)
 
@@ -231,14 +234,14 @@ Download a file.
 ```
 
 Parameters:
-- channel (String, required): Channel name.
-- fileId (String, required): File ID.
-- fileName (String, required): File name.
-- keyset (Keyset, default: default keyset): Override default keyset.
-- using (String): Named keyset from keysetStore.
+- channel (String, required)
+- fileId (String, required)
+- fileName (String, required)
+- keyset (Keyset, default: default keyset)
+- using (String)
 
 Deprecated parameter:
-- cipherKey: Deprecated; use crypto module instead. If passed, overrides crypto module and uses legacy 128-bit encryption.
+- cipherKey — Deprecated. Configure the crypto module instead. If provided, overrides crypto module and uses legacy encryption with 128-bit cipher key entropy.
 
 ### Sample code
 
@@ -260,7 +263,7 @@ Deprecated parameter:
 ### Returns
 
 DownloadFileResult:
-- fileContent (dynamic): Bytes of the downloaded file.
+- fileContent (dynamic) — Bytes of the downloaded file.
 
 ## Delete file
 
@@ -279,11 +282,11 @@ Delete a file from a channel.
 ```
 
 Parameters:
-- channel (String, required): Channel name.
-- fileId (String, required): File ID.
-- fileName (String, required): File name.
-- keyset (Keyset, default: default keyset): Override default keyset.
-- using (String): Named keyset from keysetStore.
+- channel (String, required)
+- fileId (String, required)
+- fileName (String, required)
+- keyset (Keyset, default: default keyset)
+- using (String)
 
 ### Sample code
 
@@ -308,7 +311,7 @@ Parameters:
 
 ## Publish file message
 
-Publishes a file message to a channel. Used internally by sendFile, or directly to retry message publish without re-uploading the file.
+Publishes a message about an already uploaded file to a channel. Called internally by sendFile. Can be used to retry publishing when sendFile fails with PNPublishFileMessageOperation; reuse data from the status object.
 
 ### Method(s)
 
@@ -326,14 +329,14 @@ Publishes a file message to a channel. Used internally by sendFile, or directly 
 ```
 
 Parameters:
-- channel (String, required): Channel name.
-- message (FileMessage, required): Message to publish.
-- storeMessage (bool, default: true): Store message in history. If unset, key’s history config is used.
-- ttl (int): TTL hours if stored. 0 = no expiry. Ignored if storeMessage is false. If unset, uses key’s expiry unless keyset retention is Unlimited.
-- meta (dynamic): Additional metadata for stream filtering.
-- keyset (Keyset, default: default keyset): Override default keyset.
-- using (String): Named keyset from keysetStore.
-- customMessageType (String): 3–50 chars, alphanumeric, dashes and underscores allowed; cannot start with special chars or pn_/pn- (examples: text, action, poll).
+- channel (String, required)
+- message (FileMessage, required)
+- storeMessage (bool, default: true) — Store message in history; otherwise uses key configuration.
+- ttl (int) — TTL hours if stored. 0 = no expiry. Ignored if storeMessage is false. Defaults to key expiry if not set. Retention Unlimited overrides expiry.
+- meta (dynamic) — Additional info for stream filtering.
+- keyset (Keyset, default: default keyset)
+- using (String)
+- customMessageType (String) — 3–50 char label; alphanumeric, dash, underscore; cannot start with special chars or pn_/pn- (examples: text, action, poll).
 
 ### Sample code
 
@@ -349,6 +352,7 @@ Parameters:
 8  await pubnub.files.publishFileMessage('my_channel', message, customMessageType: 'file-message');  
 9      
 10print('file message published - timetoken ${result.timetoken}');  
+
 ```
 
 ### Response
@@ -368,12 +372,12 @@ Parameters:
 ### Returns
 
 PNFileUploadResult:
-- timetoken (int): Publish timetoken.
-- description (String): Result description (e.g., "sent").
-- isError (Boolean): Error status.
-- fileInfo (FileInfo): File information.
+- timetoken (int) — Publish timetoken.
+- description (String) — Result description (e.g., "sent").
+- isError (Boolean) — Error status.
+- fileInfo (FileInfo) — File information.
 
 FileInfo:
-- id (String): Uploaded file ID.
-- name (String): Uploaded file name.
-- url (String): Uploaded file URL.
+- id (String) — Uploaded file ID.
+- name (String) — Uploaded file name.
+- url (String) — Uploaded file URL.

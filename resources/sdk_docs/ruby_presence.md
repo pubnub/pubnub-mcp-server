@@ -1,14 +1,12 @@
 # Presence API for Ruby SDK
 
-Presence tracks who is online, channel occupancy, subscriptions, and per-user presence state. See Presence overview for concepts and events.
-
-All methods require the Presence add-on to be enabled for your key in the Admin Portal.
+Presence tracks online/offline users, occupancy, channel subscriptions, and presence state. Requires Presence to be enabled for your key in the Admin Portal. See Presence overview and Presence Events for more details.
 
 ## Here now
 
-Returns the current state of a channel: list of UUIDs subscribed and total occupancy.
+Requires Presence
 
-Cache: 3-second response cache time.
+Returns current channel state: list of subscribed UUIDs and total occupancy. Cache: 3 seconds.
 
 ### Method(s)
 
@@ -25,12 +23,12 @@ Cache: 3-second response cache time.
 ```
 
 Parameters:
-- channels (String, Symbol) — Channel(s) to return occupancy for. If omitted, returns global here_now across all channels.
-- channel_groups (String, Symbol) — Channel group(s) to return occupancy for. Wildcards not supported.
-- limit (Integer, default 1000) — Max occupants per channel. Range 0–1000. Use 0 for counts only (no UUID details).
-- offset (Integer, default 0) — Zero-based starting index for pagination. Must be >= 0, requires limit > 0. Included only when offset > 0.
-- http_sync (Boolean, default false) — Async returns a future; call value to get Envelope. If true, returns array of Envelope(s); sync methods return Envelope.
-- callback (Lambda) — Called for each Envelope. For async, call value on future to get Envelope (blocks until available).
+- channels (String, Symbol): Channel(s) to return occupancy for. If omitted, performs global here_now.
+- channel_groups (String, Symbol): Channel group(s) to return occupancy for. Wildcards not supported.
+- limit (Integer, default 1000): 0–1000 max occupants per channel. Use 0 for counts only (no UUID details).
+- offset (Integer, default 0): Zero-based start index for pagination. Must be >= 0 and requires limit > 0. Included in request only when > 0.
+- http_sync (Boolean, default false): Async by default (returns future; call value to block and retrieve Envelope). If true, returns array of Envelopes (or single Envelope for sync methods).
+- callback (Lambda): Invoked per envelope. For async, call future.value to get Envelope.
 
 ### Sample code
 
@@ -94,9 +92,9 @@ Reference code
 
 ## Where now
 
-Returns the list of channels a UUID is subscribed to.
+Requires Presence
 
-Timeout events: If the app restarts (or the page refreshes) within the heartbeat window, no timeout event is generated.
+Returns the list of channels a UUID is subscribed to. Timeout events aren’t generated if the app restarts within the heartbeat window.
 
 ### Method(s)
 
@@ -110,9 +108,9 @@ Timeout events: If the app restarts (or the page refreshes) within the heartbeat
 ```
 
 Parameters:
-- uuid (String) — Target UUID.
-- http_sync (Boolean, default false) — Async returns a future; call value to get Envelope. If true, returns array of Envelope(s); sync methods return Envelope.
-- callback (Lambda) — Called for each Envelope. For async, call value on future to get Envelope.
+- uuid (String): UUID to query.
+- http_sync (Boolean, default false): Async by default (returns future; call value to block and retrieve Envelope). If true, returns array of Envelopes (or single Envelope for sync methods).
+- callback (Lambda): Invoked per envelope. For async, call future.value to get Envelope.
 
 ### Sample code
 
@@ -143,7 +141,9 @@ Parameters:
 
 ## User state
 
-Set or get dynamic custom presence state (for example, score or location) per channel while subscribed. State is not persisted and is lost on disconnect.
+Requires Presence
+
+Set and get transient, per-channel custom state (not persisted; lost on disconnect). See Presence State for details.
 
 ### Method(s)
 
@@ -158,10 +158,10 @@ Set or get dynamic custom presence state (for example, score or location) per ch
 ```
 
 Parameters:
-- channels (String, Symbol) — Channel(s) to set state for.
-- state (Hash) — State key-values to set.
-- http_sync (Boolean, default false) — Async returns a future; call value to get Envelope. If true, returns array of Envelope(s); sync methods return Envelope.
-- callback (Lambda) — Called for each Envelope. For async, call value on future to get Envelope.
+- channels (String, Symbol): Channel(s) to set state for.
+- state (Hash): State to set.
+- http_sync (Boolean, default false): Async by default (returns future; call value to block and retrieve Envelope). If true, returns array of Envelopes (or single Envelope for sync methods).
+- callback (Lambda): Invoked per envelope. For async, call future.value to get Envelope.
 
 ```
 `1get_state(  
@@ -174,10 +174,10 @@ Parameters:
 ```
 
 Parameters:
-- channels (String, Symbol) — Channel(s) to get state from.
-- uuid (String) — UUID to retrieve state for.
-- http_sync (Boolean, default false) — Async returns a future; call value to get Envelope. If true, returns array of Envelope(s); sync methods return Envelope.
-- callback (Lambda) — Called for each Envelope. For async, call value on future to get Envelope.
+- channels (String, Symbol): Channel(s) to get state from.
+- uuid (String): UUID whose state to retrieve.
+- http_sync (Boolean, default false): Async by default (returns future; call value to block and retrieve Envelope). If true, returns array of Envelopes (or single Envelope for sync methods).
+- callback (Lambda): Invoked per envelope. For async, call future.value to get Envelope.
 
 ### Sample code
 

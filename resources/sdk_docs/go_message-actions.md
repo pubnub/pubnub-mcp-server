@@ -1,20 +1,21 @@
 # Message Actions API for Go SDK
 
-Use message actions to add/remove metadata (receipts, reactions, custom data) on published messages. Subscribe to channels to receive message action events, and fetch past actions from Message Persistence.
+Use message actions to add or remove metadata (receipts, reactions, custom data) on published messages. Subscribe to channels to receive message action events, and fetch past actions from Message Persistence.
+
+Requires Message Persistence: Enable in the Admin Portal as described in the support article.
 
 ##### Reactions
-Message Reactions are a specific use of Message Actions for emoji/social reactions. In PubNub Core and Chat SDKs, "Message Reactions" refers to using the same Message Actions API for emoji reactions.
 
-## Add message action
+“Message Reactions” is the use of Message Actions for emoji/social reactions. It’s the same underlying API in PubNub Core and Chat SDKs.
 
-##### Requires Message Persistence
-Enable Message Persistence for your key in the Admin Portal as described in the support article.
+## Add message action[​](#add-message-action)
 
 Add an action to a published message. The response includes the added action.
 
-### Method(s)
+### Method(s)[​](#methods)
 
 Use this Go method:
+
 ```
 `1pn.AddMessageAction().  
 2    Channel(string).  
@@ -27,39 +28,39 @@ Use this Go method:
 Parameters:
 - Channel (string): Channel name to add the message action to.
 - MessageTimetoken (string): Timetoken of the target message.
-- Action (pubnub.MessageAction): Message action payload:
-  - ActionType (type)
-  - ActionValue (value)
+- Action (pubnub.MessageAction): Payload with ActionType (type) and ActionValue (value).
 
-### Sample code
+### Sample code[​](#sample-code)
 
 ##### Reference code
+This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
+
 ```
 1
   
+
 ```
 
-### Returns
+### Returns[​](#returns)
 
-`AddMessageAction()` returns `PNAddMessageActionsResponse`:
+AddMessageAction() returns PNAddMessageActionsResponse:
 - Data (PNMessageActionsResponse): See PNMessageActionsResponse.
 
-#### PNMessageActionsResponse
+#### PNMessageActionsResponse[​](#pnmessageactionsresponse)
+
 - ActionType (string): Message action type.
 - ActionValue (string): Message action value.
 - ActionTimetoken (string): Timetoken when the action was added.
 - MessageTimetoken (string): Timetoken of the target message.
 
-## Remove message action
-
-##### Requires Message Persistence
-Enable Message Persistence for your key in the Admin Portal as described in the support article.
+## Remove message action[​](#remove-message-action)
 
 Remove a previously added action from a published message. The response is empty.
 
-### Method(s)
+### Method(s)[​](#methods-1)
 
 Use this Go method:
+
 ```
 `1pn.RemoveMessageAction().  
 2    Channel(string).  
@@ -74,30 +75,31 @@ Parameters:
 - MessageTimetoken (string): Timetoken of the target message.
 - ActionTimetoken (string): Timetoken of the message action to remove.
 
-### Sample code
+### Sample code[​](#sample-code-1)
+
 ```
 1
   
+
 ```
 
-### Returns
+### Returns[​](#returns-1)
 
-`RemoveMessageAction()` returns `PNRemoveMessageActionsResponse`:
+RemoveMessageAction() returns PNRemoveMessageActionsResponse:
 - Data (interface): Empty object.
 
-## Get message actions
+## Get message actions[​](#get-message-actions)
 
-##### Requires Message Persistence
-Enable Message Persistence for your key in the Admin Portal as described in the support article.
-
-Get a list of message actions in a channel, sorted by action timetoken (ascending).
+Get a list of message actions in a channel. Actions are sorted by action timetoken in ascending order.
 
 ##### Truncated response
-Responses may be truncated. If so, a `more` property is returned with parameters for fetching the next page.
 
-### Method(s)
+If results are truncated, the response includes a more property. Use it to page by adjusting parameters for subsequent requests.
+
+### Method(s)[​](#methods-2)
 
 Use this Go method:
+
 ```
 `1pn.GetMessageActions().  
 2    Channel(string).  
@@ -110,23 +112,26 @@ Use this Go method:
 
 Parameters:
 - Channel (string): Channel name to list message actions for.
-- Start (string): Action timetoken start of range (exclusive).
-- End (string): Action timetoken end of range (inclusive).
+- Start (string): Action timetoken for start of range (exclusive).
+- End (string): Action timetoken for end of range (inclusive).
 - Limit (int): Number of actions to return.
 
-### Sample code
+### Sample code[​](#sample-code-2)
+
 ```
 1
   
+
 ```
 
-### Returns
+### Returns[​](#returns-2)
 
-`GetMessageActions()` returns `PNGetMessageActionsResponse`:
+GetMessageActions() returns PNGetMessageActionsResponse:
 - Data ([]PNMessageActionsResponse): See PNMessageActionsResponse.
 - More (PNGetMessageActionsMore): See PNGetMessageActionsMore.
 
-#### PNGetMessageActionsMore
+#### PNGetMessageActionsMore[​](#pngetmessageactionsmore)
+
 - URL (string): URL of the next set of results.
 - Start (string): Start parameter for the next set of results.
 - End (string): End parameter for the next set of results.

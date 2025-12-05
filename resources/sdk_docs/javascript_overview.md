@@ -1,86 +1,82 @@
-# JavaScript API & SDK Docs 10.2.3
+# JavaScript API & SDK Docs 10.2.4
 
 ##### Chat SDK
-
-For chat apps, see the Chat SDK (TypeScript on top of the JavaScript SDK) with chat-specific methods: users, channels, messages, typing indicators, quotes, mentions, threads, etc.
-
-- Core concepts in this guide: initialize connection, publish, subscribe/receive real-time messages.
-- Platforms: Web, Node.js, React Native. API usage is consistent; lifecycle/UI differ.
-- JavaScript vs TypeScript import:
-  - JavaScript: `const PubNub = require('pubnub');`
-  - TypeScript: `import PubNub from 'pubnub';`
-- Supported environments: browsers, Node.js, React Native, React, Angular, Vue, etc.
+For chat apps, use the Chat SDK (TypeScript-based, built on the JavaScript SDK) for managing users, channels, messages, typing indicators, quotes, mentions, threads, and more: /docs/chat/chat-sdk
 
 ## Overview
+The JavaScript SDK provides a unified API for real-time messaging across:
+- Web (browser)
+- Node.js (server)
+- React Native (mobile)
 
-- Use the JavaScript SDK to integrate PubNub real-time messaging.
-- Choose Web, Node.js, or React Native guidance as needed; API remains consistent.
+Use JavaScript or TypeScript:
+- JavaScript (.js): const PubNub = require('pubnub');
+- TypeScript (.ts): import PubNub from 'pubnub';
+
+Supports browsers, Node.js, React Native, React, Angular, Vue, and other frameworks.
 
 ## Prerequisites
-
-- JavaScript knowledge
+- JavaScript familiarity
 - Web: modern browser
 - Node.js: Node 10+
-- React Native: RN dev environment
-- PubNub account and keyset
-- Optional: TypeScript 4.0+
+- React Native: RN environment set up
+- PubNub account (Admin Portal keys)
+- Optional TypeScript 4.0+
 
 ## Setup
 
 ### Get your PubNub keys
-
-- Sign in or create an account in the Admin Portal.
-- Create an app; use the generated keyset (recommend separate dev/prod keysets).
-- Copy publish and subscribe keys.
+- Sign in or create an account in the Admin Portal
+- Create an app (keyset auto-generated)
+- Use Publish and Subscribe keys (recommend separate dev/prod keysets)
 
 ### Install the SDK
 
-Always use the latest SDK version.
+##### SDK version
+Use the latest SDK for features, fixes, and security.
 
-- Web (CDN):
+- Web
+- Node.js
+- React Native
+- Source code
 
+To integrate PubNub into your web project, add the JavaScript SDK to your HTML page using the CDN:
 ```
-`1script src="https://cdn.pubnub.com/sdk/javascript/pubnub.10.2.3.js">script>  
+`1script src="https://cdn.pubnub.com/sdk/javascript/pubnub.10.2.4.js">script>  
 `
 ```
 
-- Web (minified):
-
+You can also use the minified version for production:
 ```
-`1script src="https://cdn.pubnub.com/sdk/javascript/pubnub.10.2.3.min.js">script>  
+`1script src="https://cdn.pubnub.com/sdk/javascript/pubnub.10.2.4.min.js">script>  
 `
 ```
 
-- Node.js (npm):
-
+To integrate PubNub into your Node.js project, install the SDK using npm:
 ```
 `1npm install pubnub  
 `
 ```
 
-- Node.js import:
-
+Then import it in your project:
 ```
 `1const PubNub = require('pubnub');  
 `
 ```
 
-- React Native (npm):
-
+For React Native projects, install the PubNub SDK:
 ```
 `1npm install pubnub  
 `
 ```
 
-- React Native import:
-
+Then import it in your project:
 ```
 `1import PubNub from 'pubnub';  
 `
 ```
 
-- Source:
-
+Clone the GitHub repository:
 ```
 `1git clone https://github.com/pubnub/javascript  
 `
@@ -90,10 +86,11 @@ Always use the latest SDK version.
 
 ### Initialize PubNub
 
-Create an instance with publishKey, subscribeKey, and a unique userId.
+- Web
+- Node.js
+- React Native
 
-- Web:
-
+Create an instance of the PubNub class with your keys and a unique user ID:
 ```
 `1const pubnub = new PubNub({  
 2    publishKey: "demo",  
@@ -103,15 +100,16 @@ Create an instance with publishKey, subscribeKey, and a unique userId.
 `
 ```
 
-- Node.js:
+Make sure to replace the demo keys with your app's publish and subscribe keys from the Admin Portal.
 
+Create an instance of the PubNub class with your keys and a unique user ID:
 ```
 1
   
+
 ```
 
-- React Native:
-
+Create an instance of the PubNub class with your keys and a unique user ID:
 ```
 `1const pubnub = new PubNub({  
 2    publishKey: "demo",  
@@ -121,8 +119,7 @@ Create an instance with publishKey, subscribeKey, and a unique userId.
 `
 ```
 
-React Native cleanup pattern:
-
+In a real React Native application, you would typically initialize PubNub inside a component using hooks for proper lifecycle management:
 ```
 `1// Example of initialization in a React component (optional)  
 2useEffect(() => {  
@@ -137,11 +134,14 @@ React Native cleanup pattern:
 `
 ```
 
-See Configuration reference for more options.
+See Configuration: /docs/sdks/javascript/api-reference/configuration
 
 ### Set up event listeners
+Implement listeners to handle messages, presence (join, leave, timeout), and status (PNConnectedCategory, PNNetworkIssuesCategory, PNReconnectedCategory). See: /docs/sdks/javascript/api-reference/publish-and-subscribe#subscribe
 
-- Web:
+- Web
+- Node.js
+- React Native
 
 ```
 1// Add listener to handle messages, presence events, and connection status  
@@ -191,14 +191,11 @@ See Configuration reference for more options.
 44}  
 ```
 
-- Node.js:
-
 ```
 1
   
-```
 
-- React Native (complete example with listeners, presence, status, UI, and cleanup):
+```
 
 ```
 1// App.js or App.tsx for TypeScript projects  
@@ -580,45 +577,12 @@ See Configuration reference for more options.
 369});  
 ```
 
-To use this example in your React Native project:
-
-- Create a new project (Expo or RN CLI):
-
-```
-# Using Expo (easiest for beginners)  
-npx create-expo-app PubNubChatApp  
-cd PubNubChatApp  
-
-  
-# Or using React Native CLI  
-npx react-native init PubNubChatApp  
-cd PubNubChatApp  
-```
-
-- Install SDK:
-
-```
-`npm install pubnub  
-`
-```
-
-- Replace App.js/App.tsx with the code above.
-- Run:
-
-```
-# For Expo  
-npx expo start  
-
-  
-# For React Native CLI  
-npx react-native run-ios  
-# or  
-npx react-native run-android  
-```
-
 ### Create a subscription
+Subscribe to receive messages. Entity-based approach shown below. See: /docs/sdks/javascript/api-reference/publish-and-subscribe#subscribe
 
-- Web:
+- Web
+- Node.js
+- React Native
 
 ```
 1// Create a channel entity  
@@ -633,15 +597,13 @@ npx react-native run-android
 8subscription.subscribe();  
 ```
 
-- Node.js:
-
 ```
 1
   
+
 ```
 
-- React Native:
-
+In React Native, we typically subscribe within a useEffect hook:
 ```
 `1useEffect(() => {  
 2    if (!pubnub) return;  
@@ -675,9 +637,11 @@ npx react-native run-android
 ```
 
 ### Publish messages
+Publish JSON-serializable data (< 32 KiB) to a channel. All current subscribers receive it.
 
-- Messages are JSON-serializable data up to 32 KiB.
-- Web:
+- Web
+- Node.js
+- React Native
 
 ```
 1// Function to publish a message  
@@ -708,14 +672,11 @@ npx react-native run-android
 25});  
 ```
 
-- Node.js:
-
 ```
 1
   
-```
 
-- React Native:
+```
 
 ```
 1// State for the input text  
@@ -760,15 +721,19 @@ npx react-native run-android
 
 ### Run the app
 
-- Node.js:
+- Web
+- Node.js
+- React Native
 
+Save your JavaScript file (e.g., index.js).
+
+Run the file using Node.js:
 ```
 `node index.js  
 `
 ```
 
-- React Native:
-
+Start your React Native app:
 ```
 `npm run android  
 # or  
@@ -780,7 +745,9 @@ npm run web
 
 ## Complete example
 
-- Web:
+- Web
+- Node.js
+- React Native
 
 ```
 1DOCTYPE html>  
@@ -788,7 +755,7 @@ npm run web
 3head>  
 4    meta charset="utf-8" />  
 5    title>PubNub Chat Exampletitle>  
-6    script src="https://cdn.pubnub.com/sdk/javascript/pubnub.10.2.3.js">script>  
+6    script src="https://cdn.pubnub.com/sdk/javascript/pubnub.10.2.4.js">script>  
 7    style>  
 8        #chat-container {  
 9            max-width: 600px;  
@@ -926,14 +893,11 @@ npm run web
 134html>  
 ```
 
-- Node.js:
-
 ```
 1
   
-```
 
-- React Native:
+```
 
 ```
 1// App.js or App.tsx for TypeScript projects  
@@ -1315,17 +1279,23 @@ npm run web
 369});  
 ```
 
-## Next steps
+The examples demonstrate:
+- PubNub initialization and configuration
+- Event listeners for messages, presence, and status
+- Entity-based channel subscription
+- Message publishing with error handling
+- UI integration and cleanup patterns
 
-- Chat SDK overview and ready-to-use features.
-- Presence to track online/offline.
-- Storage and Playback (Message Persistence).
-- Access Manager for security.
-- Channel Groups for organization.
-- See the GitHub repository for more samples.
+## Next steps
+- Chat SDK: /docs/chat/chat-sdk
+- Presence: /docs/sdks/javascript/api-reference/presence
+- Message Persistence: /docs/sdks/javascript/api-reference/storage-and-playback
+- Access Manager: /docs/sdks/javascript/api-reference/access-manager
+- Channel Groups: /docs/sdks/javascript/api-reference/channel-groups
+- GitHub repo and samples: https://github.com/pubnub/javascript
 - Tutorials:
-  - IoT dashboard
-  - Geolocation app
-  - Delivery app
-- SDK reference documentation (Configuration, Publish/Subscribe, Presence, etc.).
-- Support portal and AI assistant for help.
+  - IoT dashboard: https://www.pubnub.com/tutorials/iot-dashboard-tutorial-javascript/
+  - Geolocation app: https://www.pubnub.com/tutorials/geolocation-tracking-tutorial-javascript/
+  - Delivery app: https://www.pubnub.com/tutorials/delivery-application/
+- SDK reference: /docs/sdks/javascript/api-reference/configuration
+- Support: https://support.pubnub.com/

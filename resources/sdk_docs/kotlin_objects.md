@@ -1,13 +1,13 @@
 # App Context API for Kotlin SDK
 
-App Context (formerly Objects v2) stores metadata for users, channels, and memberships. PubNub emits events on set, update, or removal.
+App Context (formerly Objects v2) stores metadata for users, channels, and memberships, and emits real-time events on set/update/remove. Setting the same data again doesn't trigger an event.
 
 ##### Breaking changes in v9.0.0
-- Unified Kotlin and Java SDKs, new client instantiation, updated async callbacks and status events.
-- See migration guides: Java/Kotlin SDK migration and Objects v2 migration.
+- Unified Java/Kotlin codebase, new PubNub client instantiation, updated async callbacks and status events.
+- Migration guides: Java/Kotlin SDK and Objects v2 migration.
 
 ##### Request execution
-Most methods return an Endpoint. Call .sync() or .async() to execute.
+- Most SDK methods return Endpoint. You must execute with .sync() or .async().
 
 ```
 1val channel = pubnub.channel("channelName")  
@@ -20,13 +20,13 @@ Most methods return an Endpoint. Call .sync() or .async() to execute.
 7        // Handle successful method result  
 8    }  
 9}  
+
 ```
 
 ## User
 
 ### Get metadata for all users
-
-Returns a paginated list of UUID Metadata.
+Returns a paginated list of UUID Metadata, optionally including custom.
 
 #### Method(s)
 ```
@@ -40,14 +40,17 @@ Returns a paginated list of UUID Metadata.
 8).async { result -> }  
 `
 ```
-- filter: String? = null - Filter expression; see filtering.
-- sort: Collection<PNSortKey<PNKey>> = listOf() - Sort by ID, NAME, UPDATED, TYPE, STATUS (asc/desc; for example, PNSortKey.asc(PNKey.STATUS)).
-- page: PNPage? = null - Cursor-based pagination.
-- limit: Int? (Default/Max 100) - Number of objects to return.
-- includeCustom: Boolean = false - Include custom object.
-- includeCount: Boolean = false - Include total count.
+- filter (String?, default null): Filter expression. See filtering docs.
+- sort (Collection<PNSortKey<PNKey>>, default listOf()): Sort by ID, NAME, UPDATED, TYPE, STATUS with asc/desc (for example, PNSortKey.asc(PNKey.STATUS)).
+- page (PNPage?, default null): Cursor-based pagination.
+- limit (Int?, default 100): Number of objects to return. Default/Max 100.
+- includeCustom (Boolean, default false): Include Custom object.
+- includeCount (Boolean, default false): Include total count in paginated response.
 
 #### Sample code
+##### Reference code
+This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
+
 ```
 1
   
@@ -77,11 +80,11 @@ Returns a paginated list of UUID Metadata.
 18    val type: PatchValueString?>? = null,  
 19    val status: PatchValueString?>? = null,  
 20)  
+
 ```
 
 ### Get user metadata
-
-Returns metadata for a UUID.
+Returns metadata for a specified UUID, optionally including custom.
 
 #### Method(s)
 ```
@@ -91,8 +94,8 @@ Returns metadata for a UUID.
 4).async { result -> }  
 `
 ```
-- uuid: String = pubnub.configuration.uuid - Unique identifier; defaults to configuration UUID.
-- includeCustom: Boolean = false - Include custom object.
+- uuid (String?, default pubnub.configuration.uuid): UUID identifier; uses configured UUID if omitted.
+- includeCustom (Boolean, default false): Include Custom object.
 
 #### Sample code
 ```
@@ -121,11 +124,14 @@ Returns metadata for a UUID.
 15    val type: PatchValueString?>? = null,  
 16    val status: PatchValueString?>? = null,  
 17)  
+
 ```
 
 ### Set user metadata
+Set metadata for a UUID, optionally including custom.
 
-Custom metadata overwrites existing data. To add or change a subset, read current, merge locally, then write back.
+Unsupported partial updates of custom metadata:
+- Custom is overwritten on set. To append/merge, fetch existing metadata, merge client-side, then set.
 
 #### Method(s)
 ```
@@ -143,19 +149,18 @@ Custom metadata overwrites existing data. To add or change a subset, read curren
 12).async { result -> }  
 `
 ```
-- uuid: String = pubnub.configuration.uuid - Unique identifier; defaults to configuration UUID.
-- includeCustom: Boolean = false - Include custom in response.
-- name: String? - Display name.
-- externalId: String? - External system ID.
-- profileUrl: String? - Profile picture URL.
-- email: String? - Email address.
-- type: String? - Custom type.
-- status: String? - Custom status.
-- custom: Any? - Key-value pairs. Filtering by custom is not supported.
-- ifMatchesEtag: String? - Conditional update using eTag; mismatches return HTTP 412.
+- uuid (String?, default pubnub.configuration.uuid): UUID identifier; uses configured UUID if omitted.
+- includeCustom (Boolean, default false): Include custom in fetch response.
+- name (String?): Display name.
+- externalId (String?): External system identifier.
+- profileUrl (String?): Profile picture URL.
+- email (String?): Email address.
+- type (String?): Custom type of the user.
+- status (String?): Custom status of the user.
+- custom (Any?): Key-value pairs (strings, numbers, booleans). Filtering by custom not supported.
+- ifMatchesEtag (String?): Use eTag for conditional update; server returns HTTP 412 on mismatch.
 
-##### API limits
-See REST API docs: set user metadata.
+API limits: See REST API docs for maximum parameter lengths.
 
 #### Sample code
 ```
@@ -184,9 +189,11 @@ See REST API docs: set user metadata.
 15    val type: PatchValueString?>? = null,  
 16    val status: PatchValueString?>? = null,  
 17)  
+
 ```
 
 ### Remove user metadata
+Removes metadata for a specified UUID.
 
 #### Method(s)
 ```
@@ -195,7 +202,7 @@ See REST API docs: set user metadata.
 3).async { result -> }  
 `
 ```
-- uuid: String = pubnub.configuration.uuid - Unique identifier; defaults to configuration UUID.
+- uuid (String?, default pubnub.configuration.uuid): UUID identifier; uses configured UUID if omitted.
 
 #### Sample code
 ```
@@ -213,8 +220,7 @@ See REST API docs: set user metadata.
 ## Channel
 
 ### Get metadata for all channels
-
-Returns a paginated list of Channel Metadata.
+Returns a paginated list of Channel Metadata, optionally including custom.
 
 #### Method(s)
 ```
@@ -228,12 +234,12 @@ Returns a paginated list of Channel Metadata.
 8).async { result -> }  
 `
 ```
-- filter: String? = null - Filter expression; see filtering.
-- sort: Collection<PNSortKey<PNKey>> = listOf() - Sort by PNKey.ID, NAME, UPDATED, TYPE, STATUS; use PNSortKey.asc/desc.
-- page: PNPage? = null - Pagination object.
-- limit: Int? (Default 100) - Number of objects per page.
-- includeCustom: Boolean = false - Include custom in response.
-- includeCount: Boolean = false - Include total count.
+- filter (String?, default null): Filter expression. See filtering docs.
+- sort (Collection<PNSortKey<PNKey>>, default listOf()): Sort by ID, NAME, UPDATED, TYPE, STATUS (use PNSortKey.asc/desc).
+- page (PNPage?, default null): Pagination.
+- limit (Int?, default 100): Object count (Default/Max 100).
+- includeCustom (Boolean, default false): Include Custom field.
+- includeCount (Boolean, default false): Include total count.
 
 #### Sample code
 ```
@@ -263,9 +269,11 @@ Returns a paginated list of Channel Metadata.
 16    val type: PatchValueString?>? = null,  
 17    val status: PatchValueString?>? = null,  
 18)  
+
 ```
 
 ### Get channel metadata
+Returns metadata for a specified channel, optionally including custom.
 
 #### Method(s)
 ```
@@ -275,8 +283,8 @@ Returns a paginated list of Channel Metadata.
 4).async { result -> }  
 `
 ```
-- channel: String - Channel name.
-- includeCustom: Boolean = false - Include custom in response.
+- channel (String): Channel name.
+- includeCustom (Boolean, default false): Include custom in response.
 
 #### Sample code
 ```
@@ -303,11 +311,14 @@ Returns a paginated list of Channel Metadata.
 13    val type: PatchValueString?>? = null,  
 14    val status: PatchValueString?>? = null,  
 15)  
+
 ```
 
 ### Set channel metadata
+Set metadata for a channel, optionally including custom.
 
-Custom metadata overwrites existing data. To add or change a subset, read current, merge locally, then write back.
+Unsupported partial updates of custom metadata:
+- Custom is overwritten on set. Fetch-merge-update if you need to append.
 
 #### Method(s)
 ```
@@ -323,17 +334,16 @@ Custom metadata overwrites existing data. To add or change a subset, read curren
 10).async { result -> }  
 `
 ```
-- channel: String - Channel name.
-- includeCustom: Boolean = false - Include custom in response.
-- name: String? - Channel name.
-- description: String? - Channel description.
-- type: String? - Custom type.
-- status: String? - Custom status.
-- custom: Any? - Custom JSON values (strings/numbers/booleans). Filtering by custom isn’t supported.
-- ifMatchesEtag: String? - Conditional update using eTag; mismatches throw HTTP 412.
+- channel (String): Channel name.
+- includeCustom (Boolean, default false): Include custom in response.
+- name (String?): Channel name.
+- description (String?): Channel description.
+- type (String?): Custom type.
+- status (String?): Custom status.
+- custom (Any?): Custom JSON (strings, numbers, booleans). Filtering by custom isn’t supported.
+- ifMatchesEtag (String?): Conditional update using eTag; HTTP 412 if mismatch.
 
-##### API limits
-See REST API docs: set channel metadata.
+API limits: See REST API docs for maximum parameter lengths.
 
 #### Sample code
 ```
@@ -360,10 +370,10 @@ See REST API docs: set channel metadata.
 13    val type: PatchValueString?>? = null,  
 14    val status: PatchValueString?>? = null,  
 15)  
+
 ```
 
 #### Other examples
-
 ##### Iteratively update existing metadata
 ```
 1
@@ -372,6 +382,7 @@ See REST API docs: set channel metadata.
 ```
 
 ### Remove channel metadata
+Removes metadata for a specified channel.
 
 #### Method(s)
 ```
@@ -380,7 +391,7 @@ See REST API docs: set channel metadata.
 3).async { result -> }  
 `
 ```
-- channel: String - Channel name.
+- channel (String): Channel name.
 
 #### Sample code
 ```
@@ -398,7 +409,6 @@ See REST API docs: set channel metadata.
 ## Channel memberships
 
 ### Get channel memberships
-
 Returns a list of channel memberships for a user (not subscriptions).
 
 #### Method(s)
@@ -413,12 +423,12 @@ Returns a list of channel memberships for a user (not subscriptions).
 8).async { result -> }  
 `
 ```
-- userId: String = pubnub.configuration.userId.value - Defaults to configuration userId.
-- limit: Int? (Default 100) - Number per page.
-- page: PNPage? = null - Pagination object.
-- filter: String? = null - Filter expression; see filtering.
-- sort: Collection<PNSortKey<PNMembershipKey>> = listOf() - Sort by CHANNEL_ID, CHANNEL_NAME, CHANNEL_UPDATED, CHANNEL_STATUS, CHANNEL_TYPE, UPDATED, STATUS, TYPE; use PNSortKey.PNAsc/PNDesc.
-- include: MembershipInclude = MembershipInclude() - Include additional data.
+- userId (String?, default pubnub.configuration.userId.value): User Metadata identifier; uses configured userId if omitted.
+- limit (Int?, default 100): Object count per page.
+- page (PNPage?, default null): Pagination.
+- filter (String?, default null): Filter expression.
+- sort (Collection<PNSortKey<PNMembershipKey>>, default listOf()): Sort by CHANNEL_ID, CHANNEL_NAME, CHANNEL_UPDATED, CHANNEL_STATUS, CHANNEL_TYPE, UPDATED, STATUS, TYPE (PNSortKey.PNAsc/PNDesc).
+- include (MembershipInclude, default MembershipInclude()): Include additional data.
 
 #### Sample code
 ```
@@ -446,9 +456,11 @@ Returns a list of channel memberships for a user (not subscriptions).
 14    val status: PatchValueString?>? = null,  
 15    val type: PatchValueString?>? = null  
 16)  
+
 ```
 
 ### Set channel memberships
+Set memberships for a user.
 
 #### Method(s)
 ```
@@ -463,22 +475,19 @@ Returns a list of channel memberships for a user (not subscriptions).
 9).async { result -> }  
 `
 ```
-- channels: List<ChannelMembershipInput> - Memberships to add with optional custom metadata (status/type).
-- userId: String = pubnub.configuration.userId.value - Defaults to configuration userId.
-- limit: Int? (Default 100) - Number per page.
-- page: PNPage? = null - Pagination.
-- filter: String? = null - Filter expression.
-- sort: Collection<PNSortKey<PNMembershipKey>> = listOf() - Sort by CHANNEL_ID, CHANNEL_NAME, CHANNEL_UPDATED, CHANNEL_STATUS, CHANNEL_TYPE, UPDATED, STATUS, TYPE; asc/desc.
-- include: MembershipInclude = MembershipInclude() - Include additional data.
+- channels (List<ChannelMembershipInput>): Memberships to add with optional custom/status/type.
+- userId (String?, default pubnub.configuration.userId.value): User identifier; uses configured userId if omitted.
+- limit (Int?, default 100), page (PNPage?, default null), filter (String?, default null).
+- sort (Collection<PNSortKey<PNMembershipKey>>, default listOf()): Sort by CHANNEL_ID, CHANNEL_NAME, CHANNEL_UPDATED, CHANNEL_STATUS, CHANNEL_TYPE, UPDATED, STATUS, TYPE.
+- include (MembershipInclude, default MembershipInclude()).
 
-##### API limits
-See REST API docs: set membership metadata.
+API limits: See REST API docs for maximum parameter lengths.
 
 #### ChannelMembershipInput
-- channel: String - Channel to add.
-- custom: CustomObject - Additional metadata.
-- type: String - Membership type.
-- status: String - Membership status.
+- channel (String): Channel ID.
+- custom (CustomObject): Additional info.
+- type (String): Membership type.
+- status (String): Membership status.
 
 #### Sample code
 ```
@@ -506,9 +515,11 @@ See REST API docs: set membership metadata.
 14    val status: PatchValueString?>? = null,  
 15    val type: PatchValueString?>? = null,  
 16)  
+
 ```
 
 ### Remove channel memberships
+Remove memberships for a user.
 
 #### Method(s)
 ```
@@ -523,13 +534,9 @@ See REST API docs: set membership metadata.
 9).async { result -> }  
 `
 ```
-- channels: List<String> - Channels to remove.
-- userId: String = pubnub.configuration.userId.value - Defaults to configuration userId.
-- filter: String? = null - Filter expression.
-- sort: Collection<PNSortKey<PNMembershipKey>> = listOf() - Sort by CHANNEL_ID, CHANNEL_NAME, CHANNEL_UPDATED, CHANNEL_STATUS, CHANNEL_TYPE, UPDATED, STATUS, TYPE; asc/desc.
-- page: PNPage? = null - Cursor-based pagination.
-- limit: Int? (Default/Max 100) - Number per page.
-- include: MembershipInclude = MembershipInclude() - Include additional fields.
+- channels (List<String>): Channel IDs to remove.
+- userId (String?, default pubnub.configuration.userId.value): User identifier; uses configured userId if omitted.
+- filter (String?, default null), sort (Collection<PNSortKey<PNMembershipKey>>, default listOf()), page (PNPage?, default null), limit (Int?, default 100), include (MembershipInclude).
 
 #### Sample code
 ```
@@ -557,9 +564,11 @@ See REST API docs: set membership metadata.
 14    val status: PatchValueString?>? = null,  
 15    val type: PatchValueString?>? = null,  
 16)  
+
 ```
 
 ### Manage channel memberships
+Add and remove memberships for a user in one call.
 
 #### Method(s)
 ```
@@ -575,10 +584,10 @@ See REST API docs: set membership metadata.
 10).async { result -> }  
 `
 ```
-- channelsToSet: List<PNChannelWithCustom> - Memberships to add/update.
-- channelsToRemove: List<String> - Channels to remove.
-- userId: String = pubnub.configuration.userId.value - Defaults to configuration userId.
-- filter, sort, page, limit, include - Same semantics as above.
+- channelsToSet (List<PNChannelWithCustom>): Channels to add with optional custom.
+- channelsToRemove (List<String>): Channels to remove.
+- userId (String?, default pubnub.configuration.userId.value): User identifier.
+- filter (String?, default null), sort (Collection<PNSortKey<PNMembershipKey>>, default listOf()), page (PNPage?, default null), limit (Int?, default 100), include (MembershipInclude).
 
 #### Sample code
 ```
@@ -606,13 +615,13 @@ See REST API docs: set membership metadata.
 14    val status: PatchValueString?>? = null,  
 15    val type: PatchValueString?>? = null,  
 16)  
+
 ```
 
 ## Channel members
 
 ### Get channel members
-
-Returns a list of members in a channel (with user metadata when available).
+Returns a list of members in a channel, including user metadata when present.
 
 #### Method(s)
 ```
@@ -626,12 +635,10 @@ Returns a list of members in a channel (with user metadata when available).
 8).async { result -> }  
 `
 ```
-- channel: String - Channel name.
-- limit: Int? (Default 100)
-- page: PNPage? = null
-- filter: String? = null - Filter expression; see filtering.
-- sort: Collection<PNSortKey<PNMemberKey>> = listOf() - Sort by UUID_ID, UUID_NAME, UUID_UPDATED, UUID_NAME, UUID_TYPE, UPDATED, STATUS, TYPE; asc/desc.
-- include: MemberInclude = MemberInclude() - Include additional data.
+- channel (String): Channel name.
+- limit (Int?, default 100), page (PNPage?, default null), filter (String?, default null).
+- sort (Collection<PNSortKey<PNMemberKey>>, default listOf()): Sort by UUID_ID, UUID_NAME, UUID_UPDATED, UUID_NAME, UUID_TYPE, UPDATED, STATUS, TYPE.
+- include (MemberInclude, default MemberInclude()).
 
 #### Sample code
 ```
@@ -657,9 +664,11 @@ Returns a list of members in a channel (with user metadata when available).
 12    val updated: Instant,  
 13    val eTag: String  
 14)  
+
 ```
 
 ### Set channel members
+Set members in a channel.
 
 #### Method(s)
 ```
@@ -680,12 +689,13 @@ Returns a list of members in a channel (with user metadata when available).
 15}  
 `
 ```
-- channel: String - Channel name.
-- users: List<PNMember.Partial> - Members to add.
-- limit, page, filter, sort, include - Same semantics as above.
+- channel (String): Channel name.
+- users (List<PNMember.Partial>): Members to add (optional custom).
+- limit (Int?, default 100), page (PNPage?, default null), filter (String?, default null).
+- sort (Collection<PNSortKey<PNMemberKey>>, default listOf()).
+- include (MemberInclude, default MemberInclude()).
 
-##### API limits
-See REST API docs: set channel members metadata.
+API limits: See REST API docs for maximum parameter lengths.
 
 #### Sample code
 ```
@@ -713,9 +723,11 @@ See REST API docs: set channel members metadata.
 14    val status: PatchValueString?>?,  
 15    val type: PatchValueString?>?,  
 16)  
+
 ```
 
 ### Remove channel members
+Remove members from a channel.
 
 #### Method(s)
 ```
@@ -730,9 +742,9 @@ See REST API docs: set channel members metadata.
 9).async { result -> }  
 `
 ```
-- userIds: List<String> - Members to remove.
-- channel: String - Channel name.
-- limit, page, filter, sort, include - Same semantics as above.
+- userIds (List<String>): Member user IDs to remove.
+- channel (String): Channel name.
+- limit (Int?, default 100), page (PNPage?, default null), filter (String?, default null), sort (Collection<PNSortKey<PNMemberKey>>, default listOf()), include (MemberInclude).
 
 #### Sample code
 ```
@@ -760,11 +772,11 @@ See REST API docs: set channel members metadata.
 14    val status: PatchValueString?>?,  
 15    val type: PatchValueString?>?,  
 16)  
+
 ```
 
 ### Manage channel members
-
-Set and remove channel members for a channel.
+Set and remove channel members for a channel in one call.
 
 #### Method(s)
 ```
@@ -786,14 +798,10 @@ Set and remove channel members for a channel.
 16}  
 `
 ```
-- channel: String - Channel name.
-- usersToSet: List<PNMember.Partial> - Members to add with optional custom metadata.
-- userIdsToRemove: List<String> - Members to remove.
-- limit: Int? (Default 100)
-- page: PNPage? = null
-- filter: String? = null
-- sort: Collection<PNSortKey<PNMemberKey>> = listOf() - Sort by UUID_ID, UUID_NAME, UUID_UPDATED, UUID_NAME, UUID_TYPE, UPDATED, STATUS, TYPE; asc/desc.
-- include: MemberInclude = MemberInclude()
+- channel (String): Channel name.
+- usersToSet (List<PNMember.Partial>): Members to add with optional custom.
+- userIdsToRemove (List<String>): Members to remove.
+- limit (Int?, default 100), page (PNPage?, default null), filter (String?, default null), sort (Collection<PNSortKey<PNMemberKey>>, default listOf()), include (MemberInclude).
 
 #### Sample code
 ```
@@ -820,4 +828,7 @@ Set and remove channel members for a channel.
 14    val status: PatchValueString?>?,  
 15    val type: PatchValueString?>?,  
 16)  
+
 ```
+
+Last updated on Sep 3, 2025**

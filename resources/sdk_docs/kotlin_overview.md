@@ -1,40 +1,43 @@
 # Kotlin API & SDK Docs 12.0.1
 
 ##### Breaking changes in v9.0.0
-- Unified Kotlin and Java SDKs; new PubNub client instantiation; updated async callbacks and [status events](/docs/sdks/kotlin/status-events).
-- Migration details: [Java/Kotlin SDK migration guide](/docs/general/resources/migration-guides/java-kotlin-sdk-migration-guide).
+PubNub Kotlin SDK v9.0.0 unified Kotlin and Java SDKs, introduced a new client instantiation, and changed async callbacks and status events. Apps built with versions < 9.0.0 may be impacted. See: Java/Kotlin SDK migration guide.
 
-This guide demonstrates:
-- Setting up a connection
-- Sending messages
-- Receiving messages in real-time
+This guide shows how to:
+- Set up a connection
+- Send messages
+- Receive messages in real-time
 
 ## Overview
 Two implementation paths:
 - Android app development
-- Non-mobile platforms (server-side, desktop, etc.)
+- Non-mobile platforms
 
-Core API usage is consistent; lifecycle and UI handling differ.
+Core API usage is the same; lifecycle and UI handling differ.
 
-Chat apps: See [Kotlin Chat SDK](/docs/chat/kotlin-chat-sdk).
+##### Chat applications
+For Android chat apps, see Kotlin Chat SDK.
 
 ## Prerequisites
-- Kotlin knowledge
-- Android Studio or Kotlin IDE
-- PubNub account and keys
+- Kotlin basics
+- Android Studio or another Kotlin IDE
+- PubNub account
 
 ## Setup
 
 ### Get your PubNub keys
-- [Sign in](https://admin.pubnub.com/#/login) or [create an account](https://admin.pubnub.com/#/signup).
-- Create an app; get publish and subscribe keys from the app’s keyset.
-- Use separate keysets for dev/prod.
+- Sign in or create an account on the PubNub Admin Portal.
+- Create an app (or use an existing one).
+- Retrieve publish and subscribe keys (consider separate keysets for dev/prod).
 
 ### Install the SDK
 
-- Android app development
+Always use the latest SDK version.
 
-To integrate PubNub into your Android project, add this dependency to your app-level `build.gradle` file:
+- Android app development
+- Non-mobile platforms
+
+Add to app-level build.gradle:
 
 ```
 1implementation 'com.pubnub:pubnub-kotlin:12.0.1'  
@@ -45,7 +48,7 @@ To integrate PubNub into your Android project, add this dependency to your app-l
 
 ```
 
-Don't forget to add internet permission to your `AndroidManifest.xml`:
+Add internet permission to AndroidManifest.xml:
 
 ```
 `1uses-permission android:name="android.permission.INTERNET" />  
@@ -53,7 +56,6 @@ Don't forget to add internet permission to your `AndroidManifest.xml`:
 ```
 
 #### Configure ProGuard
-If you're using ProGuard, configure it as follows.
 
 ```
 1# Add project specific ProGuard rules here.  
@@ -136,10 +138,7 @@ If you're using ProGuard, configure it as follows.
 
 ```
 
-Choose your preferred way to add the PubNub SDK to your project:
-
 #### Maven
-To integrate PubNub into your project using Maven, add this dependency to you `pom.xml`:
 
 ```
 `1dependency>  
@@ -151,7 +150,6 @@ To integrate PubNub into your project using Maven, add this dependency to you `p
 ```
 
 #### Gradle
-To integrate PubNub into your project using Gradle, add this dependency to your `build.gradle` file:
 
 ```
 `1implementation 'com.pubnub:pubnub-kotlin:12.0.1'  
@@ -159,7 +157,6 @@ To integrate PubNub into your project using Gradle, add this dependency to your 
 ```
 
 #### Source code
-Clone the [GitHub repository](https://github.com/pubnub/kotlin):
 
 ```
 `1git clone https://github.com/pubnub/kotlin  
@@ -169,9 +166,9 @@ Clone the [GitHub repository](https://github.com/pubnub/kotlin):
 ## Steps
 
 ### Initialize PubNub
-- Android app development
 
-In Android Studio, create a new Android project with Kotlin support. Add PubNub initialization code to your main Activity or Fragment class. Replace demo keys with your publish and subscribe keys.
+- Android app development
+- Non-mobile platforms
 
 ```
 1// Import required classes  
@@ -218,20 +215,18 @@ In Android Studio, create a new Android project with Kotlin support. Add PubNub 
 
 ```
 
-- Non-mobile platforms
-
 ```
 1
   
 
 ```
 
-More: [Configuration](/docs/sdks/kotlin/api-reference/configuration).
+For more information, see Configuration.
 
 ### Set up event listeners
-Use listeners to handle connection state and incoming events.
 
 - Android app development
+- Non-mobile platforms
 
 ```
 1import com.pubnub.api.enums.PNStatusCategory  
@@ -271,20 +266,18 @@ Use listeners to handle connection state and incoming events.
 
 ```
 
-- Non-mobile platforms
-
 ```
 1
   
 
 ```
 
-More: [Listeners](/docs/sdks/kotlin/api-reference/configuration#event-listeners).
+For more information, see Listeners.
 
 ### Create a subscription
-Subscribe to a channel and add an event listener.
 
 - Android app development
+- Non-mobile platforms
 
 ```
 1import com.pubnub.api.v2.subscriptions.SubscriptionOptions  
@@ -348,20 +341,20 @@ Subscribe to a channel and add an event listener.
 
 ```
 
-- Non-mobile platforms
-
 ```
 1
   
 
 ```
 
-More: [Subscribe](/docs/sdks/kotlin/api-reference/publish-and-subscribe#subscribe).
+For more information, see Subscribe.
 
 ### Publish messages
-Publish JSON-serializable data (< 32 KiB) to a channel.
+
+Messages are JSON-serializable and must be < 32 KiB.
 
 - Android app development
+- Non-mobile platforms
 
 ```
 1private fun sendMessage(text: String) {  
@@ -415,8 +408,6 @@ Publish JSON-serializable data (< 32 KiB) to a channel.
 
 ```
 
-- Non-mobile platforms
-
 ```
 1
   
@@ -424,8 +415,8 @@ Publish JSON-serializable data (< 32 KiB) to a channel.
 ```
 
 ### Run the app
-- Android: Build and run on device/emulator. Ensure valid keys and network connectivity.
-- Non-mobile: Run with your build tool.
+
+To test the code from your App.kt file, run it with gradle run.
 
 Expected output:
 
@@ -446,22 +437,33 @@ Expected output:
 ```
 
 ### Troubleshooting
-- No connection:
-  - Check internet, keys, and firewall.
-- Message not received:
-  - Verify channel subscription and publish success; wait for delivery.
-- Build errors:
-  - Confirm dependency and Kotlin versions; verify imports.
-- Android-specific issues: see [Kotlin SDK Troubleshooting](/docs/sdks/kotlin/troubleshoot).
+
+- No connection message
+  - Check internet connectivity.
+  - Verify publish/subscribe keys.
+  - Ensure no firewall blocks PubNub.
+
+- Message not received
+  - Confirm you’re subscribed to the correct channel.
+  - Check publish result/errors.
+  - Allow time for delivery.
+
+- Build errors
+  - Verify PubNub dependency is added.
+  - Ensure Kotlin version compatibility.
+  - Fix imports.
+
+For Android-specific issues (ProGuard, API compatibility), see Kotlin SDK Troubleshooting guide.
 
 ## Next steps
-- Chat: [Kotlin Chat SDK](/docs/chat/kotlin-chat-sdk); typing indicators, read receipts.
-- Presence: [Presence](/docs/sdks/kotlin/api-reference/presence).
-- Storage: [Message Persistence](/docs/sdks/kotlin/api-reference/storage-and-playback).
-- Security: [Access Manager](/docs/sdks/kotlin/api-reference/access-manager).
-- Examples: [Digital Health Reference Implementation](https://github.com/pubnub/kotlin-telemedicine-demo).
-- More samples: [GitHub repository](https://github.com/pubnub/kotlin/).
-- API reference: [SDK reference documentation](/docs/sdks/kotlin/api-reference/configuration).
-- Support: [Support portal](https://support.pubnub.com/).
+- Kotlin Chat SDK (typing indicators, read receipts)
+- Presence
+- Message Persistence
+- Access Manager
+- Digital Health Reference Implementation
+- GitHub repository for samples
+- SDK reference documentation
+- Support portal
+- Ask the AI assistant
 
 Last updated on Sep 3, 2025

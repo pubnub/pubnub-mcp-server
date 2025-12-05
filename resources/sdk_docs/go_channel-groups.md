@@ -1,14 +1,19 @@
 # Channel Groups API for Go SDK
 
-Channel groups let you bundle many channels under a single group name for subscription. You can't publish to a channel group; publish to individual channels instead.
+Channel groups let you bundle many channels under a single name and subscribe to them to receive messages from all included channels.
+
+##### Channel group operations
+- You can't publish to a channel group; only subscribe to it. Publish to individual channels instead.
 
 ## Add channels to a channel group
 
-Requires Stream Controller add-on (enable in Admin Portal). Adds channels to a channel group.
+##### Requires Stream Controller add-on
+Enable the Stream Controller add-on for your key in the Admin Portal.
 
-- Limit: up to 200 channels per API call.
+Adds channels to a channel group.
 
 ### Method(s)
+Maximum number of channels: up to 200 channels per API call.
 
 ```
 `1pn.AddChannelToChannelGroup().  
@@ -20,12 +25,13 @@ Requires Stream Controller add-on (enable in Admin Portal). Adds channels to a c
 ```
 
 Parameters:
-- Channels (required) — Type: []string. Channels to add.
-- ChannelGroup (required) — Type: string. Target channel group.
-- QueryParam — Type: map[string]string. Extra query string parameters.
+- Channels (Type: []string) — The channels to add to the channel group.
+- ChannelGroup (Type: string) — The channel group to add the channels to.
+- QueryParam (Type: map[string]string) — Keys and values are passed as query string parameters.
 
 ### Sample code
 
+#### Add channels
 ```
 1
   
@@ -33,7 +39,6 @@ Parameters:
 ```
 
 ### Response
-
 ```
 `1{  
 2    "service" : "channel-registry",  
@@ -46,10 +51,12 @@ Parameters:
 
 ## List channels in a channel group
 
-Requires Stream Controller add-on. Lists all channels in a channel group.
+##### Requires Stream Controller add-on
+Enable the Stream Controller add-on for your key in the Admin Portal.
+
+Lists all channels in a channel group.
 
 ### Method(s)
-
 ```
 `1pn.ListChannelsInChannelGroup().  
 2    ChannelGroup(string).  
@@ -59,11 +66,12 @@ Requires Stream Controller add-on. Lists all channels in a channel group.
 ```
 
 Parameters:
-- ChannelGroup (required) — Type: string. Channel group to list.
-- QueryParam — Type: map[string]string. Extra query string parameters.
+- ChannelGroup (Type: string) — The channel group for which to list channels.
+- QueryParam (Type: map[string]string) — Keys and values are passed as query string parameters.
 
 ### Sample code
 
+#### List channels
 ```
 1
   
@@ -71,17 +79,17 @@ Parameters:
 ```
 
 ### Response
-
-Fields:
-- Channels — Type: []string. Required.
-- Group — Type: string. Required.
+- Channels (Type: []string)
+- Group (Type: string)
 
 ## Remove channels from a channel group
 
-Requires Stream Controller add-on. Removes channels from a channel group.
+##### Requires Stream Controller add-on
+Enable the Stream Controller add-on for your key in the Admin Portal.
+
+Removes channels from a channel group.
 
 ### Method(s)
-
 ```
 `1pn.RemoveChannelFromChannelGroup().  
 2    ChannelGroup(string).  
@@ -92,12 +100,13 @@ Requires Stream Controller add-on. Removes channels from a channel group.
 ```
 
 Parameters:
-- ChannelGroup (required) — Type: string. Group to remove from.
-- Channels (required) — Type: []string. Channels to remove.
-- QueryParam — Type: map[string]string. Extra query string parameters.
+- ChannelGroup (Type: string) — The channel group from which to remove channels.
+- Channels (Type: []string) — The channels to remove.
+- QueryParam (Type: map[string]string) — Keys and values are passed as query string parameters.
 
 ### Sample code
 
+#### Remove channels
 ```
 1
   
@@ -105,7 +114,6 @@ Parameters:
 ```
 
 ### Response
-
 ```
 `1{  
 2    Error:nil>  
@@ -130,10 +138,12 @@ Parameters:
 
 ## Delete a channel group
 
-Requires Stream Controller add-on. Deletes a channel group.
+##### Requires Stream Controller add-on
+Enable the Stream Controller add-on for your key in the Admin Portal.
+
+Deletes a channel group.
 
 ### Method(s)
-
 ```
 `1pn.DeleteChannelGroup().  
 2    ChannelGroup(string).  
@@ -143,11 +153,12 @@ Requires Stream Controller add-on. Deletes a channel group.
 ```
 
 Parameters:
-- ChannelGroup (required) — Type: string. Group to delete.
-- QueryParam — Type: map[string]string. Extra query string parameters.
+- ChannelGroup (Type: string) — The channel group to delete.
+- QueryParam (Type: map[string]string) — Keys and values are passed as query string parameters.
 
 ### Sample code
 
+#### Delete channel group
 ```
 1
   
@@ -155,7 +166,6 @@ Parameters:
 ```
 
 ### Response
-
 ```
 `1{**2    Error:nil>  
 3    Category:Unknown  

@@ -3,65 +3,67 @@
 This guide shows how to:
 - Set up a connection to PubNub
 - Send a "Hello, World" message
-- Receive messages in real-time
+- Receive messages in real time
 
 ## Overview
 
-Initialize the SDK, set up event listeners, and send/receive a "Hello, World" message in Unreal Engine (C++).
+Initialize the SDK, set up event listeners, and send/receive a simple "Hello, World" message in Unreal Engine using C++.
 
 ## Prerequisites
 
-- Unreal Engine 5.2+ (or manual plugin install for 5.0.X–5.1.X)
-- C++ knowledge
+- Basic Unreal Engine and C++ knowledge
+- Unreal Engine 5.2+ recommended
 - PubNub account and keyset
 
-For Unreal Engine versions 5.0.X–5.1.X:
-- Install Unreal Engine 5.0.X or 5.1.X
-- Create a new blank project
-- Create a Plugins folder in your project
-- Clone https://github.com/pubnub/unreal-engine into Plugins and rename the folder to Pubnub
-- Generate IDE project files (Mac: Services -> Generate Xcode project; Windows: Generate Visual Studio project files)
-- Add dependency in Build.cs, then compile and run
+For Unreal Engine versions 5.0.X–5.1.X, install the plugin manually.
+
+Download and install Unreal Engine 5.0.X or 5.1.X. Create a new blank project and an empty Plugins folder in the project root.
 
 #### Download the SDK
 
-Clone https://github.com/pubnub/unreal-engine into your project’s Plugins folder and rename to Pubnub.
+In the Plugins folder:
+- Clone https://github.com/pubnub/unreal-engine
+- Rename the cloned folder to Pubnub
 
 #### Configure the workspace
 
-Generate IDE project files (Xcode/Visual Studio), open the workspace, and add the PubNub dependency in Build.cs:
+Generate your IDE project files, then add the PubNub dependency to your Build.cs:
 
 ```
 `PrivateDependencyModuleNames.AddRange(new string[] { "PubnubLibrary" });  
 `
 ```
 
-Compile and run.
+Compile and run your project.
 
 ### Installation on Unreal Engine <5.2.0
-
-Follow the manual steps above for 5.0.X–5.1.X (clone plugin into Plugins, add Build.cs dependency, generate project files, compile).
 
 ## Setup
 
 ### Get your PubNub keys
 
-- Create/sign in to your PubNub account and create an app
-- Use the generated publish and subscribe keys
-- Use separate keysets for production and test
+- Sign in or create an account in the Admin Portal and create an app.
+- Use the generated publish and subscribe keys from the app dashboard.
+- Create separate keysets for production and test environments.
 
 ### Install the SDK
 
-- Use the plugin from FAB or GitHub
-- Enable PubNubSDK in your project
-- Add C++ dependency:
+Always use the latest SDK version.
+
+Get the PubNub Unreal Engine SDK from:
+- FAB plugin: https://www.fab.com/listings/9501a8d6-f9e6-4cf8-8b56-d173bdb71fc4
+- GitHub: https://github.com/pubnub/unreal-engine
+
+Enable the PubNubSDK plugin in your project.
+
+Add the C++ dependency in your Build.cs:
 
 ```
 `PrivateDependencyModuleNames.AddRange(new string[] { "PubnubLibrary" });  
 `
 ```
 
-- Include the header in files that use PubNub:
+Include the header where you use the SDK:
 
 ```
 `#include "PubnubSubsystem.h"  
@@ -70,32 +72,36 @@ Follow the manual steps above for 5.0.X–5.1.X (clone plugin into Plugins, add 
 
 ### Configure PubNub in Unreal Editor
 
-Project Settings -> Plugins -> Pubnub SDK:
-- Publish Key: demo (replace for production)
-- Subscribe Key: demo (replace for production)
-- Secret Key: leave empty unless using access control
+Project Settings > Plugins > Pubnub SDK:
+- Publish Key: demo (replace with your key for production)
+- Subscribe Key: demo (replace with your key for production)
+- Secret Key: leave empty unless using Access Manager
 - Initialize Automatically: checked (recommended)
-- Set Secret Key Automatically: unchecked (unless using access control)
+- Set Secret Key Automatically: unchecked (enable only if using access control)
 
-SDK initialization: If not initializing automatically, initialize in code before use.
+SDK initialization
+- If Initialize Automatically is disabled, initialize the PubNub SDK in code before use.
 
-Required User ID: Always set and persist a unique User ID; without it, connection fails.
+Required User ID
+- Always set a stable User ID for each user/device before connecting.
 
 ### Configure the Unreal Engine project
 
 Create two classes:
-- PubNubGameInstance (UGameInstance)
-- PubNubPlayerController (APlayerController)
+- PubNubGameInstance — inherits from UGameInstance
+- PubNubPlayerController — inherits from APlayerController
 
-Set project defaults:
-- Default GameInstance -> PubNubGameInstance
-- Default Player Controller -> PubNubPlayerController
+Project settings:
+- Set Default GameInstance to PubNubGameInstance
+- Set Default Player Controller to PubNubPlayerController
 
 ## Steps
 
 ### Initialize PubNub
 
-Use a GameInstance to initialize PubNub, set a User ID, subscribe, and handle events.
+First, define the GameInstance to initialize PubNub, set a User ID, subscribe to a channel, and handle messages/errors.
+
+Replace demo keys with your own in Project Settings or initialization.
 
 In your header file (PubNubGameInstance.h):
 
@@ -198,17 +204,25 @@ void UPubNubGameInstance::PublishHelloWorld()
 
 ```
 
+For more information, see Configuration.
+
 ### Set up event listeners
 
-Bind OnMessageReceived and OnPubnubError to handle messages and errors (see Init above).
+Listeners let your app react to events/messages. The code above binds:
+- OnMessageReceived to log received messages
+- OnErrorReceived to log SDK errors
+
+See Event Listeners for details.
 
 ### Create a subscription
 
-Subscribe to a channel to receive messages (see SubscribeToChannel in Init above).
+Subscribe to channels to receive messages. The example subscribes to "hello_world_channel" in Init(). See Subscribe.
 
 ### Publish messages
 
-Messages must be JSON-serializable and < 32 KiB. Use a PlayerController to publish on key press.
+Messages must be JSON-serializable and <32 KiB.
+
+Create a PlayerController that publishes "Hello, World!" on P key press.
 
 In your header file (PubNubPlayerController.h):
 
@@ -271,10 +285,14 @@ void APubNubPlayerController::HandleKeyP()
 
 ```
 
+See Publish for details.
+
 ### Run the app
 
-- Launch the project
-- Press P to publish “Hello, World!” and observe logs on both publisher/subscriber instances
+- Play the project.
+- Press P to publish "Hello, World!".
+- Observe logs for message and errors.
+- Test across platforms to validate behavior.
 
 ## Complete example
 
@@ -446,9 +464,11 @@ void APubNubPlayerController::HandleKeyP()
 - Presence
 - Message Persistence
 - Access Manager
-- Objects
-- GitHub repository
+- Objects (Users/Channels metadata)
+- Blog: Announcing PubNub’s UE and Gaming Chat SDKs
+- GitHub repository (samples)
 - SDK reference documentation
 - Support portal
+- Ask the AI assistant
 
 Last updated on Sep 11, 2025

@@ -1,20 +1,19 @@
 # Presence API for Python SDK
 
-Presence lets you track online/offline users and store custom state. It shows:
+Presence tracks who is online/offline, channel occupancy, channel subscriptions, and presence state.
+
 - Join/leave events on channels
-- Channel occupancy counts
-- Channels a user (UUID) is subscribed to
+- Channel occupancy (user count)
+- Channels a UUID is subscribed to
 - Presence state per user
 
-Learn more: Presence overview.
+Learn more in the Presence overview.
 
 ##### Request execution and return values
 
 Operations can be executed synchronously or asynchronously.
 
-`.sync()` returns an `Envelope` with:
-- `Envelope.result` (type differs per API)
-- `Envelope.status` (`PnStatus`)
+`.sync()` returns an `Envelope` with `Envelope.result` (varies by API) and `Envelope.status` (`PnStatus`).
 
 ```
 `1pubnub.publish() \  
@@ -35,13 +34,18 @@ Operations can be executed synchronously or asynchronously.
 5    .channel("myChannel") \  
 6    .message("Hello from PubNub Python SDK") \  
 7    .pn_async(my_callback_function)  
+
 ```
 
 ## Here now
 
-Requires Presence (enable in Admin Portal). Returns current state for channels: list of UUIDs and occupancy count. Cache: 3 seconds.
+##### Requires Presence
+Enable Presence for your key in the Admin Portal. For presence event streaming, see Presence Events.
 
-For presence events, see Presence Events.
+Returns the current state of channels: list of UUIDs subscribed and total occupancy.
+
+##### Cache
+3-second response cache time.
 
 ### Method(s)
 
@@ -50,21 +54,25 @@ For presence events, see Presence Events.
 2    .channels(String|List|Tuple) \  
 3    .channel_groups(String|List|Tuple) \  
 4    .include_state(Boolean) \  
-5    .include_uuids(Boolean)  
+5    .include_uuids(Boolean) \  
+6    .limit(Integer) \  
+7    .offset(Integer)  
 `
 ```
 
-- channels (String | List | Tuple): Channels to get here-now details.
-- channel_groups (String | List | Tuple): Channel groups to get here-now details. Wildcards not supported.
-- include_state (Boolean, default False): Include user presence states.
-- include_uuids (Boolean, default True): Include connected client UUIDs.
+Parameters:
+- channels (String | List | Tuple): Channels to query.
+- channel_groups (String | List | Tuple): Channel groups to query. Wildcards not supported.
+- include_state (Boolean, default False): Include presence state per user.
+- include_uuids (Boolean, default True): Include UUIDs of connected clients.
+- limit (Integer, default 1000): 0–1000. Use 0 for occupancy only (no user details).
+- offset (Integer, default None): Zero-based start index for pagination. Must be >= 0 and used with limit > 0.
 
 ### Sample code
 
 #### Get a list of UUIDs subscribed to channel
 
-- Builder Pattern
-- Named Arguments
+Reference code (Builder Pattern, Named Arguments):
 
 ```
 1import os  
@@ -101,8 +109,7 @@ For presence events, see Presence Events.
 26        print("---")  
 27        print(f"Channel: {channel_data.channel_name}")  
 28        print(f"Occupancy: {channel_data.occupancy}")  
-29
-  
+29  
 30        for occupant in channel_data.occupants:  
 31            print(f"UUID: {occupant.uuid}, State: {occupant.state}")  
 32
@@ -112,6 +119,8 @@ For presence events, see Presence Events.
 34if __name__ == "__main__":  
 35    main()  
 36
+  
+
 ```
 
 ```
@@ -149,8 +158,7 @@ For presence events, see Presence Events.
 26        print("---")  
 27        print(f"Channel: {channel_data.channel_name}")  
 28        print(f"Occupancy: {channel_data.occupancy}")  
-29
-  
+29  
 30        for occupant in channel_data.occupants:  
 31            print(f"UUID: {occupant.uuid}, State: {occupant.state}")  
 32
@@ -160,28 +168,27 @@ For presence events, see Presence Events.
 34if __name__ == "__main__":  
 35    main()  
 36
+  
+
 ```
 
 ### Returns
 
 `here_now()` returns an `Envelope`:
-- result: `PNHereNowResult`
-- status: `PNStatus`
+- result: PNHereNowResult
+- status: PNStatus
 
-#### PNHereNowResult
-
+PNHereNowResult:
 - total_channels (Int)
 - total_occupancy (Int)
-- channels (Dictionary<String, PNHereNowChannelData>)
+- channels (Dictionary of PNHereNowChannelData)
 
-#### PNHereNowChannelData
-
+PNHereNowChannelData:
 - channel_name (String)
 - occupancy (Int)
-- occupants (List<PNHereNowOccupantData>)
+- occupants (List of PNHereNowOccupantData)
 
-#### PNHereNowOccupantData
-
+PNHereNowOccupantData:
 - uuid (String)
 - state (Dictionary)
 
@@ -189,7 +196,8 @@ For presence events, see Presence Events.
 
 #### Returning state
 
-Requires Presence.
+##### Requires Presence
+Enable Presence for your key. See Presence Events for streaming events.
 
 ```
 `1envelope = pubnub.here_now() \  
@@ -200,7 +208,7 @@ Requires Presence.
 `
 ```
 
-##### Example response
+Example response:
 
 ```
 `1{  
@@ -224,9 +232,10 @@ Requires Presence.
 
 #### Return occupancy only
 
-Requires Presence.
+##### Requires Presence
+Enable Presence for your key. See Presence Events for streaming events.
 
-You can return only `occupancy` by setting `include_uuids=False` and `include_state=False`.
+Return only occupancy for a channel by disabling UUIDs:
 
 ```
 `1envelope = pubnub.here_now() \  
@@ -237,7 +246,7 @@ You can return only `occupancy` by setting `include_uuids=False` and `include_st
 `
 ```
 
-##### Example response
+Example response:
 
 ```
 `1{  
@@ -263,7 +272,7 @@ You can return only `occupancy` by setting `include_uuids=False` and `include_st
 `
 ```
 
-##### Example response
+Example response:
 
 ```
 `1{  
@@ -304,11 +313,39 @@ You can return only `occupancy` by setting `include_uuids=False` and `include_st
 `
 ```
 
+#### Paginate through occupants
+
+##### Requires Presence
+Enable Presence for your key. See Presence Events for streaming events.
+
+Use `limit` and `offset`:
+
+```
+1# Get first 10 occupants  
+2envelope = pubnub.here_now() \  
+3    .channels("my_channel") \  
+4    .limit(10) \  
+5    .sync()  
+6
+  
+7# Get next 10 occupants (starting from position 10)  
+8envelope = pubnub.here_now() \  
+9    .channels("my_channel") \  
+10    .limit(10) \  
+11    .offset(10) \  
+12    .sync()  
+
+```
+
 ## Where now
 
-Requires Presence. Returns the list of channels a UUID is subscribed to.
+##### Requires Presence
+Enable Presence for your key. See Presence Events.
 
-Timeout note: If the app restarts within the heartbeat window, no timeout event is generated.
+Returns channels a UUID is subscribed to.
+
+##### Timeout events
+If the app restarts (or page refreshes) within the heartbeat window, no timeout event is generated.
 
 ### Method(s)
 
@@ -318,7 +355,8 @@ Timeout note: If the app restarts within the heartbeat window, no timeout event 
 `
 ```
 
-- uuid (String): UUID to get info on.
+Parameters:
+- uuid (String): UUID to query.
 
 ### Sample code
 
@@ -332,11 +370,10 @@ Timeout note: If the app restarts within the heartbeat window, no timeout event 
 ### Returns
 
 `where_now()` returns an `Envelope`:
-- result: `PNWhereNowResult`
-- status: `PNStatus`
+- result: PNWhereNowResult
+- status: PNStatus
 
-#### PNWhereNowResult
-
+PNWhereNowResult:
 - channels (List): Channels where the UUID is present.
 
 ### Other examples
@@ -360,7 +397,13 @@ Timeout note: If the app restarts within the heartbeat window, no timeout event 
 
 ## User state
 
-Requires Presence. Clients can set dynamic custom state for users on channels; state is not persisted and is lost on disconnect. Presence state must be a serializable `dict`.
+##### Requires Presence
+Enable Presence for your key. See Presence Events.
+
+Set and get dynamic custom state for users on channels. State is not persisted; it’s lost on disconnect. See Presence State.
+
+##### Presence state format
+State must be a serializable Python dict.
 
 ### Method(s)
 
@@ -374,6 +417,7 @@ Requires Presence. Clients can set dynamic custom state for users on channels; s
 `
 ```
 
+Parameters:
 - channels (String | List | Tuple): Channels to set state.
 - channel_groups (String | List | Tuple): Channel groups to set state.
 - state (Dictionary): State to set.
@@ -388,9 +432,10 @@ Requires Presence. Clients can set dynamic custom state for users on channels; s
 `
 ```
 
+Parameters:
 - channels (String | List | Tuple): Channels to get state.
 - channel_groups (String | List | Tuple): Channel groups to get state.
-- uuid (String): UUID to get state from.
+- uuid (String): UUID to retrieve state for.
 
 ### Sample code
 
@@ -436,19 +481,17 @@ Requires Presence. Clients can set dynamic custom state for users on channels; s
 ### Returns
 
 `set_state()` returns an `Envelope`:
-- result: `PNSetStateResult`
-- status: `PNStatus`
+- result: PNSetStateResult
+- status: PNStatus
 
-#### PNSetStateResult
-
+PNSetStateResult:
 - state (Dictionary): Dictionary of UUIDs and user states.
 
 `get_state()` returns an `Envelope`:
-- result: `PNGetStateResult`
-- status: `PNStatus`
+- result: PNGetStateResult
+- status: PNStatus
 
-#### PNGetStateResult
-
+PNGetStateResult:
 - channels (Dictionary): Dictionary of channels and user states.
 
 ### Other examples
@@ -474,7 +517,7 @@ Requires Presence. Clients can set dynamic custom state for users on channels; s
 `
 ```
 
-The above code would return the following response:
+Response:
 
 ```
 `1{**2    first  : "Robert",  

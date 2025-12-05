@@ -4,7 +4,7 @@ Utility methods that don't fit into other categories.
 
 ## Get size of message
 
-Calculate a message’s final size before sending to the PubNub network.
+Calculate the message size before sending to PubNub. Size reflects publish options (compression, storage, metadata).
 
 ### Method(s)
 
@@ -76,13 +76,13 @@ Calculate a message’s final size before sending to the PubNub network.
 `
 ```
 
-Parameters (consolidated):
+Parameters (across overloads):
 - message (id): Message to size.
-- channel (NSString): Destination channel (part of request URI).
-- compressMessage (BOOL): YES to size as compressed before sending.
-- shouldStore (BOOL): YES to size as stored in Message Persistence.
-- metadata (NSDictionary<NSString *, id> *): Values for message filtering on PubNub.
-- block (PNMessageSizeCalculationCompletionBlock): Completion called with calculated size.
+- channel (NSString*): Publish channel (part of request URI).
+- compressed (BOOL): YES to simulate compression before publish.
+- storeInHistory (BOOL): YES to simulate storage in history.
+- metadata (NSDictionary<NSString*, id>*): Values used by PubNub for message filtering.
+- block (PNMessageSizeCalculationCompletionBlock): Called with calculated size.
 
 ### Sample code
 
@@ -120,7 +120,9 @@ The message size.
 
 ### PNAPNSNotificationConfiguration
 
-Configure HTTP/2-based APNs delivery behavior.
+Configure HTTP/2-based APNs delivery.
+
+Default behavior: If targets are empty, defaults to PNAPNSDevelopment with NSBundle.mainBundle.bundleIdentifier as topic.
 
 #### Method(s)
 
@@ -129,14 +131,12 @@ Configure HTTP/2-based APNs delivery behavior.
 `
 ```
 
-Creates default configuration with a single target for PNAPNSDevelopment and NSBundle.mainBundle.bundleIdentifier as topic.
-
 ```
 `1+ (instancetype)configurationWithTargets:(NSArrayPNAPNSNotificationTarget *> *)targets  
 `
 ```
 
-- targets (NSArray<PNAPNSNotificationTarget *> *): List of APNs topics. If empty, uses default target (bundle identifier, PNAPNSDevelopment).
+- targets (NSArray<PNAPNSNotificationTarget*>*): Topics to receive the notification. Defaults applied if empty.
 
 ```
 `1+ (instancetype)configurationWithCollapseID:(nullable NSString *)collapseId   
@@ -145,13 +145,13 @@ Creates default configuration with a single target for PNAPNSDevelopment and NSB
 `
 ```
 
-- collapseId (NSString *): APNs collapse/group ID (apns-collapse-id header).
-- date (NSDate *): APNs expiration date (apns-expiration header).
-- targets (NSArray<PNAPNSNotificationTarget *> *): APNs targets. Defaults as above if empty.
+- collapseId (NSString*): APNs apns-collapse-id header (group/collapse identifier).
+- expirationDate (NSDate*): APNs apns-expiration header.
+- targets (NSArray<PNAPNSNotificationTarget*>*): Topics to receive the notification. Defaults applied if empty.
 
 #### Sample code
 
-Create configuration to collapse invitation notifications and retry for 10 seconds:
+Create configuration that collapses invitations and retries delivery for 10 seconds:
 
 ```
 1PNAPNSNotificationConfiguration *configuration = nil;  
@@ -172,14 +172,14 @@ Configured PNAPNSNotificationConfiguration instance.
 
 ### PNAPNSNotificationPayload
 
-APNs-specific options for mobile push notifications.
+APNs-specific payload options.
 
 #### Properties
 
-- configurations (NSArray<PNAPNSNotificationConfiguration *> *): HTTP/2 APNs delivery configurations. If empty when requesting payload for PNAPNS2Push, a default configuration is created for PNAPNSDevelopment and bundle identifier topic.
-- notification (NSMutableDictionary): User-visible key-value pairs.
-- payload (NSMutableDictionary): Platform-specific payload; can include additional data.
-- silent (BOOL): YES to make OS handle notification silently; removes alert, sound, and badge from payload.
+- configurations (NSArray<PNAPNSNotificationConfiguration*>*): HTTP/2 APNs delivery configs. If empty for PNAPNS2Push, a default is created (PNAPNSDevelopment, bundle identifier topic).
+- notification (NSMutableDictionary*): User-visible key-value pairs.
+- payload (NSMutableDictionary*): Platform-specific payload; can carry extra data.
+- silent (BOOL): If YES, removes alert/sound/badge from payload for OS-handled silent notification.
 
 ### PNAPNSNotificationTarget
 
@@ -192,14 +192,12 @@ Configure APNs notification recipient.
 `
 ```
 
-Creates default target for PNAPNSDevelopment and NSBundle.mainBundle.bundleIdentifier as topic.
-
 ```
 `1+ (instancetype)targetForTopic:(NSString *)topic  
 `
 ```
 
-- topic (NSString): APNs topic (usually the app bundle identifier). Used as apns-topic.
+- topic (NSString*): APNs topic (usually bundle identifier). Used as apns-topic header.
 
 ```
 `1+ (instancetype)targetForTopic:(NSString *)topic   
@@ -208,9 +206,9 @@ Creates default target for PNAPNSDevelopment and NSBundle.mainBundle.bundleIdent
 `
 ```
 
-- topic (NSString): APNs topic (apns-topic).
+- topic (NSString*): APNs topic; apns-topic header.
 - environment (PNAPNSEnvironment): PNAPNSDevelopment | PNAPNSProduction.
-- excludedDevices (NSArray<NSData *> *): Device push tokens to exclude.
+- excludedDevices (NSArray<NSData*>*): Device tokens to exclude from delivery.
 
 #### Sample code
 
@@ -229,20 +227,20 @@ Configured PNAPNSNotificationTarget instance.
 
 ### PNFCMNotificationPayload
 
-FCM-specific options for mobile push notifications.
+FCM-specific payload options.
 
 #### Properties
 
-- notification (NSMutableDictionary): User-visible key-value pairs.
-- data (NSMutableDictionary): Custom key-value strings delivered with the notification. Keys must not be from reserved sets: from, message_type, start with google or fcm, or any word listed in Firebase’s reserved table.
-- silent (BOOL): If YES, moves notification content under data to deliver silently.
-- icon (NSString): Notification icon shown left of title.
-- tag (NSString): Unique notification ID; updates replace prior notifications with same tag.
-- payload (NSMutableDictionary): Platform-specific payload with additional data.
+- notification (NSMutableDictionary*): User-visible key-value pairs.
+- data (NSMutableDictionary*): Custom key-values delivered with notification. Convert all values to strings. Keys cannot be from, message_type, start with google or fcm, or be any reserved word listed by Firebase.
+- silent (BOOL): If YES, moves notification under data for OS-handled silent notification.
+- icon (NSString*): Icon shown next to notification title.
+- tag (NSString*): Unique notification identifier for updates (replaces previous with same tag).
+- payload (NSMutableDictionary*): Platform-specific payload; carries additional data.
 
 ### PNNotificationsPayload
 
-Convenience builder for cross-platform notification payloads with access to platform-specific builders and RAW dictionaries.
+Cross-platform notification payload builder. Provides platform-specific builders and raw payload access.
 
 #### Method(s)
 
@@ -252,17 +250,18 @@ Convenience builder for cross-platform notification payloads with access to plat
 `
 ```
 
-- title (NSString *): Notification title shown instead of app name.
-- body (NSString *): Message body.
-- subtitle (NSString *): Additional explanatory text.
-- badge (NSNumber *): Badge number for platform UI.
-- sound (NSString *): Path or system sound name to play on receipt.
-- apns (PNAPNSNotificationPayload): APNs-specific builder.
-- fcm (PNFCMNotificationPayload): FCM-specific builder.
+Parameters:
+- title (NSString*): Notification title (shown atop).
+- body (NSString*): Notification body text.
+
+Additional properties:
+- subtitle (NSString*): Supplementary information.
+- badge (NSNumber*): Badge number.
+- sound (NSString*): Sound file or system sound name.
+- apns (PNAPNSNotificationPayload*): APNs builder access.
+- fcm (PNFCMNotificationPayload*): FCM builder access.
 
 #### Sample code
-
-Create notification payload builder:
 
 ```
 `1PNNotificationsPayload *builder = nil;  
@@ -428,7 +427,7 @@ Configured PNNotificationsPayload instance.
 `
 ```
 
-APNs will retry delivery for up to 10 seconds (if device is inactive). Notifications with the same collapse_id are grouped.
+APNs will retry for up to 10 seconds and collapse multiple invitations using collapse_id.
 
 ```
 `1- (NSDictionary *)dictionaryRepresentationFor:(PNPushType)pushTypes  
@@ -437,7 +436,7 @@ APNs will retry delivery for up to 10 seconds (if device is inactive). Notificat
 
 Build notification payload for requested platforms.
 
-- pushTypes (PNPushType): Bitfield of:
+- pushTypes (PNPushType bitfield):
   - PNAPNSPush
   - PNAPNS2Push
   - PNFCMPush
@@ -467,6 +466,4 @@ Publish message with notification payload:
 
 #### Response
 
-Dictionary suitable for publish that triggers remote notifications for specified platforms.
-
-Last updated on Nov 6, 2025
+Dictionary payload suitable for publish to trigger remote notifications.

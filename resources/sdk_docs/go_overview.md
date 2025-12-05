@@ -1,31 +1,30 @@
 # Go API & SDK Docs v8.1.0
 
-This guide shows how to set up PubNub in a Go app to send and receive real-time messages.
+Build a "Hello, World" real-time app in Go with PubNub:
+- Initialize the SDK
+- Subscribe and listen for events
+- Publish and receive messages
 
 ## Overview
 
-Use the Go SDK to integrate PubNub real-time messaging into your Go applications.
+Use the PubNub Go SDK to add real-time messaging to Go apps (web services, CLI, backends). Go’s goroutines and channels support efficient concurrency.
 
 ## Prerequisites
 
-- Basic Go knowledge
 - Go 1.11+
-- Go IDE or text editor
 - PubNub account and keyset
+- Basic Go knowledge and a Go IDE/editor
 
 ## Setup
 
 ### Get your PubNub keys
 
-- Sign in or create an account in the PubNub Admin Portal.
-- Create an app and keyset.
-- Retrieve publish and subscribe keys. Use separate keysets for dev/prod.
+- Sign in or create an account on the PubNub Admin Portal.
+- Create an app; use the generated publish and subscribe keys (use separate keysets for dev/prod).
 
 ### Install the SDK
 
-##### SDK version
-
-Use the latest SDK version.
+Always use the latest SDK version.
 
 - go get
 
@@ -34,7 +33,7 @@ Use the latest SDK version.
 `
 ```
 
-If you encounter dependency issues, use the `go mod tidy` command.
+If dependencies fail, run go mod tidy.
 
 - go.mod
 
@@ -43,7 +42,7 @@ If you encounter dependency issues, use the `go mod tidy` command.
 `
 ```
 
-Then run:
+Then:
 
 ```
 `1go mod tidy  
@@ -63,7 +62,7 @@ See supported platforms for compatibility.
 
 ### Initialize PubNub
 
-Create pubnub_example.go and replace demo keys with your publish and subscribe keys:
+Create pubnub_example.go with minimum config. Replace demo keys with your app’s publish and subscribe keys.
 
 ```
 1
@@ -71,11 +70,11 @@ Create pubnub_example.go and replace demo keys with your publish and subscribe k
 
 ```
 
-See Configuration docs for more options.
+See Configuration for details.
 
 ### Set up event listeners
 
-Use channels to handle async events:
+Use channels to handle async events (status updates, incoming messages).
 
 ```
 1
@@ -83,11 +82,11 @@ Use channels to handle async events:
 
 ```
 
-See Listeners docs for details.
+See Event Listeners for details.
 
 ### Create a subscription
 
-Subscribe to channels to receive messages in real-time:
+Subscribe to a channel to receive real-time messages.
 
 ```
 1
@@ -97,15 +96,15 @@ Subscribe to channels to receive messages in real-time:
 
 ### Publish messages
 
-Publish JSON-serializable data up to 32 KiB:
+Publish JSON-serializable data (objects, arrays, numbers, strings) up to 32 KiB to deliver to all subscribers.
+
+See Subscribe for more info.
 
 ```
 1
   
 
 ```
-
-See Subscribe docs for usage details.
 
 ### Run the app
 
@@ -136,18 +135,12 @@ Expected output:
 
 ### Troubleshooting
 
-- No connection
-  - Check internet connection.
-  - Verify publish and subscribe keys.
-  - Ensure firewall isn’t blocking PubNub.
-- Message not received
-  - Confirm subscribed channel name.
-  - Check for publish errors.
-  - Allow time for delivery.
-- Build errors
-  - Update Go version.
-  - Run go mod tidy.
-  - Verify imports.
+- No connection message:
+  - Check internet, verify keys, ensure no firewall blocks PubNub
+- Message not received:
+  - Confirm channel subscription, check publish errors, wait for delivery
+- Build errors:
+  - Update Go, run go mod tidy, verify imports
 
 ## Next steps
 
@@ -158,9 +151,8 @@ Expected output:
 - Message Persistence
 - Push Notifications
 - Build a chat app in Go
-- Explore GitHub samples
+- GitHub repo for samples
 - SDK reference documentation
 - Support portal
-- Ask the AI assistant
 
 Last updated on Oct 29, 2025

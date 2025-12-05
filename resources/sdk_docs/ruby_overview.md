@@ -1,37 +1,47 @@
 # Ruby API & SDK Docs 6.0.1
 
-Build real-time Ruby apps with the PubNub Ruby SDK:
+This guide demonstrates core PubNub concepts in Ruby:
+- Setting up a connection
+- Sending messages
+- Receiving messages in real-time
 
+## Overview[​](#overview)
+
+Integrate the PubNub Ruby SDK to add real-time features:
 - Publish/subscribe messaging
 - Presence detection (online/offline status)
 - Storage and playback
 - Access control
 - Push notifications
 
-## Prerequisites
+## Prerequisites[​](#prerequisites)
 
-- Ruby 2.7+
+- Ruby 2.7+ (basic Ruby knowledge)
 - Bundler (optional)
-- PubNub account and keyset
+- PubNub account
 
-## Setup
+## Setup[​](#setup)
 
-### Get your PubNub keys
+### Get your PubNub keys[​](#get-your-pubnub-keys)
 
-- Sign in or create an account in the PubNub Admin Portal.
-- Create an app and keyset; obtain publish and subscribe keys.
+- Sign in or create an account on the PubNub Admin Portal.
+- Create an app and locate your publish/subscribe keys.
 - Use separate keysets for dev/prod environments.
 
-### Install the SDK
+### Install the SDK[​](#install-the-sdk)
 
-Always use the latest SDK version.
+##### SDK version
+
+Use the latest SDK version for features and security fixes.
+
+Install via RubyGems:
 
 ```
 `1gem install pubnub  
 `
 ```
 
-Using Bundler:
+Alternatively, with Bundler:
 
 ```
 1# Gemfile  
@@ -39,6 +49,7 @@ Using Bundler:
 3
   
 4gem 'pubnub', '~> 6.0.1'  
+
 ```
 
 ```
@@ -46,7 +57,7 @@ Using Bundler:
 `
 ```
 
-#### Source code
+#### Source code[​](#source-code)
 
 Clone the GitHub repository:
 
@@ -55,13 +66,13 @@ Clone the GitHub repository:
 `
 ```
 
-For supported platforms, see the platform support documentation.
+See platform support: /docs/sdks/ruby/platform-support
 
-## Steps
+## Steps[​](#steps)
 
-### Initialize PubNub
+### Initialize PubNub[​](#initialize-pubnub)
 
-Replace demo keys with your own from the Admin Portal.
+Replace demo keys with your publish/subscribe keys. ssl: true enables TLS.
 
 ```
 1require 'pubnub'  
@@ -77,14 +88,14 @@ Replace demo keys with your own from the Admin Portal.
 10
   
 11puts "PubNub initialized with user_id: #{pubnub.user_id}"  
+
 ```
 
-Parameters:
-- subscribe_key, publish_key: your keyset
-- user_id: unique identifier for the client
-- ssl: true to secure connections
+See Configuration: /docs/sdks/ruby/api-reference/configuration
 
-### Set up event listeners
+### Set up event listeners[​](#set-up-event-listeners)
+
+Handle message, presence, and status events:
 
 ```
 1# Define callbacks for different event types  
@@ -107,13 +118,14 @@ Parameters:
   
 18# Add the listener to the PubNub instance  
 19pubnub.add_listener(callback: callback)  
+
 ```
 
-- message: processes incoming messages
-- presence: handles join/leave events
-- status: connection status and errors
+More on listeners: /docs/sdks/ruby/api-reference/configuration#event-listeners
 
-### Create a subscription
+### Create a subscription[​](#create-a-subscription)
+
+Subscribe to channels; with_presence: true enables presence events.
 
 ```
 1# Subscribe to a channel  
@@ -124,14 +136,14 @@ Parameters:
 6
   
 7puts "Subscribed to 'my_channel'"  
+
 ```
 
-- channels: array of channel names
-- with_presence: true to receive presence events
+Subscribe reference: /docs/sdks/ruby/api-reference/publish-and-subscribe#subscribe
 
-### Publish messages
+### Publish messages[​](#publish-messages)
 
-Messages must be JSON-serializable and under 32 KiB.
+Messages must be JSON-serializable and < 32 KiB.
 
 ```
 1# Define a message to publish  
@@ -149,20 +161,17 @@ Messages must be JSON-serializable and under 32 KiB.
 12    puts "Message Published! Timetoken: #{envelope.result[:timetoken]}"  
 13  end  
 14end  
+
 ```
 
-- channel: target channel
-- message: payload
-- Block yields envelope with status and result[:timetoken]
-
-### Run the app
+### Run the app[​](#run-the-app)
 
 ```
 `ruby app.rb  
 `
 ```
 
-Expected output example:
+Expected output:
 
 ```
 `1PubNub initialized with user_id: myUniqueUserId  
@@ -175,7 +184,7 @@ Expected output example:
 `
 ```
 
-## Complete example
+## Complete example[​](#complete-example)
 
 ```
 1require 'pubnub'  
@@ -247,33 +256,24 @@ Expected output example:
 58puts "Waiting for messages... (Press Ctrl+C to exit)"  
 59sleep 5  # Wait for 5 seconds to see the results  
 60puts "Completed the demonstration"  
+
 ```
 
-## Troubleshooting
+### Troubleshooting[​](#troubleshooting)
 
-- No connection message
-  - Check internet connectivity.
-  - Verify publish/subscribe keys.
-  - Ensure firewall allows PubNub connections.
-- Message not received
-  - Confirm subscription channel name.
-  - Check publish errors.
-  - Wait for delivery; keep process running.
-  - Verify message listener is set up.
-- Ruby errors
-  - Install the PubNub gem correctly.
-  - Use Ruby 2.7+.
-  - Check imports and code against examples.
+- No connection: check internet, keys, and firewall rules.
+- Message not received: confirm channel name, check publish callback for errors, ensure listener is set and allow time for delivery.
+- Ruby errors: verify gem installation, Ruby 2.7+, requires/imports, and code matches examples.
 
-## Next steps
+## Next steps[​](#next-steps)
 
-- Try Presence to track online/offline status.
-- Implement Message Persistence for storage and retrieval.
-- Use Access Manager to secure channels.
-- Explore Channel Groups to organize channels.
-- Implement Push Notifications for mobile apps.
-- Explore the GitHub repository for more samples.
-- See the Ruby SDK reference documentation for detailed API info.
-- Visit the support portal for additional resources.
+- Presence: /docs/sdks/ruby/api-reference/presence
+- Storage and Playback: /docs/sdks/ruby/api-reference/storage-and-playback
+- Access Manager: /docs/sdks/ruby/api-reference/access-manager
+- Channel Groups: /docs/sdks/ruby/api-reference/channel-groups
+- Mobile Push: /docs/sdks/ruby/api-reference/mobile-push
+- GitHub samples: https://github.com/pubnub/ruby
+- Ruby SDK reference: /docs/sdks/ruby/api-reference/configuration
+- Support portal: https://support.pubnub.com/
 
 Last updated on Sep 3, 2025

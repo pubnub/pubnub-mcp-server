@@ -1,12 +1,10 @@
 # Mobile Push Notifications API for Dart SDK
 
-Connect PubNub publishing to third-party push services: Google Android FCM and Apple iOS APNs. Learn more: Mobile Push Notifications (/docs/general/push/send).
-
-Prerequisite: Enable the Mobile Push Notifications add-on for your key in the Admin Portal (https://admin.pubnub.com/).
+Connect PubNub publishing to native push services: Google FCM and Apple APNs. Requires the Mobile Push Notifications add-on enabled for your key in the Admin Portal: https://admin.pubnub.com/ (How to enable add-ons: https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
 
 ## Add device to channel
 
-Enable mobile push notifications for a device on specified channels.
+Enable mobile push notifications on a set of channels.
 
 ### Method(s)
 
@@ -24,13 +22,13 @@ Enable mobile push notifications for a device on specified channels.
 ```
 
 Parameters:
-- deviceId (String): Device ID/token to enable notifications on.
-- gateway (PushGateway): Backend to use; values: apns2, fcm.
-- channels (Set<String>): Channels to enable notifications for.
-- topic (String, optional): Required when gateway = apns2. Typically the iOS app bundle identifier.
-- environment (Environment, optional): Applies only to apns2 (development or production).
-- keyset (Keyset, optional): Override default keyset.
-- using (String, optional): Keyset name from keysetStore.
+- deviceId (String): ID of the device to add mobile push notifications on.
+- gateway (PushGateway): Backend for push. Values: apns2 (APNs), fcm (FCM).
+- channels (Set<String>): Channels to enable mobile push notifications for.
+- topic (String, APNs only): Notifications topic (typically the app bundle identifier). Required when gateway = apns2.
+- environment (Environment, APNs only): Environment (development or production) for apns2 registrations.
+- keyset (Keyset): Override the default PubNub keyset.
+- using (String): Name of the keyset in keysetStore to use for this call.
 
 ### Sample code
 
@@ -70,7 +68,7 @@ No actionable data. Throws an exception on error.
 
 ## List channels for device
 
-Get all channels where push is enabled for the specified device token.
+List channels where push notifications are enabled for a device (push token).
 
 ### Method(s)
 
@@ -90,14 +88,14 @@ Get all channels where push is enabled for the specified device token.
 ```
 
 Parameters:
-- deviceId (String): Device ID/token to query.
-- gateway (PushGateway): Backend; values: apns2, fcm.
-- topic (String, optional): Required when gateway = apns2.
-- environment (Environment, optional): Applies only to apns2.
-- keyset (Keyset, optional): Override default keyset.
-- using (String, optional): Keyset name from keysetStore.
-- start (String, optional): Pagination start (use last channel from previous page).
-- count (int, optional): Page size (max 1000, default 500).
+- deviceId (String): Device ID (push token).
+- gateway (PushGateway): Backend for push. Values: apns2, fcm.
+- topic (String, APNs only): Topic (bundle identifier). Required when pushType/gateway = apns2.
+- environment (Environment, APNs only): APNs environment.
+- keyset (Keyset): Override default keyset.
+- using (String): Name of the keyset in keysetStore to use for this call.
+- start (String): Starting channel for pagination; use the last channel from the previous page.
+- count (int): Number of channels to return (max 1000, default 500).
 
 ### Sample code
 
@@ -115,11 +113,11 @@ Parameters:
 ### Returns
 
 ListPushChannelsResult:
-- channels (List): Channels associated with the device for mobile push notifications.
+- channels (List): Channels registered for mobile push notifications.
 
 ## Remove device from channel
 
-Disable mobile push notifications for a device on specific channels.
+Disable mobile push notifications on the provided channels.
 
 ### Method(s)
 
@@ -137,13 +135,13 @@ Disable mobile push notifications for a device on specific channels.
 ```
 
 Parameters:
-- deviceId (String): Device ID/token to remove from channels.
-- gateway (PushGateway): Backend; values: apns2, fcm.
+- deviceId (String): Device ID to remove from channels.
+- gateway (PushGateway): apns2 or fcm.
 - channels (Set<String>): Channels to remove.
-- topic (String, optional): Required when gateway = apns2.
-- environment (Environment, optional): Applies only to apns2.
-- keyset (Keyset, optional): Override default keyset.
-- using (String, optional): Keyset name from keysetStore.
+- topic (String, APNs only): Topic; required when gateway = apns2.
+- environment (Environment, APNs only): APNs environment.
+- keyset (Keyset): Override default keyset.
+- using (String): Keyset name in keysetStore to use.
 
 ### Sample code
 
@@ -165,7 +163,7 @@ No actionable data. Throws an exception on error.
 
 ## Remove all mobile push notifications
 
-Disable mobile push notifications for a device across all channels.
+Disable mobile push notifications from all channels for the device.
 
 ### Method(s)
 
@@ -182,12 +180,12 @@ Disable mobile push notifications for a device across all channels.
 ```
 
 Parameters:
-- deviceId (String): Device ID/token to deregister.
-- gateway (PushGateway): Backend; values: apns2, fcm.
-- topic (String, optional): Required when gateway = apns2.
-- environment (Environment, optional): Applies only to apns2.
-- keyset (Keyset, optional): Override default keyset.
-- using (String, optional): Keyset name from keysetStore.
+- deviceId (String): Device ID to remove.
+- gateway (PushGateway): apns2 or fcm.
+- topic (String, APNs only): Topic; required when gateway = apns2.
+- environment (Environment, APNs only): APNs environment.
+- keyset (Keyset): Override default keyset.
+- using (String): Keyset name in keysetStore to use.
 
 ### Sample code
 
@@ -206,9 +204,9 @@ Parameters:
 
 No actionable data. Throws an exception on error.
 
-## Other examples
+### Other examples
 
-### Short syntax
+#### Short syntax
 
 ```
 1var device = pubnub.device('A332C23D');  
@@ -227,3 +225,5 @@ No actionable data. Throws an exception on error.
 12  topic: 'MyAppTopic', environment: Environment.production);  
 
 ```
+
+Last updated on Nov 6, 2025**

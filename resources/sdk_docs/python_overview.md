@@ -1,45 +1,52 @@
-# Python API & SDK Docs 10.4.1
+# Python API & SDK Docs 10.5.0
 
-This guide demonstrates how to connect, publish, and subscribe with the PubNub Python SDK.
+This guide demonstrates the core PubNub concepts in Python:
+- Setting up a connection
+- Sending messages
+- Receiving messages in real time
 
 ## Overview
 
-Use the Python SDK to add real-time messaging to Python apps (web, desktop, IoT).
+Use the Python SDK to integrate PubNub real-time messaging into web services, desktop apps, or IoT devices.
 
 ## Prerequisites
 
+- Basic Python knowledge
 - Python 3.9+
-- PubNub account and keyset (publish and subscribe keys)
+- PubNub account and keyset
 
 ## Setup
 
 ### Get your PubNub keys
 
-- Sign in to the PubNub Admin Portal, create an app, and copy your publish and subscribe keys.
-- Use separate keysets for development and production.
+- Sign in or create an account in the PubNub Admin Portal.
+- Create an app; copy your publish and subscribe keys.
+- Use separate keysets for dev and prod.
 
 ### Install the SDK
 
 ##### SDK version
 
-Use the latest SDK for features, security, and performance.
+Use the latest version for features and security.
 
 #### Use pip
 
+To integrate PubNub into your project using `pip`:
+
 ```
-`1pip install 'pubnub>=10.4.1'  
+`1pip install 'pubnub>=10.5.0'  
 `
 ```
 
 #### Source code
 
-You can also download the source from the Python SDK repository. See supported platforms for compatibility.
+Download from the Python SDK repository. See supported platforms for compatibility.
 
 ## Steps
 
 ### Initialize PubNub
 
-Replace demo keys with your own.
+Replace demo keys with your publish and subscribe keys:
 
 ```
 1# Import required modules  
@@ -60,9 +67,11 @@ Replace demo keys with your own.
 
 ```
 
+See Configuration reference for all options.
+
 ### Set up event listeners
 
-Handle connection status changes with a listener.
+Add a status listener for connection state changes:
 
 ```
 1from pubnub.pubnub import SubscribeListener  
@@ -85,7 +94,7 @@ Handle connection status changes with a listener.
 
 ### Create a subscription
 
-Subscribe to a channel and handle messages with a subscription-specific handler.
+Subscribe to a channel and handle messages via a subscription-specific handler:
 
 ```
 1# Define the channel you want to subscribe to  
@@ -110,7 +119,7 @@ Subscribe to a channel and handle messages with a subscription-specific handler.
 
 ### Publish messages
 
-Messages must be JSON-serializable and smaller than 32 KiB. Use sync() to block for a response; asynchronous alternatives include future() or async().
+Messages must be JSON-serializable and under 32 KiB:
 
 ```
 1import time  
@@ -135,6 +144,9 @@ Messages must be JSON-serializable and smaller than 32 KiB. Use sync() to block 
 17    print(f'Publish failed: {e}')  
 
 ```
+show all 17 lines
+
+sync() waits for the response. For async usage, use future() or async().
 
 ### Run the app
 
@@ -231,22 +243,21 @@ Published message with timetoken: 16967543908123456
 58print('Cleanup complete.')  
 
 ```
+show all 58 lines
 
 ## Troubleshooting
 
-- No connection:
-  - Check internet, verify keys, ensure firewall allows PubNub.
+- No connection message:
+  - Check internet, confirm publish/subscribe keys, verify firewall rules.
 - Message not received:
-  - Confirm channel name, check publish errors, allow time for delivery.
+  - Confirm channel name, check errors on publish, allow time for delivery.
 - Import errors:
-  - Verify PubNub package installed, Python version compatible, imports correct.
+  - Confirm package installation, Python version compatibility, and imports.
+
+See Troubleshooting reference for more details.
 
 ## Next steps
 
-- Channel Groups
-- Presence
-- Message Persistence
-- Access Manager
-- SDK reference, examples, GitHub repository, Discord, and Support Portal
-
-Last updated on Sep 3, 2025
+- Add Channel Groups, Presence, Storage and Playback, and Access Manager.
+- Explore GitHub examples and SDK reference documentation.
+- Join the Discord community or visit the support portal.

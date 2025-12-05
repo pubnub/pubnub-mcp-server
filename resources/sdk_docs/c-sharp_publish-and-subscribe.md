@@ -1,10 +1,10 @@
 # Publish/Subscribe API for C# SDK
 
-Low-latency publish/subscribe using the C# SDK. See Connection Management and Publish Messages for broader context.
+Low-latency publish/subscribe with the C# SDK. See Connection Management and Publish Messages for broader concepts.
 
 ##### Request execution
 
-Use try/catch. Invalid parameters throw exceptions; server/network errors are in Status.
+Use try/catch. Invalid parameters throw exceptions; server/network errors are returned in status.
 
 ```
 1try  
@@ -27,27 +27,26 @@ Use try/catch. Invalid parameters throw exceptions; server/network errors are in
 
 ```
 
-## Publish[​](#publish)
+## Publish
 
-Send a message to all subscribers on a channel.
+publish() sends a message to all subscribers of a channel.
 
-Key points:
-- Initialize with publishKey.
-- You don't need to subscribe to publish.
-- Can't publish to multiple channels simultaneously.
-- Enable TLS/SSL via ssl: true; optional message encryption.
-- Messages: any JSON-serializable data; UTF-8 strings supported.
-- Don't JSON serialize message/meta yourself (SDK handles it).
-- Max message size 32 KiB (includes escaped characters and channel); aim < 1,800 bytes; otherwise Message Too Large error.
-- Throughput: best-effort with in-memory queue of 100; throttle bursts.
-- Optional CustomMessageType for business labels (for example, text, action, poll).
+Essentials:
+- Initialize PubNub with publishKey.
+- No need to subscribe to publish. You can’t publish to multiple channels at once.
+- TLS/SSL: set ssl=true during initialization. Optional message encryption supported.
+- Message data: any JSON-serializable type; don’t pre-serialize message/meta (SDK handles serialization).
+- Size: max 32 KiB (including escaped characters and channel name). Target <1,800 bytes for performance. Errors: Message Too Large.
+- Throughput: publish as fast as bandwidth allows; subscriber in-memory queue holds 100 messages (older may drop). Throttle bursts as needed.
+- CustomMessageType: optional business label (for example text, action, poll).
 - Best practices:
-  - Publish serially; verify success code before next publish.
-  - Retry on failure.
-  - Keep in-memory queue under 100.
-  - Throttle (for example, ≤5 msgs/sec) to meet latency needs.
+  - Publish serially; publish next only after success code (for example, [1,"Sent","136074940..."]).
+  - On failure ([0,"blah","<timetoken>"]), retry.
+  - Keep in-memory queue under 100; throttle (for example, <=5 msg/s).
 
-### Method(s)[​](#methods)
+### Method(s)
+
+To publish a message:
 
 ```
 `1pubnub.Publish()  
@@ -65,22 +64,28 @@ Key points:
 Parameters:
 - Message (required) Type: object — Payload.
 - Channel (required) Type: string — Destination channel ID.
-- ShouldStore Type: bool — Store in history; if omitted, use key’s history configuration.
-- Meta Type: Dictionary<string, object> — Metadata for filtering.
+- ShouldStore Type: bool — Store in history. If not set, the key’s history config applies.
+- Meta Type: Dictionary<string, object> — For message filtering.
 - UsePOST Type: bool — Use POST to publish.
-- Ttl Type: int — Per-message TTL in storage.
-- QueryParam Type: Dictionary<string, object> — Extra query string params.
-- CustomMessageType Type: string — 3–50 chars, case-sensitive alphanumeric; dashes/underscores allowed; cannot start with special chars or pn_/pn- (examples: text, action, poll).
-- Sync Type: Command — Deprecated. Use Execute.
-- Async Type: PNCallback of PNPublishResult — Deprecated. Use ExecuteAsync.
-- Execute Type: PNCallback of PNPublishResult.
+- Ttl Type: int — Per-message time-to-live in storage.
+- QueryParam Type: Dictionary<string, object> — Extra query string name/value pairs (debug).
+- CustomMessageType Type: string — Case-sensitive, 3–50 chars, alphanumeric; dashes and underscores allowed; cannot start with special characters or pn_ / pn- (examples: text, action, poll).
+- Sync Type: Command — Blocks thread; deprecated. Use Execute.
+- Async Type: PNCallback — PNCallback of PNPublishResult; deprecated. Use ExecuteAsync.
+- Execute Type: PNCallback — PNCallback of PNPublishResult.
 - ExecuteAsync Type: None — Returns Task<PNResult<PNPublishResult>>.
 
-### Sample code[​](#sample-code)
+### Sample code
 
 ##### Reference code
 
-#### Publish a message to a channel[​](#publish-a-message-to-a-channel)
+```
+1
+  
+
+```
+
+#### Publish a message to a channel
 
 ```
 1
@@ -90,25 +95,17 @@ Parameters:
 
 ##### Subscribe to the channel
 
-Before running the above publish example, either use the Debug Console or in a separate script, subscribe to the same channel.
+Before running the publish example, subscribe to the same channel (for example, via Debug Console) or a separate script/terminal.
 
-### Returns[​](#returns)
+### Returns
 
 Publish() returns PNResult<PNPublishResult>:
-- Result: PNPublishResult — Timetoken (long) when published.
+- Result: PNPublishResult — Timetoken (long).
 - Status: PNStatus.
 
-### Other examples[​](#other-examples)
+### Other examples
 
-#### Publish a message to a channel synchronously[​](#publish-a-message-to-a-channel-synchronously)
-
-```
-1
-  
-
-```
-
-#### Publish with metadata[​](#publish-with-metadata)
+#### Publish a message to a channel synchronously
 
 ```
 1
@@ -116,7 +113,7 @@ Publish() returns PNResult<PNPublishResult>:
 
 ```
 
-#### Store the published message for 10 hours[​](#store-the-published-message-for-10-hours)
+#### Publish with metadata
 
 ```
 1
@@ -124,7 +121,7 @@ Publish() returns PNResult<PNPublishResult>:
 
 ```
 
-#### Publish a Mobile Push payload[​](#publish-a-mobile-push-payload)
+#### Store the published message for 10 hours
 
 ```
 1
@@ -132,13 +129,21 @@ Publish() returns PNResult<PNPublishResult>:
 
 ```
 
-For more details, refer to Mobile Push.
+#### Publish a Mobile Push payload
 
-## Fire[​](#fire)
+```
+1
+  
 
-Send a message to Functions handlers and Illuminate. Not replicated to subscribers; not stored in history.
+```
 
-### Method(s)[​](#methods-1)
+See Mobile Push for details.
+
+## Fire
+
+Sends a message to Functions event handlers and Illuminate. Triggers handlers registered on the channel. Not replicated to subscribers and not stored in history.
+
+### Method(s)
 
 ```
 `1pubnub.Fire()  
@@ -153,17 +158,17 @@ Send a message to Functions handlers and Illuminate. Not replicated to subscribe
 Parameters:
 - Message (required) Type: object — Payload.
 - Channel (required) Type: string — Destination channel ID.
-- Meta Type: Dictionary<string, object>.
-- UsePOST Type: bool.
-- QueryParam Type: Dictionary<string, object>.
-- Sync Type: Command — Deprecated. Use Execute.
-- Async Type: PNCallback of PNPublishResult — Deprecated. Use ExecuteAsync.
-- Execute Type: PNCallback of PNPublishResult.
+- Meta Type: Dictionary<string, object> — For filtering.
+- UsePOST Type: bool — Use POST.
+- QueryParam Type: Dictionary<string, object> — Extra query string name/value pairs (debug).
+- Sync Type: Command — Blocks thread; deprecated. Use Execute.
+- Async Type: PNCallback — PNCallback of PNPublishResult; deprecated. Use ExecuteAsync.
+- Execute Type: PNCallback — PNCallback of PNPublishResult.
 - ExecuteAsync Type: None — Returns Task<PNResult<PNPublishResult>>.
 
-### Sample code[​](#sample-code-1)
+### Sample code
 
-#### Fire a message to a channel[​](#fire-a-message-to-a-channel)
+#### Fire a message to a channel
 
 ```
 1
@@ -171,11 +176,14 @@ Parameters:
 
 ```
 
-## Signal[​](#signal)
+## Signal
 
-Send lightweight signals to all channel subscribers. Payload limit: 64 bytes (payload only).
+signal() sends a signal to all subscribers of a channel.
 
-### Method(s)[​](#methods-2)
+Limits:
+- Payload max 64 bytes (payload only).
+
+### Method(s)
 
 ```
 `1pubnub.Signal()  
@@ -188,11 +196,11 @@ Send lightweight signals to all channel subscribers. Payload limit: 64 bytes (pa
 Parameters:
 - Message (required) Type: object — Payload.
 - Channel (required) Type: string — Destination channel ID.
-- CustomMessageType Type: string — 3–50 chars, case-sensitive alphanumeric; dashes/underscores allowed; cannot start with special chars or pn_/pn- (examples: text, action, poll).
+- CustomMessageType Type: string — Case-sensitive, 3–50 chars, alphanumeric; dashes and underscores allowed; cannot start with special characters or pn_ / pn- (examples: text, action, poll).
 
-### Sample code[​](#sample-code-2)
+### Sample code
 
-#### Signal a message to a channel[​](#signal-a-message-to-a-channel)
+#### Signal a message to a channel
 
 ```
 1
@@ -200,34 +208,29 @@ Parameters:
 
 ```
 
-### Response[​](#response)
+### Response
 
-- Timetoken: long — When the signal was sent.
+- Timetoken: long — Timetoken when the signal was sent.
 
-## Subscribe[​](#subscribe)
+## Subscribe
 
-Open a socket and listen for messages/events. Initialize with subscribeKey.
+Opens a TCP socket and listens for messages/events on specified entities. Initialize with subscribeKey to subscribe.
 
-##### Conceptual overview
+Concepts:
+- Entities are first-class: Channel, ChannelGroup, UserMetadata, ChannelMetadata.
+- Subscriptions start receiving after subscribe() completes.
 
-Subscribe to entities:
-- Channel
-- ChannelGroup
-- UserMetadata
-- ChannelMetadata
+### Subscription scope
 
-A newly subscribed client receives messages after subscribe() completes.
+- Subscription: scoped to a single entity (for example, a channel).
+- SubscriptionSet: scoped to the PubNub client; can include multiple subscriptions.
+- Event listeners deliver all messages/signals/events for subscribed entities.
 
-### Subscription scope[​](#subscription-scope)
+### Create a subscription
 
-- Subscription: entity-scoped (for example, a single channel).
-- SubscriptionSet: client-scoped; can include multiple subscriptions.
+Entity-level Subscription receives only that entity’s updates.
 
-Event listeners deliver messages, signals, and events. See Event listeners.
-
-### Create a subscription[​](#create-a-subscription)
-
-Keep a strong reference to each Subscription/SubscriptionSet to avoid GC.
+Keep a strong reference to Subscription/SubscriptionSet to avoid GC collection and loss of updates.
 
 ```
 // entity-based, local-scoped  
@@ -239,11 +242,13 @@ Subscription subscription = firstChannel.Subscription(SubscriptionOptions option
 ```
 
 Parameters:
-- options Type: SubscriptionOptions — Subscription behavior.
+- options Type: SubscriptionOptions — Behavior configuration.
 
-### Create a subscription set[​](#create-a-subscription-set)
+### Create a subscription set
 
-Keep a strong reference to each Subscription/SubscriptionSet to avoid GC.
+Client-level SubscriptionSet receives updates across entities.
+
+Keep a strong reference to avoid GC collection.
 
 ```
 `// client-based, general-scoped  
@@ -256,23 +261,22 @@ SubscriptionSet subscriptionSet = pubnub.SubscriptionSet(
 ```
 
 Parameters:
-- channels Type: string[] — One or more channels; required if channelGroups not provided.
-- channelGroups Type: string[] — One or more channel groups; required if channels not provided.
-- options Type: SubscriptionOptions.
+- channels Type: string[] — One or more channels. Either channels or channelGroups required.
+- channelGroups Type: string[] — One or more channel groups. Either channels or channelGroups required.
+- options Type: SubscriptionOptions — Behavior configuration.
 
-##### Add/remove sets
+Add/remove sets: you can add/remove subscriptions to create new sets (see examples).
 
-You can add and remove subscriptions to create new sets. Refer to the Other examples section.
+#### SubscriptionOptions
 
-#### `SubscriptionOptions`[​](#subscriptionoptions)
+Enum options:
+- ReceivePresenceEvents — Deliver presence updates for userIds via listener streams. See Presence Events for details.
 
-- ReceivePresenceEvents — Deliver presence updates for userIds via listeners. See Presence Events.
+### Method(s)
 
-### Method(s)[​](#methods-3)
+Subscription and SubscriptionSet use the same subscribe<object>().
 
-`Subscription` and `SubscriptionSet` share the same subscribe<object>() method.
-
-#### Subscribe[​](#subscribe-1)
+#### Subscribe
 
 ```
 `subscription.Subscribeobject>(SubscriptionCursor cursor)  
@@ -280,19 +284,9 @@ You can add and remove subscriptions to create new sets. Refer to the Other exam
 ```
 
 Parameters:
-- cursor Type: SubscriptionCursor — Best-effort retrieval of cached messages from timetoken/region: cursor: { Timetoken: long?; Region: int? }. Primitive types are converted to SubscriptionCursor; non-numeric values are ignored.
+- cursor Type: SubscriptionCursor — Cursor for best-effort cached message retrieval: { Timetoken: long?; Region: int? }. Primitive types are converted to SubscriptionCursor; non-17-digit numbers or non-numeric strings are ignored.
 
-##### Sample code[​](#sample-code-3)
-
-```
-1
-  
-
-```
-
-##### Other examples[​](#other-examples-1)
-
-###### Create a subscription set from two subscriptions[​](#create-a-subscription-set-from-two-subscriptions)
+##### Sample code
 
 ```
 1
@@ -300,19 +294,31 @@ Parameters:
 
 ```
 
-##### Returns[​](#returns-1)
+##### Other examples
 
-No return value.
+###### Create a subscription set from two subscriptions
 
-## Entities[​](#entities)
+```
+1
+  
 
-Subscribable objects:
+```
+
+##### Returns
+
+subscribe() has no return value.
+
+## Entities
+
+Subscribable entities for real-time updates:
 - Channel
 - ChannelGroup
 - UserMetadata
 - ChannelMetadata
 
-### Create channels[​](#create-channels)
+### Create channels
+
+Returns a local Channel entity.
 
 ```
 `pubnub.Channel(String)  
@@ -322,7 +328,7 @@ Subscribable objects:
 Parameters:
 - Channel Type: String — Channel name.
 
-#### Sample code[​](#sample-code-4)
+#### Sample code
 
 ```
 1
@@ -330,7 +336,9 @@ Parameters:
 
 ```
 
-### Create channel groups[​](#create-channel-groups)
+### Create channel groups
+
+Returns a local ChannelGroup entity.
 
 ```
 `pubnub.ChannelGroup(String)  
@@ -340,7 +348,7 @@ Parameters:
 Parameters:
 - ChannelGroup Type: String — Channel group name.
 
-#### Sample code[​](#sample-code-5)
+#### Sample code
 
 ```
 1
@@ -348,7 +356,9 @@ Parameters:
 
 ```
 
-### Create channel metadata[​](#create-channel-metadata)
+### Create channel metadata
+
+Returns a local ChannelMetadata entity.
 
 ```
 `pubnub.ChannelMetadata(String)  
@@ -358,7 +368,7 @@ Parameters:
 Parameters:
 - ChannelMetadata Type: String — Channel metadata identifier.
 
-#### Sample code[​](#sample-code-6)
+#### Sample code
 
 ```
 1
@@ -366,7 +376,9 @@ Parameters:
 
 ```
 
-### Create user metadata[​](#create-user-metadata)
+### Create user metadata
+
+Returns a local UserMetadata entity.
 
 ```
 `pubnub.UserMetadata(String)  
@@ -376,7 +388,7 @@ Parameters:
 Parameters:
 - UserMetadata Type: String — User metadata identifier.
 
-#### Sample code[​](#sample-code-7)
+#### Sample code
 
 ```
 1
@@ -384,23 +396,15 @@ Parameters:
 
 ```
 
-## Event listeners[​](#event-listeners)
+## Event listeners
 
-Attach listeners to Subscription, SubscriptionSet, and PubNub client (connection status).
+Receive messages and events via listeners. Attach to Subscription, SubscriptionSet, and (for connection status) the PubNub client.
 
-### Add listeners[​](#add-listeners)
+### Add listeners
 
-You can register a generic onEvent listener or event-specific ones (message, file, etc).
+You can implement multiple listeners with onEvent or register event-specific listeners (message, file, etc).
 
-#### Method(s)[​](#methods-4)
-
-```
-1
-  
-
-```
-
-#### Sample code[​](#sample-code-8)
+#### Method(s)
 
 ```
 1
@@ -408,18 +412,26 @@ You can register a generic onEvent listener or event-specific ones (message, fil
 
 ```
 
-### Add connection status listener[​](#add-connection-status-listener)
+#### Sample code
 
-Client scope only.
+```
+1
+  
 
-#### Method(s)[​](#methods-5)
+```
+
+### Add connection status listener
+
+Client-only listener for connection status updates.
+
+#### Method(s)
 
 ```
 `1pubnub.AddListener(listener)  
 `
 ```
 
-#### Sample code[​](#sample-code-9)
+#### Sample code
 
 ```
 1
@@ -427,15 +439,15 @@ Client scope only.
 
 ```
 
-#### Returns[​](#returns-2)
+#### Returns
 
 Subscription status (see SDK statuses).
 
-## Unsubscribe[​](#unsubscribe)
+## Unsubscribe
 
-Stop receiving real-time updates from a Subscription or SubscriptionSet.
+Stop receiving updates from a Subscription or SubscriptionSet.
 
-### Method(s)[​](#methods-6)
+### Method(s)
 
 ```
 subscription.Unsubscribeobject>()  
@@ -445,7 +457,7 @@ subscriptionSet.Unsubscribeobject>()
 
 ```
 
-### Sample code[​](#sample-code-10)
+### Sample code
 
 ```
 1
@@ -453,22 +465,24 @@ subscriptionSet.Unsubscribeobject>()
 
 ```
 
-### Returns[​](#returns-3)
+### Returns
 
 None
 
-## Unsubscribe all[​](#unsubscribe-all)
+## Unsubscribe all
 
-Stop receiving all updates and remove related entities. Client scope only.
+Stop receiving updates from all streams and remove associated entities.
 
-### Method(s)[​](#methods-7)
+Client scope: Available only on the PubNub object.
+
+### Method(s)
 
 ```
 `1pubnub.UnsubscribeAllobject>()  
 `
 ```
 
-### Sample code[​](#sample-code-11)
+### Sample code
 
 ```
 1
@@ -476,6 +490,6 @@ Stop receiving all updates and remove related entities. Client scope only.
 
 ```
 
-### Returns[​](#returns-4)
+### Returns
 
 None

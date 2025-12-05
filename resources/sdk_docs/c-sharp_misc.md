@@ -4,7 +4,7 @@ The methods on this page are utility methods that don't fit into other categorie
 
 ##### Request execution
 
-Use try/catch with the C# SDK. Invalid parameters throw exceptions; server/network failures are returned in status.
+Use try/catch with the C# SDK. Invalid parameters throw exceptions. If the request reaches the server but fails (server error or network issue), error details are available in the returned status.
 
 ```
 1try  
@@ -29,7 +29,7 @@ Use try/catch with the C# SDK. Invalid parameters throw exceptions; server/netwo
 
 ## Destroy[​](#destroy)
 
-Frees threads and allows a clean exit.
+Destroy frees up threads and allows for clean exit.
 
 ### Method(s)[​](#methods)
 
@@ -39,6 +39,8 @@ Frees threads and allows a clean exit.
 ```
 
 ### Sample code[​](#sample-code)
+
+##### Reference code
 
 ```
 1
@@ -52,7 +54,7 @@ None
 
 ## Disconnect[​](#disconnect)
 
-Force the SDK to stop all requests to PubNub when there are active subscribe channels.
+Call Disconnect to force the SDK to stop all requests to PubNub when there are active subscribe channels.
 
 ### Method(s)[​](#methods-1)
 
@@ -73,7 +75,7 @@ This method doesn't take any arguments.
 
 ## Get subscribed channel groups[​](#get-subscribed-channel-groups)
 
-Returns all subscribed channel groups as List<String>.
+Returns all subscribed channel groups as List<string>.
 
 ### Method(s)[​](#methods-2)
 
@@ -94,7 +96,7 @@ Returns all subscribed channel groups as List<String>.
 
 ### Response[​](#response)
 
-`List<String>`
+List<String>
 
 ```
 `1["channelGroup1", "channelGroup2"]  
@@ -103,7 +105,7 @@ Returns all subscribed channel groups as List<String>.
 
 ## Get subscribed channels[​](#get-subscribed-channels)
 
-Returns all subscribed channels as List<String>.
+Returns all subscribed channels as List<string>.
 
 ### Method(s)[​](#methods-3)
 
@@ -124,7 +126,7 @@ Returns all subscribed channels as List<String>.
 
 ### Response[​](#response-1)
 
-`List<String>`
+List<String>
 
 ```
 `1["channel1", "channel2"]  
@@ -133,7 +135,7 @@ Returns all subscribed channels as List<String>.
 
 ## Reconnect[​](#reconnect)
 
-Force the SDK to attempt reconnecting to PubNub.
+Call reconnect to force the SDK to try to reach PubNub.
 
 ### Method(s)[​](#methods-4)
 
@@ -142,7 +144,7 @@ Force the SDK to attempt reconnecting to PubNub.
 `
 ```
 
-- resetSubscribeToken (bool): Passing true sends a zero timetoken upon reconnect.
+- resetSubscribeToken (bool): Passing true sends zero timetoken upon reconnect.
 
 ### Sample code[​](#sample-code-4)
 

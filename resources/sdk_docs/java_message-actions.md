@@ -1,24 +1,24 @@
 # Message Actions API for Java SDK
 
 ##### Breaking changes in v9.0.0
-Java SDK v9.0.0 unifies Java and Kotlin SDKs, changes client instantiation, async callbacks, and emitted status events. Apps built with versions < 9.0.0 may be impacted. See Java/Kotlin SDK migration guide.
+PubNub Java SDK v9.0.0 unifies Java and [Kotlin](/docs/sdks/kotlin) SDKs, introduces a new PubNub client instantiation pattern, and changes asynchronous API callbacks and emitted [status events](/docs/sdks/java/status-events). Apps built with versions < 9.0.0 may be impacted. See the [Java/Kotlin SDK migration guide](/docs/general/resources/migration-guides/java-kotlin-sdk-migration-guide).
 
-Use Message Actions to add/remove metadata on published messages (receipts, reactions). Subscribe to channels to receive action events. You can fetch past actions from Message Persistence.
+Use message actions to add/remove metadata on published messages (receipts, reactions). Clients subscribe to channels to receive action events and can fetch past actions from Message Persistence.
 
 ##### Reactions
-“Message Reactions” is a specific use of Message Actions for emoji/social reactions.
+“Message Reactions” are a specific application of Message Actions for emoji/social reactions.
 
 ##### Message Actions vs. Message Reactions
-Message Actions is the low-level API for attaching metadata (read receipts, confirmations, custom data). “Message Reactions” is the same API used for emoji reactions (terminology differs by use case).
+Message Actions is the low-level API for arbitrary metadata (read receipts, delivery confirmations, custom data). Message Reactions refers to using Message Actions for emoji reactions; underlying API is the same.
 
-## Add message action[​](#add-message-action)
+## Requirements
+Message Actions require Message Persistence. Enable it for your key in the [Admin Portal](https://admin.pubnub.com/) per this [support article](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
 
-##### Requires Message Persistence
-Enable Message Persistence for your key in the Admin Portal.
+## Add message action
 
 Add an action to a published message. The response includes the added action.
 
-### Method(s)[​](#methods)
+### Method(s)
 Use this Java method:
 ```
 `1this.pubnub.addMessageAction()  
@@ -28,12 +28,11 @@ Use this Java method:
 ```
 
 Parameters:
-- channel (String): Channel to add the message action to.
-- messageAction (PNMessageAction): Action payload (type, value, message timetoken).
-- async (Consumer<Result>): Callback of type PNAddMessageActionResult.
+- channel (Type: String) — Channel name to add the message action to.
+- messageAction (Type: PNMessageAction) — Message action payload (type, value, message timetoken).
+- async (Type: Consumer<Result>) — Callback of type PNAddMessageActionResult.
 
-### Sample code[​](#sample-code)
-
+### Sample code
 ##### Reference code
 This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
 ```
@@ -42,27 +41,24 @@ This example is a self-contained code snippet ready to be run. It includes neces
 
 ```
 
-### Returns[​](#returns)
+### Returns
 addMessageAction() returns PNAddMessageActionResult:
-- getType(): String — Message action type.
-- getValue(): String — Message action value.
-- getUuid(): String — Publisher of the message action.
-- getActionTimetoken(): Long — When the action was created.
-- getMessageTimetoken(): Long — Timetoken of the message the action belongs to.
+- getType() (Type: String) — Message action type.
+- getValue() (Type: String) — Message action value.
+- getUuid() (Type: String) — Publisher of the message action.
+- getActionTimetoken() (Type: Long) — Timestamp when the message action was created.
+- getMessageTimetoken() (Type: Long) — Timestamp when the message the action belongs to was created.
 
-#### PNMessageAction[​](#pnmessageaction)
-- setType(String): Message action type.
-- setValue(String): Message action value.
-- setMessageTimetoken(Long): Timetoken of the target message.
+#### PNMessageAction
+- setType() (Type: String) — Message action type.
+- setValue() (Type: String) — Message action value.
+- setMessageTimetoken() (Type: Long) — Timetoken of the target message.
 
-## Remove message action[​](#remove-message-action)
-
-##### Requires Message Persistence
-Enable Message Persistence for your key in the Admin Portal.
+## Remove message action
 
 Remove a previously added action from a published message. The response is empty.
 
-### Method(s)[​](#methods-1)
+### Method(s)
 Use this Java method:
 ```
 `1this.pubnub.removeMessageAction()  
@@ -73,32 +69,29 @@ Use this Java method:
 ```
 
 Parameters:
-- channel (String): Channel to remove the action from.
-- messageTimetoken (Long): Timetoken of the target message.
-- actionTimetoken (Long): Timetoken of the action to remove.
-- async (Consumer<Result>): Callback of type PNRemoveMessageActionResult.
+- channel (Type: String) — Channel name to remove the message action from.
+- messageTimetoken (Type: Long) — Timetoken of the target message.
+- actionTimetoken (Type: Long) — Timetoken of the message action to remove.
+- async (Type: Consumer<Result>) — Callback of type PNRemoveMessageActionResult.
 
-### Sample code[​](#sample-code-1)
+### Sample code
 ```
 1
   
 
 ```
 
-### Returns[​](#returns-1)
+### Returns
 removeMessageAction() returns no actionable data.
 
-## Get message actions[​](#get-message-actions)
+## Get message actions
 
-##### Requires Message Persistence
-Enable Message Persistence for your key in the Admin Portal.
-
-Get a list of message actions in a channel. Actions are sorted by action timetoken ascending.
+Get a list of message actions in a channel. Actions are sorted by action timetoken (ascending).
 
 ##### Truncated response
-Responses may be truncated. If so, a more property is returned with additional parameters. Send iterative calls, adjusting parameters to fetch more actions.
+If internal limits are hit, the response may be truncated and include a more property with additional parameters. Make iterative calls, adjusting parameters to fetch more actions.
 
-### Method(s)[​](#methods-2)
+### Method(s)
 Use this Java method:
 ```
 `1this.pubnub.getMessageActions()  
@@ -110,30 +103,29 @@ Use this Java method:
 ```
 
 Parameters:
-- channel (String): Channel to list actions for.
-- start (Long): Start action timetoken (exclusive).
-- end (Long): End action timetoken (inclusive).
-- limit (Integer): Max actions to return. Default/Max 100.
-- async (Consumer<Result>): Callback of type PNGetMessageActionsResult.
+- channel (Type: String) — Channel name to list message actions for.
+- start (Type: Long) — Message action timetoken for the start of the range (exclusive).
+- end (Type: Long) — Message action timetoken for the end of the range (inclusive).
+- limit (Type: Integer) — Maximum number of actions to return. Default/Maximum is 100.
+- async (Type: Consumer<Result>) — Callback of type PNGetMessageActionsResult.
 
-### Sample code[​](#sample-code-2)
+### Sample code
 ```
 1
   
 
 ```
 
-### Returns[​](#returns-2)
+### Returns
 getMessageActions() returns a list of PNGetMessageActionsResult:
-- getType(): String — Message action type.
-- getValue(): String — Message action value.
-- getUuid(): String — Publisher of the message action.
-- getActionTimetoken(): Long — When the action was created.
-- getMessageTimetoken(): Long — Timetoken of the message the action belongs to.
+- getType() (Type: String) — Message action type.
+- getValue() (Type: String) — Message action value.
+- getUuid() (Type: String) — Publisher of the message action.
+- getActionTimetoken() (Type: Long) — Timestamp when the message action was created.
+- getMessageTimetoken() (Type: Long) — Timestamp when the message the action belongs to was created.
 
-### Other examples[​](#other-examples)
-
-#### Fetch messages with paging[​](#fetch-messages-with-paging)
+### Other examples
+#### Fetch messages with paging
 ```
 1
 **

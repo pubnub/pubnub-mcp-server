@@ -1,68 +1,65 @@
 # Presence API for JavaScript SDK
 
-Presence lets you track who is online/offline and store custom state. Presence shows:
-- Join/leave events
-- Channel occupancy counts
-- Channels a UUID (user/device) is subscribed to
-- Presence state
+Presence tracks user join/leave events, channel occupancy, subscriptions, and per-user presence state.
 
-Requires Presence add-on enabled for your key in the Admin Portal. See Presence overview and Presence Events for details.
-
-Supported async patterns: Callbacks, Promises, Async/Await (recommended). Use try...catch to receive error status.
+- Supported async patterns: Callbacks, Promises, Async/Await (recommended). Use try...catch to handle errors.
+- All methods below require the Presence add-on enabled for your key in the Admin Portal. For receiving events, see Presence Events.
 
 ## Here now
 
-Returns the current state of one or more channels, including UUIDs and occupancy counts.
+Returns current state of one or more channels: list of UUIDs (and optional state) and occupancy per channel.
 
-Cache: 3-second response cache time.
+- Cache: 3-second response cache.
 
 ### Method(s)
 
-```
-`1pubnub.hereNow({  
-2    channels: Arraystring> ,  
-3    channelGroups: Arraystring> ,  
-4    includeUUIDs: boolean ,  
-5    includeState: boolean ,  
-6    limit: number ,  
-7    offset: number  
-8}); PromiseHereNowResponse>  
-`
+```js
+pubnub.hereNow({
+  channels?: string[],
+  channelGroups?: string[],
+  includeUUIDs?: boolean,   // default: true
+  includeState?: boolean,   // default: false
+  limit?: number,           // default: 1000 (0–1000). Use 0 for occupancy-only.
+  offset?: number           // zero-based index; requires limit > 0
+}): Promise<HereNowResponse>
 ```
 
-Parameters:
-- channels (array<string>) — Required if channelGroups not provided. Channels to return occupancy results for.
-- channelGroups (array<string>) — Required if channels not provided. Channel Groups to query. Wildcards not supported.
-- includeUUIDs (boolean, default: true) — If false, UUIDs are not returned.
-- includeState (boolean, default: false) — If true, subscriber state is returned.
-- limit (number, default: 1000) — Max occupants per channel. Range 0–1000. Use 0 for occupancy-only without user details.
-- offset (number) — Zero-based starting index for pagination. Requires limit > 0. Included only when offset > 0.
+Parameters
+- channels (string[]): Channel names to query. Specify either channels or channelGroups.
+- channelGroups (string[]): Channel Groups to query. Specify either channels or channelGroups. Wildcards not supported.
+- includeUUIDs (boolean, default true): Set to false to omit UUIDs.
+- includeState (boolean, default false): Set to true to include presence state.
+- limit (number, default 1000): Max occupants to return per channel. 0–1000. Use 0 for counts only (no user details).
+- offset (number): Zero-based starting index for pagination. Must be >= 0 and used with limit > 0. Included in request only when offset > 0.
 
 ### Sample code
+
+#### Reference code
+
+```
+
+```
 
 #### Get a list of UUIDs subscribed to channel
 
 ```
-1
-  
-
-```
-
-```
-1
-  
 
 ```
 
 ### Response
 
-```
-`1type hereNowResponse = {  
-2    totalChannels: number, // totalChannels = get total of channels  
-3    totalOccupancy: number, // totalOccupancy = get total of occupancies  
-4    channels: object // channels = get a map with values for each channel with uuids and states for each occupant of the channel  
-5}  
-`
+```ts
+type HereNowResponse = {
+  totalChannels: number,     // total number of channels returned
+  totalOccupancy: number,    // total occupants across channels
+  channels: {
+    [channel: string]: {
+      name: string,
+      occupancy: number,
+      occupants: Array<{ uuid: string, state?: any }>
+    }
+  }
+}
 ```
 
 ### Other examples
@@ -70,147 +67,133 @@ Parameters:
 #### Returning state
 
 ```
-1
-  
 
 ```
 
 ##### Example response
 
-```
-1// Example of Status  
-2{  
-3    "error": false,  
-4    "operation": "PNHereNowOperation",  
-5    "statusCode": 200  
-6}  
-7
-  
-8// Example of Response  
-9{  
-10    "totalChannels": 1,  
-11    "totalOccupancy": 3,  
-12    "channels": {  
-13        "my_channel": {  
-14            "occupants": [  
-15                {  
-16                    "uuid": "User 1"  
-17                },  
-18                {  
-19                    "state": {  
-20                        "age": 18  
-21                    },  
-22                    "uuid": "User 2"  
-23                },  
-24                {  
-25                    "state": {  
-26                        "age": 24  
-27                    },  
-28                    "uuid": "User 3"  
-29                }  
-30            ],  
-31            "name": "my_channel",  
-32            "occupancy": 3  
-33        }  
-34    }  
-35}  
+```json
+// Example of Status
+{
+  "error": false,
+  "operation": "PNHereNowOperation",
+  "statusCode": 200
+}
 
+// Example of Response
+{
+  "totalChannels": 1,
+  "totalOccupancy": 3,
+  "channels": {
+    "my_channel": {
+      "occupants": [
+        {
+          "uuid": "User 1"
+        },
+        {
+          "state": {
+            "age": 18
+          },
+          "uuid": "User 2"
+        },
+        {
+          "state": {
+            "age": 24
+          },
+          "uuid": "User 3"
+        }
+      ],
+      "name": "my_channel",
+      "occupancy": 3
+    }
+  }
+}
 ```
 
 #### Return occupancy only
 
-You can return only occupancy for a single channel by specifying the channel and setting includeUUIDs and includeState to false:
+You can return only occupancy by setting includeUUIDs and includeState to false.
 
 ```
-1
-  
 
 ```
 
 ##### Example response
 
-```
-1// Example of Status  
-2{  
-3    "error": false,  
-4    "operation": "PNHereNowOperation",  
-5    "statusCode": 200  
-6}  
-7
-  
-8// Example of Response  
-9{  
-10    "totalChannels": 1,  
-11    "totalOccupancy": 3,  
-12    "channels": {  
-13        "my_channel": {  
-14            "occupants": [],  
-15            "name": "my_channel",  
-16            "occupancy": 3  
-17        }  
-18    }  
-19}  
+```json
+// Example of Status
+{
+  "error": false,
+  "operation": "PNHereNowOperation",
+  "statusCode": 200
+}
 
+// Example of Response
+{
+  "totalChannels": 1,
+  "totalOccupancy": 3,
+  "channels": {
+    "my_channel": {
+      "occupants": [],
+      "name": "my_channel",
+      "occupancy": 3
+    }
+  }
+}
 ```
 
 #### Channel group usage
 
 ```
-1
-  
 
 ```
 
 ##### Example response
 
-```
-1// Example of Status  
-2{  
-3    "error": false,  
-4    "operation": "PNHereNowOperation",  
-5    "statusCode": 200  
-6}  
-7
-  
-8// Example of Response  
-9{  
-10    "totalChannels": 2,  
-11    "totalOccupancy": 3,  
-12    "channels": {  
-13        "my_channel_1": {  
-14            "occupants": [  
-15                {  
-16                    "state": null,  
-17                    "uuid": "User1"  
-18                },  
-19                {  
-20                    "state": null,  
-21                    "uuid": "User3"  
-22                }  
-23            ],  
-24            "name": "my_channel_1",  
-25            "occupancy": 2  
-26        },  
-27        "my_channel_2": {  
-28            "occupants": [  
-29                {  
-30                    "state": null,  
-31                    "uuid": "User2"  
-32                }  
-33            ],  
-34            "name": "my_channel_2",  
-35            "occupancy": 1  
-36        }  
-37    }  
-38}  
+```json
+// Example of Status
+{
+  "error": false,
+  "operation": "PNHereNowOperation",
+  "statusCode": 200
+}
 
+// Example of Response
+{
+  "totalChannels": 2,
+  "totalOccupancy": 3,
+  "channels": {
+    "my_channel_1": {
+      "occupants": [
+        {
+          "state": null,
+          "uuid": "User1"
+        },
+        {
+          "state": null,
+          "uuid": "User3"
+        }
+      ],
+      "name": "my_channel_1",
+      "occupancy": 2
+    },
+    "my_channel_2": {
+      "occupants": [
+        {
+          "state": null,
+          "uuid": "User2"
+        }
+      ],
+      "name": "my_channel_2",
+      "occupancy": 1
+    }
+  }
+}
 ```
 
 #### Sample code with promises
 
 ```
-1
-  
 
 ```
 
@@ -218,101 +201,93 @@ You can return only occupancy for a single channel by specifying the channel and
 
 Returns the list of channels a UUID is subscribed to.
 
-Timeout events: If the app restarts (or the page refreshes) within the heartbeat window, no timeout event is generated.
+- Timeout events: If the app restarts (or the page refreshes) within the heartbeat window, no timeout event is generated.
 
 ### Method(s)
 
-```
-`1pubnub.whereNow({  
-2    uuid: string  
-3}): PromiseWhereNowResponse>  
-`
+```js
+pubnub.whereNow({
+  uuid?: string        // default: current UUID
+}): Promise<WhereNowResponse>
 ```
 
-Parameters:
-- uuid (string, default: current uuid) — UUID to return channel list for.
+Parameters
+- uuid (string, default current UUID): UUID to return channel list for.
 
 ### Sample code
 
 #### Get a list of channels a UUID is subscribed to
 
 ```
-1
-  
 
 ```
 
 ### Response
 
-```
-1// Example of Status  
-2{  
-3    error: false,  
-4    operation: "PNWhereNowOperation",  
-5    statusCode: 200  
-6}  
-7
-  
-8// Example of Response  
-9{  
-10    "channels": ["ch1", "ch2"]  
-11}  
+```json
+// Example of Status
+{
+  "error": false,
+  "operation": "PNWhereNowOperation",
+  "statusCode": 200
+}
 
+// Example of Response
+{
+  "channels": ["ch1", "ch2"]
+}
 ```
 
 ## User state
 
-Clients can set a dynamic custom state (for example, score, game state, location) on one or more channels while subscribed. State is not persisted and is lost on disconnect. See Presence State for details.
+Clients can set dynamic, non-persistent presence state (for example, score, location) per channel while subscribed. State is not persisted and is lost on disconnect. Keys starting with pn are reserved; no nested objects; supported value types: int, float, string.
 
 ### Method(s)
 
 #### Set state
 
-```
-`1pubnub.setState({  
-2    channels: Arraystring> ,  
-3    channelGroups: Arraystring> ,  
-4    state: any  
-5}): PromiseSetStateResponse>;  
-`
+```js
+pubnub.setState({
+  channels?: string[],
+  channelGroups?: string[],
+  state?: any            // JSON of key/value pairs; see constraints below
+}): Promise<SetStateResponse>
 ```
 
-Parameters:
-- channels (Array) — Either channels or channelGroups must be provided. Channels to set the state.
-- channelGroups (Array) — Either channels or channelGroups must be provided. Channel Groups to set the state.
-- state (any) — JSON object of key/value pairs. Supported data types: int, float, string. No nested key/values. Keys starting with pn are reserved. If undefined, returns current state for the specified uuid. Existing keys are overwritten. Set value to null to delete a key.
+Parameters
+- channels (string[]): Channels to set the state. Provide channels or channelGroups.
+- channelGroups (string[]): Channel Groups to set the state. Provide channels or channelGroups.
+- state (any): Flat JSON of key/value pairs. Supported types: int, float, string. No nesting. Keys with pn prefix are reserved.
+  - If state is undefined, the current state for the specified UUID will be returned.
+  - Existing keys are overwritten with new values.
+  - Delete a key by setting its value to null.
 
 #### Get state
 
-```
-`1pubnub.getState({  
-2    uuid: string,  
-3    channels: Arraystring>,   
-4    channelGroups: Arraystring>  
-5}): PromiseGetStateResponse>;   
-`
+```js
+pubnub.getState({
+  uuid?: string,         // default: current UUID
+  channels?: string[],
+  channelGroups?: string[]
+}): Promise<GetStateResponse>
 ```
 
-Parameters:
-- uuid (String, default: current uuid) — Subscriber UUID to get current state.
-- channels (Array) — Either channels or channelGroups must be provided. Channels to get the state.
-- channelGroups (Array) — Either channels or channelGroups must be provided. Channel Groups to get the state.
+Parameters
+- uuid (string, default current UUID): Subscriber UUID to get current state.
+- channels (string[]): Channels to get the state. Provide channels or channelGroups.
+- channelGroups (string[]): Channel Groups to get the state. Provide channels or channelGroups.
 
 ### Sample code
 
 #### Set state
 
 ```
-1
-  
 
 ```
 
 #### Get state
 
 ```
-1
-  
 
 ```
 
@@ -320,43 +295,38 @@ Parameters:
 
 #### Set state
 
-```
-1// Example of Status  
-2{  
-3    error: false,  
-4    operation: "PNSetStateOperation",  
-5    statusCode: 200  
-6}  
-7
-  
-8// Example of Response  
-9{  
-10    state: {  
-11        me: 'typing'  
-12    }  
-13}  
+```json
+// Example of Status
+{
+  "error": false,
+  "operation": "PNSetStateOperation",
+  "statusCode": 200
+}
 
+// Example of Response
+{
+  "state": {
+    "me": "typing"
+  }
+}
 ```
 
 #### Get state
 
-```
-1// Example of Status  
-2{  
-3    error: false,  
-4    operation: "PNGetStateOperation",  
-5    statusCode: 200  
-6}  
-7
-**8// Example of Response  
-9{  
-10    channels: {  
-11        ch1: {  
-12            me: 'typing'  
-13        }  
-14    }  
-15}  
+```json
+// Example of Status
+{
+  "error": false,
+  "operation": "PNGetStateOperation",
+  "statusCode": 200
+}
 
+// Example of Response
+{
+  "channels": {
+    "ch1": {
+      "me": "typing"
+    }
+  }
+}
 ```
-
-Last updated on Nov 10, 2025

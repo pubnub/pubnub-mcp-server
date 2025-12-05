@@ -1,10 +1,10 @@
 # Configuration API for C# SDK
 
-C# API reference for configuring PubNub behavior. Keep exceptions handling in place and always set a UserId.
+C# API reference for configuring the PubNub client. Includes essential settings, method/property signatures, parameters, defaults, and code blocks as provided.
 
 ##### Request execution
 
-Use try/catch for C# SDK operations. Invalid parameters throw exceptions. Server/network errors are in returned status.
+Use try/catch. Invalid parameters throw an exception. Server/network failures return a status in the result.
 
 ```
 1try  
@@ -24,83 +24,91 @@ Use try/catch for C# SDK operations. Invalid parameters throw exceptions. Server
 13{  
 14    Console.WriteLine($"Request can't be executed due to error: {ex.Message}");  
 15}  
-
 ```
+
+Note: UserId is required to connect. Persist a unique user/device identifier for the lifetime of the user/device.
 
 ## Configuration
 
-PNConfiguration stores settings controlling SDK behavior.
+PNConfiguration stores user-provided settings to control SDK behavior.
 
 ### Method(s)
 
-To create configuration instance:
+To create a configuration instance:
 
 ```
 1
   
-
 ```
 
-Required and optional parameters:
+Configuration parameters:
 
-- SubscribeKey (Type: string) Required. SubscribeKey from Admin Portal.
-- PublishKey (Type: string) PublishKey from Admin Portal (required if publishing).
-- SecretKey (Type: string) Required for access control operations. Server-side only. Grants root permissions for Access Manager.
-- UserId (Type: UserId) Required. Unique UTF-8 string (<= 92 alphanumeric chars) identifying user/device. If unset, you can’t connect.
-- LogLevel (Type: PubnubLogLevel) Logging level. Values: Trace, Debug, Info, Warn, Error. Default: None. See Logging.
+- SubscribeKey (Type: string) Required. From Admin Portal.
+- PublishKey (Type: string) From Admin Portal. Required if publishing.
+- SecretKey (Type: string) Required for Access Manager operations. Use server-side only.
+- UserId (Type: UserId) Required. Unique UTF-8 string up to 92 alphanumeric chars. Construct with string.
+- LogLevel (Type: PubnubLogLevel) Logging level. Default: PubnubLogLevel.None.
+  - Values: PubnubLogLevel.Trace | Debug | Info | Warn | Error | None
+  - See Logging.
 - AuthKey (Type: string) Used for Access Manager restricted requests.
 - Secure (Type: bool) Enable SSL/TLS.
 - SubscribeTimeout (Type: int) Subscribe loop timeout (seconds).
-- NonSubscribeRequestTimeout (Type: int) Request timeout for non-subscribe operations (seconds).
-- FilterExpression (Type: string) Subscribe with a custom filter expression.
-- HeartbeatNotificationOption (Type: PNHeartbeatNotificationOption) Heartbeat notifications. Default: FAILURES. Options: ALL, NONE.
-- Origin (Type: string) Custom domain. Contact support to request a custom domain.
-- ReconnectionPolicy (Type: PNReconnectionPolicy) Subscribe reconnection strategy. Default: EXPONENTIAL. Options: NONE, LINEAR, EXPONENTIAL.
+- NonSubscribeRequestTimeout (Type: int) Non-subscribe request timeout (seconds).
+- FilterExpression (Type: string) Subscribe with a custom filter expression (Stream Controller required).
+- HeartbeatNotificationOption (Type: PNHeartbeatNotificationOption) Presence heartbeat notifications. Default: FAILURES.
+  - Values: PNHeartbeatNotificationOption.ALL | FAILURES | NONE
+- Origin (Type: string) Custom origin/domain. Contact support to request a custom domain.
+- ReconnectionPolicy (Type: PNReconnectionPolicy) Subscribe reconnection policy. Default: EXPONENTIAL (subscribe only).
+  - Values: PNReconnectionPolicy.NONE | LINEAR | EXPONENTIAL
 - ConnectionMaxRetries (Type: int) Max reconnection attempts. If unset, no reconnect.
-- PresenceTimeout (Type: int) Presence liveness timeout (seconds). Heartbeats sent periodically; timeout emits “timeout” on presence channel.
-- SetPresenceTimeoutWithCustomInterval (Type: int) Heartbeat interval. Recommended: (PresenceTimeout / 2) - 1.
-- Proxy (Type: Proxy) Use an HTTP proxy for PubNub traffic.
-- RequestMessageCountThreshold (Type: Number) Threshold for messages per payload; exceeding triggers PNRequestMessageCountExceededCategory.
-- SuppressLeaveEvents (Type: bool) If true, do not send leave requests.
-- DedupOnSubscribe (Type: bool) If true, filters duplicate subscribe messages across regions.
-- MaximumMessagesCacheSize (Type: int) Cache size used with DedupOnSubscribe. Default: 100.
+- PresenceTimeout (Type: int) Presence timeout (seconds). If no heartbeat within timeout, client marked inactive and “timeout” event emitted.
+- SetPresenceTimeoutWithCustomInterval (Type: int) Heartbeat interval (seconds). Recommended: (PresenceTimeout / 2) - 1.
+- Proxy (Type: Proxy) Configure HTTP proxy for PubNub traffic.
+- RequestMessageCountThreshold (Type: Number) Payload message count threshold; exceeding triggers PNRequestMessageCountExceededCategory.
+- SuppressLeaveEvents (Type: bool) When true, do not send leave on unsubscribe/shutdown.
+- DedupOnSubscribe (Type: bool) De-duplicate subscribe messages across regions.
+- MaximumMessagesCacheSize (Type: int) Used with DedupOnSubscribe. Default: 100.
 - FileMessagePublishRetryLimit (Type: int) Retries for file message publish failures. Default: 5.
-- CryptoModule (Type: AesCbcCryptor(CipherKey) or LegacyCryptor(CipherKey)) Module for encrypting/decrypting messages/files. Pass CipherKey here. See CryptoModule.
-- EnableEventEngine (Type: Boolean) Default: true. Uses standardized workflows for subscribe/presence and status events.
-- MaintainPresenceState (Type: Boolean) Works only when EnableEventEngine = true. Resends custom presence state set via pubnub.setPresenceState() on each subscribe.
-- RetryConfiguration (Type: RetryConfiguration) When EnableEventEngine = true. Custom reconnection: 
+- CryptoModule (Type: AesCbcCryptor(CipherKey) or LegacyCryptor(CipherKey)) Encryption module for messages/files. Pass CipherKey.
+  - See CryptoModule section.
+- EnableEventEngine (Type: Boolean) Default: true. Use standardized workflows for subscribe/presence and standardized status events.
+- MaintainPresenceState (Type: Boolean) Works only when EnableEventEngine = true. Resend custom presence state set via pubnub.setPresenceState().
+- RetryConfiguration (Type: RetryConfiguration) When enableEventEngine = true:
   - RetryConfiguration.Linear(int delayInSecond, int maxRetry)
   - RetryConfiguration.Exponential(int minDelayInSecond, int maxDelayInSecond, int maxRetry)
-  Excluding endpoints not supported.
-- LogVerbosity (Type: PNLogVerbosity) Deprecated; use LogLevel. BODY to enable debugging, NONE to disable.
-- PubnubLog (Type: IPubnubLog) Deprecated; use SetLogger with IPubnubLogger instead.
-- CipherKey (Type: string) Deprecated; pass to CryptoModule instead. If set, all communications are encrypted.
-- UseRandomInitializationVector (Type: bool) Deprecated; pass to CryptoModule instead. Default false. When true, random IV for all requests (not just file upload).
-- Uuid (Type: string) Deprecated; use UserId instead. Required to connect if using legacy UUID.
+  - Excluding endpoints not supported.
+- LogVerbosity (Type: PNLogVerbosity) Deprecated; use LogLevel. PNLogVerbosity.BODY to enable debugging; PNLogVerbosity.NONE to disable.
+- PubnubLog (Type: IPubnubLog) Deprecated; use SetLogger with IPubnubLogger.
+- CipherKey (Type: string) Deprecated; pass via CryptoModule. If set, all payloads encrypted.
+- UseRandomInitializationVector (Type: bool) Deprecated; pass via CryptoModule. Default false; true => random IV for all requests.
+- Uuid (Type: string) Deprecated; use UserId.
 
 #### CryptoModule
 
-CryptoModule encrypts/decrypts messages/files. From 6.18.0 onward, supports legacy 128-bit or recommended 256-bit AES-CBC.
+Encrypts/decrypts messages and files. Since 6.18.0, supports:
+- Legacy 128-bit encryption (LegacyCryptor)
+- Recommended 256-bit AES-CBC (AesCbcCryptor)
 
-- If CryptoModule not set but CipherKey/UseRandomInitializationVector are set in configuration, client defaults to legacy encryption.
-- See Encryption page for config and utility methods.
+If CryptoModule is not set but CipherKey/UseRandomInitializationVector are set in config, legacy encryption is used by default.
+
+For detailed usage, see Encryption.
 
 ##### Legacy encryption with 128-bit cipher key entropy
 
-No changes needed to keep legacy encryption. Set AesCbcCryptor explicitly to use recommended 256-bit AES-CBC.
+You can keep legacy encryption. To use 256-bit AES-CBC, explicitly set AesCbcCryptor in config.
 
 ### Sample code
 
 ##### Reference code
-Self-contained example with imports and console logging. Use as reference for other examples.
+Self-contained example with imports and console logging.
 
 ##### Required User ID
-Always set a persistent UserId. If not set, you cannot connect.
+
+Always set the UserId.
 
 ```
 1
   
-
 ```
 
 ## Initialization
@@ -110,109 +118,93 @@ Always set a persistent UserId. If not set, you cannot connect.
 ```
 1
   
-
 ```
 
 ### Description
 
-Initialize PubNub and set credentials like PublishKey and SubscribeKey.
+Initialize the PubNub client with credentials such as PublishKey and SubscribeKey.
 
 ### Method(s)
 
-To Initialize PubNub:
+Initialize PubNub with:
 
 ```
 1
   
-
 ```
 
-- pnConfiguration (Type: PNConfiguration) See Configuration.
+- pnConfiguration (Type: PNConfiguration) Required. See Configuration.
 
 ### Sample code
 
 #### Initialize the PubNub client API
 
 ##### Required User ID
-Always set a persistent UserId. If not set, you cannot connect.
+
+Always set the UserId.
 
 ```
 1
   
-
 ```
 
 ### Returns
 
-PubNub instance for APIs like Publish(), Subscribe(), History(), HereNow().
+A PubNub instance for APIs like Publish(), Subscribe(), History(), HereNow().
 
 ### Other examples
 
 #### Initialize a non-secure client
 
-##### Required User ID
-Always set a persistent UserId. If not set, you cannot connect.
-
 ```
 1
   
-
 ```
 
 #### Initialization for a Read-Only client
 
-Omit PublishKey when client only reads.
-
-##### Required User ID
-Always set a persistent UserId. If not set, you cannot connect.
+Omit PublishKey when publishing is not needed.
 
 ```
 1
   
-
 ```
 
 #### Initializing with SSL enabled
 
-Set Secure = true to enable TLS.
-
-##### Required User ID
-Always set a persistent UserId. If not set, you cannot connect.
+Set Secure = true.
 
 ```
 1
   
-
 ```
 
 ##### Requires Access Manager add-on
 
-Enable Access Manager in the Admin Portal to use related features.
+Enable Access Manager in the Admin Portal.
 
 ##### Secure your secretKey
 
-SecretKey grants permission control. Never expose it; use only on secure server-side platforms. When initialized with SecretKey, servers have full access to all channels.
+Never expose SecretKey; use server-side only. Initializing with SecretKey grants root Access Manager permissions.
 
-For apps administering Access Manager permissions:
+For administering Access Manager permissions:
 
 ##### Required User ID
-Always set a persistent UserId. If not set, you cannot connect.
 
 ```
 1
   
-
 ```
 
-After initialization with SecretKey, client can access Access Manager functions and signs messages with SecretKey.
+After initializing with SecretKey, the client can access Access Manager functions and signs messages with SecretKey.
 
 ## Event listeners
 
-- PubNub client: updates from all subscriptions (channels, channel groups, channel metadata, users).
-- Subscription: updates for its specific entity.
-- SubscriptionsSet: updates for a set of subscription objects.
+- PubNub client: updates from all subscriptions.
+- Subscription: updates for a specific channel, channel group, channel metadata, or user.
+- SubscriptionsSet: updates for a list of subscription objects.
 
-See Publish & Subscribe for details on subscribing and handlers.
+See Publish & Subscribe for adding handlers per entity.
 
 ## UserId
 
@@ -220,15 +212,14 @@ Set or get the user ID at runtime.
 
 ### Property(s)
 
-To set/get UserId:
+Set/get UserId using:
 
 ```
 1
   
-
 ```
 
-- UserId (Type: string) Identifier for the device/user. Required to connect.
+- UserId (Type: string) Device/user identifier. Required.
 
 ```
 `1pubnub.GetCurrentUserId();  
@@ -241,13 +232,9 @@ This method doesn't take any arguments.
 
 #### Set user ID
 
-##### Required User ID
-Always set a persistent UserId. If not set, you cannot connect.
-
 ```
 1
   
-
 ```
 
 #### Get user ID
@@ -255,7 +242,6 @@ Always set a persistent UserId. If not set, you cannot connect.
 ```
 1
   
-
 ```
 
 ## Authentication key
@@ -280,7 +266,6 @@ This method doesn't take any arguments.
 ```
 1
   
-
 ```
 
 #### Get auth key
@@ -288,7 +273,6 @@ This method doesn't take any arguments.
 ```
 1
   
-
 ```
 
 ### Returns
@@ -297,11 +281,9 @@ Get Auth key returns the current authentication key.
 
 ## Filter expression
 
-##### Requires Stream Controller add-on
+Requires Stream Controller add-on. Filters incoming messages server-side based on a client-provided expression.
 
-Enable Stream Controller in the Admin Portal. Stream filtering delivers only messages matching a filter expression.
-
-Use this property to set/get message filters. See Publish Messages.
+Use the following property to set/get message filters.
 
 ### Property(s)
 
@@ -310,7 +292,7 @@ Use this property to set/get message filters. See Publish Messages.
 `
 ```
 
-- FilterExpression (Type: string) PSV2 filter expression for Subscribe.
+- FilterExpression (Type: string) PSV2 custom subscribe filter expression.
 
 ```
 `1pnConfiguration.FilterExpression;  
@@ -323,19 +305,13 @@ This method doesn't take any arguments.
 
 #### Set filter expression
 
-##### Required User ID
-Always set a persistent UserId. If not set, you cannot connect.
-
 ```
 1
   
-
 ```
 
 #### Get filter expression
 
 ```
 1
-**
-```
-Last updated on Sep 3, 2025**
+**```

@@ -1,16 +1,18 @@
-# Presence API for Swift Native SDK (Condensed)
+# Presence API for Swift Native SDK
 
-Presence tracks who is online/offline and stores custom state:
-- Join/leave events
-- Channel occupancy (user count)
-- Channels a UUID is subscribed to
-- Presence state per user
+Presence lets you track who is online/offline and store custom state. Presence shows:
+- When a user joins or leaves a channel
+- Occupancy (how many users are subscribed to a channel)
+- Which channels a user/device is subscribed to
+- Presence state associated with users
 
-Requires Presence: Enable the Presence add-on for your key in the Admin Portal. For event delivery details, see Presence Events.
+Learn more: Presence overview.
 
 ## Here now
 
-Returns current state for channels: UUID list and occupancy count.
+Requires Presence add-on enabled in Admin Portal. To receive presence events, see Presence Events.
+
+Returns the current state of a channel: list of UUIDs subscribed and total occupancy count.
 
 Cache: 3-second response cache.
 
@@ -31,18 +33,18 @@ Cache: 3-second response cache.
 ```
 
 Parameters:
-- on (Type: [String], Default: n/a): Channels to return occupancy from.
-- and (Type: [String], Default: []): Channel groups to return occupancy from. Wildcards not supported.
-- includeUUIDs (Type: Bool, Default: true): Set to false to disable returning UUIDs.
-- includeState (Type: Bool, Default: false): Set true to include presence state.
-- limit (Type: Int, Default: 1000): Max occupants per channel. Range 0–1000. Use 0 for counts only (no user details).
-- offset (Type: Int, Default: 0): Zero-based start index for pagination. Must be >= 0. Requires limit > 0.
-- custom (Type: PubNub.RequestConfiguration, Default: PubNub.RequestConfiguration()): Per-request configuration.
-- completion (Type: ((Result<[String: PubNubPresence], Error>) -> Void)?, Default: nil): Async result.
+- on (required): [String] — Channel list to return occupancy for.
+- and (groups): [String], default [] — Channel groups to return occupancy for. Wildcards not supported.
+- includeUUIDs: Bool, default true — Set to false to omit UUIDs (occupancy only).
+- includeState: Bool, default false — Set to true to include presence state.
+- limit: Int, default 1000 — Max occupants per channel. Range 0–1000. Use 0 for occupancy without user details.
+- offset: Int, default 0 — Zero-based starting index for pagination. Must be >= 0. Requires limit > 0.
+- custom: PubNub.RequestConfiguration, default PubNub.RequestConfiguration() — Per-request config/session overrides.
+- completion: ((Result<[String: PubNubPresence], Error>) -> Void)? — Async result.
 
 #### Completion handler result
 
-Success:
+Success: Dictionary of channels mapped to PubNubPresence:
 
 ```
 1public protocol PubNubPresence {  
@@ -74,8 +76,6 @@ Failure: Error describing the failure.
 
 #### Get a list of UUIDs subscribed to channel
 
-##### Reference code
-
 ```
 1
   
@@ -86,7 +86,7 @@ Failure: Error describing the failure.
 
 #### Return occupancy only
 
-You can return only occupancy for a single channel by specifying the channel and setting UUIDs to false:
+Set includeUUIDs/UUIDs to false to return only occupancy for a channel.
 
 ```
 1
@@ -104,9 +104,11 @@ You can return only occupancy for a single channel by specifying the channel and
 
 ## Where now
 
-Returns channels a UUID is subscribed to.
+Requires Presence add-on enabled in Admin Portal. To receive presence events, see Presence Events.
 
-Timeout events: If the app restarts within the heartbeat window, no timeout event is generated.
+Returns the list of channels a UUID is subscribed to.
+
+Timeout events: If the app restarts (or page refreshes) within the heartbeat window, no timeout event is generated.
 
 ### Method(s)
 
@@ -120,14 +122,14 @@ Timeout events: If the app restarts within the heartbeat window, no timeout even
 ```
 
 Parameters:
-- for (Type: String, Default: n/a): UUID to return channels for.
-- custom (Type: PubNub.RequestConfiguration, Default: PubNub.RequestConfiguration()): Per-request configuration.
-- completion (Type: ((Result<[String: [String]], Error>) -> Void)?, Default: nil): Async result.
+- for: String — The UUID to return channels for.
+- custom: PubNub.RequestConfiguration, default PubNub.RequestConfiguration() — Per-request config/session overrides.
+- completion: ((Result<[String: [String]], Error>) -> Void)? — Async result.
 
 #### Completion handler result
 
-- Success: Dictionary of UUIDs mapped to arrays of channels with presence.
-- Failure: Error describing the failure.
+- Success: Dictionary of UUIDs mapped to their array of channels with presence.
+- Failure: Error.
 
 ### Sample code
 
@@ -141,7 +143,9 @@ Parameters:
 
 ## User state
 
-Clients can set dynamic custom state (for example, score, location) on one or more channels while subscribed. State isn’t persisted; it’s lost on disconnect.
+Requires Presence add-on enabled in Admin Portal. To receive presence events, see Presence Events.
+
+Clients can set dynamic custom state (for example: score, game state, location) for users on channels while subscribed. State isn’t persisted; it’s lost when the client disconnects. See Presence State.
 
 ### Method(s)
 
@@ -159,14 +163,14 @@ Clients can set dynamic custom state (for example, score, location) on one or mo
 ```
 
 Parameters:
-- state (Type: [String: JSONCodableScalar], Default: n/a): State dictionary to store. No nested dictionaries; keys starting with pn are reserved. Overwrites previous state. Clear by passing an empty dictionary.
-- on (Type: [String], Default: n/a): Channels to set state on. Pass empty array to not set.
-- and (Type: [String], Default: n/a): Channel groups to set state on.
-- custom (Type: PubNub.RequestConfiguration, Default: PubNub.RequestConfiguration()): Per-request configuration.
-- completion (Type: ((Result<JSONCodable, Error>) -> Void)?, Default: nil): Async result.
+- state (required): [String: JSONCodableScalar] — State dictionary to store. No nested dictionaries; keys starting with pn are reserved. Setting overwrites previous values. Clear state by passing an empty dictionary.
+- on (required): [String] — Channels to set state on. Pass [] to skip.
+- and (groups): [String] — Channel groups to set state on.
+- custom: PubNub.RequestConfiguration, default PubNub.RequestConfiguration() — Per-request config/session overrides.
+- completion: ((Result<JSONCodable, Error>) -> Void)? — Async result.
 
 Completion handler result:
-- Success: State set as JSONCodable.
+- Success: The state set as JSONCodable.
 - Failure: Error.
 
 #### Get state
@@ -183,14 +187,14 @@ Completion handler result:
 ```
 
 Parameters:
-- for (Type: String, Default: n/a): UUID to retrieve state for.
-- on (Type: [String], Default: n/a): Channels to get state on. Pass empty array to not get.
-- and (Type: [String], Default: []): Channel groups to get state on. Pass empty array to not get.
-- custom (Type: PubNub.RequestConfiguration, Default: PubNub.RequestConfiguration()): Per-request configuration.
-- completion (Type: ((Result<(uuid: String, stateByChannel: [String: JSONCodable]), Error>) -> Void)?, Default: nil): Async result.
+- for: String — UUID to retrieve state for.
+- on: [String] — Channels to get state on. Pass [] to skip.
+- and (groups): [String], default [] — Channel groups to get state on.
+- custom: PubNub.RequestConfiguration, default PubNub.RequestConfiguration() — Per-request config/session overrides.
+- completion: ((Result<(uuid: String, stateByChannel: [String: JSONCodable]), Error>) -> Void)? — Async result.
 
 Completion handler result:
-- Success: Tuple (uuid, stateByChannel dictionary).
+- Success: Tuple (uuid, stateByChannel) where stateByChannel is [channel: JSONCodable].
 - Failure: Error.
 
 ### Sample code
@@ -227,3 +231,5 @@ Completion handler result:
 1
 **
 ```
+
+Last updated on Nov 10, 2025**

@@ -1,18 +1,17 @@
 # Mobile Push Notifications API for Objective-C SDK
 
-Connect PubNub publishing to APNs (iOS) and FCM (Android).
+Connect PubNub publishing to APNs (Apple) and FCM (Google) for mobile push.
 
-- Enable the Mobile Push Notifications add-on for your key in the Admin Portal.
-- APNs support: HTTP/2 (APNs2) and legacy binary. Set pushType accordingly:
-  - PNAPNS2Push (HTTP/2)
-  - PNAPNSPush (legacy)
-  - PNFCMPush (FCM)
+- Requirements: Enable Mobile Push Notifications add-on in the Admin Portal for your keys.
+- APNs support: HTTP/2 (APNs2) and legacy binary protocol. Set pushType accordingly: PNAPNS2Push or PNAPNSPush.
+
+##### APNs version support
+
+PubNub Objective-C SDK supports both the HTTP/2-based Apple Push Notification service (APNs) and the already deprecated legacy binary protocol for APNs Mobile Push Notifications. Depending on the APNs version you use in your SDK, set `pushType` in methods to either `PNAPNS2Push` or `PNAPNSPush`.
 
 ## Add a device to a push notifications channel
 
-Enable push notifications on channels for a device token.
-
-##### Requires Mobile Push Notifications add-on
+Enable mobile push notifications on a set of channels.
 
 ### Method(s)
 
@@ -23,9 +22,9 @@ Enable push notifications on channels for a device token.
 `
 ```
 
-- channels: NSArray<NSString *> — Channels to enable.
-- pushToken: NSData — Device push token.
-- block: PNPushNotificationsStateModificationCompletionBlock — Completion.
+- channels: NSArray of channels to enable.
+- pushToken: NSData device push token.
+- block: PNPushNotificationsStateModificationCompletionBlock.
 
 ```
 `1- (void)addPushNotificationsOnChannels:(NSArrayNSString *> *)channels   
@@ -35,11 +34,10 @@ Enable push notifications on channels for a device token.
 `
 ```
 
-- channels: NSArray<NSString *> — Channels to enable.
-- pushToken: id — Device token (NSString).
-- pushType: PNPushType — Accepted:
-  - PNFCMPush
-- block: PNPushNotificationsStateModificationCompletionBlock — Completion.
+- channels: NSArray<NSString *> channels to enable.
+- pushToken: id (NSString) device token.
+- pushType: PNPushType (e.g., PNFCMPush).
+- block: PNPushNotificationsStateModificationCompletionBlock.
 
 ```
 `1- (void)addPushNotificationsOnChannels:(NSArrayNSString *> *)channels   
@@ -51,13 +49,12 @@ Enable push notifications on channels for a device token.
 `
 ```
 
-- channels: NSArray<NSString *> — Channels to enable.
-- pushToken: id — Device token (NSData).
-- pushType: PNPushType — Accepted:
-  - PNAPNS2Push
-- environment: PNAPNSEnvironment — APNs environment (APNs2 only).
-- topic: NSString — APNs topic (bundle identifier).
-- block: PNPushNotificationsStateModificationCompletionBlock — Completion.
+- channels: NSArray<NSString *> channels to enable.
+- pushToken: id (NSData) device token.
+- pushType: PNPushType (e.g., PNAPNS2Push for HTTP/2).
+- environment: PNAPNSEnvironment (APNs2 only).
+- topic: NSString APNs topic (bundle identifier).
+- block: PNPushNotificationsStateModificationCompletionBlock.
 
 ### Sample code
 
@@ -156,7 +153,6 @@ Enable push notifications on channels for a device token.
 74        NSLog(@"Error category: %@", @(status.category));  
 75    }  
 76}];  
-
 ```
 
 ### Response
@@ -184,7 +180,6 @@ Enable push notifications on channels for a device token.
 15
   
 16@end  
-
 ```
 
 ### Other examples
@@ -209,7 +204,6 @@ Example for method no. 2
 14         */  
 15    }  
 16}];  
-
 ```
 
 Example for method no. 3
@@ -234,14 +228,11 @@ Example for method no. 3
 16         */  
 17    }  
 18}];  
-
 ```
 
 ## Add a device to a push notifications channel (builder pattern)
 
-Enable push notifications on channels using the builder.
-
-##### Requires Mobile Push Notifications add-on
+Enable mobile push notifications on a set of channels.
 
 ### Method(s)
 
@@ -259,13 +250,12 @@ Enable push notifications on channels using the builder.
 `
 ```
 
-- channels: NSArray<NSString *> — Channels to enable.
-- token: id — Device token (NSData).
-- pushType: PNPushType — Accepted:
-  - PNAPNS2Push
-- environment: PNAPNSEnvironment — APNs environment (APNs2 only).
-- topic: NSString — APNs topic (bundle identifier).
-- block: PNPushNotificationsStateModificationCompletionBlock — Completion.
+- channels: NSArray<NSString *> to enable.
+- token: id (NSData).
+- pushType: PNPushType (e.g., PNAPNS2Push).
+- environment: PNAPNSEnvironment (APNs2 only).
+- topic: NSString (bundle identifier).
+- block: PNPushNotificationsStateModificationCompletionBlock.
 
 Note: Builder pattern; optional args can be omitted.
 
@@ -279,12 +269,11 @@ Note: Builder pattern; optional args can be omitted.
 5    .performWithCompletion(PNPushNotificationsStateModificationCompletionBlock);  
 6
   
-
 ```
 
-- channels: NSArray<NSString *> — Channels to enable.
-- fcmToken: NSString — FCM device push token.
-- completion: PNPushNotificationsStateModificationCompletionBlock — Completion.
+- channels: NSArray<NSString *> to enable.
+- fcmToken: NSString FCM device token.
+- completion: PNPushNotificationsStateModificationCompletionBlock.
 
 Note: Builder pattern; optional args can be omitted.
 
@@ -361,14 +350,11 @@ Note: Builder pattern; optional args can be omitted.
 15
   
 16@end  
-
 ```
 
 ## List push notifications channels for a device (builder pattern)
 
-List channels with push notifications enabled for a device token.
-
-##### Requires Mobile Push Notifications add-on
+List channels that have push notifications enabled for the specified device token.
 
 ### Method(s)
 
@@ -378,8 +364,8 @@ List channels with push notifications enabled for a device token.
 `
 ```
 
-- pushToken: NSData — Device push token.
-- block: PNPushNotificationsStateAuditCompletionBlock — Completion with result and status.
+- pushToken: NSData device token to audit.
+- block: PNPushNotificationsStateAuditCompletionBlock (result, status).
 
 ```
 `1- (void)pushNotificationEnabledChannelsForDeviceWithPushToken:(id)pushToken   
@@ -388,10 +374,9 @@ List channels with push notifications enabled for a device token.
 `
 ```
 
-- pushToken: id — Device token/identifier (NSString).
-- pushType: PNPushType — Accepted:
-  - PNFCMPush
-- block: PNPushNotificationsStateAuditCompletionBlock — Completion.
+- pushToken: id (NSString).
+- pushType: PNPushType (e.g., PNFCMPush).
+- block: PNPushNotificationsStateAuditCompletionBlock.
 
 ```
 `1- (void)pushNotificationEnabledChannelsForDeviceWithPushToken:(id)pushToken   
@@ -402,12 +387,11 @@ List channels with push notifications enabled for a device token.
 `
 ```
 
-- pushToken: id — NSData for PNAPNS2Push/PNAPNSPush; NSString for others (based on pushType).
-- pushType: PNPushType — Accepted:
-  - PNAPNS2Push
-- environment: PNAPNSEnvironment — APNs environment (APNs2 only).
-- topic: NSString — APNs topic (bundle identifier).
-- block: PNPushNotificationsStateAuditCompletionBlock — Completion.
+- pushToken: id (NSData for APNs/APNs2, NSString otherwise; depends on pushType).
+- pushType: PNPushType (e.g., PNAPNS2Push).
+- environment: PNAPNSEnvironment (APNs2 only).
+- topic: NSString (bundle ID).
+- block: PNPushNotificationsStateAuditCompletionBlock.
 
 ### Sample code
 
@@ -435,7 +419,6 @@ List channels with push notifications enabled for a device token.
 17         */  
 18    }  
 19 }];  
-
 ```
 
 ### Response
@@ -457,7 +440,6 @@ List channels with push notifications enabled for a device token.
 11@property (nonatomic, readonly, strong) PNAPNSEnabledChannelsData *data;  
 12  
 13@end  
-
 ```
 
 Error response:
@@ -474,18 +456,14 @@ Error response:
 7
   
 8@interface PNErrorStatus : PNStatus  
-9
-  
+9  
 10// Whether status object represent error or not.  
 11@property (nonatomic, readonly, assign, getter = isError) BOOL error;  
-12
-  
+12  
 13// Additional information related to error status object.  
 14@property (nonatomic, readonly, strong) PNErrorData *errorData;  
-15
-  
+15  
 16@end  
-
 ```
 
 ### Other examples
@@ -509,7 +487,6 @@ Example for method no. 2
 13         */  
 14    }  
 15}];  
-
 ```
 
 Example for method no. 3
@@ -533,14 +510,11 @@ Example for method no. 3
 15         */  
 16    }  
 17}];  
-
 ```
 
 ## List channels for device (builder pattern)
 
-Request channels with enabled push for a device token.
-
-##### Requires Mobile Push Notifications add-on
+Request for all channels on which push notification has been enabled using specified pushToken.
 
 ### Method(s)
 
@@ -556,15 +530,13 @@ Request channels with enabled push for a device token.
 7    .performWithCompletion(PNPushNotificationsStateAuditCompletionBlock);  
 8
   
-
 ```
 
-- token: id — Device token (NSData).
-- pushType: PNPushType — Accepted:
-  - PNAPNS2Push
-- environment: PNAPNSEnvironment — APNs environment (APNs2 only).
-- topic: NSString — APNs topic (bundle identifier).
-- block: PNPushNotificationsStateAuditCompletionBlock — Completion.
+- token: id (NSData).
+- pushType: PNPushType (e.g., PNAPNS2Push).
+- environment: PNAPNSEnvironment (APNs2 only).
+- topic: NSString (bundle ID).
+- block: PNPushNotificationsStateAuditCompletionBlock.
 
 Note: Builder pattern; optional args can be omitted.
 
@@ -578,8 +550,8 @@ Note: Builder pattern; optional args can be omitted.
 `
 ```
 
-- fcmToken: NSString — FCM device push token.
-- completion: PNPushNotificationsStateAuditCompletionBlock — Completion (result and status).
+- fcmToken: NSString.
+- completion: PNPushNotificationsStateAuditCompletionBlock.
 
 Note: Builder pattern; optional args can be omitted.
 
@@ -622,13 +594,11 @@ Note: Builder pattern; optional args can be omitted.
 9            to find out possible reason because of which request did fail.  
 10            Review 'errorData' property (which has PNErrorData data type) of status  
 11            object to get additional information about issue.  
-12
-  
+12  
 13            Request can be resent using: [status retry];  
 14            */  
 15        }  
 16    });  
-
 ```
 
 ### Response
@@ -639,55 +609,41 @@ Note: Builder pattern; optional args can be omitted.
   
 3// Channels with active mobile push notifications.  
 4@property (nonatomic, readonly, strong) NSArrayNSString *> *channels;  
-5
-  
+5  
 6@end  
-7
-  
+7  
 8@interface PNAPNSEnabledChannelsResult : PNResult  
-9
-  
+9  
 10// APNS enabled channels audit request processed information.  
 11@property (nonatomic, readonly, strong) PNAPNSEnabledChannelsData *data;  
-12
-  
+12  
 13@end  
-
 ```
 
 Error response:
 
 ```
 1@interface PNErrorData : PNServiceData  
-2
-  
+2  
 3// Stringified error information.  
 4@property (nonatomic, readonly, strong) NSString *information;  
-5
-  
+5  
 6@end  
-7
-  
+7  
 8@interface PNErrorStatus : PNStatus  
-9
-  
+9  
 10// Whether status object represent error or not.  
 11@property (nonatomic, readonly, assign, getter = isError) BOOL error;  
-12
-  
+12  
 13// Additional information related to error status object.  
 14@property (nonatomic, readonly, strong) PNErrorData *errorData;  
-15
-  
+15  
 16@end  
-
 ```
 
 ## Remove device from channel
 
-Disable push notifications on specified channels.
-
-##### Requires Mobile Push Notifications add-on
+Disable mobile push notifications on a provided set of channels.
 
 ### Method(s)
 
@@ -698,9 +654,9 @@ Disable push notifications on specified channels.
 `
 ```
 
-- channels: NSArray<NSString *> — Channels to disable (empty disables all).
-- pushToken: NSData — Device push token.
-- block: PNPushNotificationsStateModificationCompletionBlock — Completion.
+- channels: NSArray channels to disable (empty disables all).
+- pushToken: NSData device token.
+- block: PNPushNotificationsStateModificationCompletionBlock.
 
 ```
 `1- (void)removePushNotificationsFromChannels:(NSArrayNSString *> *)channels   
@@ -710,11 +666,10 @@ Disable push notifications on specified channels.
 `
 ```
 
-- channels: NSArray<NSString *> — Channels to disable.
-- pushToken: id — Device token (NSString).
-- pushType: PNPushType — Accepted:
-  - PNFCMPush
-- block: PNPushNotificationsStateModificationCompletionBlock — Completion.
+- channels: NSArray<NSString *> to disable.
+- pushToken: id (NSString).
+- pushType: PNPushType (e.g., PNFCMPush).
+- block: PNPushNotificationsStateModificationCompletionBlock.
 
 ```
 `1- (void)removePushNotificationsFromChannels:(NSArrayNSString *> *)channels   
@@ -726,13 +681,12 @@ Disable push notifications on specified channels.
 `
 ```
 
-- channels: NSArray<NSString *> — Channels to disable.
-- pushToken: id — Device token (NSData).
-- pushType: PNPushType — Accepted:
-  - PNAPNS2Push
-- environment: PNAPNSEnvironment — APNs environment (APNs2 only).
-- topic: NSString — APNs topic (bundle identifier).
-- block: PNPushNotificationsStateModificationCompletionBlock — Completion.
+- channels: NSArray<NSString *> to disable.
+- pushToken: id (NSData).
+- pushType: PNPushType (e.g., PNAPNS2Push).
+- environment: PNAPNSEnvironment (APNs2 only).
+- topic: NSString (bundle ID).
+- block: PNPushNotificationsStateModificationCompletionBlock.
 
 ### Sample code
 
@@ -762,35 +716,27 @@ Disable push notifications on specified channels.
 18         */  
 19    }  
 20}];  
-
 ```
 
 ### Response
 
 ```
 1@interface PNErrorData : PNServiceData  
-2
-  
+2  
 3// Stringified error information.  
 4@property (nonatomic, readonly, strong) NSString *information;  
-5
-  
+5  
 6@end  
-7
-  
+7  
 8@interface PNAcknowledgmentStatus : PNErrorStatus  
-9
-  
+9  
 10// Whether status object represent error or not.  
 11@property (nonatomic, readonly, assign, getter = isError) BOOL error;  
-12
-  
+12  
 13// Additional information related to error status object.  
 14@property (nonatomic, readonly, strong) PNErrorData *errorData;  
-15
-  
+15  
 16@end  
-
 ```
 
 ### Other examples
@@ -815,7 +761,6 @@ Example for method no. 2
 14         */  
 15    }  
 16}];  
-
 ```
 
 Example for method no. 3
@@ -840,14 +785,11 @@ Example for method no. 3
 16         */  
 17    }  
 18}];  
-
 ```
 
 ## Remove a device from push notifications channels (builder pattern)
 
-Disable push notifications on a set of channels using the builder.
-
-##### Requires Mobile Push Notifications add-on
+Disable mobile push notifications on a set of channels.
 
 ### Method(s)
 
@@ -865,13 +807,12 @@ Disable push notifications on a set of channels using the builder.
 `
 ```
 
-- channels: NSArray<NSString *> — Channels to disable.
-- token: id — Device token (NSData).
-- pushType: PNPushType — Accepted:
-  - PNAPNS2Push
-- environment: PNAPNSEnvironment — APNs environment (APNs2 only).
-- topic: NSString — APNs topic (bundle identifier).
-- block: PNPushNotificationsStateModificationCompletionBlock — Completion.
+- channels: NSArray<NSString *> to disable.
+- token: id (NSData).
+- pushType: PNPushType (e.g., PNAPNS2Push).
+- environment: PNAPNSEnvironment (APNs2 only).
+- topic: NSString (bundle ID).
+- block: PNPushNotificationsStateModificationCompletionBlock.
 
 Note: Builder pattern; optional args can be omitted.
 
@@ -886,9 +827,9 @@ Note: Builder pattern; optional args can be omitted.
 `
 ```
 
-- channels: NSArray<NSString *> — Channels to disable (empty disables all).
-- fcmToken: NSString — FCM device push token.
-- completion: PNPushNotificationsStateAuditCompletionBlock — Completion.
+- channels: NSArray<NSString *> to disable (empty disables all).
+- fcmToken: NSString FCM token.
+- completion: PNPushNotificationsStateAuditCompletionBlock.
 
 Note: Builder pattern; optional args can be omitted.
 
@@ -938,42 +879,32 @@ Note: Builder pattern; optional args can be omitted.
 15            */  
 16        }  
 17    });  
-
 ```
 
 ### Response
 
 ```
 1@interface PNErrorData : PNServiceData  
-2
-  
+2  
 3// Stringified error information.  
 4@property (nonatomic, readonly, strong) NSString *information;  
-5
-  
+5  
 6@end  
-7
-  
+7  
 8@interface PNAcknowledgmentStatus : PNErrorStatus  
-9
-  
+9  
 10// Whether status object represent error or not.  
 11@property (nonatomic, readonly, assign, getter = isError) BOOL error;  
-12
-  
+12  
 13// Additional information related to error status object.  
 14@property (nonatomic, readonly, strong) PNErrorData *errorData;  
-15
-  
+15  
 16@end  
-
 ```
 
-## Remove a device from all push notifications channels
+## Remove a device from all push notifications channels (builder pattern)
 
-Disable push notifications from all channels for a device token.
-
-##### Requires Mobile Push Notifications add-on
+Disable mobile push notifications from all channels registered with the specified pushToken.
 
 ### Method(s)
 
@@ -983,8 +914,8 @@ Disable push notifications from all channels for a device token.
 `
 ```
 
-- pushToken: NSData — Device push token.
-- block: PNPushNotificationsStateModificationCompletionBlock — Completion.
+- pushToken: NSData device token.
+- block: PNPushNotificationsStateModificationCompletionBlock.
 
 ```
 `1- (void)removeAllPushNotificationsFromDeviceWithPushToken:(id)pushToken   
@@ -993,10 +924,9 @@ Disable push notifications from all channels for a device token.
 `
 ```
 
-- pushToken: id — Device token (NSString).
-- pushType: PNPushType — Accepted:
-  - PNFCMPush
-- block: PNPushNotificationsStateModificationCompletionBlock — Completion.
+- pushToken: id (NSString).
+- pushType: PNPushType (e.g., PNFCMPush).
+- block: PNPushNotificationsStateModificationCompletionBlock.
 
 ```
 `1- (void)removeAllPushNotificationsFromDeviceWithPushToken:(id)pushToken   
@@ -1007,13 +937,12 @@ Disable push notifications from all channels for a device token.
 `
 ```
 
-- channels: NSArray<NSString *> — List of channels to disable.
-- pushToken: id — Device token (NSData).
-- pushType: PNPushType — Accepted:
-  - PNAPNS2Push
-- environment: PNAPNSEnvironment — APNs environment (APNs2 only).
-- topic: NSString — APNs topic (bundle identifier).
-- block: PNPushNotificationsStateModificationCompletionBlock — Completion.
+- channels: NSArray<NSString *> list of channel names to disable.
+- pushToken: id (NSData).
+- pushType: PNPushType (e.g., PNAPNS2Push).
+- environment: PNAPNSEnvironment (APNs2 only).
+- topic: NSString (bundle ID).
+- block: PNPushNotificationsStateModificationCompletionBlock.
 
 ### Sample code
 
@@ -1045,35 +974,27 @@ Disable push notifications from all channels for a device token.
 20         */  
 21    }  
 22}];  
-
 ```
 
 ### Response
 
 ```
 1@interface PNErrorData : PNServiceData  
-2
-  
+2  
 3// Stringified error information.  
 4@property (nonatomic, readonly, strong) NSString *information;  
-5
-  
+5  
 6@end  
-7
-  
+7  
 8@interface PNAcknowledgmentStatus : PNErrorStatus  
-9
-  
+9  
 10// Whether status object represent error or not.  
 11@property (nonatomic, readonly, assign, getter = isError) BOOL error;  
-12
-  
+12  
 13// Additional information related to error status object.  
 14@property (nonatomic, readonly, strong) PNErrorData *errorData;  
-15
-  
+15  
 16@end  
-
 ```
 
 ### Other examples
@@ -1100,7 +1021,6 @@ Example for method no. 2.
 16         */  
 17    }  
 18}];  
-
 ```
 
 Example for method no. 3
@@ -1127,14 +1047,9 @@ Example for method no. 3
 18         */  
 19    }  
 20}];  
-
 ```
 
 ## Remove all mobile push notifications (builder pattern)
-
-Disable all push notifications for a device using the builder.
-
-##### Requires Mobile Push Notifications add-on
 
 ### Method(s)
 
@@ -1149,13 +1064,11 @@ Disable all push notifications for a device using the builder.
 `
 ```
 
-- token: id — Device token (NSData for PNAPNS2Push, otherwise NSString).
-- pushType: PNPushType — Accepted:
-  - PNAPNS2Push
-  - PNFCMPush
-- environment: PNAPNSEnvironment — APNs environment (APNs2 only).
-- topic: NSString — APNs topic (bundle identifier).
-- block: PNPushNotificationsStateModificationCompletionBlock — Completion.
+- token: id (NSData for PNAPNS2Push, otherwise NSString).
+- pushType: PNPushType (PNAPNS2Push, PNFCMPush).
+- environment: PNAPNSEnvironment (APNs2 only).
+- topic: NSString (bundle ID).
+- block: PNPushNotificationsStateModificationCompletionBlock.
 
 Note: Builder pattern; optional args can be omitted.
 
@@ -1215,25 +1128,19 @@ Note: Builder pattern; optional args can be omitted.
 
 ```
 1@interface PNErrorData : PNServiceData  
-2
-  
+2  
 3// Stringified error information.  
 4@property (nonatomic, readonly, strong) NSString *information;  
-5
-  
+5  
 6@end  
-7
-  
+7  
 8@interface PNAcknowledgmentStatus : PNErrorStatus  
-9
-  
+9  
 10// Whether status object represent error or not.  
 11@property (nonatomic, readonly, assign, getter = isError) BOOL error;  
-12
-  
+12  
 13// Additional information related to error status object.  
 14@property (nonatomic, readonly, strong) PNErrorData *errorData;  
 15
 **16@end  
-
 ```

@@ -1,28 +1,21 @@
 # Message Persistence API for Ruby SDK
 
-Message Persistence provides real-time access to stored, timestamped messages (10 ns precision) across multiple regions. Optional AES-256 encryption is supported. Configure retention in Admin Portal: 1 day, 7 days, 30 days, 3 months, 6 months, 1 year, Unlimited. Retrievable data:
-- Messages
-- Message reactions
-- Files (via File Sharing API)
+Message Persistence provides real-time access to stored, timestamped messages across multiple zones with optional AES-256 encryption. Configure retention in the Admin Portal: 1 day, 7 days, 30 days, 3 months, 6 months, 1 year, or Unlimited. You can retrieve messages, message reactions, and files (via File Sharing API).
 
 ## Batch history
 
 Requires Message Persistence (enable in Admin Portal).
 
-Fetch messages from multiple channels simultaneously (up to 500). Use include_message_actions only with a single channel. Limits:
-- Single channel: up to 100 messages.
-- Multiple channels: up to 25 messages per channel, up to 500 channels.
-- Page with start and/or end timetokens.
+Fetch historical messages from multiple channels (up to 500). Use include_message_actions to fetch message actions for a single channel only.
 
-fetch_messages() vs history():
-- Use fetch_messages() for multiple channels.
-- Use history() for single channel with options like reverse or include_token.
+fetch_messages() vs history()
+- Use fetch_messages() for multiple channels (up to 500). For single-channel retrieval with options like reverse or include_token, use history().
+- Limits: up to 100 messages on a single channel, or 25 per channel across up to 500 channels. Page using start/end.
 
-Start & End usage:
-- start only: returns messages older than start (exclusive).
-- end only: returns messages from end and newer (inclusive).
-- start and end: messages between them (inclusive of end).
-- Max messages apply; page using start to iterate through full results.
+Start & End usage
+- start only: returns messages older than start timetoken.
+- end only: returns messages from end timetoken and newer.
+- start and end: returns messages between (inclusive of end). Page iteratively with adjusted start to retrieve more than the limit.
 
 ### Method(s)
 
@@ -49,7 +42,22 @@ Use the following method(s) in the Ruby SDK:
 `
 ```
 
-*  requiredParameterDescription`channel`Type: StringA single channel to fetch messages from. You can use the `include_message_actions` flag to get message actions history for this channel.`channels`Type: ArrayArray of channels to fetch messages from. Maximum of 500 channels. Can't be used with `include_message_actions` as you can only get the message actions history for a single channel.`max`Type: IntegerMaximum number of messages to return per channel. Default is `25` for multiple channels or `100` for a single channel.`start`Type: Integertimetoken delimiting the `start` of time slice (exclusive) to pull messages from.`end`Type: Integertimetoken delimiting the `end` of time slice (inclusive) to pull messages from.`include_meta`Type: BooleanInclude message metadata in the response. Default is `false`.`include_message_actions`Type: BooleanInclude message actions in the response. Only works with single channel. Default is `false`.`include_uuid`Type: BooleanInclude UUID of the publisher in the response. Default is `true`.`include_message_type`Type: BooleanWhether to include the PubNub message type in the response. Default is `true`.`include_custom_message_type`Type: BooleanWhether to include the custom message type in the response. Default is `false`.`encode_channels`Type: BooleanWhether to encode channel names for URL safety. Default is `true`. Set to `false` when not using `include_message_actions`.`cipher_key`Type: StringCustom cipher key for message decryption. If provided, overrides the default crypto configuration.`random_iv`Type: BooleanWhether to use random initialization vector for encryption. Default is `true`. Only used when `cipher_key` is provided.`http_sync`Type: BooleanDefault `false`. The method is executed asynchronously and returns a future. To retrieve the value, call the `value` method on the `Envelope` object. If set to `true`, method returns an array of envelopes (even if there's only one `Envelope`).`callback`Type: Lambda accepting one parameterCallback that is called for each `Envelope`. For `async` methods, a future is returned. To retrieve the value, call the `value` method on the `Envelope` object. The thread is locked until the `value` is returned.
+Parameters
+- channel (String): Single channel to fetch from. Supports include_message_actions.
+- channels (Array): Up to 500 channels. Not compatible with include_message_actions.
+- max (Integer): Max messages per channel. Default 25 (multi-channel) or 100 (single channel).
+- start (Integer): Start timetoken (exclusive).
+- end (Integer): End timetoken (inclusive).
+- include_meta (Boolean): Include message metadata. Default false.
+- include_message_actions (Boolean): Include message actions (single channel only). Default false.
+- include_uuid (Boolean): Include publisher UUID. Default true.
+- include_message_type (Boolean): Include PubNub message type. Default true.
+- include_custom_message_type (Boolean): Include custom message type. Default false.
+- encode_channels (Boolean): URL-encode channel names. Default true. Set false when not using include_message_actions.
+- cipher_key (String): Custom cipher key to decrypt messages (overrides default crypto).
+- random_iv (Boolean): Use random IV for encryption. Default true. Only used with cipher_key.
+- http_sync (Boolean): Default false (async; returns future; call value on Envelope). If true, returns array of envelopes.
+- callback (Lambda): Called for each Envelope. For async methods, returns future; call value to get Envelope (thread blocks until value).
 
 ### Sample code
 
@@ -102,8 +110,6 @@ Retrieve the last 25 messages on multiple channels:
 
 The Ruby SDK returns false on fail. An array is returned on success.
 
-The `fetch_messages()` function returns a list of messages for each channel. The output below demonstrates the format for a `fetch_messages()` response:
-
 ```
 `1    @result = {  
 2        :data => {  
@@ -128,7 +134,7 @@ The `fetch_messages()` function returns a list of messages for each channel. The
 
 ### Other examples
 
-#### Fetch messages with metadata
+Fetch messages with metadata:
 
 ```
 `1pubnub.fetch_messages(  
@@ -140,7 +146,7 @@ The `fetch_messages()` function returns a list of messages for each channel. The
 `
 ```
 
-#### Fetch messages with message actions
+Fetch messages with message actions:
 
 ```
 `1pubnub.fetch_messages(  
@@ -152,7 +158,7 @@ The `fetch_messages()` function returns a list of messages for each channel. The
 `
 ```
 
-#### Fetch messages with custom encryption
+Fetch messages with custom encryption:
 
 ```
 `1pubnub.fetch_messages(  
@@ -169,16 +175,16 @@ The `fetch_messages()` function returns a list of messages for each channel. The
 
 Requires Message Persistence (enable in Admin Portal).
 
-Fetch historical messages for a single channel. Control order and range with reverse, start, end, and count.
-- reverse false (default): newest end first; true: traverse from oldest.
-- Page using start or end.
-- Provide both start and end for a slice (end inclusive).
-- count limits messages (default/max 100).
+Fetch historical messages of a channel with control over order and range:
+- reverse=false (default): newest-first search; reverse=true: oldest-first traversal.
+- Page with start or end timetoken; provide both to slice a range.
+- Limit via count (max 100).
 
-Start & End usage:
-- start only: messages older than and up to start (exclusive).
-- end only: messages at end and newer (inclusive).
-- Both: between them (end inclusive). Max 100 per call; page using start to iterate more.
+Start & End usage
+- start only: older than and up to start.
+- end only: end and newer.
+- start and end: between (inclusive on end).
+- Max 100 messages per call; page with adjusted start.
 
 ### Method(s)
 
@@ -199,9 +205,18 @@ Use the following method(s) in the Ruby SDK:
 `
 ```
 
-*  requiredParameterDescription`channels` *Type: String, SymbolSpecify `channels` to return history messages from.`count`Type: IntegerSpecifies the number of historical messages to return. Default/maximum is `100`.`start`Type: Integertimetoken delimiting the `start` of time slice (exclusive) to pull messages from.`end`Type: Integertimetoken delimiting the `end` of time slice (inclusive) to pull messages from.`reverse`Type: BooleanSetting to `true` will traverse the time line in reverse starting with the oldest `message` first.Default is `false`. If both `start` and `end` arguments are provided, `reverse` is ignored and messages are returned starting with the newest `message`.`http_sync`Type: BooleanDefault `false`. Method will be executed `asynchronously` and will return future, to get its `value` you can use `value` method. If set to `true`, method will return array of envelopes (even if there's only one `envelope`). For `sync` methods `Envelope` object will be returned.`include_token`Type: BooleanWith `include_token` parameter set to `true` each envelope will contain timetoken specific for `message` that it holds. Default: `false``include_meta`Type: BooleanWhen set to `true`, the history response will include the `meta` information associated with each message if it was set during [publishing](/docs/sdks/kotlin/api-reference/publish-and-subscribe#publish). Default: `false`.`callback`Type: Lambda accepting one parameter`Callback` that will be called for each `envelope`. For `async` methods future will be returned, to retrieve `value` `Envelope` object you have to call `value` method (thread will be locked until the `value` is returned).
+Parameters
+- channels (String, Symbol): Channel(s) to return history from.
+- count (Integer): Number of messages to return. Default/maximum 100.
+- start (Integer): Start timetoken (exclusive).
+- end (Integer): End timetoken (inclusive).
+- reverse (Boolean): true traverses from oldest first; false default. Ignored if both start and end provided (messages returned starting from newest).
+- http_sync (Boolean): Default false (async; returns future; use value). If true, returns array of envelopes; sync returns Envelope.
+- include_token (Boolean): Include message timetoken per message. Default false.
+- include_meta (Boolean): Include meta set during publish. Default false.
+- callback (Lambda): Called for each Envelope; for async, call value to retrieve Envelope (blocks until value).
 
-Tip: Messages are returned in ascending time within the selected interval. reverse affects which end of the interval retrieval starts from when more than count messages exist.
+Tip: Messages are returned in ascending time order; reverse affects which end of the interval is read first when more than count messages exist.
 
 ### Sample code
 
@@ -221,8 +236,6 @@ Retrieve the last 100 messages on a channel:
 
 The Ruby SDK returns false on fail. An array is returned on success.
 
-The `history()` function returns messages plus start and end timetokens for the result set:
-
 ```
 `1#  
 2    @result = {  
@@ -241,7 +254,7 @@ The `history()` function returns messages plus start and end timetokens for the 
 
 ### Other examples
 
-#### Use history() to retrieve the three oldest messages by retrieving from the time line in reverse
+Use history() to retrieve the three oldest messages (reverse):
 
 ```
 `1pubnub.history(  
@@ -253,7 +266,7 @@ The `history()` function returns messages plus start and end timetokens for the 
 `
 ```
 
-##### Response
+Response
 
 ```
 `1#  
@@ -271,7 +284,7 @@ The `history()` function returns messages plus start and end timetokens for the 
 `
 ```
 
-#### Use history() to retrieve messages newer than a given timetoken by paging from oldest message to newest message starting at a single point in time (exclusive)
+Retrieve messages newer than a given timetoken (reverse from start, exclusive):
 
 ```
 `1pubnub.history(  
@@ -283,7 +296,7 @@ The `history()` function returns messages plus start and end timetokens for the 
 `
 ```
 
-##### Response
+Response
 
 ```
 `1#  
@@ -301,7 +314,7 @@ The `history()` function returns messages plus start and end timetokens for the 
 `
 ```
 
-#### Use history() to retrieve messages until a given timetoken by paging from newest message to oldest message until a specific end point in time (inclusive)
+Retrieve messages until a given timetoken (newest to oldest, inclusive end):
 
 ```
 `1pubnub.history(  
@@ -312,7 +325,7 @@ The `history()` function returns messages plus start and end timetokens for the 
 `
 ```
 
-##### Response
+Response
 
 ```
 `1#  
@@ -330,11 +343,9 @@ The `history()` function returns messages plus start and end timetokens for the 
 `
 ```
 
-#### History paging example
+History paging example
 
-##### Usage
-
-You can call the method by passing 0 or a valid timetoken as the argument.
+Usage: Call with 0 or a valid timetoken.
 
 ```
 `1pubnub.paged_history(channel: :messages, limit: 10, page: 20) do |envelope|  
@@ -343,7 +354,7 @@ You can call the method by passing 0 or a valid timetoken as the argument.
 `
 ```
 
-#### Include timetoken in history response
+Include timetoken in history response
 
 ```
 1# ASYNC  
@@ -370,13 +381,11 @@ You can call the method by passing 0 or a valid timetoken as the argument.
 
 ## Delete messages from history
 
-Requires Message Persistence and enabling Delete-From-History in Admin Portal. Requires initialization with secret key.
-
-Removes messages from a channel’s history within a time range.
+Requires Message Persistence. Enable Delete-From-History in key settings (Admin Portal). Requires initialization with secret key.
 
 ### Method(s)
 
-To Delete Messages from History you can use the following method(s) in the Ruby SDK.
+To Delete Messages from History use:
 
 ```
 `1delete_messages(  
@@ -389,7 +398,12 @@ To Delete Messages from History you can use the following method(s) in the Ruby 
 `
 ```
 
-*  requiredParameterDescription`channels` *Type: String, Symbol`Channels` from which messages will be deleted.`start`Type: String, Integer`Timestamp` since when messages should be deleted.`end`Type: String, Integer`Timestamp` until when messages should be deleted.`http_sync`Type: BooleanDefault `false`. Method will be executed `asynchronously` and will return future, to get its `value` you can use `value` method. If set to `true`, method will return array of envelopes (even if there's only one `envelope`). For `sync` methods `Envelope` object will be returned.`callback`Type: Lambda accepting one parameter`Callback` that will be called for each `envelope`. For `async` methods future will be returned, to retrieve `value` `Envelope` object you have to call `value` method (thread will be locked until the `value` is returned).
+Parameters
+- channels (String, Symbol): Channels from which messages are deleted.
+- start (String, Integer): Timestamp since when messages should be deleted.
+- end (String, Integer): Timestamp until when messages should be deleted.
+- http_sync (Boolean): Default false (async; returns future; use value). If true, returns array of envelopes; sync returns Envelope.
+- callback (Lambda): Called for each Envelope; for async, call value to retrieve Envelope (blocks until value).
 
 ### Sample code
 
@@ -416,7 +430,7 @@ To Delete Messages from History you can use the following method(s) in the Ruby 
 
 ### Other examples
 
-#### Delete specific message from history
+Delete specific message from history
 
 To delete a specific message, pass the publish timetoken in end and timetoken +/- 1 in start.
 
@@ -427,15 +441,15 @@ To delete a specific message, pass the publish timetoken in end and timetoken +/
 
 ## Message counts
 
-Requires Message Persistence (enable in Admin Portal).
+Requires Message Persistence.
 
-Returns counts of messages published on channels since given timetokens. For keys with Unlimited retention, only messages from the last 30 days are considered.
-- count is number of messages with timetoken >= provided timetoken.
-- Provide a single timetoken for all channels or one per channel (must match channel list length).
+Returns the number of messages on one or more channels since a given time. The count is the number of messages with timetoken >= provided value in channel_timetokens.
+
+Unlimited message retention: for keys with unlimited retention, counts consider only messages from the last 30 days.
 
 ### Method(s)
 
-You can use the following method(s) in the Ruby SDK:
+You can use:
 
 ```
 `1pubnub.message_counts(  
@@ -445,10 +459,10 @@ You can use the following method(s) in the Ruby SDK:
 `
 ```
 
-*  requiredParameterDescription`channel` *Type: String, SymbolDefault:  
-n/aEither array of channels, string with single channel or string with comma separated channels`channel_timetokens` *Type: ArrayDefault:  
-`null`Array of `timetokens`, in order of the channels list. Specify a single `timetoken` to apply it to all channels. Otherwise, the list of `timetokens` must be the same length as the list of channels, or the function returns a `PNStatus` with an error flag.`http_sync`Type: BooleanDefault:  
-n/aDefault `false`. Method will be executed `asynchronously` and will return future, to get its `value` you can use `value` method. If set to `true`, method will return array of envelopes (even if there's only one `envelope`). For `sync` methods `Envelope` object will be returned.
+Parameters
+- channel (String, Symbol): Either array of channels, single channel string, or comma-separated channels.
+- channel_timetokens (Array): Array of timetokens ordered to match channels, or a single timetoken applied to all channels. Length must match channels list if array; otherwise returns PNStatus error.
+- http_sync (Boolean): Default false (async; returns future; use value). If true, returns array of envelopes; sync returns Envelope.
 
 ### Sample code
 
@@ -460,9 +474,9 @@ n/aDefault `false`. Method will be executed `asynchronously` and will return fut
 
 ### Returns
 
-Channels without messages have a count of 0. Channels with 10,000 messages or more have a count of 10000.
+Channels without messages have a count of 0. Channels with 10,000 messages or more return 10000.
 
-Returns `Concurrent::Future` when http_sync: false (default) or envelope when sync mode.
+Returns Concurrent::Future (http_sync: false, default) or envelope (sync).
 
 ```
 `1#  
@@ -482,9 +496,11 @@ Returns `Concurrent::Future` when http_sync: false (default) or envelope when sy
 
 ### Other examples
 
-#### Retrieve count of messages using different timetokens for each channel
+Retrieve count of messages using different timetokens for each channel
 
 ```
 `1envelope = pubnub.message_counts(channel:['a', 'b', 'c', 'd'], channel_timetokens: [123135129, 123135124, 12312312, 123135125]).value**2    p envelope.result[:data]  
 `
 ```
+
+Last updated on Sep 17, 2025**

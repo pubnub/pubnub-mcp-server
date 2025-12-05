@@ -1,14 +1,14 @@
 # App Context API for Unity SDK
 
-App Context (formerly Objects v2) provides serverless storage for user and channel metadata and their memberships. PubNub emits change events (set, updated, removed). Setting identical data doesn't trigger an event.
+App Context (formerly Objects v2) provides serverless storage for user and channel metadata and their membership associations. Real-time events are triggered when object data is set, updated, or removed. Setting identical data doesn’t trigger events. For Objects v1 upgrades, see the migration guide.
 
 ## User
 
-Manage UUID metadata: list, fetch, set, remove.
+Manage UUID metadata: list, fetch, set, remove. Use IncludeCustom to control payload size.
 
 ### Get metadata for all users
 
-Get a paginated list of UUID metadata. Use filters and sorting to narrow results.
+Get a paginated list of UUID metadata. Supports filtering and sorting.
 
 #### Method(s)
 
@@ -24,13 +24,13 @@ Get a paginated list of UUID metadata. Use filters and sorting to narrow results
 `
 ```
 
-- IncludeCustom (bool): Include Custom object.
-- IncludeCount (bool): Include total count in paginated response. Default false.
-- Page (PNPageObject): Cursor-based pagination.
-- Sort (List<string>): Sort by id, name, updated with asc/desc (for example, {name: 'asc'}).
-- Filter (string): Filter expression. See filtering.
-- Limit (int): Number of objects to return. Default/Max: 100.
-- Execute (System.Action): System.Action of type PNGetAllUuidMetadataResult.
+- IncludeCustom: Type: bool. Include Custom object in response.
+- IncludeCount: Type: bool. Include total count in paginated response. Default: false.
+- Page: Type: PNPageObject. Cursor-based pagination.
+- Sort: Type: List<string>. Sort by id, name, updated with asc/desc (for example, {name: 'asc'}).
+- Filter: Type: string. Filter expression. See filtering.
+- Limit: Type: int. Number of objects to return. Default/Max: 100.
+- Execute: Type: System.Action of type PNGetAllUuidMetadataResult.
 - ExecuteAsync: Returns Task<PNResult<PNGetAllUuidMetadataResult>>.
 
 #### Sample code
@@ -38,6 +38,7 @@ Get a paginated list of UUID metadata. Use filters and sorting to narrow results
 ```
 1
   
+
 ```
 
 #### Response
@@ -89,9 +90,9 @@ Fetch metadata for a single UUID.
 `
 ```
 
-- Uuid (string): Unique user identifier. If not supplied, current user's Uuid is used.
-- IncludeCustom (bool): Include Custom object.
-- Execute (System.Action): System.Action of type PNGetUuidMetadataResult.
+- Uuid: Type: string. If not supplied, current user's Uuid is used.
+- IncludeCustom: Type: bool. Include Custom object in response.
+- Execute: Type: System.Action of type PNGetUuidMetadataResult.
 - ExecuteAsync: Returns Task<PNResult<PNGetUuidMetadataResult>>.
 
 #### Sample code
@@ -99,6 +100,7 @@ Fetch metadata for a single UUID.
 ```
 1
   
+
 ```
 
 #### Response
@@ -118,9 +120,10 @@ Fetch metadata for a single UUID.
 
 ### Set user metadata
 
-Set metadata for a UUID (overwrites full Custom object). Use eTag for concurrency control.
+Set metadata for a UUID, including Custom. Use eTag to avoid overwriting concurrent updates.
 
-Unsupported partial updates of custom metadata: The custom metadata parameter overwrites the value stored on PubNub servers.
+Unsupported partial updates of custom metadata:
+- The provided custom metadata overwrites the stored value.
 
 #### Method(s)
 
@@ -138,26 +141,25 @@ Unsupported partial updates of custom metadata: The custom metadata parameter ov
 `
 ```
 
-- Uuid (string): Unique user identifier. If not supplied, current user's Uuid is used.
-- Name (string): Display name.
-- Email (string): User email address.
-- ExternalId (string): Identifier in an external system.
-- ProfileUrl (string): URL of the user’s profile picture.
-- Custom (Dictionary<string, object>): Custom JSON values (strings, numbers, booleans). App Context filtering doesn’t support filtering by custom properties.
-- IfMatchesEtag (string): Apply update only if eTags match; otherwise HTTP 412.
-- IncludeCustom (bool): Include Custom object in response.
-- Execute (System.Action): System.Action of type PNSetUuidMetadataResult.
+- Uuid: Type: string. If not supplied, current user's Uuid is used.
+- Name: Type: string. Display name.
+- Email: Type: string. Email address.
+- ExternalId: Type: string. Identifier in an external system.
+- ProfileUrl: Type: string. Profile picture URL.
+- Custom: Type: Dictionary<string, object>. Custom JSON values (strings, numbers, booleans). App Context filtering doesn’t support filtering by custom properties.
+- IfMatchesEtag: Type: string. Apply update only if eTag matches; otherwise HTTP 412.
+- IncludeCustom: Type: bool. Include Custom object in response.
+- Execute: Type: System.Action of type PNSetUuidMetadataResult.
 - ExecuteAsync: Returns Task<PNResult<PNSetUuidMetadataResult>>.
 
-##### API limits
-
-See REST API docs: set-user-metadata.
+API limits: See REST API docs for maximum parameter lengths.
 
 #### Sample code
 
 ```
 1
   
+
 ```
 
 #### Response
@@ -187,8 +189,8 @@ Remove metadata for a specified UUID.
 `
 ```
 
-- Uuid (string): Unique user identifier. If not supplied, current user's Uuid is used.
-- Execute (System.Action): System.Action of type PNRemoveUuidMetadataResult.
+- Uuid: Type: string. If not supplied, current user's Uuid is used.
+- Execute: Type: System.Action of type PNRemoveUuidMetadataResult.
 - ExecuteAsync: Returns Task<PNResult<PNRemoveUuidMetadataResult>>.
 
 #### Sample code
@@ -196,6 +198,7 @@ Remove metadata for a specified UUID.
 ```
 1
   
+
 ```
 
 #### Response
@@ -211,7 +214,7 @@ Manage channel metadata: list, fetch, set, remove.
 
 ### Get metadata for all channels
 
-Get a paginated list. Use filters and sorting to narrow results.
+Get a paginated list of channel metadata. Supports filtering and sorting.
 
 #### Method(s)
 
@@ -226,12 +229,12 @@ Get a paginated list. Use filters and sorting to narrow results.
 `
 ```
 
-- IncludeCustom (bool): Include Custom object.
-- IncludeCount (bool): Include total count. Default false.
-- Page (PNPageObject): Cursor-based pagination.
-- Sort (List<string>): Sort by id, name, updated with asc/desc.
-- Filter (string): Filter expression. See filtering.
-- Execute (System.Action): System.Action of type PNGetAllChannelMetadataResult.
+- IncludeCustom: Type: bool. Include Custom object in response.
+- IncludeCount: Type: bool. Include total count. Default: false.
+- Page: Type: PNPageObject. Cursor-based pagination.
+- Sort: Type: List<string>. Sort by id, name, updated with asc/desc (for example, {name: 'asc'}).
+- Filter: Type: string. Filter expression. See filtering.
+- Execute: Type: System.Action of type PNGetAllChannelMetadataResult.
 - ExecuteAsync: Returns Task<PNResult<PNGetAllChannelMetadataResult>>.
 
 #### Sample code
@@ -239,6 +242,7 @@ Get a paginated list. Use filters and sorting to narrow results.
 ```
 1
   
+
 ```
 
 #### Response
@@ -286,9 +290,9 @@ Fetch metadata for a single channel.
 `
 ```
 
-- Channel (string): Channel name.
-- IncludeCustom (bool): Include Custom object.
-- Execute (System.Action): System.Action of type PNGetChannelMetadataResult.
+- Channel: Type: string. Channel name.
+- IncludeCustom: Type: bool. Include Custom object in response.
+- Execute: Type: System.Action of type PNGetChannelMetadataResult.
 - ExecuteAsync: Returns Task<PNResult<PNGetChannelMetadataResult>>.
 
 #### Sample code
@@ -296,6 +300,7 @@ Fetch metadata for a single channel.
 ```
 1
   
+
 ```
 
 #### Response
@@ -313,9 +318,10 @@ Fetch metadata for a single channel.
 
 ### Set channel metadata
 
-Set metadata for a channel (overwrites full Custom object). Use eTag for concurrency control.
+Set metadata for a channel, including Custom. Use eTag to avoid overwriting concurrent updates.
 
-Unsupported partial updates of custom metadata: The custom metadata parameter overwrites the value stored on PubNub servers.
+Unsupported partial updates of custom metadata:
+- The provided custom metadata overwrites the stored value.
 
 #### Method(s)
 
@@ -331,24 +337,23 @@ Unsupported partial updates of custom metadata: The custom metadata parameter ov
 `
 ```
 
-- Channel (string): Channel name.
-- Name (string): Channel name.
-- Description (string): Channel description.
-- Custom (Dictionary<string, object>): Custom JSON values (strings, numbers, booleans). App Context filtering doesn’t support filtering by custom properties.
-- IncludeCustom (bool): Include Custom object.
-- IfMatchesEtag (string): Apply update only if eTags match; otherwise HTTP 412.
-- Execute (System.Action): System.Action of type PNSetChannelMetadataResult.
+- Channel: Type: string. Channel name.
+- Name: Type: string. Channel name.
+- Description: Type: string. Channel description.
+- Custom: Type: Dictionary<string, object>. Custom JSON values (strings, numbers, booleans). App Context filtering doesn’t support filtering by custom properties.
+- IncludeCustom: Type: bool. Include Custom object in response.
+- IfMatchesEtag: Type: string. Apply update only if eTag matches; otherwise HTTP 412.
+- Execute: Type: System.Action of type PNSetChannelMetadataResult.
 - ExecuteAsync: Returns Task<PNResult<PNSetChannelMetadataResult>>.
 
-##### API limits
-
-See REST API docs: set-channel-metadata.
+API limits: See REST API docs for maximum parameter lengths.
 
 #### Sample code
 
 ```
 1
   
+
 ```
 
 #### Response
@@ -373,6 +378,7 @@ See REST API docs: set-channel-metadata.
 ```
 1
   
+
 ```
 
 ### Remove channel metadata
@@ -387,8 +393,8 @@ Remove metadata for a specified channel.
 `
 ```
 
-- Channel (string): Channel name.
-- Execute (System.Action): System.Action of type PNRemoveChannelMetadataResult.
+- Channel: Type: string. Channel name.
+- Execute: Type: System.Action of type PNRemoveChannelMetadataResult.
 - ExecuteAsync: Returns Task<PNResult<PNRemoveChannelMetadataResult>>.
 
 #### Sample code
@@ -396,6 +402,7 @@ Remove metadata for a specified channel.
 ```
 1
   
+
 ```
 
 #### Response
@@ -407,7 +414,7 @@ Remove metadata for a specified channel.
 
 ## Channel memberships
 
-Manage the channels a UUID belongs to.
+Manage channels a UUID belongs to: list, set, remove, manage in bulk. This doesn’t return subscriptions.
 
 ### Get channel memberships
 
@@ -425,11 +432,11 @@ List channel memberships for a UUID.
 `
 ```
 
-- Uuid (string): Unique user identifier. If not supplied, current user's Uuid is used.
-- Include (PNMembershipField[]): Include additional fields.
-- IncludeCount (bool): Include total count. Default false.
-- Page (PNPageObject): Cursor-based pagination.
-- Execute (System.Action): System.Action of type PNGetMembershipsResult.
+- Uuid: Type: string. If not supplied, current user's Uuid is used.
+- Include: Type: PNMembershipField[]. Include additional fields.
+- IncludeCount: Type: bool. Include total count. Default: false.
+- Page: Type: PNPageObject. Cursor-based pagination.
+- Execute: Type: System.Action of type PNGetMembershipsResult.
 - ExecuteAsync: Returns Task<PNResult<PNGetMembershipsResult>>.
 
 #### Sample code
@@ -437,6 +444,7 @@ List channel memberships for a UUID.
 ```
 1
   
+
 ```
 
 #### Response
@@ -485,7 +493,7 @@ List channel memberships for a UUID.
 
 ### Set channel memberships
 
-Replace or add memberships for a UUID.
+Replace or add memberships for a UUID. Provide channels (optional custom data).
 
 #### Method(s)
 
@@ -503,33 +511,32 @@ Replace or add memberships for a UUID.
 `
 ```
 
-- Uuid (string): Unique user identifier. If not supplied, current user's Uuid is used.
-- Channels (List<PNMembership>): Memberships to set (channel names or PNMembership with optional custom).
-- Include (PNMembershipField[]): Include additional fields.
-- IncludeCount (bool): Include total count. Default false.
-- Page (PNPageObject): Cursor-based pagination.
-- Sort (List<string>): Sort by id, name, updated with asc/desc.
-- Filter (string): Filter expression. See filtering.
-- Limit (int): Number of objects to return. Default/Max: 100.
-- Execute (System.Action): System.Action of type PNMembershipsResult.
+- Uuid: Type: string. If not supplied, current user's Uuid is used.
+- Channels: Type: List<PNMembership>. Memberships to set; accepts channel names or PNMembership objects (with optional custom data).
+- Include: Type: PNMembershipField[]. Include additional fields.
+- IncludeCount: Type: bool. Include total count. Default: false.
+- Page: Type: PNPageObject. Cursor-based pagination.
+- Sort: Type: List<string>. Sort by id, name, updated with asc/desc (for example, {name: 'asc'}).
+- Filter: Type: string. Filter expression. See filtering.
+- Limit: Type: int. Default/Max: 100.
+- Execute: Type: System.Action of type PNMembershipsResult.
 - ExecuteAsync: Returns Task<PNResult<PNMembershipsResult>>.
 
-##### API limits
-
-See REST API docs: set-membership-metadata.
+API limits: See REST API docs for maximum parameter lengths.
 
 #### PNMembership
 
-- Channel (string): Associated channel name.
-- Custom (Dictionary<string, object>): Custom metadata for the membership.
-- Status (string): Membership status (for example, "active", "inactive").
-- Type (string): Membership type.
+- Channel: Type: string. Channel name for this membership.
+- Custom: Type: Dictionary<string, object>. Custom metadata for the membership.
+- Status: Type: string. Membership status (for example, "active" or "inactive").
+- Type: Type: string. Membership type for categorization.
 
 #### Sample code
 
 ```
 1
   
+
 ```
 
 #### Response
@@ -578,7 +585,7 @@ See REST API docs: set-membership-metadata.
 
 ### Remove channel memberships
 
-Remove memberships for a UUID.
+Remove memberships for a UUID. Provide channels to remove.
 
 #### Method(s)
 
@@ -596,15 +603,15 @@ Remove memberships for a UUID.
 `
 ```
 
-- Uuid (String): Unique user identifier. If not supplied, current user's Uuid is used.
-- Channels (List<string>): Channels to remove.
-- Include (PNMembershipField[]): Include additional fields.
-- IncludeCount (bool): Include total count. Default false.
-- Page (PNPageObject): Cursor-based pagination.
-- Sort (List<string>): Sort by id, name, updated with asc/desc.
-- Filter (string): Filter expression. See filtering.
-- Limit (int): Number of objects to return. Default/Max: 100.
-- Execute (System.Action): System.Action of type PNMembershipsResult.
+- Uuid: Type: String. If not supplied, current user's Uuid is used.
+- Channels: Type: List<string>. Channels to remove from membership.
+- Include: Type: PNMembershipField[]. Include additional fields.
+- IncludeCount: Type: bool. Include total count. Default: false.
+- Page: Type: PNPageObject. Cursor-based pagination.
+- Sort: Type: List<string>. Sort by id, name, updated with asc/desc (for example, {name: 'asc'}).
+- Filter: Type: string. Filter expression. See filtering.
+- Limit: Type: int. Default/Max: 100.
+- Execute: Type: System.Action of type PNMembershipsResult.
 - ExecuteAsync: Returns Task<PNResult<PNMembershipsResult>>.
 
 #### Sample code
@@ -612,6 +619,7 @@ Remove memberships for a UUID.
 ```
 1
   
+
 ```
 
 #### Response
@@ -677,14 +685,14 @@ Add and remove memberships for a UUID in one request.
 `
 ```
 
-- Uuid (string): Unique user identifier. If not supplied, current user's Uuid is used.
-- Set (List<PNMembership>): Set channel memberships for the user.
-- Remove (List<string>): Remove channel memberships for the user.
-- Include (PNMembershipField[]): Include additional fields.
-- IncludeCount (bool): Include total count. Default false.
-- Page (PNPageObject): Cursor-based pagination.
-- Sort (List<string>): Sort by id, name, updated with asc/desc.
-- Execute (System.Action): System.Action of type PNMembership.
+- Uuid: Type: string. If not supplied, current user's Uuid is used.
+- Set: Type: List<PNMembership>. Set memberships.
+- Remove: Type: List<string>. Remove memberships.
+- Include: Type: PNMembershipField[]. Include additional fields.
+- IncludeCount: Type: bool. Include total count. Default: false.
+- Page: Type: PNPageObject. Cursor-based pagination.
+- Sort: Type: List<string>. Sort by id, name, updated with asc/desc (for example, {name: 'asc'}).
+- Execute: Type: System.Action of type PNMembership.
 - ExecuteAsync: Returns Task<PNResult<PNMembership>>.
 
 #### Sample code
@@ -692,6 +700,7 @@ Add and remove memberships for a UUID in one request.
 ```
 1
   
+
 ```
 
 #### Response
@@ -740,11 +749,11 @@ Add and remove memberships for a UUID in one request.
 
 ## Channel members
 
-Manage the users in a channel.
+Manage users in a channel: list, set, remove.
 
 ### Get channel members
 
-List users in a channel.
+List users in a channel. Use Include to return user metadata.
 
 #### Method(s)
 
@@ -761,14 +770,14 @@ List users in a channel.
 `
 ```
 
-- Channel (string): Channel name.
-- Include (PNChannelMemberField[]): Include additional fields.
-- IncludeCount (bool): Include total count. Default false.
-- Page (PNPageObject): Cursor-based pagination.
-- Sort (List<string>): Sort by id, name, updated with asc/desc.
-- Filter (string): Filter expression. See filtering.
-- Limit (int): Number of objects to return. Default/Max: 100.
-- Execute (System.Action): System.Action of type PNChannelMembersResult.
+- Channel: Type: string. Channel name.
+- Include: Type: PNChannelMemberField[]. Include additional fields.
+- IncludeCount: Type: bool. Include total count. Default: false.
+- Page: Type: PNPageObject. Cursor-based pagination.
+- Sort: Type: List<string>. Sort by id, name, updated with asc/desc (for example, {name: 'asc'}).
+- Filter: Type: string. Filter expression. See filtering.
+- Limit: Type: int. Default/Max: 100.
+- Execute: Type: System.Action of type PNChannelMembersResult.
 - ExecuteAsync: Returns Task<PNResult<PNChannelMembersResult>>.
 
 #### Sample code
@@ -776,6 +785,7 @@ List users in a channel.
 ```
 1
   
+
 ```
 
 #### Response
@@ -825,7 +835,7 @@ List users in a channel.
 
 ### Set channel members
 
-Set users in a channel.
+Set users in a channel. Provide UUIDs (optional custom data).
 
 #### Method(s)
 
@@ -842,25 +852,24 @@ Set users in a channel.
 `
 ```
 
-- Channel (String): Channel name.
-- Uuids (List<PNChannelMember>): Members to add (strings or objects with custom).
-- Include (PNChannelMemberField[]): Include additional fields.
-- Page (PNPageObject): Cursor-based pagination.
-- Sort (List<string>): Sort by id, name, updated with asc/desc.
-- Filter (string): Filter expression. See filtering.
-- Limit (int): Number of objects to return. Default/Max: 100.
-- Execute (System.Action): System.Action of type PNChannelMembersResult.
+- Channel: Type: String. Channel name.
+- Uuids: Type: List<PNChannelMember>. Members to add to the channel. List can contain strings (UUIDs) or objects (with optional custom data).
+- Include: Type: PNChannelMemberField[]. Include additional fields.
+- Page: Type: PNPageObject. Cursor-based pagination.
+- Sort: Type: List<string>. Sort by id, name, updated with asc/desc (for example, {name: 'asc'}).
+- Filter: Type: string. Filter expression. See filtering.
+- Limit: Type: int. Default/Max: 100.
+- Execute: Type: System.Action of type PNChannelMembersResult.
 - ExecuteAsync: Returns Task<PNResult<PNChannelMembersResult>>.
 
-##### API limits
-
-See REST API docs: set-channel-members-metadata.
+API limits: See REST API docs for maximum parameter lengths.
 
 #### Sample code
 
 ```
 1
   
+
 ```
 
 #### Response
@@ -910,7 +919,7 @@ See REST API docs: set-channel-members-metadata.
 
 ### Remove channel members
 
-Remove users from a channel.
+Remove users from a channel. Provide UUIDs to remove.
 
 #### Method(s)
 
@@ -928,15 +937,15 @@ Remove users from a channel.
 `
 ```
 
-- Channel (string): Channel name.
-- Uuids (List<string>): Members to remove.
-- Include (PNChannelMemberField[]): Include additional fields.
-- IncludeCount (bool): Include total count. Default false.
-- Page (PNPageObject): Cursor-based pagination.
-- Sort (List<string>): Sort by id, name, updated with asc/desc.
-- Filter (string): Filter expression. See filtering.
-- Limit (int): Number of objects to return. Default/Max: 100.
-- Execute (System.Action): System.Action of type PNChannelMembersResult.
+- Channel: Type: string. Channel name.
+- Uuids: Type: List<string>. Members to remove from channel.
+- Include: Type: PNChannelMemberField[]. Include additional fields.
+- IncludeCount: Type: bool. Include total count. Default: false.
+- Page: Type: PNPageObject. Cursor-based pagination.
+- Sort: Type: List<string>. Sort by id, name, updated with asc/desc (for example, {name: 'asc'}).
+- Filter: Type: string. Filter expression. See filtering.
+- Limit: Type: int. Default/Max: 100.
+- Execute: Type: System.Action of type PNChannelMembersResult.
 - ExecuteAsync: Returns Task<PNResult<PNChannelMembersResult>>.
 
 #### Sample code
@@ -944,6 +953,7 @@ Remove users from a channel.
 ```
 1
   
+
 ```
 
 #### Response

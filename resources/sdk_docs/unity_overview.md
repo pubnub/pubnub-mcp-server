@@ -1,55 +1,58 @@
 # Unity API & SDK Docs v9.3.0
 
-This guide walks you through a simple "Hello, World" application that demonstrates the core concepts of PubNub:
+This guide demonstrates core PubNub concepts in Unity:
 - Setting up a connection
 - Sending messages
 - Receiving messages in real-time
 
-## Overview
+## Overview[​](#overview)
 
-Get up and running with PubNub in your Unity application. Supported platforms:
+PubNub's Unity SDK supports:
 - Mobile (iOS, Android)
 - Desktop (Windows, macOS, Linux)
 - WebGL (browser-based games)
-- VR/AR (Virtual Reality/Augmented Reality)
+- VR/AR
 
-Core concepts and APIs are consistent across platforms; initialization may vary per target.
+Initialization may differ by platform; core API usage is consistent.
 
 ##### WebGL compatibility
-The PubNub Unity SDK supports Unity WebGL builds. See WebGL configuration for setup details.
+The SDK supports Unity WebGL builds. See WebGL configuration: /docs/sdks/unity/api-reference/configuration#webgl-configuration.
 
-## Prerequisites
+## Prerequisites[​](#prerequisites)
+
 - Unity Editor (2018.4.26f1 or newer)
 - Basic C# and Unity knowledge
 - PubNub account
 
-## Setup
+## Setup[​](#setup)
 
-### Get your PubNub keys
-- Sign in or create an account on the PubNub Admin Portal.
+### Get your PubNub keys[​](#get-your-pubnub-keys)
+
+- Sign in: https://admin.pubnub.com/#/login or create an account: https://admin.pubnub.com/#/signup
 - Create an app or use an existing one.
-- Retrieve your publish and subscribe keys from the app dashboard.
+- Copy your publish and subscribe keys from the app dashboard.
 - Use separate keysets for development and production.
 
-### Install the SDK
+### Install the SDK[​](#install-the-sdk)
 
 ##### SDK version
-Use the latest SDK to access new features and fixes.
+Use the latest SDK version.
 
-#### Install via Package Manager (recommended)
-- Unity: Window -> Package Manager
-- Click + -> Add package from git URL
-- Paste the package link -> Add
+#### Install via Package Manager (recommended)[​](#install-via-package-manager-recommended)
+
+- Unity: Window -> Package Manager -> + -> Add package from git URL
+- Paste and Add:
 
 ```
 `https://github.com/pubnub/unity.git?path=/PubNubUnity/Assets/PubNub  
 `
 ```
 
-- Editor menu: PubNub -> Set up templates
-- Restart Unity Editor
+- In the editor menu: PubNub -> Set up templates
+- Restart Unity Editor.
 
-#### Source code
+#### Source code[​](#source-code)
+
 Clone the GitHub repository:
 
 ```
@@ -57,42 +60,47 @@ Clone the GitHub repository:
 `
 ```
 
-## Steps
+## Steps[​](#steps)
 
-### Configure PubNub
-- Project tree: Create -> PubNub -> PubNub Config Asset (scriptable object)
-- Open PNConfigAsset and set publish and subscribe keys (others optional)
+### Configure PubNub[​](#configure-pubnub)
+
+Editor-based configuration:
+- Right-click in Project -> Create -> PubNub -> PubNub Config Asset (scriptable object).
+- Open PNConfigAsset and set publish and subscribe keys (other options optional).
 
 ##### UserId requirement
-Every client needs a unique UserId. Unity SDK can generate one for testing; set a meaningful UserId in production.
+Every client needs a unique UserId. Unity SDK can generate one for testing; specify your own in production.
 
-- Project tree: Create -> PubNub -> PubNub Manager Script
-- Add PnManager as a component to any scene GameObject
-- Assign PNConfigAsset to PubNub Configuration in PnManager (Script)
+- Create manager: Right-click -> Create -> PubNub -> PubNub Manager Script.
+- Add PnManager to a GameObject.
+- Assign PNConfigAsset to the PubNub Configuration field in PnManager (Script).
 
-Alternatively, configure programmatically:
+Programmatic configuration (alternative):
 
 ```
 1
   
+
 ```
 
-See Configuration for more details.
+See Configuration docs: /docs/sdks/unity/api-reference/configuration.
 
-### Set up event listeners
-Implement listeners to react to events and messages:
-- Status listener: connection state and operational events
+### Set up event listeners[​](#set-up-event-listeners)
+
+- Status listener: connection and operational events
 - Message listener: incoming messages
 
 ```
 1
   
+
 ```
 
-See Listeners for details.
+Docs: /docs/sdks/unity/api-reference/configuration#event-listeners
 
-### Create a subscription
-Subscribe to channels to receive messages:
+### Create a subscription[​](#create-a-subscription)
+
+Subscribe in three steps:
 1. $1
 2. $1
 3. $1
@@ -100,69 +108,68 @@ Subscribe to channels to receive messages:
 ```
 1
   
+
 ```
 
-See Subscribe for details.
+Docs: /docs/sdks/unity/api-reference/publish-and-subscribe#subscribe
 
-### Publish messages
-Publish JSON-serializable data (objects, arrays, integers, strings) up to 32 KiB.
+### Publish messages[​](#publish-messages)
+
+Messages are JSON-serializable (objects, arrays, integers, strings) up to 32 KiB.
 
 ```
 1
   
+
 ```
 
-### Run the app
+### Run the app[​](#run-the-app)
+
 1. $1
 2. $1
 3. $1
 4. $1
 
-## Complete example
-Here's a complete working example:
+## Complete example[​](#complete-example)
 
 ```
 1
   
+
 ```
 
-### Troubleshooting
+### Troubleshooting[​](#troubleshooting)
 
-No connection message
-- Verify internet connection and correct keys
-- Check firewall or proxy rules
-- Enable SSL if required by the network
+No connection message:
+- Check internet.
+- Verify publish/subscribe keys.
+- Ensure firewall isn’t blocking PubNub.
+- Enable SSL if required by your network.
 
-Message not received
-- Confirm subscription to the correct channel
-- Check for publish errors
-- Allow time for delivery
+Message not received:
+- Confirm you subscribed to the correct channel.
+- Verify publish success (check for errors).
+- Allow time for delivery.
 
-Script errors
-- Ensure PubNub dependency is added
-- Verify imports
-- Use a compatible Unity version
+Script errors:
+- Confirm PubNub dependency is added.
+- Verify imports.
+- Use a compatible Unity version.
 
-WebGL build issues
-- Enable WebGL build mode in PNConfigAsset
-- Follow WebGL configuration guidance
+WebGL build issues:
+- Enable WebGL build mode in PNConfigAsset.
+- Follow WebGL configuration: /docs/sdks/unity/api-reference/configuration#webgl-configuration
 
-## Next steps
-- Build a game
-- Advanced features
-- Real examples
-- More help
+## Next steps[​](#next-steps)
 
-- Implement player position sync.
-- Create a chat system.
-- Develop real-time leaderboards.
-- Try Presence to track online/offline status.
-- Use Message Persistence to store/retrieve messages.
-- Use Access Manager to secure channels.
-- Explore the PubNub Prix demo (leaderboards and chat).
-- Browse the GitHub repository for samples.
-- Read the SDK reference documentation for detailed APIs.
-- Visit the support portal.
-- Ask the AI assistant for help.
+- Build a game; implement position sync, chat, leaderboards with real-time updates.
+- Presence: /docs/sdks/unity/api-reference/presence
+- Message Persistence: /docs/sdks/unity/api-reference/storage-and-playback
+- Access Manager: /docs/sdks/unity/api-reference/access-manager
+- PubNub Prix demo: https://www.pubnub.com/demos/unity-pubnubprix/
+- GitHub samples: https://github.com/pubnub/unity/
+- SDK reference: /docs/sdks/unity/api-reference/configuration
+- Support: https://support.pubnub.com/
+- Use the AI assistant in the docs.
 
 Last updated on Sep 3, 2025

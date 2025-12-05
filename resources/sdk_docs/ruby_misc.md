@@ -1,8 +1,8 @@
 # Utility Methods API for Ruby SDK
 
-The methods on this page are utility methods that don't fit into other categories.
+Utility methods that don't fit other categories.
 
-## Time[​](#time)
+## Time
 
 Returns a 17-digit precision Unix epoch timetoken.
 
@@ -13,7 +13,7 @@ Returns a 17-digit precision Unix epoch timetoken.
 `
 ```
 
-Convert back and forth between current time and a timetoken:
+Convert between current time and a timetoken:
 
 ```
 1now = Time.now  
@@ -29,9 +29,9 @@ Convert back and forth between current time and a timetoken:
 
 ```
 
-### Method(s)[​](#methods)
+### Method(s)
 
-To fetch `Time` use:
+Fetch Time using:
 
 ```
 `1time(  
@@ -42,12 +42,14 @@ To fetch `Time` use:
 ```
 
 Parameters:
-- http_sync (Boolean): Default false. If false, executes asynchronously and returns a future; call value to obtain the result. If true, returns an array of envelopes (even if only one). For sync methods, an Envelope object will be returned.
-- callback (Lambda): Accepts one parameter (Callback) invoked for each envelope. For async methods, a future is returned; call value to retrieve the Envelope (thread blocks until value is returned).
+- http_sync (Boolean, default false): 
+  - false (async): returns a future; call future.value to get an Envelope (blocks until available).
+  - true (sync): returns an array of Envelope objects (even if only one).
+- callback (Lambda with one parameter): Invoked for each Envelope.
 
-### Sample code[​](#sample-code)
+### Sample code
 
-#### Get PubNub timetoken[​](#get-pubnub-timetoken)
+#### Get PubNub timetoken
 
 ##### Reference code
 
@@ -85,9 +87,9 @@ Parameters:
 
 ```
 
-### Rest response from server[​](#rest-response-from-server)
+### Rest response from server
 
-The `time()` function returns a string timetoken in the following format:
+The time() function returns a string timetoken:
 
 ```
 `113769501243685161**`

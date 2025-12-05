@@ -1,23 +1,18 @@
 # Utility Methods API for Unity SDK
 
-Utility methods that don't fit other categories.
+Utility methods for managing SDK state and payloads.
 
 ## Cleanup[​](#cleanup)
 
-Frees threads for a clean exit.
+Frees threads and allows a clean exit.
 
 ### Method(s)[​](#methods)
-
 ```
 `1Pubnub.CleanUp()  
 `
 ```
 
 ### Sample code[​](#sample-code)
-
-##### Reference code
-This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
-
 ```
 1
   
@@ -25,24 +20,20 @@ This example is a self-contained code snippet ready to be run. It includes neces
 ```
 
 ### Returns[​](#returns)
-
 None
 
 ## Disconnect[​](#disconnect)
 
-Force the SDK to stop all requests to PubNub when there are active subscribe channels.
+Forces the SDK to stop all requests to PubNub when there are active subscribe channels.
 
 ### Method(s)[​](#methods-1)
-
 ```
 `1DisconnectT>()  
 `
 ```
-
 This method doesn't take any arguments.
 
 ### Sample code[​](#sample-code-1)
-
 ```
 1
   
@@ -51,19 +42,16 @@ This method doesn't take any arguments.
 
 ## Get subscribed channel groups[​](#get-subscribed-channel-groups)
 
-Returns all subscribed channel groups as `List<string>`.
+Returns all subscribed channel groups as a List<string>.
 
 ### Method(s)[​](#methods-2)
-
 ```
 `1Liststring> GetSubscribedChannelGroups()  
 `
 ```
 
 ### Sample code[​](#sample-code-2)
-
 #### Get subscribed channel groups[​](#get-subscribed-channel-groups-1)
-
 ```
 1
   
@@ -71,9 +59,7 @@ Returns all subscribed channel groups as `List<string>`.
 ```
 
 ### Response[​](#response)
-
-`List<String>`
-
+List<String>
 ```
 `1["channelGroup1", "channelGroup2"]  
 `
@@ -81,19 +67,16 @@ Returns all subscribed channel groups as `List<string>`.
 
 ## Get subscribed channels[​](#get-subscribed-channels)
 
-Returns all subscribed channels as `List<string>`.
+Returns all subscribed channels as a List<string>.
 
 ### Method(s)[​](#methods-3)
-
 ```
 `1Liststring> GetSubscribedChannels()  
 `
 ```
 
 ### Sample code[​](#sample-code-3)
-
 #### Get subscribed channels[​](#get-subscribed-channels-1)
-
 ```
 1
   
@@ -101,9 +84,7 @@ Returns all subscribed channels as `List<string>`.
 ```
 
 ### Response[​](#response-1)
-
-`List<String>`
-
+List<String>
 ```
 `1["channel1", "channel2"]  
 `
@@ -111,19 +92,16 @@ Returns all subscribed channels as `List<string>`.
 
 ## Reconnect[​](#reconnect)
 
-Force the SDK to attempt reconnecting to PubNub.
+Forces the SDK to attempt reconnection.
 
 ### Method(s)[​](#methods-4)
-
 ```
 `1ReconnectT>(bool resetSubscribeToken)  
 `
 ```
-
 - resetSubscribeToken (bool): Passing true sends zero timetoken upon reconnect.
 
 ### Sample code[​](#sample-code-4)
-
 ```
 1
   
@@ -132,10 +110,9 @@ Force the SDK to attempt reconnecting to PubNub.
 
 ## Create push payload[​](#create-push-payload)
 
-Build a push payload for use in publish/endpoints.
+Creates a push payload for use with publish and push-related endpoints.
 
 ### Method(s)[​](#methods-5)
-
 ```
 `1CreatePushPayloadHelper()  
 2    .SetAPNSPayload(PNAPSData, ListPNAPNS2Data>)  
@@ -146,19 +123,19 @@ Build a push payload for use in publish/endpoints.
 ```
 
 - SetAPNSPayload
-  - Type: PNAPSData — Set APNS payload; delivered within pn_apns.
-  - Type: List<PNAPNS2Data> — Set APNS2 payload; delivered within pn_push.
+  - Type: PNAPSData, List<PNAPNS2Data>
+  - APNS payload: pn_apns key; APNS2 payload: pn_push key.
 - SetFCMPayload
-  - Type: PNFCMData — Set FCM payload; delivered within pn_fcm.
+  - Type: PNFCMData
+  - FCM payload under pn_fcm key.
 - SetCommonPayload
-  - Type: Dictionary<string, object> — Common payload; native PubNub subscribers receive full object including pn_apns, pn_fcm, and common payload.
+  - Type: Dictionary<string, object>
+  - Common payload; native PubNub subscribers receive full object, including pn_apns, pn_fcm, and common payload.
 - BuildPayload
-  - Builds payload from the above and returns Dictionary<string, object>.
+  - Builds and returns Dictionary<string, object>.
 
 ### Sample code[​](#sample-code-5)
-
 #### Create push payload[​](#create-push-payload-1)
-
 ```
 1
   
@@ -166,7 +143,6 @@ Build a push payload for use in publish/endpoints.
 ```
 
 ### Response[​](#response-2)
-
-CreatePushPayloadHelper() returns a Dictionary<string, object> suitable for Publish Method's Message parameter.
+CreatePushPayloadHelper() returns Dictionary<string, object> for direct use as the Publish method's Message parameter.
 
 Last updated on Nov 6, 2025

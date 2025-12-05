@@ -1,16 +1,16 @@
 # Channel Groups API for Objective-C SDK
 
-Channel groups bundle thousands of channels under a named group. You can subscribe to a channel group (receive messages from its channels), but you cannot publish to a group—publish to channels directly.
+Channel groups let you bundle many channels under a named group and subscribe to that group to receive messages from all contained channels.
 
-##### Channel group operations
-- Subscribe to channel groups; publishing must target individual channels.
+Channel group operations
+- You can't publish to a channel group; only subscribe. To publish, send to each channel individually.
 
 ## Add channels to a channel group
 
-##### Requires Stream Controller add-on
-Enable the Stream Controller add-on for your key in the PubNub Admin Portal. See support docs for enabling add-ons.
+Requires Stream Controller add-on
+- Enable the Stream Controller add-on for your key in the Admin Portal.
 
-Adds channels to a channel group.
+This function adds channels to a channel group.
 
 ### Method(s)
 
@@ -21,10 +21,10 @@ Adds channels to a channel group.
 `
 ```
 
-Parameters:
+Parameters
 - channels (NSArray): List of channel names to add to the group.
-- group (NSString): Target channel group name.
-- block (PNChannelGroupChangeCompletionBlock): Completion block; receives request processing status indicating success or error.
+- group (NSString): Name of the group to modify.
+- block (PNChannelGroupChangeCompletionBlock): Completion block with request processing status (success/error).
 
 ### Sample code
 
@@ -83,10 +83,10 @@ Parameters:
 
 ## List channels in a channel group
 
-##### Requires Stream Controller add-on
-Enable the Stream Controller add-on for your key in the Admin Portal. See support docs for enabling add-ons.
+Requires Stream Controller add-on
+- Enable the Stream Controller add-on for your key in the Admin Portal.
 
-Lists all channels in a channel group.
+This function lists all channels in a channel group.
 
 ### Method(s)
 
@@ -96,11 +96,11 @@ Lists all channels in a channel group.
 `
 ```
 
-Parameters:
-- group (NSString): Channel group to audit.
+Parameters
+- group (NSString): Name of the group from which channels should be fetched.
 - block (PNClientChannelsForGroupRequestHandlingBlock): Completion block with:
-  - result (on success): result.data.channels contains channel list.
-  - status (on error): error status.
+  - result (PNChannelGroupChannelsResult) on success (data.channels contains the list)
+  - status (PNErrorStatus) on error.
 
 ### Sample code
 
@@ -150,7 +150,8 @@ Parameters:
 7
   
 8@interface PNChannelGroupChannelsResult : PNResult  
-9  
+9
+  
 10// Stores reference on channel group's channels list audit request processing information.  
 11@property (nonatomic, nonnull, readonly, strong) PNChannelGroupChannelsData *data;  
 12
@@ -160,10 +161,10 @@ Parameters:
 
 ## Remove channels from a channel group
 
-##### Requires Stream Controller add-on
-Enable the Stream Controller add-on for your key in the Admin Portal. See support docs for enabling add-ons.
+Requires Stream Controller add-on
+- Enable the Stream Controller add-on for your key in the Admin Portal.
 
-Removes channels from a channel group.
+This function removes channels from a channel group.
 
 ### Method(s)
 
@@ -174,10 +175,10 @@ Removes channels from a channel group.
 `
 ```
 
-Parameters:
-- channels (NSArray): Channel names to remove. If empty list passed, the whole channel group will be removed.
-- group (NSString): Channel group from which to remove channels.
-- block (PNChannelGroupChangeCompletionBlock): Completion block; receives request processing status.
+Parameters
+- channels (NSArray): List of channel names to remove from the group. If empty list is passed, the whole channel group will be removed.
+- group (NSString): Channel group to modify.
+- block (PNChannelGroupChangeCompletionBlock): Completion block with request processing status (success/error).
 
 ### Sample code
 
@@ -224,10 +225,10 @@ Parameters:
 
 ## Delete a channel group
 
-##### Requires Stream Controller add-on
-Enable the Stream Controller add-on for your key in the Admin Portal. See support docs for enabling add-ons.
+Requires Stream Controller add-on
+- Enable the Stream Controller add-on for your key in the Admin Portal.
 
-Deletes a channel group.
+This function deletes a channel group.
 
 ### Method(s)
 
@@ -237,13 +238,13 @@ Deletes a channel group.
 `
 ```
 
-Parameters:
-- group (NSString): Group from which all channels should be removed.
-- block (PNChannelGroupChangeCompletionBlock): Completion block; receives request processing status.
+Parameters
+- group (NSString): Name of the group from which all channels should be removed.
+- block (PNChannelGroupChangeCompletionBlock): Completion block with request processing status (success/error).
 
 ### Sample code
 
-Deleting Channel Group :
+Deleting Channel Group:
 
 ```
 `1NSString *channelGroup = @"family";  
@@ -281,3 +282,5 @@ Deleting Channel Group :
 2
 **3@end  
 ```
+
+Last updated on Sep 3, 2025

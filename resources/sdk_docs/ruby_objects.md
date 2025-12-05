@@ -1,16 +1,16 @@
 # App Context API for Ruby SDK
 
-App Context provides serverless storage for user (UUID) and channel metadata and their membership associations. PubNub emits events when object data is set, updated, or removed. Re-setting identical data doesn't trigger events.
+Serverless storage for user, channel, and membership metadata. PubNub emits real-time events when object data is set, updated, or removed. Setting identical data does not trigger events.
 
 ## User
 
-Manage UUID metadata: list, fetch, set, and remove. Include only needed fields to reduce payload.
+Manage UUID metadata: list, fetch, set, and remove.
 
 ### Get metadata for all users
 
-Paginated list of UUID metadata. Supports filters and sorting.
+Get a paginated list of UUID metadata with optional filters and sorting.
 
-#### Method(s)
+Methods
 
 ```
 `1get_all_uuid_metadata(  
@@ -26,18 +26,21 @@ Paginated list of UUID metadata. Supports filters and sorting.
 `
 ```
 
-Parameters:
-- sort (Array) — Sort by fields: id, name, updated with optional asc|desc.
-- include (Object, default { count: true }) — Options:
-  - count, custom, type, status.
-- filter (String) — Expression to filter results (see /docs/general/metadata/filtering).
-- start (String) — Forward pagination cursor.
-- end (String) — Backward pagination cursor (ignored if start is provided).
-- limit (Integer, default/max 100).
-- http_sync (Boolean, default false) — Async returns a future; sync returns envelope(s).
-- callback (Lambda) — Called per envelope; for async, call future.value to get the Envelope.
+Parameters
+- sort (Type: Array, Default: n/a): Sort by id, name, updated. Use asc or desc to specify direction.
+- include (Type: Object, Default: { count: true }): Include extra fields:
+  - count: number of UUIDs with metadata.
+  - custom: include custom fields set on UUID metadata.
+  - type: include metadata type.
+  - status: include metadata status.
+- filter (Type: String, Default: n/a): Filter expression. See /docs/general/metadata/filtering.
+- start (Type: String, Default: n/a): Forward pagination cursor.
+- end (Type: String, Default: n/a): Backward pagination cursor. Ignored if start is provided.
+- limit (Type: Integer, Default: 100, Max: 100): Number of objects to return.
+- http_sync (Type: Boolean, Default: false): Async by default (returns future). When true, returns array of envelopes (sync returns Envelope).
+- callback (Type: Lambda, Default: n/a): Called for each envelope. For async, call value on future to retrieve Envelope.
 
-#### Sample code
+Sample code
 
 ##### Reference code
 
@@ -81,9 +84,10 @@ Parameters:
 33if __FILE__ == $0  
 34  main  
 35end  
+
 ```
 
-#### Response
+Response
 
 ```
 `1#  
@@ -115,9 +119,9 @@ Parameters:
 
 ### Get user metadata
 
-Fetch metadata for a single UUID. Include custom if needed.
+Fetch metadata for a single UUID.
 
-#### Method(s)
+Methods
 
 ```
 `1get_uuid_metadata(  
@@ -129,13 +133,13 @@ Fetch metadata for a single UUID. Include custom if needed.
 `
 ```
 
-Parameters:
-- uuid (String, default client UUID) — Target UUID.
-- include (Object, default { custom: true }) — Options: custom, type, status.
-- http_sync (Boolean, default false).
-- callback (Lambda).
+Parameters
+- uuid (Type: String, Default: client UUID): UUID to fetch (defaults to configured client uuid).
+- include (Type: Object, Default: { custom: true }): Include fields:
+  - custom, type, status.
+- http_sync, callback: Same semantics as above.
 
-#### Sample code
+Sample code
 
 ```
 `1pubnub.get_uuid_metadata(include: { custom: true }) do |envelope|  
@@ -144,7 +148,7 @@ Parameters:
 `
 ```
 
-#### Response
+Response
 
 ```
 `1#  
@@ -169,9 +173,9 @@ Parameters:
 
 ### Set user metadata
 
-Create or update metadata for a UUID. Custom metadata overwrites the existing custom object; to add fields without losing current ones, read current metadata, merge your changes locally, then write back.
+Create or update metadata for a UUID. Custom is fully overwritten (no partial merge).
 
-#### Method(s)
+Methods
 
 ```
 `1set_uuid_metadata(  
@@ -184,18 +188,18 @@ Create or update metadata for a UUID. Custom metadata overwrites the existing cu
 `
 ```
 
-Parameters:
-- uuid (String, default client UUID) — UUID to set.
-- metadata (Object, required) — Fields:
-  - name, externalId, profileUrl, email, custom, type, status.
-  - Note: Filtering by custom properties isn’t supported.
-- include (Object, default { custom: true }) — Options: custom.
-- http_sync (Boolean, default false).
-- callback (Lambda).
+Parameters
+- uuid (Type: String, Default: client UUID): Target UUID.
+- metadata (Type: Object, Required): Fields to set:
+  - name, externalId, profileUrl, email, custom, type, status. Note: filtering doesn't support custom properties.
+- include (Type: Object, Default: { custom: true }): Include fields:
+  - custom.
+- http_sync, callback: Same semantics as above.
 
-API limits: See /docs/sdks/rest-api/set-user-metadata.
+API limits
+- See /docs/sdks/rest-api/set-user-metadata.
 
-#### Sample code
+Sample code
 
 ```
 `1pubnub.set_uuid_metadata(  
@@ -208,7 +212,7 @@ API limits: See /docs/sdks/rest-api/set-user-metadata.
 `
 ```
 
-#### Response
+Response
 
 ```
 `1#  
@@ -233,9 +237,9 @@ API limits: See /docs/sdks/rest-api/set-user-metadata.
 
 ### Remove user metadata
 
-Delete metadata for the specified UUID.
+Delete metadata for a UUID.
 
-#### Method(s)
+Methods
 
 ```
 `1remove_uuid_metadata(  
@@ -246,12 +250,11 @@ Delete metadata for the specified UUID.
 `
 ```
 
-Parameters:
-- uuid (String, default client UUID).
-- http_sync (Boolean, default false).
-- callback (Lambda).
+Parameters
+- uuid (Type: String, Default: client UUID): UUID to remove metadata for.
+- http_sync, callback: Same semantics as above.
 
-#### Sample code
+Sample code
 
 ```
 `1pubnub.remove_uuid_metadata(uuid: 'mg') do |envelope|  
@@ -260,7 +263,7 @@ Parameters:
 `
 ```
 
-#### Response
+Response
 
 ```
 `1#  
@@ -282,9 +285,9 @@ Manage channel metadata: list, fetch, set, and remove.
 
 ### Get metadata for all channels
 
-Paginated list of channel metadata. Supports filters and sorting.
+Get a paginated list of channel metadata with optional filters and sorting.
 
-#### Method(s)
+Methods
 
 ```
 `1get_all_channels_metadata(  
@@ -300,16 +303,14 @@ Paginated list of channel metadata. Supports filters and sorting.
 `
 ```
 
-Parameters:
-- sort (Array) — Sort by fields: id, name, updated with optional asc|desc.
-- include (Object, default { count: true }) — Options: count, custom, type, status.
-- filter (String) — Expression to filter results (see /docs/general/metadata/filtering).
-- start (String), end (String) — Pagination cursors.
-- limit (Integer, default/max 100).
-- http_sync (Boolean, default false).
-- callback (Lambda).
+Parameters
+- sort (Type: Array, Default: n/a): Sort by id, name, updated. Use asc or desc.
+- include (Type: Object, Default: { count: true }): Include fields:
+  - count, custom, type, status.
+- filter (Type: String, Default: n/a): Filter expression. See /docs/general/metadata/filtering.
+- start, end, limit, http_sync, callback: Same semantics as above.
 
-#### Sample code
+Sample code
 
 ```
 `1pubnub.get_all_channels_metadata(  
@@ -321,7 +322,7 @@ Parameters:
 `
 ```
 
-#### Response
+Response
 
 ```
 `1#  
@@ -352,9 +353,9 @@ Parameters:
 
 ### Get channel metadata
 
-Fetch metadata for a single channel. Include custom if needed.
+Fetch metadata for a single channel.
 
-#### Method(s)
+Methods
 
 ```
 `1get_channel_metadata(  
@@ -366,13 +367,13 @@ Fetch metadata for a single channel. Include custom if needed.
 `
 ```
 
-Parameters:
-- channel (String, required).
-- include (Object, default { custom: true }) — Options: custom, type, status.
-- http_sync (Boolean, default false).
-- callback (Lambda).
+Parameters
+- channel (Type: String, Required): Channel name.
+- include (Type: Object, Default: { custom: true }): Include fields:
+  - custom, type, status.
+- http_sync, callback: Same semantics as above.
 
-#### Sample code
+Sample code
 
 ```
 `1pubnub.get_channel_metadata(  
@@ -384,7 +385,7 @@ Parameters:
 `
 ```
 
-#### Response
+Response
 
 ```
 `1#  
@@ -407,9 +408,9 @@ Parameters:
 
 ### Set channel metadata
 
-Create or update channel metadata. Custom metadata overwrites the existing custom object; to append, read current, merge locally, then write back.
+Create or update metadata for a channel. Custom is fully overwritten (no partial merge).
 
-#### Method(s)
+Methods
 
 ```
 `1set_channel_metadata(  
@@ -422,18 +423,18 @@ Create or update channel metadata. Custom metadata overwrites the existing custo
 `
 ```
 
-Parameters:
-- channel (String, required).
-- metadata (Object, required) — Fields:
-  - name, information (description), custom, type, status.
-  - Note: Filtering by custom properties isn’t supported.
-- include (Object, default { custom: true }) — Options: custom.
-- http_sync (Boolean, default false).
-- callback (Lambda).
+Parameters
+- channel (Type: String, Required): Channel name.
+- metadata (Type: Object, Required): Fields to set:
+  - name, information (description), custom, type, status. Note: filtering doesn't support custom properties.
+- include (Type: Object, Default: { custom: true }): Include fields:
+  - custom.
+- http_sync, callback: Same semantics as above.
 
-API limits: See /docs/sdks/rest-api/set-channel-metadata.
+API limits
+- See /docs/sdks/rest-api/set-channel-metadata.
 
-#### Sample code
+Sample code
 
 ```
 `1pubnub.set_channel_metadata(  
@@ -445,7 +446,7 @@ API limits: See /docs/sdks/rest-api/set-channel-metadata.
 `
 ```
 
-#### Response
+Response
 
 ```
 `1#  
@@ -466,7 +467,7 @@ API limits: See /docs/sdks/rest-api/set-channel-metadata.
 `
 ```
 
-#### Other examples
+Other examples
 
 ##### Iteratively update existing metadata
 
@@ -574,13 +575,14 @@ API limits: See /docs/sdks/rest-api/set-channel-metadata.
 87    puts "Object has been updated.\n" if envelope.status[:code] == 200  
 88  end  
 89end  
+
 ```
 
 ### Remove channel metadata
 
-Delete metadata for the specified channel.
+Delete metadata for a channel.
 
-#### Method(s)
+Methods
 
 ```
 `1remove_channel_metadata(  
@@ -591,12 +593,11 @@ Delete metadata for the specified channel.
 `
 ```
 
-Parameters:
-- channel (String, required).
-- http_sync (Boolean, default false).
-- callback (Lambda).
+Parameters
+- channel (Type: String, Required): Channel name.
+- http_sync, callback: Same semantics as above.
 
-#### Sample code
+Sample code
 
 ```
 `1pubnub.remove_channel_metadata(channel: 'channel') do |envelope|  
@@ -605,7 +606,7 @@ Parameters:
 `
 ```
 
-#### Response
+Response
 
 ```
 `1#  
@@ -623,13 +624,13 @@ Parameters:
 
 ## Channel memberships
 
-Manage the channels a UUID belongs to: list, set, and remove.
+Manage channel memberships for a UUID.
 
 ### Get channel memberships
 
-List channel memberships for a UUID (not subscriptions).
+List channel memberships for a UUID.
 
-#### Method(s)
+Methods
 
 ```
 `1get_memberships(  
@@ -646,18 +647,15 @@ List channel memberships for a UUID (not subscriptions).
 `
 ```
 
-Parameters:
-- uuid (String, default client UUID).
-- sort (Array) — Sort by id, name, updated with optional asc|desc.
-- include (Object, default { count: true }) — Options:
+Parameters
+- uuid (Type: String, Default: client UUID): Target UUID.
+- sort (Type: Array, Default: n/a): Sort by id, name, updated. Use asc or desc.
+- include (Type: Object, Default: { count: true }): Include fields:
   - count, custom, channel_metadata, channel_custom, status, type, channel_type, channel_status.
-- filter (String) — See /docs/general/metadata/filtering.
-- start (String), end (String) — Pagination cursors.
-- limit (Integer, default/max 100).
-- http_sync (Boolean, default false).
-- callback (Lambda).
+- filter (Type: String, Default: n/a): Filter expression. See /docs/general/metadata/filtering.
+- start, end, limit, http_sync, callback: Same semantics as above.
 
-#### Sample code
+Sample code
 
 ```
 `1pubnub.get_memberships(  
@@ -669,7 +667,7 @@ Parameters:
 `
 ```
 
-#### Response
+Response
 
 ```
 `1#  
@@ -703,9 +701,9 @@ Parameters:
 
 ### Set channel memberships
 
-Replace or add memberships for a UUID. Provide channels, optionally with custom/type/status.
+Replace or add memberships for a UUID.
 
-#### Method(s)
+Methods
 
 ```
 `1set_memberships(  
@@ -723,21 +721,16 @@ Replace or add memberships for a UUID. Provide channels, optionally with custom/
 `
 ```
 
-Parameters:
-- uuid (String, default client UUID).
-- channels (Array, required) — Items: { channel, custom?, type?, status? }.
-- sort (Array) — Sort by id, name, updated with optional asc|desc.
-- include (Object, default { count: true }) — Options:
-  - count, custom, channel_metadata, channel_custom, status, type, channel_type, channel_status.
-- filter (String).
-- start (String), end (String).
-- limit (Integer, default/max 100).
-- http_sync (Boolean, default false).
-- callback (Lambda).
+Parameters
+- uuid (Type: String, Default: client UUID): Target UUID.
+- channels (Type: Array, Required): List of channels to set. Each entry can include:
+  - channel, custom, type, status. custom supports simple types (String, Integer).
+- sort, include (Default: { count: true }), filter, start, end, limit, http_sync, callback: Same semantics and include options as in Get channel memberships.
 
-API limits: See /docs/sdks/rest-api/set-membership-metadata.
+API limits
+- See /docs/sdks/rest-api/set-membership-metadata.
 
-#### Sample code
+Sample code
 
 ```
 `1pubnub.set_memberships(  
@@ -752,7 +745,7 @@ API limits: See /docs/sdks/rest-api/set-membership-metadata.
 `
 ```
 
-#### Response
+Response
 
 ```
 `1#  
@@ -783,9 +776,9 @@ API limits: See /docs/sdks/rest-api/set-membership-metadata.
 
 ### Remove channel memberships
 
-Remove memberships for a UUID. Provide channels to remove.
+Remove memberships for a UUID.
 
-#### Method(s)
+Methods
 
 ```
 `1remove_memberships(  
@@ -803,19 +796,12 @@ Remove memberships for a UUID. Provide channels to remove.
 `
 ```
 
-Parameters:
-- uuid (String, default client UUID).
-- channels (Array, required) — Channel IDs to remove.
-- sort (Array) — Sort by id, name, updated with optional asc|desc.
-- include (Object, default { count: true }) — Options:
-  - count, custom, channel_metadata, channel_custom.
-- filter (String).
-- start (String), end (String).
-- limit (Integer, default/max 100).
-- http_sync (Boolean, default false).
-- callback (Lambda).
+Parameters
+- uuid (Type: String, Default: client UUID): Target UUID.
+- channels (Type: Array, Required): Channel IDs to remove.
+- sort, include (Default: { count: true }), filter, start, end, limit, http_sync, callback: Same semantics and include options as in Get channel memberships.
 
-#### Sample code
+Sample code
 
 ```
 `1pubnub.remove_memberships(  
@@ -828,7 +814,7 @@ Parameters:
 `
 ```
 
-#### Response
+Response
 
 ```
 `1#  
@@ -859,13 +845,13 @@ Parameters:
 
 ## Channel members
 
-Manage the users in a channel: list, set, and remove.
+Manage the users in a channel.
 
 ### Get channel members
 
-List users in a channel. Optionally include UUID metadata and custom fields.
+List users in a channel. Optionally include UUID metadata.
 
-#### Method(s)
+Methods
 
 ```
 `1get_channel_members(  
@@ -882,18 +868,15 @@ List users in a channel. Optionally include UUID metadata and custom fields.
 `
 ```
 
-Parameters:
-- channel (String, required).
-- sort (Array) — Sort by id, name, updated with optional asc|desc.
-- include (Object, default { count: true }) — Options:
+Parameters
+- channel (Type: String, Required): Channel name.
+- sort (Type: Array, Default: n/a): Sort by id, name, updated. Use asc or desc.
+- include (Type: Object, Default: { count: true }): Include fields:
   - count, custom, uuid_metadata, uuid_custom, status, type, uuid_status, uuid_type.
-- filter (String).
-- start (String), end (String).
-- limit (Integer, default/max 100).
-- http_sync (Boolean, default false).
-- callback (Lambda).
+- filter (Type: String, Default: n/a): Filter expression. See /docs/general/metadata/filtering.
+- start, end, limit, http_sync, callback: Same semantics as above.
 
-#### Sample code
+Sample code
 
 ```
 `1pubnub.get_channel_members(  
@@ -905,7 +888,7 @@ Parameters:
 `
 ```
 
-#### Response
+Response
 
 ```
 `1#  
@@ -943,9 +926,9 @@ Parameters:
 
 ### Set channel members
 
-Set users in a channel. Provide UUIDs, optionally with custom/type/status.
+Set users in a channel.
 
-#### Method(s)
+Methods
 
 ```
 `1set_channel_members(  
@@ -963,21 +946,16 @@ Set users in a channel. Provide UUIDs, optionally with custom/type/status.
 `
 ```
 
-Parameters:
-- channel (String, required).
-- uuids (Array, required) — Items: { uuid, custom?, type?, status? }.
-- sort (Array) — Sort by id, name, updated with optional asc|desc.
-- include (Object, default { count: true }) — Options:
-  - count, custom, uuid_metadata, uuid_custom, status, type, uuid_status, uuid_type.
-- filter (String).
-- start (String), end (String).
-- limit (Integer, default/max 100).
-- http_sync (Boolean, default false).
-- callback (Lambda).
+Parameters
+- channel (Type: String, Required): Channel name.
+- uuids (Type: Array, Required): List of members to set. Each entry can include:
+  - uuid, custom, type, status. custom supports simple types (String, Integer).
+- sort, include (Default: { count: true }), filter, start, end, limit, http_sync, callback: Same semantics and include options as in Get channel members.
 
-API limits: See /docs/sdks/rest-api/set-channel-members-metadata.
+API limits
+- See /docs/sdks/rest-api/set-channel-members-metadata.
 
-#### Sample code
+Sample code
 
 ```
 `1pubnub.set_channel_members(  
@@ -992,7 +970,7 @@ API limits: See /docs/sdks/rest-api/set-channel-members-metadata.
 `
 ```
 
-#### Response
+Response
 
 ```
 `1#  
@@ -1023,9 +1001,9 @@ API limits: See /docs/sdks/rest-api/set-channel-members-metadata.
 
 ### Remove channel members
 
-Remove users from a channel. Provide the UUIDs to remove.
+Remove users from a channel.
 
-#### Method(s)
+Methods
 
 ```
 `1remove_channel_members(  
@@ -1043,18 +1021,12 @@ Remove users from a channel. Provide the UUIDs to remove.
 `
 ```
 
-Parameters:
-- channel (String, required).
-- uuids (Array, required) — UUID IDs to remove.
-- sort (Array) — Sort by id, name, updated with optional asc|desc.
-- include (Object, default { count: true }) — Options: count, custom, uuid_metadata, uuid_custom.
-- filter (String).
-- start (String), end (String).
-- limit (Integer, default/max 100).
-- http_sync (Boolean, default false).
-- callback (Lambda).
+Parameters
+- channel (Type: String, Required): Channel name.
+- uuids (Type: Array, Required): UUIDs to remove.
+- sort, include (Default: { count: true }), filter, start, end, limit, http_sync, callback: Same semantics and include options as in Get channel members.
 
-#### Sample code
+Sample code
 
 ```
 `1pubnub.remove_channel_members(  
@@ -1067,7 +1039,7 @@ Parameters:
 `
 ```
 
-#### Response
+Response
 
 ```
 `1#**2    @result = {  

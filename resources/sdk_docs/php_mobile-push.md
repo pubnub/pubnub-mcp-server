@@ -1,14 +1,10 @@
-# Mobile Push Notifications API for PHP SDK (Condensed)
+# Mobile Push Notifications API for PHP SDK
 
-Connect native PubNub publishing to third-party push services: Google FCM (Android) and Apple APNs (iOS). See Mobile Push Notifications: /docs/general/push/send
-
-Prerequisites
-- Requires Mobile Push Notifications add-on. Enable in Admin Portal: https://admin.pubnub.com/ (How to enable: https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-).
-- APNS2 requires:
-  - environment (String, default: development)
-  - topic (String, bundle identifier)
+Connect PubNub publishing to third-party push services: Google Android FCM (Firebase Cloud Messaging) and Apple iOS APNs (Apple Push Notification service). To learn more, see Mobile Push Notifications.
 
 ## Add a device to a push notifications channel
+
+Requires Mobile Push Notifications add-on. Enable for your key in the Admin Portal.
 
 Enable mobile push notifications on a set of channels.
 
@@ -23,20 +19,39 @@ Enable mobile push notifications on a set of channels.
 `
 ```
 
-Parameters
-- pushType (PNPushType) Default: Not set. Accepted: PNPushType.FCM, PNPushType.APNS2.
-- channels (Array) Channels to enable.
-- deviceId (String) Device identifier.
-- environment (String) Default: development. Required for APNS2.
-- topic (String) APNs topic (bundle identifier). Required for APNS2.
+Parameters:
+- pushType (required)
+  - Type: PNPushType
+  - Default: Not set
+  - Accepted values: PNPushType.FCM, PNPushType.APNS2
+- channels (required)
+  - Type: Array
+  - Default: n/a
+  - Description: Channels to enable for push notifications
+- deviceId (required)
+  - Type: String
+  - Default: n/a
+  - Description: Device identifier
+- environment
+  - Type: String
+  - Default: development
+  - Description: APNs environment; required for APNS2
+- topic
+  - Type: String
+  - Default: n/a
+  - Description: APNs topic (bundle identifier); required for APNS2
 
 ### Sample code
 
 #### Add device to channel (FCM)
 
+##### Reference code
+This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
+
 ```
 1
   
+
 ```
 
 #### Add device to channel (APNS2)
@@ -44,9 +59,12 @@ Parameters
 ```
 1
   
+
 ```
 
 ## List push notifications channels for a device
+
+Requires Mobile Push Notifications add-on. Enable for your key in the Admin Portal.
 
 List channels that have push notifications enabled for the specified device token.
 
@@ -60,11 +78,23 @@ List channels that have push notifications enabled for the specified device toke
 `
 ```
 
-Parameters
-- pushType (PNPushType) Default: Not set. Accepted: PNPushType.FCM, PNPushType.APNS2.
-- deviceId (String) Device token.
-- environment (String) Default: development. Required for APNS2.
-- topic (String) APNs topic (bundle identifier). Required for APNS2.
+Parameters:
+- pushType (required)
+  - Type: PNPushType
+  - Default: Not set
+  - Accepted values: PNPushType.FCM, PNPushType.APNS2
+- deviceId (required)
+  - Type: String
+  - Default: n/a
+  - Description: Device token
+- environment
+  - Type: String
+  - Default: development
+  - Description: APNs environment; required for APNS2
+- topic
+  - Type: String
+  - Default: n/a
+  - Description: APNs topic (bundle identifier); required for APNS2
 
 ### Sample code
 
@@ -73,6 +103,7 @@ Parameters
 ```
 1
   
+
 ```
 
 #### List channels for Device(APNS2)
@@ -80,13 +111,19 @@ Parameters
 ```
 1
   
+
 ```
 
 ### Response
 
-- getChannels() Type: Array — List of channels associated to mobile push notifications.
+Method:
+- getChannels()
+  - Type: Array
+  - Description: List of channels associated for mobile push notifications
 
 ## Remove a device from push notifications channels
+
+Requires Mobile Push Notifications add-on. Enable for your key in the Admin Portal.
 
 Disable mobile push notifications on a set of channels.
 
@@ -101,12 +138,27 @@ Disable mobile push notifications on a set of channels.
 `
 ```
 
-Parameters
-- pushType (PNPushType) Default: Not set. Accepted: PNPushType.FCM, PNPushType.APNS2.
-- channels (String|Array) Channels to disable.
-- deviceId (String) Device token.
-- environment (String) Default: development. Required for APNS2.
-- topic (String) APNs topic (bundle identifier). Required for APNS2.
+Parameters:
+- pushType (required)
+  - Type: PNPushType
+  - Default: Not set
+  - Accepted values: PNPushType.FCM, PNPushType.APNS2
+- channels (required)
+  - Type: String|Array
+  - Default: n/a
+  - Description: Channels to disable for push notifications
+- deviceId (required)
+  - Type: String
+  - Default: n/a
+  - Description: Device token
+- environment
+  - Type: String
+  - Default: development
+  - Description: APNs environment; required for APNS2
+- topic
+  - Type: String
+  - Default: n/a
+  - Description: APNs topic (bundle identifier); required for APNS2
 
 ### Sample code
 
@@ -115,6 +167,7 @@ Parameters
 ```
 1
   
+
 ```
 
 #### Remove device from Channel(APNS2)
@@ -122,9 +175,12 @@ Parameters
 ```
 1
   
+
 ```
 
 ## Remove a device from all push notifications channels
+
+Requires Mobile Push Notifications add-on. Enable for your key in the Admin Portal.
 
 Disable mobile push notifications from all channels registered with the specified device token.
 
@@ -138,9 +194,15 @@ Disable mobile push notifications from all channels registered with the specifie
 `
 ```
 
-Parameters
-- pushType (PNPushType) Default: Not set. Accepted: PNPushType.FCM, PNPushType.APNS2.
-- deviceId (String) Device token.
+Parameters:
+- pushType (required)
+  - Type: PNPushType
+  - Default: Not set
+  - Accepted values: PNPushType.FCM, PNPushType.APNS2
+- deviceId (required)
+  - Type: String
+  - Default: n/a
+  - Description: Device token
 
 ### Sample code
 
@@ -149,15 +211,16 @@ Parameters
 ```
 1
   
+
 ```
 
 ### Response
 
-The sync() method returns a response indicating success or failure (status code, boolean, or object, depending on implementation).
+The sync() method returns a response indicating the success or failure of the operation.
 
 ```
 1
 **
 ```
 
-Last updated on Nov 6, 2025**
+Last updated on Nov 6, 2025

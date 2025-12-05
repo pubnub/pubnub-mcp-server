@@ -1,49 +1,62 @@
-# Swift API & SDK Docs 10.1.0 (Condensed Overview)
+# Swift API & SDK Docs 10.1.0
 
-Core tasks:
-- Initialize PubNub with publish/subscribe keys and a unique userId.
-- Set up event listeners.
-- Subscribe/unsubscribe to channels.
-- Publish messages.
+Core concepts:
+- Setting up a connection
+- Sending messages
+- Receiving messages in real time
 
-Compatible with SwiftUI and UIKit on Apple platforms; also supports Linux.
+## Overview
+
+SwiftUI and UIKit examples; API usage is the same, with platform-specific lifecycle/UI handling. Swift SDK also supports Linux.
 
 ## Prerequisites
-- Swift proficiency
+
+- Swift basics
 - Xcode 14.0+
 - PubNub account and keyset
 
 ## Setup
 
 ### Get your PubNub keys
-- Sign in or create an account in the PubNub Admin Portal.
-- Create an app and keyset.
-- Use the publish and subscribe keys (recommended: separate dev/prod keysets).
+
+- Sign in or create an account in the Admin Portal.
+- Create an app or use an existing one.
+- Get your publish and subscribe keys from the app’s keyset. Use separate keysets for dev/prod.
 
 ### Install the SDK
 
-Use the latest version.
+Always use the latest SDK version.
 
 #### CocoaPods
+
 Install CocoaPods if needed: `gem install cocoapods`
 
 Add PubNub to your Podfile:
+
 ```
 `pod 'PubNubSwift', '~> 10.1.0'  
 `
 ```
-Run `pod install` and open the `.xcworkspace`.
+
+Run `pod install` and open the generated `.xcworkspace`.
 
 #### Carthage
+
 Add PubNub to your Cartfile:
+
 ```
 `github "pubnub/swift" ~> 10.1.0  
 `
 ```
+
 Run `carthage update --use-xcframeworks` and add `PubNub.xcframework` to Frameworks, Libraries, and Embedded Content.
 
-#### Swift Package Manager (Package.swift)
-Add PubNub as a dependency:
+You can integrate the PubNub Swift SDK into any Swift application:
+
+#### Swift Package Manager
+
+Add PubNub as a dependency to your Package.swift:
+
 ```
 `dependencies: [  
   .package(url: "https://github.com/pubnub/swift.git", from: "10.1.0")  
@@ -52,19 +65,26 @@ Add PubNub as a dependency:
 ```
 
 #### Source code
-Clone the repository:
+
+Clone the GitHub repository:
+
 ```
 `git clone https://github.com/pubnub/swift.git  
 `
 ```
-Include the Swift package as a dependency.
+
+Include the Swift package in your project as a dependency.
 
 ## Steps
 
 ### Initialize PubNub
-Replace "demo" with your own publish/subscribe keys.
 
-SwiftUI — View model with a strong reference:
+Replace demo keys with your publish/subscribe keys.
+
+- SwiftUI
+
+Create a view model class and keep a strong reference to your PubNub instance:
+
 ```
 1import SwiftUI  
 2import PubNubSDK  
@@ -84,9 +104,11 @@ SwiftUI — View model with a strong reference:
 14    ))      
 15  }  
 16}  
+
 ```
 
-SwiftUI — App entry point:
+Initialize the view model in your App entry point:
+
 ```
 1import SwiftUI  
 2import PubNubSDK  
@@ -101,9 +123,11 @@ SwiftUI — App entry point:
 10    }  
 11  }  
 12}  
+
 ```
 
-SwiftUI — Accessing the view model:
+Access the view model in your view:
+
 ```
 1import SwiftUI  
 2import PubNubSDK  
@@ -116,9 +140,13 @@ SwiftUI — Accessing the view model:
 8    Text("Hello, PubNub!")  
 9  }  
 10}  
+
 ```
 
-UIKit — Strong reference in a view controller:
+- UIKit
+
+Create a PubNub instance and store it as a strong reference:
+
 ```
 1import UIKit  
 2import PubNubSDK  
@@ -133,17 +161,25 @@ UIKit — Strong reference in a view controller:
 10    userId: "device-\(UUID().uuidString.prefix(8))"  
 11  ))  
 12}  
+
 ```
 
-For configuration details, see the Configuration reference.
+See Configuration for more details: /docs/sdks/swift/api-reference/configuration
 
 ### Set up event listeners
 
-SwiftUI — Store messages and handle connection/message events:
+Implement listeners for connection and message events.
+
+- SwiftUI
+
+Add a property for incoming messages:
+
 ```
 `1@Published var messages: [String] = []  
 `
 ```
+
+Create a Subscription and set up event listeners:
 
 ```
 1import SwiftUI  
@@ -201,9 +237,13 @@ SwiftUI — Store messages and handle connection/message events:
 47    // This function will be defined in the next section  
 48  }  
 49}  
+
 ```
 
-UIKit — Subscription, connection, and message listeners:
+- UIKit
+
+Create a Subscription and set up event listeners:
+
 ```
 1import UIKit  
 2import PubNubSDK  
@@ -275,13 +315,17 @@ UIKit — Subscription, connection, and message listeners:
 60    // This function will be defined in the next section  
 61  }  
 62}  
+
 ```
 
-For more information, see Listeners.
+More details: /docs/sdks/swift/api-reference/configuration#event-listeners
 
 ### Trigger a subscription
 
-SwiftUI — Subscribe on appear, unsubscribe on disappear:
+Subscribe to receive messages on a channel; unsubscribe as needed.
+
+- SwiftUI
+
 ```
 1import SwiftUI  
 2import PubNubSDK  
@@ -302,9 +346,11 @@ SwiftUI — Subscribe on appear, unsubscribe on disappear:
 16    }  
 17  }  
 18}  
+
 ```
 
-UIKit — Subscribe/unsubscribe in lifecycle:
+- UIKit
+
 ```
 `1override func viewWillAppear(_ animated: Bool) {  
 2  super.viewWillAppear(animated)  
@@ -320,13 +366,14 @@ UIKit — Subscribe/unsubscribe in lifecycle:
 `
 ```
 
-For more information, see Subscribe.
+More details: /docs/sdks/swift/api-reference/publish-and-subscribe#subscribe
 
 ### Publish messages
 
-Publish when connected:
+Publish JSON-serializable payloads (< 32 KiB). In examples below, publish on successful connection.
 
-SwiftUI:
+- SwiftUI
+
 ```
 `1// Called when the connection is established  
 2func sendWelcomeMessage() {  
@@ -345,7 +392,8 @@ SwiftUI:
 `
 ```
 
-UIKit:
+- UIKit
+
 ```
 `1// Called when the connection is established  
 2func sendWelcomeMessage() {  
@@ -364,11 +412,12 @@ UIKit:
 `
 ```
 
-For more information, see Publish.
+More details: /docs/sdks/swift/api-reference/publish-and-subscribe#publish
 
 ### Run the app
 
-Expected console output:
+Build and run the app. Expected output:
+
 ```
 `Connection status changed: connected  
 Message published successfully at 2023-10-23 15:42:36 +0000  
@@ -378,20 +427,38 @@ Message received: Hello from iOS!
 
 ## Complete example
 
-- [Getting Started guide - SwiftUI](/assets/files/GettingStarted-SwiftUI-4f196125968319f1608bd23f5da28e8f.zip)
-- [Getting Started guide - UIKit](/assets/files/GettingStarted-UIKit-6183c005507ed2c3049122120f159a4a.zip)
+- SwiftUI
+- UIKit
+
+[Getting Started guide - SwiftUI](/assets/files/GettingStarted-SwiftUI-4f196125968319f1608bd23f5da28e8f.zip)
+
+[Getting Started guide - UIKit](/assets/files/GettingStarted-UIKit-6183c005507ed2c3049122120f159a4a.zip)
 
 ### Troubleshooting
 
-- No connection message
-  - Check internet, key correctness, firewall rules.
-- Message not received
-  - Confirm channel subscription, publish success, allow for delivery time.
-- Build errors
-  - Verify dependency integration, Swift version compatibility, and imports.
+No connection message
+- Check internet connection.
+- Verify keys.
+- Ensure no firewall is blocking PubNub.
+
+Message not received
+- Verify subscribed channel.
+- Confirm publish succeeded (check errors).
+- Allow time for delivery.
+
+Build errors
+- Confirm dependency integration.
+- Check Swift version compatibility.
+- Verify imports.
 
 ## Next steps
 
-- Swift Chat SDK for ready-to-use chat.
-- Presence, Message Persistence, Access Manager.
-- Explore the GitHub repository, SDK reference, and support portal.
+- Learn about the Swift Chat SDK: /docs/chat/swift-chat-sdk
+- Presence: /docs/sdks/swift/api-reference/presence
+- Message Persistence: /docs/sdks/swift/api-reference/storage-and-playback
+- Access Manager: /docs/sdks/swift/api-reference/access-manager
+- SDK reference: /docs/sdks/swift/api-reference/configuration
+- GitHub examples: https://github.com/pubnub/swift/
+- Support: https://support.pubnub.com/
+
+Last updated on Sep 3, 2025

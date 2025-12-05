@@ -1,6 +1,6 @@
-# Configuration API for Ruby SDK (Condensed)
+# Configuration API for Ruby SDK
 
-Essential configuration, initialization, and event handling for the PubNub Ruby SDK. All code blocks and critical technical details are preserved.
+Concise reference for configuring and initializing the PubNub Ruby SDK. Includes essential parameters, method signatures, and examples.
 
 ## Initialization
 
@@ -11,7 +11,7 @@ Essential configuration, initialization, and event handling for the PubNub Ruby 
 `
 ```
 
-Or add to Gemfile:
+Or add to your Gemfile:
 
 ```
 `1gem 'pubnub', '~> 6.0.1'  
@@ -27,9 +27,11 @@ Or add to Gemfile:
 
 ### Description
 
-Initializes the PubNub client context and sets account-level credentials (publish_key, subscribe_key). Call before using APIs.
+Initialize the PubNub Client API context before using any APIs to set credentials like publish_key and subscribe_key.
 
 ### Method(s)
+
+To initialize PubNub:
 
 ```
 `1Pubnub(  
@@ -56,47 +58,53 @@ Initializes the PubNub client context and sets account-level credentials (publis
 `
 ```
 
-Required: user_id and subscribe_key (publish_key required to publish).
+Required: set user_id (UTF-8 string up to 92 alphanumeric characters). If not set, you can’t connect.
 
 Parameters:
-- subscribe_key — Type: String, Symbol. Default: n/a. Your subscribe key.
-- publish_key — Type: String, Symbol. Default: n/a. Your publish key (required to publish messages).
-- secret_key — Type: String, Symbol. Default: n/a. Secret key for Access Manager operations. Keep secure; use server-side only.
-- auth_key — Type: String, Symbol. Default: n/a. Authentication key.
-- ssl — Type: Boolean. Default: false. Enables SSL transport when true.
-- user_id — Type: String. Default: n/a. Required unique user/device identifier (UTF-8, up to 92 alphanumeric chars). Required to connect.
-- heartbeat — Type: Integer. Default: n/a. Presence heartbeat interval and timeout (disabled by default).
-- callback — Type: Lambda. Default: n/a. Default callback passed to API calls; overridden by per-call callback.
-- ttl — Type: Integer. Default: n/a. Default TTL for grant/revoke.
-- open_timeout — Type: Integer. Default: 10. Non-subscribe open timeout (seconds).
-- read_timeout — Type: Integer. Default: 10. Non-subscribe read timeout (seconds).
-- idle_timeout — Type: Integer. Default: 10. Non-subscribe idle timeout (seconds).
-- s_open_timeout — Type: Integer. Default: 310. Subscribe open timeout (seconds).
-- s_read_timeout — Type: Integer. Default: 310. Subscribe read timeout (seconds).
-- s_idle_timeout — Type: Integer. Default: 310. Subscribe idle timeout (seconds).
-- logger — Type: Object. Default: Logger instance that outputs logs to 'pubnub.log'. Custom logger instance.
-- origin — Type: String. Default: ps.pndsn.com. Custom origin. Setter: #origin=(origin). To request a custom domain, contact support.
-- http_sync — Type: Boolean. Default: false. When false, methods execute asynchronously and return a future (use value to resolve). When true, returns array of envelopes (or Envelope for sync methods).
-- crypto_module — Type: Crypto::CryptoModule. Default: n/a. Cryptography module for message/file encryption/decryption. Accepts cipher_key and random_iv.
-- cipher_key — Type: String. Default: n/a. Deprecated: pass via crypto_module instead. Cipher key for encryption/decryption.
-- random_iv — Type: Boolean. Default: true. Deprecated: pass via crypto_module instead. When true, uses random IV for all requests (not just file upload); when false, uses hard-coded IV except for file upload.
-- uuid — Type: String. Default: n/a. Deprecated; use user_id instead.
+- subscribe_key (String, Symbol) – Required. Your subscribe key.
+- publish_key (String, Symbol) – Required for publishing. Your publish key.
+- secret_key (String, Symbol) – Required for Access Manager. Keep secure. Use server-side only.
+- auth_key (String, Symbol) – Auth key.
+- ssl (Boolean, default: false) – Use SSL/TLS when true.
+- user_id (String) – Required. Unique user/device identifier.
+- heartbeat (Integer) – Presence heartbeat interval and timeout. Disabled by default.
+- callback (Lambda) – Default callback for API calls (publish, history, subscribe). Overridden by per-call callback.
+- ttl (Integer) – Default TTL for grant/revoke.
+- open_timeout (Integer, default: 10) – Non-subscribe open timeout (seconds).
+- read_timeout (Integer, default: 10) – Non-subscribe read timeout (seconds).
+- idle_timeout (Integer, default: 10) – Non-subscribe idle timeout (seconds).
+- s_open_timeout (Integer, default: 310) – Subscribe open timeout (seconds).
+- s_read_timeout (Integer, default: 310) – Subscribe read timeout (seconds).
+- s_idle_timeout (Integer, default: 310) – Subscribe idle timeout (seconds).
+- logger (Object, default: Logger instance to 'pubnub.log') – Custom logger. See Logging docs.
+- origin (String, default: ps.pndsn.com) – Custom origin.
+  - Method to change: #origin=(origin)
+- http_sync (Boolean, default: false) – Async by default (returns future). When true, returns array of envelopes (or single Envelope for sync methods).
+- crypto_module (Crypto::CryptoModule) – Encryption module. Pass cipher_key and random_iv to this module.
+- cipher_key (String) – Deprecated. Pass to crypto_module instead.
+- random_iv (Boolean, default: true) – Deprecated. Pass to crypto_module instead. When true, IV is random for all requests (not just file upload). When false, IV is static except for file upload.
+- uuid (String) – Deprecated. Use user_id instead.
 
-Note on random IV: Disable only for backward compatibility (< 4.6.0); do not disable for new apps.
+Disabling random initialization vector
+- Only for backward compatibility (< 4.6.0). Do not disable for new apps.
 
 #### crypto_module
 
-Configures encryption/decryption (messages and files). From 5.2.2, algorithms are configurable. Options:
-- Legacy 128‑bit encryption.
-- Recommended 256‑bit AES‑CBC.
+Encrypts/decrypts messages and files. From 5.2.2, algorithms are configurable.
+- Options: legacy 128-bit encryption and recommended 256-bit AES-CBC.
+- See Encryption docs for configuration and examples.
 
-You can keep legacy settings without changes; to use 256-bit AES-CBC, configure it explicitly in the PubNub config. See Encryption docs for details.
+Legacy encryption with 128-bit cipher key entropy
+- No change required to keep legacy encryption.
+- To use recommended 256-bit AES-CBC, explicitly configure it in PubNub config.
 
 ### Sample code
 
 #### Initialize the PubNub client API with encryption
 
-Always set a stable user_id; required to connect.
+Required User ID: Always set a unique, persistent user_id.
+
+Reference code:
 
 ```
 1require 'pubnub'  
@@ -126,15 +134,18 @@ Always set a stable user_id; required to connect.
 20  main  
 21  puts 'finished'  
 22end  
+
 ```
 
 ### Returns
 
-Returns a PubNub instance for invoking APIs like publish(), subscribe(), history(), here_now(), etc.
+Returns the PubNub instance for invoking APIs like publish(), subscribe(), history(), here_now(), etc.
 
 ### Other examples
 
 #### Initialize the client
+
+Required User ID: Always set user_id.
 
 ```
 `1pubnub = Pubnub.new(  
@@ -146,6 +157,10 @@ Returns a PubNub instance for invoking APIs like publish(), subscribe(), history
 ```
 
 #### Initialization for a read-only client
+
+Omit publish_key for read-only usage.
+
+Required User ID: Always set user_id.
 
 ```
 `1# Initialize for read-only client  
@@ -184,7 +199,7 @@ Returns a PubNub instance for invoking APIs like publish(), subscribe(), history
 
 #### Initializing with Access Manager
 
-Requires Access Manager add-on enabled in the Admin Portal. Keep secret_key secure; using secret_key grants root Access Manager permissions.
+Requires Access Manager add-on enabled for your key. Keep secret_key secure; use on server-side only. Initializing with secret_key grants root permissions for Access Manager operations.
 
 ```
 `1pubnub = Pubnub.new(subscribe_key: 'my_subkey', secret_key: 'my_secretkey', user_id: 'myUniqueUserId')  
@@ -193,9 +208,9 @@ Requires Access Manager add-on enabled in the Admin Portal. Keep secret_key secu
 
 ## Event listeners
 
-Add listeners before invoking methods to receive status, message, presence, and signal events.
+Add listeners before calling methods. Receive connectivity status, message, presence, and signal events.
 
-### Add listeners
+#### Add listeners
 
 ```
 1callback = Pubnub::SubscribeCallback.new(  
@@ -224,9 +239,10 @@ Add listeners before invoking methods to receive status, message, presence, and 
 24
   
 25pubnub.add_listener(name: 'my_listener', callback: callback)  
+
 ```
 
-### Remove listeners
+#### Remove listeners
 
 ```
 `1pubnub.remove_listener(name: 'my_listener')  
@@ -235,7 +251,7 @@ Add listeners before invoking methods to receive status, message, presence, and 
 `
 ```
 
-### Listeners example
+#### Listeners example
 
 ```
 1# Init pubnub client  
@@ -296,11 +312,16 @@ Add listeners before invoking methods to receive status, message, presence, and 
   
 47# We're removing subsciber by giving it's object, now we don't have any listeners active  
 48pubnub_client.remove_listener(callback: callbacks0)  
+
 ```
 
 ## Presence to a channel group
 
-Use subscribe() to receive presence events for channel groups.
+Subscribe to the presence channel of a channel group.
+
+### Method(s)
+
+- See subscribe() in Publish and Subscribe API.
 
 ### Sample code
 
@@ -326,9 +347,12 @@ Use subscribe() to receive presence events for channel groups.
 17
   
 18pubnub.presence(channel_groups: 'family')  
+
 ```
 
 ## Authentication key
+
+Get the current auth_key.
 
 ### Method(s)
 

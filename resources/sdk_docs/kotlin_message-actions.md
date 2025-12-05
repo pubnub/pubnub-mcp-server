@@ -1,13 +1,12 @@
 # Message Actions API for Kotlin SDK
 
-Use Message Actions to add/remove metadata on published messages (receipts, reactions, custom data). Subscribe to channels to receive message action events. You can also fetch past actions from Message Persistence.
-
 ##### Breaking changes in v9.0.0
-- Kotlin SDK v9.0.0 unifies Kotlin and Java SDKs, changes client instantiation, async callbacks, and emitted status events.
-- See the Java/Kotlin SDK migration guide for details.
+Kotlin SDK v9.0.0 unifies Kotlin and Java SDKs, changes PubNub client instantiation, and updates async callbacks and emitted status events. These changes affect apps built with versions < 9.0.0. See the Java/Kotlin SDK migration guide.
+
+Use message actions to add or remove metadata on published messages (receipts, reactions). Clients subscribe to channels to receive message action events and can fetch message actions from Message Persistence.
 
 ##### Request execution
-Most method invocations return an Endpoint. You must call .sync() or .async() to execute the request.
+Most method invocations return an Endpoint you must execute via .sync() or .async().
 
 ```
 1val channel = pubnub.channel("channelName")  
@@ -23,7 +22,7 @@ Most method invocations return an Endpoint. You must call .sync() or .async() to
 ```
 
 ##### Reactions
-“Message Reactions” is a specific use of Message Actions for emoji/social reactions. Core and Chat SDKs may refer to this functionality as “Message Reactions,” but it uses the same Message Actions API.
+“Message Reactions” are message actions used specifically for emoji/social reactions. Message Actions is the low-level API; “Message Reactions” is the same functionality when used for emoji reactions.
 
 ## Add message action
 
@@ -44,10 +43,9 @@ Use this Kotlin method:
 
 Parameters:
 - channel (String): Channel name to add the message action to.
-- messageAction (PNMessageAction): Payload including type, value, and message timetoken.
+- messageAction (PNMessageAction): Message action payload (type, value, message timetoken).
 
 ### Sample code
-
 ##### Reference code
 ```
 1
@@ -56,12 +54,12 @@ Parameters:
 ```
 
 ### Returns
-PNAddMessageActionResult with:
+PNAddMessageActionResult:
 - type (String): Message action type.
 - value (String): Message action value.
-- uuid (String): Publisher UUID of the message action.
-- actionTimetoken (String): Timetoken when the action was created.
-- messageTimetoken (Long): Timetoken of the message the action belongs to.
+- uuid (String): Publisher of the message action.
+- actionTimetoken (String): Timestamp when the message action was created.
+- messageTimetoken (Long): Timestamp when the target message was created.
 
 #### PNMessageAction
 - type (String): Message action type.
@@ -106,7 +104,7 @@ No actionable data.
 ##### Requires Message Persistence
 Enable Message Persistence for your key in the Admin Portal.
 
-Get a list of message actions in a channel, sorted by action timetoken ascending.
+Get a list of message actions in a channel. The response sorts actions by the action timetoken in ascending order.
 
 ### Method(s)
 Use this Kotlin method:
@@ -120,7 +118,7 @@ Use this Kotlin method:
 
 Parameters:
 - channel (String): Channel name to list message actions for.
-- page (PNBoundedPage): Paging object. Set limit to specify number of actions (default/maximum 100). Use start and end to set range boundaries (results are < start and ≥ end).
+- page (PNBoundedPage): Paging object. Set limit for number of actions (default/max 100). Use start and end as range boundaries (results are < start and ≥ end).
 
 ### Sample code
 ```
@@ -130,13 +128,13 @@ Parameters:
 ```
 
 ### Returns
-List of PNGetMessageActionsResult? with:
+List of PNGetMessageActionsResult? objects:
 - type (String): Message action type.
 - value (String): Message action value.
-- uuid (String): Publisher UUID of the message action.
-- actionTimetoken (String): Timetoken when the action was created.
-- messageTimetoken (Long): Timetoken of the message the action belongs to.
-- page (PNBoundedPage): If present, more data is available. Pass it to another getMessageActions call to fetch remaining data.
+- uuid (String): Publisher of the message action.
+- actionTimetoken (String): Timestamp when the message action was created.
+- messageTimetoken (Long): Timestamp when the target message was created.
+- page (PNBoundedPage): If present, more data is available. Pass it to another getMessageActions call to retrieve remaining data.
 
 ### Other examples
 

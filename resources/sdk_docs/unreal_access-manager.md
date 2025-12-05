@@ -1,31 +1,28 @@
 # Access Manager v3 API for Unreal SDK
 
-Access Manager enforces client access to PubNub resources via time-limited tokens with embedded permissions. Tokens can:
-- Apply for a limited period (TTL).
-- Target specific resources via lists or RegEx patterns.
-- Carry different permissions for different resources in a single grant.
-- Be restricted to a single client using the authorizedUuid/AuthorizedUser.
+Access Manager (AM) lets servers grant time-limited tokens with embedded permissions for PubNub resources:
+- Limited duration (TTL)
+- Resource lists or RegEx patterns
+- Multiple resources/permission levels in a single request
+- Restrict to a single client via authorized user ID
+
+You can add the authorizedUuid parameter to the grant request to restrict the token usage to one client (User ID/UUID). Only that authorized user can use the token.
 
 User ID / UUID
-- User ID is also referred to as UUID/uuid in some APIs; it holds the value of userId set during initialization.
+- Some APIs refer to User ID as UUID/uuid. It holds the value of the userId set during initialization.
 
-You can use PubNub via Blueprints or C++.
+Usage in Blueprints and C++
+- In Blueprints, use the Pubnub Subsystem node.
+- In C++, add PubnubLibrary dependency and use the Game Instance Subsystem.
 
-In Blueprints, the whole SDK is managed by a subsystem, so start by calling the Pubnub Subsystem node.
-
-In a C++ project, add a dependency to PubnubLibrary:
-
-In your IDE, navigate to Source/_{YourProject}_/_{YourProject}_.Build.cs and add a dependency to PubnubLibrary.
-
+In your IDE, navigate to Source/YourProject/YourProject.Build.cs and add:
 ```
 `PrivateDependencyModuleNames.AddRange(new string[] { "PubnubLibrary" });  
 `
 ```
+Compile and run.
 
-Compile and run the project.
-
-In C++, use the PubNub SDK via Game Instance Subsystem:
-
+Use the subsystem:
 ```
 #include "Kismet/GameplayStatics.h"  
 #include "PubnubSubsystem.h"  
@@ -37,47 +34,41 @@ UPubnubSubsystem* PubnubSubsystem = GameInstance->GetSubsystemUPubnubSubsystem>(
 ```
 
 Example:
-
 ```
 `PubnubSubsystem->SubscribeToChannel("MyChannel");  
 `
 ```
 
-### Usage in Blueprints and C++
-
 ## Grant token
 
-Requires Access Manager add-on
-- Enable Access Manager for your key in the Admin Portal.
+Requires:
+- Access Manager add-on enabled on the keyset (Admin Portal).
+- Server-side (administrator) initialization with a Secret Key.
 
-Requires Secret Key authentication
-- Use a server/admin instance initialized with a Secret Key.
-
-GrantToken generates a time-limited token defining TTL, AuthorizedUser, and permissions for resources:
+GrantToken() issues a time-limited token with TTL, AuthorizedUser, and permissions over:
 - Channels
 - ChannelGroups
 - Uuids (users’ object metadata)
 
-Only the AuthorizedUser can use the token. Unauthorized or invalid token requests return 403.
+Only the AuthorizedUser can use the token. Unauthorized/invalid use returns HTTP 403.
 
-Permissions supported per resource:
+Permissions per resource:
 - Channels: read, write, get, manage, update, join, delete
 - ChannelGroups: read, manage
 - Uuids: get, update, delete
-For operation mapping, see Manage Permissions with Access Manager v3.
 
-TTL
-- Required; minutes until expiration. Max 43,200 (30 days).
-- Recommended: 10–60 minutes; refresh before expiry.
+TTL:
+- Required, in minutes; max 43,200 (30 days)
+- Recommended: 10–60 minutes
+- Client must obtain a new token before TTL expires
 
-RegEx
-- Define permissions using resource name patterns with regular expressions.
+RegEx:
+- You can grant permissions using patterns for channels, channel groups, and users.
 
-Authorized User ID
-- Restrict tokens to a single AuthorizedUser to prevent impersonation. If not set, any User ID can use the token.
+Authorized User ID:
+- Restrict tokens to a specific client device/user to prevent impersonation. If not set, any user can use the token.
 
 ### Method(s)
-
 ```
 `1PubnubSubsystem->GrantToken(  
 2  int Ttl,   
@@ -89,70 +80,61 @@ Authorized User ID
 `
 ```
 
-- Ttl (int): TTL in minutes.
-- AuthorizedUser (FString): The authorized User ID.
+Parameters:
+- Ttl (int): Time-To-Live in minutes.
+- AuthorizedUser (FString): Authorized User ID for the token.
 - Permissions (const FPubnubGrantTokenPermissions&): Permissions for resources.
-- OnGrantTokenResponse (FOnGrantTokenResponse): Result delegate. You can also use FOnGrantTokenResponseNative for a lambda.
-- Meta (FString): Additional metadata included in the token.
+- OnGrantTokenResponse (FOnGrantTokenResponse): Delegate callback. You can also use FOnGrantTokenResponseNative (lambda).
+- Meta (FString): Optional metadata included in the token.
 
 #### FPubnubGrantTokenPermissions
-
 - Channels (TArray<FChannelGrant>): Exact channel names and permissions (resources.channels).
 - ChannelGroups (TArray<FChannelGroupGrant>): Exact channel group names and permissions (resources.groups).
 - Users (TArray<FUserGrant>): Exact user IDs and permissions (resources.uuids).
-- ChannelPatterns (TArray<FChannelGrant>): Channel regex patterns and permissions (patterns.channels).
-- ChannelGroupPatterns (TArray<FChannelGroupGrant>): Channel group regex patterns and permissions (patterns.groups).
-- UserPatterns (TArray<FUserGrant>): User ID regex patterns and permissions (patterns.uuids).
+- ChannelPatterns (TArray<FChannelGrant>): Channel name RegEx patterns and permissions (patterns.channels).
+- ChannelGroupPatterns (TArray<FChannelGroupGrant>): Channel group RegEx patterns and permissions (patterns.groups).
+- UserPatterns (TArray<FUserGrant>): User ID RegEx patterns and permissions (patterns.uuids).
 
 #### FChannelGrant
-
-- Channel (FString): Channel ID (for Channels) or regex pattern (for ChannelPatterns).
-- Permissions (FPubnubChannelPermissions): Permissions for the channel/pattern.
+- Channel (FString): Channel ID (for Channels) or RegEx (for ChannelPatterns).
+- Permissions (FPubnubChannelPermissions)
 
 #### FChannelGroupGrant
-
-- ChannelGroup (FString): Channel group name (for ChannelGroups) or regex pattern (for ChannelGroupPatterns).
-- Permissions (FPubnubChannelGroupPermissions): Permissions for the group/pattern.
+- ChannelGroup (FString): Channel Group name (for ChannelGroups) or RegEx (for ChannelGroupPatterns).
+- Permissions (FPubnubChannelGroupPermissions)
 
 #### FUserGrant
-
-- User (FString): User ID (for Users) or regex pattern (for UserPatterns).
-- Permissions (FPubnubUserPermissions): Permissions for the user/pattern.
+- User (FString): User ID (for Users) or RegEx (for UserPatterns).
+- Permissions (FPubnubUserPermissions)
 
 #### FPubnubChannelPermissions
-
-- Read (bool): Subscribe, History, Presence.
-- Write (bool): Publish.
-- Delete (bool): History and App Context.
-- Get (bool): App Context.
-- Update (bool): App Context.
-- Manage (bool): Channel Groups and App Context.
-- Join (bool): App Context.
+- Read (bool): Subscribe, History, Presence
+- Write (bool): Publish
+- Delete (bool): History, App Context
+- Get (bool): App Context
+- Update (bool): App Context
+- Manage (bool): Channel Groups, App Context
+- Join (bool): App Context
 
 #### FPubnubChannelGroupPermissions
-
-- Read (bool): Presence and history access for the group.
-- Manage (bool): Modify members of the group.
+- Read (bool): Presence and history for the group
+- Manage (bool): Modify group membership
 
 #### FPubnubUserPermissions
+- Delete (bool): Delete user metadata
+- Get (bool): Retrieve user metadata
+- Update (bool): Update user metadata
 
-- Delete (bool): Delete user metadata.
-- Get (bool): Retrieve user metadata.
-- Update (bool): Update user metadata.
-
-Specify permissions for at least one user, channel, or group (via list or pattern). You can:
-
-Apply the same permission to multiple objects:
-
+Grant input rules:
+- You must specify permissions for at least one user, channel, or group (list or pattern).
+- Apply the same permission to multiple objects:
 ```
 `1// permission1 as applied to all channels  
 2Channels = {channel1, channel2, channel3}  
 3Permisions = {permission1}   
 `
 ```
-
-Apply different permissions to multiple objects:
-
+- Apply different permissions per object (index-aligned):
 ```
 `1// the indexes in the Channels array correspond to the indexes in the Permissions array  
 2// so channel1 gets permission1, channel2 permission2, etc  
@@ -160,9 +142,7 @@ Apply different permissions to multiple objects:
 4Permisions = {permission1, permission2, permission3}  
 `
 ```
-
-If counts mismatch, an error is thrown:
-
+- Mismatched counts throw an error:
 ```
 `1// this throws an error as the permissions don't match the objects  
 2Channels = {channe1, channel2, channel3}  
@@ -173,14 +153,10 @@ If counts mismatch, an error is thrown:
 ### Sample code
 
 Reference code
-- Set up your Unreal project and follow the ACTION REQUIRED lines before running.
-
 - C++
 - Blueprint
 
 #### Actor.h
-  
-
 ```
 1
   
@@ -188,8 +164,6 @@ Reference code
 ```
 
 #### Actor.cpp
-  
-
 ```
 1
   
@@ -197,34 +171,26 @@ Reference code
 ```
 
 ### Returns
-
-This function is void; the delegate returns FOnGrantTokenResponse.
+Void; result provided via FOnGrantTokenResponse.
 
 #### FOnGrantTokenResponse
-
-- Result (FPubnubOperationResult): Operation result.
-- Token (FString): Granted token.
+- Result (FPubnubOperationResult)
+- Token (FString)
 
 #### FOnGrantTokenResponseNative
-
-- Result (const FPubnubOperationResult&): Operation result.
-- Token (FString): Granted token.
+- Result (const FPubnubOperationResult&)
+- Token (FString)
 
 ### Other examples
 
 Reference code
-- Set up your Unreal project and follow the ACTION REQUIRED lines before running.
 
 #### Grant an authorized client different levels of access to various resources in a single call
-
-Grants my-authorized-user:
-- Read: channel-a, channel-group-b; Get: user-c.
-- Read/Write: channel-b, channel-c, channel-d; Get/Update: user-d.
+- Grants my-authorized-user:
+  - Read: channel-a, channel-group-b; Get: user-c
+  - Read/Write: channel-b, channel-c, channel-d; Get/Update: user-d
 
 #### Actor.h
-
-  
-
 ```
 1
   
@@ -232,9 +198,6 @@ Grants my-authorized-user:
 ```
 
 #### Actor.cpp
-
-  
-
 ```
 1
   
@@ -242,13 +205,9 @@ Grants my-authorized-user:
 ```
 
 #### Grant an authorized client read access to multiple channels using RegEx
-
-Grants my-authorized-user read access to channels matching channel-[A-Za-z0-9].
+- Grants my-authorized-user read access to channels matching channel-[A-Za-z0-9]
 
 #### Actor.h
-
-  
-
 ```
 1
   
@@ -256,9 +215,6 @@ Grants my-authorized-user read access to channels matching channel-[A-Za-z0-9].
 ```
 
 #### Actor.cpp
-
-  
-
 ```
 1
   
@@ -266,16 +222,12 @@ Grants my-authorized-user read access to channels matching channel-[A-Za-z0-9].
 ```
 
 #### Grant an authorized client different levels of access to various resources and read access to channels using RegEx in a single call
-
-Grants my-authorized-user:
-- Read: channel-a, channel-group-b; Get: user-c.
-- Read/Write: channel-b, channel-c, channel-d; Get/Update: user-d.
-- Read: channels matching channel-[A-Za-z0-9].
+- Grants my-authorized-user:
+  - Read: channel-a, channel-group-b; Get: user-c
+  - Read/Write: channel-b, channel-c, channel-d; Get/Update: user-d
+  - Read: channels matching channel-[A-Za-z0-9]
 
 ##### Actor.h
-
-  
-
 ```
 1
   
@@ -283,9 +235,6 @@ Grants my-authorized-user:
 ```
 
 ##### Actor.cpp
-
-  
-
 ```
 1
   
@@ -293,21 +242,17 @@ Grants my-authorized-user:
 ```
 
 ### Error responses
-
-Invalid requests return HTTP 400 with a message (e.g., RegEx issue, invalid timestamp, incorrect permissions).
+HTTP 400 with descriptive message (e.g., RegEx issue, invalid timestamp, incorrect permissions).
 
 ## Revoke token
 
-Requires Access Manager add-on
-- Enable Access Manager for your key in the Admin Portal.
+Requirements:
+- Access Manager add-on enabled.
+- Enable Revoke v3 Token in Admin Portal (ACCESS MANAGER section).
 
-Enable token revoke
-- In the Admin Portal, enable Revoke v3 Token in the ACCESS MANAGER section.
-
-RevokeToken disables an existing valid token previously obtained using GrantToken. Use for TTL ≤ 30 days; for longer TTL, contact support. See Revoke permissions.
+RevokeToken() disables an existing token (previously obtained via GrantToken). Use for tokens with TTL ≤ 30 days; for longer TTL, contact support.
 
 ### Method(s)
-
 ```
 `1PubnubSubsystem->RevokeToken(  
 2  FString Token,   
@@ -316,20 +261,17 @@ RevokeToken disables an existing valid token previously obtained using GrantToke
 `
 ```
 
-- Token (FString): Existing token with embedded permissions.
-- OnRevokeTokenResponse (FOnRevokeTokenResponse): Result delegate. You can also use FOnRevokeTokenResponseNative for a lambda.
+Parameters:
+- Token (FString): Token to revoke.
+- OnRevokeTokenResponse (FOnRevokeTokenResponse): Delegate callback. You can also use FOnRevokeTokenResponseNative (lambda).
 
 ### Sample code
 
 Reference code
-- Set up your Unreal project and follow the ACTION REQUIRED lines before running.
-
 - C++
 - Blueprint
 
 #### Actor.h
-  
-
 ```
 1
   
@@ -337,8 +279,6 @@ Reference code
 ```
 
 #### Actor.cpp
-  
-
 ```
 1
   
@@ -346,30 +286,20 @@ Reference code
 ```
 
 ### Returns
-
-This function is void; the delegate returns FOnRevokeTokenResponse.
+Void; result provided via FOnRevokeTokenResponse.
 
 #### FOnRevokeTokenResponse
-
-- Result (FPubnubOperationResult): Operation result.
+- Result (FPubnubOperationResult)
 
 #### FOnRevokeTokenResponseNative
-
-- Result (const FPubnubOperationResult&): Operation result.
+- Result (const FPubnubOperationResult&)
 
 ### Other Examples
 
 Reference code
-- Set up your Unreal project and follow the ACTION REQUIRED lines before running.
 
 #### Revoke a token with lambda
-
-You can use a lambda function to handle the response:
-
 ##### Actor.h
-
-  
-
 ```
 1
   
@@ -377,9 +307,6 @@ You can use a lambda function to handle the response:
 ```
 
 ##### Actor.cpp
-
-  
-
 ```
 1
   
@@ -387,13 +314,7 @@ You can use a lambda function to handle the response:
 ```
 
 #### Revoke a token with result struct
-
-You can use the result struct to handle the response:
-
 ##### Actor.h
-
-  
-
 ```
 1
   
@@ -401,9 +322,6 @@ You can use the result struct to handle the response:
 ```
 
 ##### Actor.cpp
-
-  
-
 ```
 1
   
@@ -411,36 +329,31 @@ You can use the result struct to handle the response:
 ```
 
 ### Error responses
-
-Errors may include:
+Possible errors:
 - 400 Bad Request
 - 403 Forbidden
 - 503 Service Unavailable
 
 ## Parse token
 
-ParseToken decodes an existing token and returns its embedded permissions and TTL.
+ParseToken() decodes an existing token and returns its embedded permissions and TTL for debugging.
 
 ### Method(s)
-
 ```
 `1PubnubSubsystem->ParseToken(FString Token);  
 `
 ```
 
-- Token (FString): Existing token with embedded permissions.
+Parameters:
+- Token (FString): Existing token.
 
 ### Sample code
 
 Reference code
-- Set up your Unreal project and follow the ACTION REQUIRED lines before running.
-
 - C++
 - Blueprint
 
 #### Actor.h
-  
-
 ```
 1
   
@@ -448,8 +361,6 @@ Reference code
 ```
 
 #### Actor.cpp
-  
-
 ```
 1
   
@@ -457,7 +368,6 @@ Reference code
 ```
 
 ### Returns
-
 ```
 `1{  
 2  "Version": 2,  
@@ -496,33 +406,28 @@ Reference code
 ```
 
 ### Error responses
-
-If parsing fails, the token may be damaged; request a new one from the server.
+If parsing fails, the token may be damaged; obtain a new token from the server.
 
 ## Set token
 
-SetAuthToken updates the client’s authentication token.
+SetAuthToken() updates the client’s authentication token.
 
 ### Method(s)
-
 ```
 `1PubnubSubsystem->SetAuthToken(FString Token);  
 `
 ```
 
-- Token (FString): Existing token with embedded permissions.
+Parameters:
+- Token (FString): Existing token.
 
 ### Sample code
 
 Reference code
-- Set up your Unreal project and follow the ACTION REQUIRED lines before running.
-
 - C++
 - Blueprint
 
 #### Actor.h
-  
-
 ```
 1
   
@@ -530,8 +435,6 @@ Reference code
 ```
 
 #### Actor.cpp
-  
-
 ```
 1
   
@@ -539,7 +442,6 @@ Reference code
 ```
 
 ### Returns
-
-This method doesn't return any response value.
+No return value.
 
 Last updated on Sep 3, 2025

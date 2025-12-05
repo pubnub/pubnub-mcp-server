@@ -1,19 +1,22 @@
 # Rust API & SDK Docs 0.7.0
 
-This guide demonstrates:
-- Setting up a connection
-- Sending messages
-- Receiving messages in real-time
+Core tasks:
+- Set up a connection
+- Send messages
+- Receive messages in real-time
 
 ## Overview
 
 Two implementation paths:
 - Server-side applications (backend services)
-- Embedded systems (resource-constrained, including WebAssembly)
+- Embedded systems (resource-constrained, WebAssembly)
 
 Key points:
 - Modular feature selection; enable only what you need (especially for embedded).
-- The crate supports no_std for embedded targets.
+- Crate supports no_std for embedded targets.
+
+##### Feature selection
+Enable/disable features to manage footprint and capabilities.
 
 ## Prerequisites
 
@@ -25,17 +28,20 @@ Key points:
 
 ### Get your PubNub keys
 
-- Sign in or create an account in the Admin Portal
-- Create an app or use an existing one
-- Get your publish and subscribe keys from the dashboard
-- Use separate keysets for dev/prod
+- Sign in or create an account on the Admin Portal.
+- Create an app (or use existing).
+- Get publish and subscribe keys from the app dashboard.
+- Use separate keysets for dev/prod when possible.
 
 ### Install the SDK
+
+##### SDK version
+Use the latest SDK version.
 
 - Server-side applications
 - Embedded systems
 
-Add pubnub to Cargo.toml:
+Add to Cargo.toml:
 
 ```
 `1[dependencies]  
@@ -46,7 +52,7 @@ Add pubnub to Cargo.toml:
 `
 ```
 
-Then in your main.rs:
+Then in main.rs:
 
 ```
 1use pubnub::dx::*;  
@@ -72,10 +78,9 @@ Then in your main.rs:
 20      
 21    Ok(())  
 22}  
-
 ```
 
-For embedded systems or WebAssembly targets:
+For embedded systems / WebAssembly (optimize for size):
 
 ```
 `1[dependencies]  
@@ -85,7 +90,7 @@ For embedded systems or WebAssembly targets:
 `
 ```
 
-no_std compatible minimal configuration:
+no_std-compatible minimal config:
 
 ```
 `1[dependencies]  
@@ -111,7 +116,7 @@ Clone the GitHub repository:
 - Server-side applications
 - Embedded systems
 
-Minimum configuration (replace with your keys):
+Minimum configuration (replace demo keys with your own):
 
 ```
 1use pubnub::dx::*;  
@@ -137,10 +142,9 @@ Minimum configuration (replace with your keys):
 20      
 21    Ok(())  
 22}  
-
 ```
 
-Embedded conceptual example (implement a Transport for your target):
+Embedded (conceptual; implement a Transport for your target):
 
 ```
 1// Note: This is a conceptual example.   
@@ -190,19 +194,16 @@ Embedded conceptual example (implement a Transport for your target):
 40      
 41    Ok(())  
 42}  
-
 ```
 
-##### Conceptual example
-
-For embedded, implement a custom Transport trait for your environment. See Configuration docs.
+Conceptual example: implement Transport for your environment. See Configuration.
 
 ### Set up event listeners
 
+Use async streams to handle events.
+
 - Server-side applications
 - Embedded systems
-
-Using async streams:
 
 ```
 1// Import required event handling traits  
@@ -242,10 +243,9 @@ Using async streams:
 33        }  
 34    }  
 35}));  
-
 ```
 
-Specific event filtering:
+Specific event stream:
 
 ```
 `1// Only listen for message events on a specific channel  
@@ -279,10 +279,10 @@ Embedded compact handling:
 
 ### Create a subscription
 
+Subscribe to channels to receive real-time messages.
+
 - Server-side applications
 - Embedded systems
-
-Subscribe with parameters:
 
 ```
 1use pubnub::subscribe::SubscriptionParams;  
@@ -307,10 +307,9 @@ Subscribe with parameters:
 17
   
 18println!("Subscribed to channels");  
-
 ```
 
-Embedded minimal:
+Embedded considerations (minimal):
 
 ```
 1// Create a minimal subscription with only required features  
@@ -321,15 +320,14 @@ Embedded minimal:
   
 6// For very constrained systems, you might want to use specific options  
 7// to limit resource usage  
-
 ```
 
 ### Publish messages
 
+Publish JSON-serializable data (< 32 KiB) to a channel.
+
 - Server-side applications
 - Embedded systems
-
-Publish to a channel:
 
 ```
 1// Wait a moment for the subscription to establish  
@@ -350,10 +348,9 @@ Publish to a channel:
 15            println!("Failed to publish message: {:?}", err);  
 16        }  
 17}  
-
 ```
 
-Embedded minimal allocations:
+Embedded (minimize allocations):
 
 ```
 1// Create a simple message with minimal allocations  
@@ -383,15 +380,14 @@ Embedded minimal allocations:
 23        }  
 24    }  
 25}  
-
 ```
 
 ### Clean up resources
 
+Unsubscribe and remove listeners during shutdown.
+
 - Server-side applications
 - Embedded systems
-
-Unsubscribe and remove listeners:
 
 ```
 1// Unsubscribe from the channel  
@@ -408,7 +404,6 @@ Unsubscribe and remove listeners:
 10
   
 11println!("Cleaned up PubNub resources");  
-
 ```
 
 Embedded cleanup:
@@ -421,7 +416,6 @@ Embedded cleanup:
 4// Clean up resources  
 5pubnub.remove_all_listeners();  
 6pubnub.destroy();  
-
 ```
 
 ### Run the app
@@ -429,7 +423,7 @@ Embedded cleanup:
 - Server-side applications
 - Embedded systems
 
-If using async, Cargo.toml:
+Ensure tokio in Cargo.toml for async:
 
 ```
 `1[dependencies]  
@@ -451,9 +445,7 @@ tokio main:
 `
 ```
 
-Embedded target:
-- Configure build for your target triple
-- If using no_std:
+Embedded target (no_std example):
 
 ```
 `1[dependencies]  
@@ -462,8 +454,7 @@ Embedded target:
 `
 ```
 
-- Build with cargo build --target your-target-triple
-- Flash with appropriate tooling
+Build with cargo for your target; flash to the device.
 
 Expected output:
 
@@ -576,12 +567,10 @@ Expected output:
 86                }  
 87            }),  
 88    );  
-89
-  
+89  
 90    // Wait a moment for the subscriptions to establish  
 91    sleep(Duration::from_secs(2)).await;  
-92
-  
+92  
 93    // Send a message to the first channel  
 94    pubnub  
 95        .publish_message("hello world!")  
@@ -611,19 +600,20 @@ Expected output:
   
 116    Ok(())  
 117}  
-
 ```
 
 ### Troubleshooting
 
-- No connection: verify internet, keys, firewall.
-- Message not received: confirm channel subscription, check publish result/errors, wait for delivery.
-- Build errors: dependency versions, Rust 1.65.0+ recommended, correct imports.
-- Runtime errors: tokio runtime set up, handle errors properly.
+- No connection message: check network, keys, firewall.
+- Message not received: verify channel subscription, publish success, allow time for delivery.
+- Build errors: dependency versions, Rust version (1.65.0+), imports.
+- Runtime errors: tokio runtime setup, proper error handling (? or match).
 
 ## Next steps
 
-- Try Presence, Access Manager, CryptoModule.
-- See examples folder and SDK reference docs.
-- Explore the GitHub repository.
-- Join Discord community and visit the support portal.
+- Presence, Access Manager, CryptoModule.
+- Examples folder, GitHub repository.
+- SDK reference documentation.
+- Discord community, support portal, AI assistant.
+
+Last updated on Sep 3, 2025

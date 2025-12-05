@@ -1,14 +1,15 @@
 # Access Manager v3 API for Rust SDK
 
-Access Manager lets servers grant clients time-limited tokens with embedded permissions to PubNub resources, optionally restricted to a specific authorized_user_id.
+Access Manager enforces security for client access to PubNub resources by issuing time-limited tokens with embedded permissions. Tokens can:
+- Expire after a specified TTL (minutes).
+- Use resource lists or RegEx patterns.
+- Grant mixed permission levels in one request.
+- Optionally restrict usage to a single authorized_user_id.
 
-- Supports resource lists and regex patterns.
-- Multiple resources and different permission levels in one request.
-- authorized_user_id restricts token usage to a single userId (UUID).
+User ID / UUID
+- User ID is also referred to as UUID in some APIs and responses and holds the value of the userId parameter set during initialization.
 
-User ID / UUID: Some APIs use UUID, but it holds the value of the userId set during initialization.
-
-For more on Access Manager v3, see Manage Permissions with Access Manager v3.
+For more information, see Manage Permissions with Access Manager v3.
 
 Add any of the following features to Cargo.toml to use this API:
 
@@ -26,36 +27,40 @@ For a list of all features, refer to Available features.
 ### Available in features
 fullaccess
 
-## Grant token[​](#grant-token)
+## Grant token
 
-Requires Access Manager add-on enabled in the Admin Portal and Secret Key authentication (server-side SDK instance initialized with a Secret Key).
+Requires Access Manager add-on
+- Enable the Access Manager add-on in the Admin Portal.
 
-grant_token() generates a time-limited token with:
-- ttl (minutes; required; 1 to 43,200)
-- authorized_user_id (optional)
-- embedded permissions for:
-  - channel
-  - channel_group
-  - user_id (users’ object metadata)
+Requires Secret Key authentication
+- Initialize the SDK with a Secret Key to grant permissions.
 
-Only the authorized_user_id (if set) can use the token. Unauthorized or invalid tokens return HTTP 403.
+grant_token() generates a token with TTL, optional authorized_user_id, and permissions for these resource types:
+- channel
+- channel_group
+- user_id (users’ object metadata)
+
+Notes:
+- Only the authorized_user_id (if set) can use the token.
+- Clients must include the token with each request until TTL expiry.
+- Invalid/unauthorized requests return 403.
 
 Permissions per resource:
 - channel: read, write, get, manage, update, join, delete
 - channel_group: read, manage
 - user_id: get, update, delete
 
-TTL notes:
-- Required argument to grant_token()
-- Minutes; max 43,200 (30 days)
+TTL:
+- Required and passed as the grant_token() argument (minutes).
+- Min: 1, Max: 43,200 (30 days). No default.
 
-Regex patterns:
-- Provide via patterns() to grant by pattern.
+Patterns (RegEx):
+- Use patterns() for pattern-based permissions.
 
-authorized_user_id:
-- Binds token to a single user_id. If omitted, any user_id can use the token.
+Authorized UUID:
+- Set authorized_user_id to bind a token to a single user_id.
 
-### Method(s)[​](#methods)
+### Method(s)
 
 ```
 `1pubnub  
@@ -68,21 +73,31 @@ authorized_user_id:
 `
 ```
 
-Parameters:
-- grant_token (required): Type: usize. Token TTL in minutes (1–43,200).
-- resources: Type: Option<[Box<dyn permissions::Permission>]>.
-- patterns: Type: Option<[Box<dyn permissions::Permission>]>.
-- authorized_user_id: Type: Option<String>.
-- meta: Type: Option<HashMap<String, MetaValue>> (scalar values only).
+- grant_token (required)
+  - Type: usize
+  - TTL in minutes (1–43,200)
+- resources
+  - Type: Option<[Box<dyn permissions::Permission>]>
+  - Individual resource permissions
+- patterns
+  - Type: Option<[Box<dyn permissions::Permission>]>
+  - RegEx-based permissions
+- authorized_user_id
+  - Type: Option<String>
+  - Single user_id allowed to use the token
+- meta
+  - Type: Option<HashMap<String, MetaValue>>
+  - Scalar values only
 
-Required key/value mappings:
-- Specify permissions for at least one uuid, channel, or channel_group (as resources or patterns).
+Required key/value mappings
+- Specify permissions for at least one uuid, channel, or channel_group via resources or patterns.
 
-#### permissions Object[​](#permissions-object)
+#### permissions Object
 
-Assign permissions via resources() (specific IDs) or patterns() (regex). Template: permissions::{object}.{permissionType()}.
+Assign via resources() (explicit list) or patterns() (regex). Template:
+- permissions::{objectToApplyPermissionsFor}.{permissionType()}
 
-Objects (examples):
+Object targets:
 - channel("channel_name") or channel("^onetoone-[a-zA-Z0-9]*$")
 - channel_group("channel_group_name") or channel("^room-[a-zA-Z0-9]*$")
 - user_id("user_id") or channel("^user-[a-zA-Z0-9]*$")
@@ -92,7 +107,7 @@ Permission types:
 - channel_groups: read(), manage()
 - user_id: get(), update(), delete()
 
-Example: create read permission to channel group channel-group and update/delete to user admin:
+Example: create a read permission for channel group channel-group and update/delete for user admin:
 
 ```
 1
@@ -100,7 +115,7 @@ Example: create read permission to channel group channel-group and update/delete
 
 ```
 
-Example: regex permissions (join, read, write) to channels matching ^room-[a-zA-Z0-9]*$:
+Example: use RegEx to allow join, read, write for channels matching ^room-[a-zA-Z0-9]*$:
 
 ```
 1
@@ -108,7 +123,7 @@ Example: regex permissions (join, read, write) to channels matching ^room-[a-zA-
 
 ```
 
-### Sample code[​](#sample-code)
+### Sample code
 
 ```
 1
@@ -116,17 +131,17 @@ Example: regex permissions (join, read, write) to channels matching ^room-[a-zA-
 
 ```
 
-### Returns[​](#returns)
+### Returns
 
-Returns GrantTokenResult. Access the token string via GrantTokenResult.token.
+- Returns GrantTokenResult. Get the token string from GrantTokenResult.token.
 
-### Other examples[​](#other-examples)
+### Other examples
 
-#### Grant an authorized client different levels of access to various resources in a single call[​](#grant-an-authorized-client-different-levels-of-access-to-various-resources-in-a-single-call)
+#### Grant an authorized client different levels of access to various resources in a single call
 
 Grants my-authorized-user_id:
-- Read: channel-a, channel-group-b; Get: uuid-c
-- Read/Write: channel-b, channel-c, channel-d; Get/Update: uuid-d
+- Read: channel-a, channel-group-b; get: uuid-c.
+- Read/write: channel-b, channel-c, channel-d; get/update: uuid-d.
 
 ```
 1
@@ -134,9 +149,9 @@ Grants my-authorized-user_id:
 
 ```
 
-#### Grant an authorized client read access to multiple channels using RegEx[​](#grant-an-authorized-client-read-access-to-multiple-channels-using-regex)
+#### Grant an authorized client read access to multiple channels using RegEx
 
-Grants my-authorized-user_id read access to all channels matching channel-[A-Za-z0-9].
+Grants my-authorized-user_id read access to channels matching channel-[A-Za-z0-9].
 
 ```
 1
@@ -144,12 +159,12 @@ Grants my-authorized-user_id read access to all channels matching channel-[A-Za-
 
 ```
 
-#### Grant an authorized client different levels of access to various resources and read access to channels using RegEx in a single call[​](#grant-an-authorized-client-different-levels-of-access-to-various-resources-and-read-access-to-channels-using-regex-in-a-single-call)
+#### Grant an authorized client different levels of access to various resources and read access to channels using RegEx in a single call
 
 Grants my-authorized-user_id:
-- Read: channel-a, channel-group-b; Get: uuid-c
-- Read/Write: channel-b, channel-c, channel-d; Get/Update: uuid-d
-- Read via regex: channels matching channel-[A-Za-z0-9]
+- Read: channel-a, channel-group-b; get: uuid-c.
+- Read/write: channel-b, channel-c, channel-d; get/update: uuid-d.
+- Read to channels matching channel-[A-Za-z0-9].
 
 ```
 1
@@ -157,17 +172,23 @@ Grants my-authorized-user_id:
 
 ```
 
-### Error responses[​](#error-responses)
+### Error responses
 
-Invalid requests return HTTP 400 with details (e.g., regex issues, invalid timestamp, incorrect permissions), under PubNubException.
+- HTTP 400 with details for invalid requests (e.g., regex issues, invalid timestamp, incorrect permissions). Errors appear under PubNubException.
 
-## Revoke token[​](#revoke-token)
+## Revoke token
 
-Requires Access Manager add-on. Enable token revoke in Admin Portal (Revoke v3 Token under ACCESS MANAGER).
+Requires Access Manager add-on
+- Enable the Access Manager add-on in the Admin Portal.
 
-revoke_token() disables an existing token granted by grant_token(). Use for ttl ≤ 30 days; for longer, contact support.
+Enable token revoke
+- In the Admin Portal, enable Revoke v3 Token under ACCESS MANAGER.
 
-### Method(s)[​](#methods-1)
+revoke_token() disables an existing valid token granted via grant_token().
+
+- Use for tokens with TTL ≤ 30 days. For longer TTL, contact support.
+
+### Method(s)
 
 ```
 `1pubnub  
@@ -175,10 +196,11 @@ revoke_token() disables an existing token granted by grant_token(). Use for ttl 
 `
 ```
 
-Parameters:
-- token (required): Type: Into<String>. Existing token.
+- token (required)
+  - Type: Into<String>
+  - Existing token
 
-### Sample code[​](#sample-code-1)
+### Sample code
 
 ```
 1
@@ -186,20 +208,19 @@ Parameters:
 
 ```
 
-### Returns[​](#returns-1)
+### Returns
 
-Returns success response from PAMv3 or an error.
+- Success response from PAMv3 service or an error.
 
-### Error Responses[​](#error-responses-1)
+### Error Responses
 
-May return:
-- 400 Bad Request
-- 403 Forbidden
-- 503 Service Unavailable
+- Possible: 400 Bad Request, 403 Forbidden, 503 Service Unavailable.
 
-## Parse token[​](#parse-token)
+## Parse token
 
-parse_token() decodes a token to inspect permissions and ttl. Enable features in Cargo.toml:
+parse_token() decodes a token and returns embedded permissions and TTL. Useful for debugging.
+
+Add any of the following features to Cargo.toml to use this API:
 
 ```
 `[dependencies]  
@@ -215,7 +236,7 @@ For a list of all features, refer to Available features.
 ### Available in features
 fullparse_token
 
-### Method(s)[​](#methods-2)
+### Method(s)
 
 ```
 `1pubnub  
@@ -223,10 +244,10 @@ fullparse_token
 `
 ```
 
-Parameters:
-- token (required): Type: &str.
+- token (required)
+  - Type: &str
 
-### Sample code[​](#sample-code-2)
+### Sample code
 
 ```
 `1pubnub  
@@ -234,7 +255,7 @@ Parameters:
 `
 ```
 
-### Returns[​](#returns-2)
+### Returns
 
 ```
 `1{  
@@ -316,15 +337,15 @@ Parameters:
 `
 ```
 
-### Error Responses[​](#error-responses-2)
+### Error Responses
 
-Errors suggest a damaged token; request a new one from the server.
+- If parsing fails, the token may be damaged; request a new one from the server.
 
-## Set token[​](#set-token)
+## Set token
 
-set_token() updates the client’s authentication token.
+set_token() updates the client’s current authentication token.
 
-### Method(s)[​](#methods-3)
+### Method(s)
 
 ```
 `1pubnub  
@@ -332,10 +353,10 @@ set_token() updates the client’s authentication token.
 `
 ```
 
-Parameters:
-- token (required): Type: Into<String>.
+- token (required)
+  - Type: Into<String>
 
-### Sample code[​](#sample-code-3)
+### Sample code
 
 ```
 `1pubnub  
@@ -343,8 +364,8 @@ Parameters:
 `
 ```
 
-### Returns[​](#returns-3)
+### Returns
 
-No return value.
+- No return value.
 
 Last updated on Sep 3, 2025

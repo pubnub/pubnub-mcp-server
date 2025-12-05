@@ -1,16 +1,14 @@
 # Channel Groups API for JavaScript SDK
 
-Channel groups bundle many channels under one name. You can subscribe to a channel group to receive messages from its member channels. You cannot publish to a channel group; publish to individual channels instead.
+Channel groups bundle many channels under a single name so you can subscribe to all of them at once. You cannot publish to a channel group—publish to individual channels instead.
 
-##### Supported asynchronous patterns
-Callbacks, Promises, and Async/Await are supported. Async/Await is recommended. Add try...catch to receive error status.
+Supported async patterns: Callbacks, Promises, and Async/Await. Recommended: Async/Await. Error status is returned only on error; use try/catch to handle errors.
 
 ## Add channels to a channel group
 
-##### Requires Stream Controller add-on
-Enable Stream Controller for your key in the Admin Portal.
+Requires Stream Controller add-on (enable in Admin Portal).
 
-Adds channels to a channel group.
+Adds channels to a channel group. Maximum 200 channels per API call.
 
 ### Method(s)
 
@@ -23,13 +21,12 @@ Adds channels to a channel group.
 ```
 
 Parameters:
-- channels: Array<string> — The channels to add to the channel group.
-- channelGroup: string — The channel group to add the channels to.
-
-##### Maximum number of channels
-Up to 200 channels per API call.
+- channels (Array<string>): Channels to add.
+- channelGroup (string): Target channel group.
 
 ### Sample code
+
+Reference code
 
 #### Add channels
 
@@ -58,8 +55,7 @@ Up to 200 channels per API call.
 
 ## List channels in a channel group
 
-##### Requires Stream Controller add-on
-Enable Stream Controller for your key in the Admin Portal.
+Requires Stream Controller add-on (enable in Admin Portal).
 
 Lists all channels in a channel group.
 
@@ -73,7 +69,7 @@ Lists all channels in a channel group.
 ```
 
 Parameters:
-- channelGroup: string — The channel group for which to list channels.
+- channelGroup (string): Channel group to list.
 
 ### Sample code
 
@@ -105,8 +101,7 @@ Parameters:
 
 ## Remove channels from a channel group
 
-##### Requires Stream Controller add-on
-Enable Stream Controller for your key in the Admin Portal.
+Requires Stream Controller add-on (enable in Admin Portal).
 
 Removes channels from a channel group.
 
@@ -121,8 +116,8 @@ Removes channels from a channel group.
 ```
 
 Parameters:
-- channels: Array<string> — The channels to remove from the channel group.
-- channelGroup: string — The channel group from which to remove the channels.
+- channels (Array<string>): Channels to remove.
+- channelGroup (string): Channel group to remove from.
 
 ### Sample code
 
@@ -147,8 +142,7 @@ Parameters:
 
 ## Delete a channel group
 
-##### Requires Stream Controller add-on
-Enable Stream Controller for your key in the Admin Portal.
+Requires Stream Controller add-on (enable in Admin Portal).
 
 Deletes a channel group.
 
@@ -162,7 +156,7 @@ Deletes a channel group.
 ```
 
 Parameters:
-- channelGroup: string — The channel group to delete.
+- channelGroup (string): Channel group to delete.
 
 ### Sample code
 
@@ -183,3 +177,5 @@ Parameters:
 5}  
 `
 ```
+
+Last updated on Sep 3, 2025**

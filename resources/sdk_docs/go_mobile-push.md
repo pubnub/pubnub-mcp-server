@@ -1,12 +1,15 @@
 # Mobile Push Notifications API for Go SDK
 
-Connects PubNub publishing to FCM (Firebase Cloud Messaging) and APNs (Apple Push Notification service). See Mobile Push Notifications overview at /docs/general/push/send.
+The Mobile Push Notifications feature connects native PubNub publishing to third-party push services: Google Android FCM (Firebase Cloud Messaging) and Apple iOS APNs (Apple Push Notification service).
 
-Requires Mobile Push Notifications add-on: enable in Admin Portal.
+To learn more, read about Mobile Push Notifications (/docs/general/push/send).
+
+Requires Mobile Push Notifications add-on
+Enable in the Admin Portal (https://admin.pubnub.com/). How to enable add-on features: https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-.
 
 ## Add a device to a push notifications channel
 
-Enable mobile push notifications on specified channels.
+Enable mobile push notifications on a set of channels.
 
 ### Method(s)
 
@@ -22,13 +25,12 @@ Enable mobile push notifications on specified channels.
 `
 ```
 
-### Parameters
-
-- Channels
+Parameters
+- Channels (required)
   - Type: []string
   - Default: n/a
   - Description: Channels to enable for push notifications.
-- DeviceIDForPush
+- DeviceIDForPush (required)
   - Type: string
   - Default: n/a
   - Description: Device ID (push token).
@@ -47,9 +49,12 @@ Enable mobile push notifications on specified channels.
 - QueryParam
   - Type: map[string]string
   - Default: n/a
-  - Description: Query parameters to append to the API request.
+  - Description: Map of query parameters to append to the API request.
 
 ### Sample code
+
+Reference code
+This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
 
 #### Add device to channel (FCM)
 
@@ -69,11 +74,11 @@ Enable mobile push notifications on specified channels.
 
 ### Returns
 
-No payload. Check status.Error on the status object.
+No payload is returned. Check status.Error on the status object.
 
 ## List push notifications channels for a device
 
-Get all channels with push notifications for a specific push token.
+Get all channels with push notifications for the specified push token.
 
 ### Method(s)
 
@@ -88,9 +93,8 @@ Get all channels with push notifications for a specific push token.
 `
 ```
 
-### Parameters
-
-- DeviceIDForPush
+Parameters
+- DeviceIDForPush (required)
   - Type: string
   - Default: n/a
   - Description: Device ID (push token).
@@ -109,7 +113,7 @@ Get all channels with push notifications for a specific push token.
 - QueryParam
   - Type: map[string]string
   - Default: n/a
-  - Description: Query parameters to append to the API request.
+  - Description: Map of query parameters to append to the API request.
 
 ### Sample code
 
@@ -131,8 +135,8 @@ Get all channels with push notifications for a specific push token.
 
 ### Returns
 
-ListPushProvisionsRequestResponse:
-- Channels: []string — Channels associated with push notifications.
+Returns ListPushProvisionsRequestResponse with:
+- Channels: Type []string — Channels associated with push notifications.
 
 ## Remove a device from push notifications channels
 
@@ -152,13 +156,12 @@ Disable push notifications on selected channels.
 `
 ```
 
-### Parameters
-
-- Channels
+Parameters
+- Channels (required)
   - Type: []string
   - Default: n/a
   - Description: Channels to disable for push notifications.
-- DeviceIDForPush
+- DeviceIDForPush (required)
   - Type: string
   - Default: n/a
   - Description: Device ID (push token).
@@ -177,7 +180,7 @@ Disable push notifications on selected channels.
 - QueryParam
   - Type: map[string]string
   - Default: n/a
-  - Description: Query parameters to append to the API request.
+  - Description: Map of query parameters to append to the API request.
 
 ### Sample code
 
@@ -199,7 +202,7 @@ Disable push notifications on selected channels.
 
 ### Returns
 
-No payload. Check status.Error on the status object.
+No payload is returned. Check status.Error on the status object.
 
 ## Remove a device from all push notifications channels
 
@@ -218,9 +221,8 @@ Disable push notifications from all channels registered for the specified push t
 `
 ```
 
-### Parameters
-
-- DeviceIDForPush
+Parameters
+- DeviceIDForPush (required)
   - Type: string
   - Default: n/a
   - Description: Device ID (push token).
@@ -239,7 +241,7 @@ Disable push notifications from all channels registered for the specified push t
 - QueryParam
   - Type: map[string]string
   - Default: n/a
-  - Description: Query parameters to append to the API request.
+  - Description: Map of query parameters to append to the API request.
 
 ### Sample code
 
@@ -261,6 +263,6 @@ Disable push notifications from all channels registered for the specified push t
 
 ### Returns
 
-No payload. Check status.Error on the status object.
+No payload is returned. Check status.Error on the status object.
 
 Last updated on Nov 6, 2025

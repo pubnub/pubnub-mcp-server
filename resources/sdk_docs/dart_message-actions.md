@@ -1,19 +1,19 @@
 # Message Actions API for Dart SDK
 
-Add or remove metadata on published messages (for receipts, reactions, custom data). Subscribe to channels to receive action events. Past actions can be fetched from Message Persistence.
+Use message actions to add/remove metadata (for example, receipts or emoji reactions) on published messages. Clients can subscribe to channels to receive action events and fetch past actions from Message Persistence.
 
-- Message Actions: low-level API for adding metadata to messages.
-- Message Reactions: using Message Actions specifically for emoji/social reactions. Same underlying API.
+- Message Actions: Low-level API for arbitrary metadata (read receipts, delivery confirmations, custom data).
+- Message Reactions: Using Message Actions specifically for emoji/social reactions (same API, different term).
+
+Requires Message Persistence: Enable for your key in the Admin Portal as described in the support article.
 
 ## Add message action
 
-Requires Message Persistence. Enable it in the Admin Portal: https://admin.pubnub.com/ (see support article).
-
-- Adds an action to a parent message identified by subscribeKey, channel, and timetoken.
-- Only one action with a given type and value can exist per parent message.
-- Server doesn’t validate if the parent message exists; it only checks for duplicate action.
+Add a message action to a parent message (identified by subscribeKey, channel, and timetoken). Only one action with the same type and value can exist per parent message. The server doesn’t validate the parent message existence but does prevent duplicates.
 
 ### Method(s)
+
+Use this Dart method:
 
 ```
 `1pubnub.addMessageAction(  
@@ -28,14 +28,16 @@ Requires Message Persistence. Enable it in the Admin Portal: https://admin.pubnu
 ```
 
 Parameters:
-- type: String — Message action type.
-- value: String — Message action value.
-- channel: String — Channel to add the action to.
-- timetoken: Timetoken — Timetoken of the target message.
-- keyset: Keyset (optional) — Override default keyset configuration.
-- using: String (optional) — Keyset name from keysetStore to use.
+- type — Type: String — Message action type. Required.
+- value — Type: String — Message action value. Required.
+- channel — Type: String — Channel to add the action to. Required.
+- timetoken — Type: Timetoken — Timetoken of the target message. Required.
+- keyset — Type: Keyset — Override default keyset.
+- using — Type: String — Keyset name from keysetStore.
 
 ### Sample code
+
+Reference code
 
 ```
 1import 'package:pubnub/pubnub.dart';  
@@ -69,28 +71,27 @@ Parameters:
 25  // Print the added message action details  
 26  print('Added message action: ${result.action}');  
 27}  
-
 ```
 
 ### Returns
 
 addMessageAction() returns AddMessageActionResult:
-- action: MessageAction — The added action.
+- action — MessageAction — Added message action.
 
 MessageAction fields:
-- type: String
-- value: String
-- actionTimetoken: String — Timetoken assigned to the added action.
-- messageTimetoken: String — Timetoken of the target message.
-- uuid: String — UUID of the sender.
+- type — String — Action type.
+- value — String — Action value.
+- actionTimetoken — String — Timetoken assigned to the added action.
+- messageTimetoken — String — Timetoken of the target message.
+- uuid — String — UUID of the sender.
 
 ## Remove message action
 
-Requires Message Persistence. Enable it in the Admin Portal: https://admin.pubnub.com/ (see support article).
-
-Removes a previously added action from a message. Response is empty.
+Remove a previously added action from a published message. Response is empty.
 
 ### Method(s)
+
+Use this Dart method:
 
 ```
 `1pubnub.deleteMessageAction(String channel,  
@@ -102,11 +103,11 @@ Removes a previously added action from a message. Response is empty.
 ```
 
 Parameters:
-- channel: String — Channel the message was sent to.
-- messageTimetoken: Timetoken — Timetoken of the target message.
-- actionTimetoken: Timetoken — Timetoken of the action to remove.
-- keyset: Keyset (optional) — Override default keyset configuration.
-- using: String (optional) — Keyset name from keysetStore to use.
+- channel — Type: String — Channel where the message was sent. Required.
+- messageTimetoken — Type: Timetoken — Timetoken of the target message. Required.
+- actionTimetoken — Type: Timetoken — Timetoken of the action to remove. Required.
+- keyset — Type: Keyset — Override default keyset.
+- using — Type: String — Keyset name from keysetStore.
 
 ### Sample code
 
@@ -122,11 +123,11 @@ deleteMessageAction() returns DeleteMessageActionResult (no actionable data).
 
 ## Get message actions
 
-Requires Message Persistence. Enable it in the Admin Portal: https://admin.pubnub.com/ (see support article).
-
-Retrieves a list of message actions in a channel. Sorted by action timetoken (ascending).
+Fetch a list of message actions in a channel. Sorted by action timetoken (ascending).
 
 ### Method(s)
+
+Use this Dart method:
 
 ```
 `1pubnub.fetchMessageActions(  
@@ -140,12 +141,12 @@ Retrieves a list of message actions in a channel. Sorted by action timetoken (as
 ```
 
 Parameters:
-- channel: String — Channel to list actions for.
-- from: Timetoken (optional) — Start action timetoken (exclusive).
-- to: Timetoken (optional) — End action timetoken (inclusive).
-- limit: int (optional) — Max actions to return (default/maximum 100).
-- keyset: Keyset (optional) — Override default keyset configuration.
-- using: String (optional) — Keyset name from keysetStore to use.
+- channel — Type: String — Channel to list actions for. Required.
+- from — Type: Timetoken — Start of range (exclusive).
+- to — Type: Timetoken — End of range (inclusive).
+- limit — Type: int — Max actions to return. Default/Max: 100.
+- keyset — Type: Keyset — Override default keyset.
+- using — Type: String — Keyset name from keysetStore.
 
 ### Sample code
 
@@ -180,21 +181,22 @@ Parameters:
 
 ### Returns
 
-fetchMessageActions() returns FetchMessageActionsResult:
-- actions: List<MessageAction> — List of message actions.
-- moreActions: MoreAction — Pagination info (if present).
+fetchMessageActions() returns a list of FetchMessageActionsResult:
+- actions — List<MessageAction> — Message actions.
+- moreActions — MoreAction — Pagination info.
 
 MessageAction fields:
-- type: String
-- value: String
-- actionTimetoken: String
-- messageTimetoken: String
-- uuid: String
+- type — String — Action type.
+- value — String — Action value.
+- actionTimetoken — String — Timetoken assigned to the added action.
+- messageTimetoken — String — Timetoken of the target message.
+- uuid — String — UUID of the sender.
 
 MoreAction fields:
-- url: String — URL to fetch the next page.
-- start: String — Start timetoken for the next page.
-- limit: int — Limit for the next page.
+- url — String — URL to fetch next page.
+- start — String — Start timetoken for next page.
+- end — String — End timetoken for next page.
+- limit — int — Page limit.
 
 ### Other examples
 
@@ -219,5 +221,4 @@ MoreAction fields:
 15  }  
 16} while (loopResult.moreActions != null);  
 17// now `fetchMessageActionsResult` contains all message actions  
-
 ```
