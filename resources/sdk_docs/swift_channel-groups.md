@@ -1,21 +1,23 @@
 # Channel Groups API for Swift Native SDK
 
-Channel groups let you bundle many channels into a named group you can subscribe to. You can’t publish to a channel group—publish to individual channels instead.
+[Channel groups](/docs/general/channels/subscribe#channel-groups) bundle thousands of [channels](/docs/general/channels/overview) under a single group name for subscription. **You can’t publish to a channel group**—only subscribe; publish to individual channels instead.
 
 ##### Channel group operations
-- Subscribe to channel groups to receive messages from their member channels.
-- Publishing to a channel group is not supported.
+- Subscribe to channel groups; publishing requires publishing to each channel.
+- Most operations below **require the Stream Controller add-on** enabled in the PubNub [Admin Portal](https://admin.pubnub.com/) (see [support article](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-)).
 
-## Add channels to a channel group
+---
+
+## Add channels to a channel group[​](#add-channels-to-a-channel-group)
 
 ##### Requires Stream Controller add-on
-Enable Stream Controller for your key in the Admin Portal. See the support page for enabling add-ons.
 
 Adds channels to a channel group.
 
-### Method(s)
+### Method(s)[​](#methods)
 
-Maximum number of channels: Up to 200 channels per API call.
+##### Maximum number of channels
+You can add up to **200 channels per API call**.
 
 ```
 `1func add(  
@@ -27,19 +29,20 @@ Maximum number of channels: Up to 200 channels per API call.
 `
 ```
 
-Parameters:
-- channels (required) — Type: [String], Default: n/a. List of channels to add.
-- to — Type: String, Default: n/a. Channel group to add channels to.
-- custom — Type: PubNub.RequestConfiguration, Default: PubNub.RequestConfiguration(). Per-request configuration.
-- completion — Type: ((Result<(group: String, channels: [String]), Error>) -> Void)?, Default: nil. Async result.
+**Parameters**
+- `channels: [String]` (required): list of channels to add.
+- `to group: String` (required): channel group to add to.
+- `custom requestConfig: PubNub.RequestConfiguration` (optional, default `PubNub.RequestConfiguration()`): per-request customization; see [Request Configuration](/docs/sdks/swift/api-reference/configuration#request-configuration).
+- `completion: ((Result<(group: String, channels: [String]), Error>) -> Void)?` (optional, default `nil`): async result callback.
 
-#### Completion handler result
-- Success: Tuple (group, channels) with the channel group and the channels added.
-- Failure: Error describing the failure.
+#### Completion handler result[​](#completion-handler-result)
+- **Success:** Tuple `(group, channels)` for channels added.
+- **Failure:** `Error`.
 
-### Sample code
+### Sample code[​](#sample-code)
 
-#### Add channels
+#### Add channels[​](#add-channels)
+
 ##### Reference code
 ```
 1
@@ -47,14 +50,15 @@ Parameters:
 
 ```
 
-## List channels in a channel group
+---
+
+## List channels in a channel group[​](#list-channels-in-a-channel-group)
 
 ##### Requires Stream Controller add-on
-Enable Stream Controller for your key in the Admin Portal. See the support page for enabling add-ons.
 
 Lists all channels in a channel group.
 
-### Method(s)
+### Method(s)[​](#methods-1)
 
 ```
 `1func listChannels(  
@@ -65,32 +69,34 @@ Lists all channels in a channel group.
 `
 ```
 
-Parameters:
-- for — Type: String, Default: n/a. Channel group to list channels from.
-- custom — Type: PubNub.RequestConfiguration, Default: PubNub.RequestConfiguration(). Per-request configuration.
-- completion — Type: ((Result<(group: String, channels: [String]), Error>) -> Void)?, Default: nil. Async result.
+**Parameters**
+- `for group: String` (required): channel group to list.
+- `custom requestConfig: PubNub.RequestConfiguration` (optional, default `PubNub.RequestConfiguration()`): per-request customization; see [Request Configuration](/docs/sdks/swift/api-reference/configuration#request-configuration).
+- `completion: ((Result<(group: String, channels: [String]), Error>) -> Void)?` (optional, default `nil`): async result callback.
 
-#### Completion handler result
-- Success: Tuple (group, channels) with the channel group and its channels.
-- Failure: Error describing the failure.
+#### Completion handler result[​](#completion-handler-result-1)
+- **Success:** Tuple `(group, channels)` for the group and its channels.
+- **Failure:** `Error`.
 
-### Sample code
+### Sample code[​](#sample-code-1)
 
-#### List channels
+#### List channels[​](#list-channels)
+
 ```
 1
   
 
 ```
 
-## Remove channels from a channel group
+---
+
+## Remove channels from a channel group[​](#remove-channels-from-a-channel-group)
 
 ##### Requires Stream Controller add-on
-Enable Stream Controller for your key in the Admin Portal. See the support page for enabling add-ons.
 
 Removes channels from a channel group.
 
-### Method(s)
+### Method(s)[​](#methods-2)
 
 ```
 `1func remove(  
@@ -102,33 +108,35 @@ Removes channels from a channel group.
 `
 ```
 
-Parameters:
-- channels (required) — Type: [String], Default: n/a. Channels to remove.
-- from — Type: String, Default: n/a. Channel group to remove channels from.
-- custom — Type: PubNub.RequestConfiguration, Default: PubNub.RequestConfiguration(). Per-request configuration.
-- completion — Type: ((Result<(group: String, channels: [String]), Error>) -> Void)?, Default: nil. Async result.
+**Parameters**
+- `channels: [String]` (required): channels to remove.
+- `from group: String` (required): channel group to remove from.
+- `custom requestConfig: PubNub.RequestConfiguration` (optional, default `PubNub.RequestConfiguration()`): per-request customization of PubNub configuration/network session.
+- `completion: ((Result<(group: String, channels: [String]), Error>) -> Void)?` (optional, default `nil`): async result callback.
 
-#### Completion handler result
-- Success: Tuple (group, channels) with the channel group and channels removed.
-- Failure: Error describing the failure.
+#### Completion handler result[​](#completion-handler-result-2)
+- **Success:** Tuple `(group, channels)` for channels removed.
+- **Failure:** `Error`.
 
-### Sample code
+### Sample code[​](#sample-code-2)
 
-#### Remove channels
+#### Remove channels[​](#remove-channels)
+
 ```
 1
   
 
 ```
 
-## List channel groups
+---
+
+## List channel groups[​](#list-channel-groups)
 
 ##### Requires Stream Controller add-on
-Enable Stream Controller for your key in the Admin Portal. See the support page for enabling add-ons.
 
 Lists all channel groups.
 
-### Method(s)
+### Method(s)[​](#methods-3)
 
 ```
 `1func listChannelGroups(  
@@ -138,31 +146,33 @@ Lists all channel groups.
 `
 ```
 
-Parameters:
-- custom — Type: PubNub.RequestConfiguration, Default: PubNub.RequestConfiguration(). Per-request configuration.
-- completion — Type: ((Result<[String], Error>) -> Void)?, Default: nil. Async result.
+**Parameters**
+- `custom requestConfig: PubNub.RequestConfiguration` (optional, default `PubNub.RequestConfiguration()`): per-request customization; see [Request Configuration](/docs/sdks/swift/api-reference/configuration#request-configuration).
+- `completion: ((Result<[String], Error>) -> Void)?` (optional, default `nil`): async result callback.
 
-#### Completion handler result
-- Success: Array of all channel groups.
-- Failure: Error describing the failure.
+#### Completion handler result[​](#completion-handler-result-3)
+- **Success:** `[String]` list of channel groups.
+- **Failure:** `Error`.
 
-### Sample code
+### Sample code[​](#sample-code-3)
 
-#### List channel groups
+#### List channel groups[​](#list-channel-groups-1)
+
 ```
 1
   
 
 ```
 
-## Delete a channel group
+---
+
+## Delete a channel group[​](#delete-a-channel-group)
 
 ##### Requires Stream Controller add-on
-Enable Stream Controller for your key in the Admin Portal. See the support page for enabling add-ons.
 
-Deletes a channel group.
+Deletes (removes) a channel group.
 
-### Method(s)
+### Method(s)[​](#methods-4)
 
 ```
 `1func remove(  
@@ -173,18 +183,19 @@ Deletes a channel group.
 `
 ```
 
-Parameters:
-- channelGroup — Type: String, Default: n/a. Channel group to delete.
-- custom — Type: PubNub.RequestConfiguration, Default: PubNub.RequestConfiguration(). Per-request configuration.
-- completion — Type: ((Result<String, Error>) -> Void)?, Default: nil. Async result.
+**Parameters**
+- `channelGroup: String` (required): channel group to delete.
+- `custom requestConfig: PubNub.RequestConfiguration` (optional, default `PubNub.RequestConfiguration()`): per-request customization; see [Request Configuration](/docs/sdks/swift/api-reference/configuration#request-configuration).
+- `completion: ((Result<String, Error>) -> Void)?` (optional, default `nil`): async result callback.
 
-#### Completion handler result
-- Success: String of the channel group that was removed.
-- Failure: Error describing the failure.
+#### Completion handler result[​](#completion-handler-result-4)
+- **Success:** `String` channel group that was removed.
+- **Failure:** `Error`.
 
-### Sample code
+### Sample code[​](#sample-code-4)
 
-#### Delete channel group
+#### Delete channel group[​](#delete-channel-group)
+
 ```
 1
 **

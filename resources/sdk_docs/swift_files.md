@@ -1,16 +1,17 @@
-# File Sharing API for Swift Native SDK (Condensed)
+# File Sharing API for Swift Native SDK
 
-Upload and share files up to 5 MB per file on a channel. Subscribers receive file events containing file ID, filename, and optional description.
+Upload/share files up to **5 MB** on PubNub. Uploading a file on a `channel` stores it via a storage service tied to your keys; subscribers receive a file event containing file `ID`, `filename`, and optional `description`.
 
-## Send file
+## Send file[​](#send-file)
 
-Uploads a file to a channel and publishes a message with file metadata. Internally calls publish.
+Uploads a file to a channel (prepare → upload to storage → publish file message on channel). The final step uses [`publish`](#publish-file-message) internally.
 
-File encryption
-- Uses the cryptoModule set in PubNub config unless overridden via custom in the request.
-- See Crypto module configuration.
+##### File encryption
 
-### Method(s)
+The `cryptoModule` set in PubNub config is used for encryption unless overridden using the `custom` parameter.  
+For more info: [Crypto module configuration](/docs/sdks/swift/api-reference/configuration#cryptomodule).
+
+### Method(s)[​](#methods)
 
 ```
 `1func send(  
@@ -25,16 +26,15 @@ File encryption
 `
 ```
 
-Parameters
-- content (PubNub.FileUploadContent, required): The content to upload.
-- channel (String, required): Target channel.
-- remoteFilename (String, required): Name to assign to uploaded content.
-- publishRequest (PubNub.PublishFileRequest, default: PubNub.PublishFileRequest()): Publish configuration for the file message.
-- custom (PubNub.RequestConfiguration, default: PubNub.RequestConfiguration()): Overrides for generating the file upload URLRequest.
-- uploadTask ((HTTPFileUploadTask) -> Void, default: { _ in }): Upload task callback with URLSessionUploadTask reference.
-- completion (((Result<(task: HTTPFileUploadTask, file: PubNubFile, publishedAt: Timetoken), Error>) -> Void)?, required): Async result callback.
+* `content` *(PubNub.FileUploadContent, required)*: content to upload.  
+* `channel` *(String, required)*: channel to upload to.  
+* `remoteFilename` *(String)*: name used when uploaded.  
+* `publishRequest` *(PubNub.PublishFileRequest, default `PubNub.PublishFileRequest()`)*: publish-time options for the file message.  
+* `custom requestConfig` *(PubNub.RequestConfiguration, default `PubNub.RequestConfiguration()`)*: overrides for the upload `URLRequest`.  
+* `uploadTask` *((HTTPFileUploadTask) -> Void)*: provides the active upload task (`URLSessionUploadTask`).  
+* `completion` *((Result<(task: HTTPFileUploadTask, file: PubNubFile, publishedAt: Timetoken), Error>) -> Void)?*: async result.
 
-#### Details
+#### Details[​](#details)
 
 ```
 1/// Content that can be uploaded as a File to PubNub  
@@ -110,14 +110,16 @@ Parameters
 54  // The body of the response  
 55  var responseData: Data? { get }  
 56}  
+
 ```
 
-### Returns
+### Returns[​](#returns)
 
-Completion returns Result.
+`completion` returns a `Result`.
 
-Success
-- Tuple: (task: HTTPFileUploadTask, file: PubNubFile or PubNubLocalFile, publishedAt: Timetoken).
+#### Success[​](#success)
+
+Tuple: completed `HTTPFileUploadTask`, uploaded `PubNubFile`/`PubNubLocalFile`, and publish `Timetoken`.
 
 ```
 1protocol PubNubLocalFile {  
@@ -158,12 +160,14 @@ Success
 27  /// Custom payload that can be used to store additional file details  
 28  var custom: JSONCodable? { get set }  
 29}  
+
 ```
 
-Failure
-- Error describing the failure.
+#### Failure[​](#failure)
 
-### Sample code
+`Error`.
+
+### Sample code[​](#sample-code)
 
 ##### Reference code
 
@@ -173,11 +177,11 @@ Failure
 
 ```
 
-## List channel files
+## List channel files[​](#list-channel-files)
 
-Retrieve a paginated list of files uploaded to a channel.
+List files uploaded to a `channel` (supports forward pagination via `next`).
 
-### Method(s)
+### Method(s)[​](#methods-1)
 
 ```
 `1func listFiles(  
@@ -190,19 +194,19 @@ Retrieve a paginated list of files uploaded to a channel.
 `
 ```
 
-Parameters
-- channel (String, required): Channel to list files from.
-- limit (UInt, default: 100): Number of files to return (1–100).
-- next (String?, default: nil): Forward pagination cursor.
-- custom (PubNub.RequestConfiguration, default: PubNub.RequestConfiguration()): Overrides for generating the file upload URLRequest.
-- completion (((Result<(files: [PubNubFile], next: String?), Error>) -> Void)?, required): Async result callback.
+* `channel` *(String, required)*: channel to list files for.  
+* `limit` *(UInt, default 100)*: min 1, max 100.  
+* `next` *(String?, default `nil`)*: server-provided cursor for forward pagination.  
+* `custom requestConfig` *(PubNub.RequestConfiguration, default `PubNub.RequestConfiguration()`)*: request overrides.  
+* `completion` *((Result<(files: [PubNubFile], next: String?), Error>) -> Void)?*: async result.
 
-### Returns
+### Returns[​](#returns-1)
 
-Completion returns Result.
+`completion` returns a `Result`.
 
-Success
-- Tuple: (files: [PubNubFile], next: String?)
+#### Success[​](#success-1)
+
+Tuple: `[PubNubFile]` and `next` cursor (if present).
 
 ```
 1protocol PubNubFile {  
@@ -235,12 +239,14 @@ Success
 21  /// Custom payload that can be used to store additional file details  
 22  var custom: JSONCodable? { get set }  
 23}  
+
 ```
 
-Failure
-- Error describing the failure.
+#### Failure[​](#failure-1)
 
-### Sample code
+`Error`.
+
+### Sample code[​](#sample-code-1)
 
 ```
 1
@@ -248,11 +254,11 @@ Failure
 
 ```
 
-## Get file URL
+## Get file URL[​](#get-file-url)
 
-Generate a direct download URL for a file in a channel.
+Generate a download URL for a file on a `channel`.
 
-### Method(s)
+### Method(s)[​](#methods-2)
 
 ```
 `1func generateFileDownloadURL(  
@@ -263,16 +269,15 @@ Generate a direct download URL for a file in a channel.
 `
 ```
 
-Parameters
-- channel (String, required): Channel name.
-- fileID (String, required): File identifier assigned during upload.
-- filename (String, required): Stored filename.
+* `channel` *(String, required)*: channel where file was uploaded.  
+* `fileID` *(String, required)*: unique file identifier assigned during upload.  
+* `filename` *(String, required)*: stored filename.
 
-### Returns
+### Returns[​](#returns-2)
 
-- URL for downloading the file.
+A downloadable `URL`.
 
-### Sample code
+### Sample code[​](#sample-code-2)
 
 ```
 1
@@ -280,14 +285,16 @@ Parameters
 
 ```
 
-## Download file
+## Download file[​](#download-file)
 
-Download a file from a channel to a local destination.
+Download a file from a `channel` to a local file URL.
 
-File encryption
-- Decryption uses cryptoModule from PubNub config if set. See Crypto module configuration.
+##### File encryption
 
-### Method(s)
+If `cryptoModule` is set in PubNub config, it is used for decryption.  
+For more info: [Crypto module configuration](/docs/sdks/swift/api-reference/configuration#cryptomodule).
+
+### Method(s)[​](#methods-3)
 
 ```
 `1func download(  
@@ -300,19 +307,19 @@ File encryption
 `
 ```
 
-Parameters
-- file (PubNubFile, required): File descriptor to download.
-- toFileURL (URL, required): Local destination URL (not the generated download URL).
-- resumeData (Data?, default: nil): Data used to resume a paused download.
-- downloadTask ((HTTPFileDownloadTask) -> Void, default: { _ in }): Download task callback with URLSessionDownloadTask reference.
-- completion (((Result<(task: HTTPFileDownloadTask, file: PubNubLocalFile), Error>) -> Void)?, required): Async result callback.
+* `file` *(PubNubFile, required)*: file to download.  
+* `toFileURL` *(URL, required)*: destination local file URL (**not** the URL from `generateFileDownloadURL`).  
+* `resumeData` *(Data?, default `nil`)*: data to resume a previous download.  
+* `downloadTask` *((HTTPFileDownloadTask) -> Void)*: provides the active download task (`URLSessionDownloadTask`).  
+* `completion` *((Result<(task: HTTPFileDownloadTask, file: PubNubLocalFile), Error>) -> Void)?*: async result.
 
-### Returns
+### Returns[​](#returns-3)
 
-Completion returns Result.
+`completion` returns a `Result`.
 
-Success
-- Tuple: (task: HTTPFileDownloadTask, file: PubNubLocalFile). fileURL may differ from requested destination if a file already exists there.
+#### Success[​](#success-2)
+
+Tuple: completed `HTTPFileDownloadTask` and downloaded `PubNubLocalFile`. `fileURL` may differ from `toFileURL` if a file already exists at destination.
 
 ```
 1class HTTPFileDownloadTask {  
@@ -341,6 +348,7 @@ Success
 18  /// The location where the temporary downloaded file should be copied  
 19  var destinationURL: URL { get }  
 20}  
+
 ```
 
 ```
@@ -382,23 +390,14 @@ Success
 27  /// Custom payload that can be used to store additional file details  
 28  var custom: JSONCodable? { get set }  
 29}  
-```
-
-Failure
-- Error describing the failure.
-
-### Sample code
-
-```
-1
-  
 
 ```
 
-#### Resume download
+#### Failure[​](#failure-2)
 
-- Downloads can be paused/resumed under certain conditions. See Apple docs: Pausing and Resuming Downloads and cancel(byProducingResumeData:).
-- Use resumeData to resume; otherwise, start a new download.
+`Error`.
+
+### Sample code[​](#sample-code-3)
 
 ```
 1
@@ -406,9 +405,9 @@ Failure
 
 ```
 
-#### Custom URLSession
+#### Resume download[​](#resume-download)
 
-- PubNub uses a background URLSession by default, allowing downloads to proceed in background. See Apple docs: Downloading Files in the Background.
+Downloads may be paused/resumed (see Apple docs: [Pausing and Resuming Downloads](https://developer.apple.com/documentation/foundation/url_loading_system/pausing_and_resuming_downloads?language=objc), [`cancel(byProducingResumeData:)`](https://developer.apple.com/documentation/foundation/urlsessiondownloadtask/1411634-cancel)). If you have `resumeData`, attempt resumption; otherwise start a new download.
 
 ```
 1
@@ -416,11 +415,21 @@ Failure
 
 ```
 
-## Delete file
+#### Custom URLSession[​](#custom-urlsession)
 
-Delete a file from a channel.
+By default, PubNub uses a [background](https://developer.apple.com/documentation/foundation/urlsessionconfiguration/1407496-background) `URLSessionConfiguration` to allow downloads to continue while the app is backgrounded (see Apple: [Downloading Files in the Background](https://developer.apple.com/documentation/foundation/url_loading_system/downloading_files_in_the_background)).
 
-### Method(s)
+```
+1
+  
+
+```
+
+## Delete file[​](#delete-file)
+
+Delete a file from a `channel`.
+
+### Method(s)[​](#methods-4)
 
 ```
 `1func remove(  
@@ -433,24 +442,25 @@ Delete a file from a channel.
 `
 ```
 
-Parameters
-- fileId (String, required): Unique file identifier.
-- filename (String, required): Stored filename.
-- channel (String, required): Channel of the file.
-- custom (PubNub.RequestConfiguration, default: PubNub.RequestConfiguration()): Overrides for generating the file download URLRequest.
-- completion (((Result<(channel: String, fileId: String), Error>) -> Void)?, required): Async result callback.
+* `fileId` *(String, required)*: unique file id assigned during upload.  
+* `filename` *(String, required)*: stored filename.  
+* `channel` *(String, required)*: channel the file was sent to.  
+* `custom requestConfig` *(PubNub.RequestConfiguration, default `PubNub.RequestConfiguration()`)*: request overrides.  
+* `completion` *((Result<(channel: String, fileId: String), Error>) -> Void)?*: async result.
 
-### Returns
+### Returns[​](#returns-4)
 
-Completion returns Result.
+`completion` returns a `Result`.
 
-Success
-- Tuple: (channel: String, fileId: String)
+#### Success[​](#success-3)
 
-Failure
-- Error describing the failure.
+Tuple: `channel` and removed `fileId`.
 
-### Sample code
+#### Failure[​](#failure-3)
+
+`Error`.
+
+### Sample code[​](#sample-code-4)
 
 ```
 1
@@ -458,11 +468,11 @@ Failure
 
 ```
 
-## Publish file message
+## Publish file message[​](#publish-file-message)
 
-Publishes a message to a channel for an already-uploaded file. Called internally by send. Use directly if send fails after upload to publish metadata without re-uploading.
+Publish the message announcing an already-uploaded file to a channel. Called internally by [`send`](#send-file). Use directly when upload succeeded but publish failed (error with `status.operation === PNPublishFileMessageOperation`) to retry without re-uploading.
 
-### Method(s)
+### Method(s)[​](#methods-5)
 
 ```
 `1func publish(  
@@ -473,31 +483,32 @@ Publishes a message to a channel for an already-uploaded file. Called internally
 `
 ```
 
-Parameters
-- file (PubNubFile, required): The uploaded file descriptor.
-- request (PubNub.PublishFileRequest, required): Additional publish info.
-- completion (((Result<Timetoken, Error>) -> Void)?, required): Async result callback.
+* `file` *(PubNubFile, required)*: uploaded file reference.  
+* `request` *(PubNub.PublishFileRequest, required)*: publish options.  
+* `completion` *((Result<Timetoken, Error>) -> Void)?*: async result.
 
-#### PubNub.PublishFileRequest
+#### PubNub.PublishFileRequest[​](#pubnubpublishfilerequest)
 
-- additionalMessage (JSONCodable?, default: nil): Optional message to include.
-- customMessageType (String?, required range/format): 3–50 chars; alphanumeric; dashes and underscores allowed; cannot start with special characters or pn_/pn- (examples: text, action, poll).
-- store (Bool?, default: nil): Store message in history if true.
-- ttl (Int?, default: nil): Per-message TTL.
-- meta (JSONCodable?, default: nil): Additional metadata.
-- customRequestConfig (PubNub.RequestConfiguration, default: PubNub.RequestConfiguration?): Request overrides.
+* `additionalMessage` *(JSONCodable?, default `nil`)*: optional message alongside file info.  
+* `customMessageType` *(String?)*: case-sensitive 3–50 chars; alphanumeric plus `-` and `_`; cannot start with special chars or `pn_`/`pn-` (examples: `text`, `action`, `poll`).  
+* `store` *(Bool?, default `nil`)*: store in history if true.  
+* `ttl` *(Int?, default `nil`)*: per-message TTL in storage.  
+* `meta` *(JSONCodable?, default `nil`)*: metadata alongside the file.  
+* `customRequestConfig` *(PubNub.RequestConfiguration, default `PubNub.RequestConfiguration?`)*: request overrides.
 
-### Returns
+### Returns[​](#returns-5)
 
-Completion returns Result.
+`completion` returns a `Result`.
 
-Success
-- Timetoken of the published message.
+#### Success[​](#success-4)
 
-Failure
-- Error describing the failure.
+Published message `Timetoken`.
 
-### Sample code
+#### Failure[​](#failure-4)
+
+`Error`.
+
+### Sample code[​](#sample-code-5)
 
 ```
 1

@@ -1,27 +1,33 @@
 # Message Persistence API for Swift Native SDK
 
-Message Persistence provides real-time access to stored, timestamped messages. Storage can be AES-256 encrypted and is replicated across availability zones. Configure message retention in the Admin Portal (options: 1 day, 7 days, 30 days, 3 months, 6 months, 1 year, Unlimited). You can retrieve:
+Message Persistence provides access to stored message history (timestamped to 10ns). Storage duration is controlled by your account retention policy (1 day → Unlimited). Stored messages can be AES-256 encrypted (see Message Persistence docs).
+
+You can retrieve:
 - Messages
 - Message reactions
 - Files (via File Sharing API)
 
-## Fetch history
+## Fetch history[​](#fetch-history)
 
-Requires Message Persistence enabled for your key in the Admin Portal.
+##### Requires Message Persistence
+Must be enabled for your key in the Admin Portal.
 
-Fetch historical messages from one or more channels. Use includeMessageActions to include message actions.
+Fetch historical messages from one or more channels. Use `includeActions` to include Message Actions (reactions).
 
-Ordering rules:
-- start only: returns messages older than start.
-- end only: returns messages from end and newer.
-- start and end: returns messages between bounds (inclusive of end).
+**Time bounds behavior**
+- `start` only (no `end`): returns messages **older than** `start`.
+- `end` only (no `start`): returns messages from `end` **and newer**.
+- `start` + `end`: returns messages **between** those timetokens (**inclusive of `end`**).
 
-Limits:
-- Up to 100 messages on a single channel.
-- Up to 25 per channel on as many as 500 channels.
-- Page using the start timetoken returned in next.
+**Limits / paging**
+- Up to **100** messages for a single channel.
+- Up to **25 per channel** for up to **500** channels.
+- To page, iteratively update the `start` timetoken.
+- If response is truncated, `next` is returned; make iterative calls using it.
 
-### Method(s)
+### Method(s)[​](#methods)
+
+Use the following method(s) in the Swift SDK:
 
 ```
 `1func fetchMessageHistory(  
@@ -38,50 +44,23 @@ Limits:
 `
 ```
 
-Parameters:
-- for (required)
-  - Type: [String]
-  - Description: Channels to fetch from. Max 500.
-- includeActions
-  - Type: Bool
-  - Default: false
-  - Description: Include message actions. When true, limited to a single channel.
-- includeMeta
-  - Type: Bool
-  - Default: false
-  - Description: Include message meta.
-- includeUUID
-  - Type: Bool
-  - Default: true
-  - Description: Include sender user ID.
-- includeMessageType
-  - Type: Bool
-  - Default: true
-  - Description: Include PubNub message type.
-- includeCustomMessageType
-  - Type: Bool
-  - Default: false
-  - Description: Include custom message type.
-- page
-  - Type: PubNubBoundedPage?
-  - Default: PubNubBoundedPageBase()
-  - Description: Pagination bounds. Set limit (max 100 single channel; 25 multiple channels; 25 when includeActions is true).
-- custom
-  - Type: PubNub.RequestConfiguration
-  - Default: PubNub.RequestConfiguration()
-  - Description: Per-request config (transport/session overrides).
-- completion
-  - Type: ((Result<(messagesByChannel: [String: [PubNubMessage]], next: PubNubBoundedPage?), Error>) -> Void)?
-  - Default: nil
-  - Description: Async result.
+**Parameters**
+- `for` (required) `[String]`: channels to fetch from (max **500**).
+- `includeActions` `Bool` (default `false`): include Message Actions. If `true`, limited to **single channel** history.
+- `includeMeta` `Bool` (default `false`): include message `meta`.
+- `includeUUID` `Bool` (default `true`): include sender user ID.
+- `includeMessageType` `Bool` (default `true`): include PubNub message type.
+- `includeCustomMessageType` `Bool` (default `false`): include custom message type.
+- `page` `PubNubBoundedPage?` (default `PubNubBoundedPageBase()`): paging/time bounds; set `limit` (max **100** single channel; **25** multi-channel; **25** when `includeActions == true`).
+- `custom` `PubNub.RequestConfiguration` (default `PubNub.RequestConfiguration()`): per-request configuration.
+- `completion`: `Result` containing `(messagesByChannel, next)` or `Error`.
 
-Truncated response:
-- If truncated, a next cursor is returned; repeat calls with updated page parameters.
+#### Completion handler result[​](#completion-handler-result)
 
-#### Completion handler result
-
-Success:
-- A dictionary mapping channels to message arrays, plus next page cursor when available.
+##### Success[​](#success)
+Returns:
+- `messagesByChannel: [String: [PubNubMessage]]`
+- `next: PubNubBoundedPage?` (when more data is available)
 
 ```
 1public protocol PubNubMessage {  
@@ -140,6 +119,7 @@ Success:
 41}  
 
 ```
+show all 41 lines
 
 ```
 1public protocol PubNubBoundedPage {  
@@ -159,22 +139,13 @@ Success:
 
 ```
 
-Failure:
-- Error describing the failure.
+##### Failure[​](#failure)
+Returns an `Error`.
 
-### Sample code
+### Sample code[​](#sample-code)
 
-Reference code (self-contained). Retrieve the last message on a channel:
-
-```
-1
-  
-
-```
-
-### Other examples
-
-Retrieve messages newer or equal than a given timetoken:
+##### Reference code
+Retrieve the last message on a channel:
 
 ```
 1
@@ -182,7 +153,9 @@ Retrieve messages newer or equal than a given timetoken:
 
 ```
 
-Retrieve messages older than a specific timetoken:
+### Other examples[​](#other-examples)
+
+#### Retrieve messages newer or equal than a given `timetoken`[​](#retrieve-messages-newer-or-equal-than-a-given-timetoken)
 
 ```
 1
@@ -190,7 +163,7 @@ Retrieve messages older than a specific timetoken:
 
 ```
 
-Retrieve the last 10 messages on channelSwift, otherChannel, and myChannel:
+#### Retrieve messages older than a specific `timetoken`[​](#retrieve-messages-older-than-a-specific-timetoken)
 
 ```
 1
@@ -198,7 +171,7 @@ Retrieve the last 10 messages on channelSwift, otherChannel, and myChannel:
 
 ```
 
-Retrieve messages and their metadata:
+#### Retrieve the last 10 messages on channelSwift, otherChannel, and myChannel[​](#retrieve-the-last-10-messages-on-channelswift-otherchannel-and-mychannel)
 
 ```
 1
@@ -206,7 +179,7 @@ Retrieve messages and their metadata:
 
 ```
 
-Retrieve messages and their message action data:
+#### Retrieve messages and their metadata[​](#retrieve-messages-and-their-metadata)
 
 ```
 1
@@ -214,13 +187,27 @@ Retrieve messages and their message action data:
 
 ```
 
-## Delete messages from history
+#### Retrieve messages and their message action data[​](#retrieve-messages-and-their-message-action-data)
 
-Requires Message Persistence enabled. Also requires Delete-From-History enabled in key settings and initialization with a secret key.
+```
+1
+  
 
-Removes messages from a specific channel’s history, optionally bounded by start/end timetokens.
+```
 
-### Method(s)
+## Delete messages from history[​](#delete-messages-from-history)
+
+##### Requires Message Persistence
+Must be enabled for your key in the Admin Portal.
+
+Removes messages from a channel’s history.
+
+##### Required setting
+Enable **Delete-From-History** in key settings and initialize with a **secret key**.
+
+### Method(s)[​](#methods-1)
+
+To `Delete Messages from History` you can use the following method(s) in the Swift SDK.
 
 ```
 `1func deleteMessageHistory(  
@@ -233,36 +220,22 @@ Removes messages from a specific channel’s history, optionally bounded by star
 `
 ```
 
-Parameters:
-- from (required)
-  - Type: String
-  - Description: Channel to delete messages from.
-- start
-  - Type: Timetoken?
-  - Default: nil
-  - Description: Inclusive start timetoken.
-- end
-  - Type: Timetoken?
-  - Default: nil
-  - Description: Exclusive end timetoken.
-- custom
-  - Type: PubNub.RequestConfiguration
-  - Default: PubNub.RequestConfiguration()
-  - Description: Per-request config.
-- completion
-  - Type: ((Result<Void, Error>) -> Void)?
-  - Default: nil
-  - Description: Async result.
+**Parameters**
+- `from` (required) `String`: channel to delete from.
+- `start` `Timetoken?` (default `nil`): start timetoken (**inclusive**).
+- `end` `Timetoken?` (default `nil`): end timetoken (**exclusive**).
+- `custom` `PubNub.RequestConfiguration` (default `PubNub.RequestConfiguration()`): per-request configuration.
+- `completion` `((Result<Void, Error>) -> Void)?` (default `nil`).
 
-#### Completion handler result
+#### Completion handler result[​](#completion-handler-result-1)
 
-Success:
-- Void
+##### Success[​](#success-1)
+Returns `Void`.
 
-Failure:
-- Error describing the failure.
+##### Failure[​](#failure-1)
+Returns an `Error`.
 
-### Sample code
+### Sample code[​](#sample-code-1)
 
 ```
 1
@@ -270,9 +243,9 @@ Failure:
 
 ```
 
-### Other examples
+### Other examples[​](#other-examples-1)
 
-Delete specific message from history:
+#### Delete specific message from history[​](#delete-specific-message-from-history)
 
 ```
 1
@@ -280,14 +253,19 @@ Delete specific message from history:
 
 ```
 
-## Message counts
+## Message counts[​](#message-counts)
 
-Requires Message Persistence enabled. Returns the number of messages with timetoken ≥ the provided value.
+##### Requires Message Persistence
+Must be enabled for your key in the Admin Portal.
 
-Unlimited message retention note:
-- For keys with unlimited retention, counts only include messages from the last 30 days.
+Returns number of messages published since the given time (counts messages with timetoken **≥** provided value).
 
-### Method(s)
+##### Unlimited message retention
+If unlimited retention is enabled, counts only consider messages from the **last 30 days**.
+
+### Method(s)[​](#methods-2)
+
+You can use the following method(s) in the Swift SDK:
 
 ```
 `1func messageCounts(  
@@ -298,18 +276,10 @@ Unlimited message retention note:
 `
 ```
 
-Parameters:
-- channels (required)
-  - Type: [String: Timetoken]
-  - Description: Map of channels to per-channel timetokens.
-- custom
-  - Type: PubNub.RequestConfiguration
-  - Default: PubNub.RequestConfiguration()
-  - Description: Per-request config.
-- completion
-  - Type: ((Result<[String: Int], Error>) -> Void)?
-  - Default: nil
-  - Description: Async result.
+**Parameters**
+- `channels` (required) `[String: Timetoken]`: per-channel timetoken.
+- `custom` `PubNub.RequestConfiguration` (default `PubNub.RequestConfiguration()`).
+- `completion` `((Result<[String: Int], Error>) -> Void)?` (default `nil`).
 
 ```
 `1func messageCounts(  
@@ -321,32 +291,21 @@ Parameters:
 `
 ```
 
-Parameters:
-- channels (required)
-  - Type: [String]
-  - Description: Channels to get counts for.
-- timetoken
-  - Type: Timetoken
-  - Default: 1
-  - Description: Shared timetoken for all channels.
-- custom
-  - Type: PubNub.RequestConfiguration
-  - Default: PubNub.RequestConfiguration()
-  - Description: Per-request config.
-- completion
-  - Type: ((Result<[String: Int], Error>) -> Void)?
-  - Default: nil
-  - Description: Async result.
+**Parameters**
+- `channels` (required) `[String]`: channels to count.
+- `timetoken` `Timetoken` (default `1`): shared timetoken for all channels.
+- `custom` `PubNub.RequestConfiguration` (default `PubNub.RequestConfiguration()`).
+- `completion` `((Result<[String: Int], Error>) -> Void)?` (default `nil`).
 
-#### Completion handler result
+#### Completion handler result[​](#completion-handler-result-2)
 
-Success:
-- Dictionary mapping channel to message count.
+##### Success[​](#success-2)
+Returns `[String: Int]` mapping channels to message counts.
 
-Failure:
-- Error describing the failure.
+##### Failure[​](#failure-2)
+Returns an `Error`.
 
-### Sample code
+### Sample code[​](#sample-code-2)
 
 ```
 1
@@ -354,9 +313,9 @@ Failure:
 
 ```
 
-### Other examples
+### Other examples[​](#other-examples-2)
 
-Retrieve message counts for multiple channels with the same timetoken 15526611838554310:
+#### Retrieve message counts for multiple channels with the same `timetoken` 15526611838554310[​](#retrieve-message-counts-for-multiple-channels-with-the-same-timetoken-15526611838554310)
 
 ```
 1
@@ -364,11 +323,9 @@ Retrieve message counts for multiple channels with the same timetoken 1552661183
 
 ```
 
-Retrieve message counts for multiple channels with different timetokens:
+#### Retrieve message counts for multiple channels with different timetokens[​](#retrieve-message-counts-for-multiple-channels-with-different-timetokens)
 
 ```
 1
 **
 ```
-
-Last updated on Sep 3, 2025**

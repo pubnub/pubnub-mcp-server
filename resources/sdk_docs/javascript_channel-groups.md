@@ -1,16 +1,27 @@
 # Channel Groups API for JavaScript SDK
 
-Channel groups bundle many channels under a single name so you can subscribe to all of them at once. You cannot publish to a channel group—publish to individual channels instead.
+[Channel groups](/docs/general/channels/subscribe#channel-groups) bundle thousands of [channels](/docs/general/channels/overview) under a single group name for subscription.
 
-Supported async patterns: Callbacks, Promises, and Async/Await. Recommended: Async/Await. Error status is returned only on error; use try/catch to handle errors.
+##### Channel group operations
+- You **can’t publish** to a channel group—only **subscribe** to it.
+- To publish “within” a group, publish to each channel individually.
 
-## Add channels to a channel group
+##### Supported and recommended asynchronous patterns
+Supports **Callbacks, Promises, and Async/Await**. Recommended: **Async/Await**. With Async/Await, status is returned only on error—use `try...catch` to receive error status.
 
-Requires Stream Controller add-on (enable in Admin Portal).
+---
 
-Adds channels to a channel group. Maximum 200 channels per API call.
+## Add channels to a channel group[​](#add-channels-to-a-channel-group)
 
-### Method(s)
+##### Requires Stream Controller add-on
+Requires *Stream Controller* enabled for your key in the PubNub [Admin Portal](https://admin.pubnub.com/). See: https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-
+
+Adds channels to a channel group.
+
+### Method(s)[​](#methods)
+
+##### Maximum number of channels
+Up to **200 channels per API call**.
 
 ```
 `1pubnub.channelGroups.addChannels({  
@@ -20,21 +31,14 @@ Adds channels to a channel group. Maximum 200 channels per API call.
 `
 ```
 
-Parameters:
-- channels (Array<string>): Channels to add.
-- channelGroup (string): Target channel group.
+*  requiredParameterDescription`channels` *Type: Array`<string>`The channels to add to the channel group.`channelGroup` *Type: stringThe channel group to add the channels to.
 
-### Sample code
+### Sample code[​](#sample-code)
 
-Reference code
+##### Reference code
+This example is a self-contained code snippet ready to be run. It includes necessary imports and executes methods with console logging. Use it as a reference when working with other examples in this document.
 
-#### Add channels
-
-```
-1
-  
-
-```
+#### Add channels[​](#add-channels)
 
 ```
 1
@@ -42,7 +46,13 @@ Reference code
 
 ```
 
-### Response
+```
+1
+  
+
+```
+
+### Response[​](#response)
 
 ```
 `1{  
@@ -53,13 +63,16 @@ Reference code
 `
 ```
 
-## List channels in a channel group
+---
 
-Requires Stream Controller add-on (enable in Admin Portal).
+## List channels in a channel group[​](#list-channels-in-a-channel-group)
+
+##### Requires Stream Controller add-on
+Requires *Stream Controller* enabled in the [Admin Portal](https://admin.pubnub.com/). See support link above.
 
 Lists all channels in a channel group.
 
-### Method(s)
+### Method(s)[​](#methods-1)
 
 ```
 `1pubnub.channelGroups.listChannels({  
@@ -68,12 +81,11 @@ Lists all channels in a channel group.
 `
 ```
 
-Parameters:
-- channelGroup (string): Channel group to list.
+*  requiredParameterDescription`channelGroup` *Type: stringThe channel group for which to list channels.
 
-### Sample code
+### Sample code[​](#sample-code-1)
 
-#### List channels
+#### List channels[​](#list-channels)
 
 ```
 1
@@ -81,7 +93,7 @@ Parameters:
 
 ```
 
-### Response
+### Response[​](#response-1)
 
 ```
 1// Example of Status  
@@ -99,13 +111,16 @@ Parameters:
 
 ```
 
-## Remove channels from a channel group
+---
 
-Requires Stream Controller add-on (enable in Admin Portal).
+## Remove channels from a channel group[​](#remove-channels-from-a-channel-group)
+
+##### Requires Stream Controller add-on
+Requires *Stream Controller* enabled in the [Admin Portal](https://admin.pubnub.com/). See support link above.
 
 Removes channels from a channel group.
 
-### Method(s)
+### Method(s)[​](#methods-2)
 
 ```
 `1pubnub.channelGroups.removeChannels({  
@@ -115,13 +130,11 @@ Removes channels from a channel group.
 `
 ```
 
-Parameters:
-- channels (Array<string>): Channels to remove.
-- channelGroup (string): Channel group to remove from.
+*  requiredParameterDescription`channels` *Type: Array`<string>`The channels to remove from the channel group.`channelGroup` *Type: stringThe channel group from which to remove the channels.
 
-### Sample code
+### Sample code[​](#sample-code-2)
 
-#### Remove channels
+#### Remove channels[​](#remove-channels)
 
 ```
 1
@@ -129,7 +142,7 @@ Parameters:
 
 ```
 
-### Response
+### Response[​](#response-2)
 
 ```
 `1{  
@@ -140,13 +153,16 @@ Parameters:
 `
 ```
 
-## Delete a channel group
+---
 
-Requires Stream Controller add-on (enable in Admin Portal).
+## Delete a channel group[​](#delete-a-channel-group)
+
+##### Requires Stream Controller add-on
+Requires *Stream Controller* enabled in the [Admin Portal](https://admin.pubnub.com/). See support link above.
 
 Deletes a channel group.
 
-### Method(s)
+### Method(s)[​](#methods-3)
 
 ```
 `1pubnub.channelGroups.deleteGroup({  
@@ -155,12 +171,11 @@ Deletes a channel group.
 `
 ```
 
-Parameters:
-- channelGroup (string): Channel group to delete.
+*  requiredParameterDescription`channelGroup` *Type: stringThe channel group to delete.
 
-### Sample code
+### Sample code[​](#sample-code-3)
 
-#### Delete channel group
+#### Delete channel group[​](#delete-channel-group)
 
 ```
 1
@@ -168,7 +183,7 @@ Parameters:
 
 ```
 
-### Response
+### Response[​](#response-3)
 
 ```
 `1{**2    error: false,  

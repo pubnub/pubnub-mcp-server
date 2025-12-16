@@ -1,31 +1,32 @@
 # Publish/Subscribe API for JavaScript SDK
 
-Low-latency global messaging with publish/subscribe, signals, and fire. Use Async/Await (recommended). Use try...catch to capture errors.
+PubNub supports **Callbacks, Promises, and Async/Await** (recommended). With Async/Await, status is returned only on error—use `try...catch` to receive errors.
 
-##### Supported and recommended asynchronous patterns
+---
 
-PubNub supports Callbacks, Promises, and Async/Await. Recommended: Async/Await with try...catch for error status.
+## Publish
 
-## Publish[​](#publish)
+`publish()` sends a message to all subscribers of a **single** channel (cannot publish to multiple channels at once). You must initialize PubNub with a **`publishKey`**. You don’t need to be subscribed to publish.
 
-`publish()` sends a message to all subscribers on a channel. Messages are replicated globally.
+**Security**
+- Enable TLS/SSL by setting `ssl: true` during initialization.
+- Optional message encryption via Crypto Module.
 
-Key points:
-- Initialize with publishKey.
-- You don't need to subscribe to publish.
-- Cannot publish to multiple channels simultaneously.
-- Use TLS/SSL (ssl: true). Optional encryption via CryptoModule.
-- Message data: any JSON-serializable type (objects, arrays, numbers, strings). Avoid special classes/functions.
-- Don't JSON serialize: Pass full objects for message and meta; SDK handles serialization.
-- Size: Max 32 KiB (payload + channel + escaped chars). Target < ~1,800 bytes for best performance. Oversize returns “Message Too Large”.
-- Publish rate: As fast as bandwidth; soft throughput limits. In-memory queue ~100 messages per subscriber; throttle bursts.
-- Optional customMessageType: string label like text, action, poll.
-- Best practices:
-  - Publish serially; wait for success before next.
-  - Verify success return code; retry on failure.
-  - Keep queue under 100; throttle (example: ≤5 msg/sec).
+**Message data**
+- Any **JSON-serializable** value (objects/arrays/strings/numbers). Strings support UTF‑8.
+- **Don’t JSON serialize** `message` or `meta`; PubNub serializes automatically.
 
-### Method(s)[​](#methods)
+**Limits / performance**
+- Max size: **32 KiB** (includes escaped characters and channel name). Recommended: **< 1800 bytes**.
+- Soft throughput limits: subscriber in-memory queue is **100 messages**; bursts can drop messages.
+- Best practice: publish serially, verify success, retry failures, keep queue < 100, throttle bursts (example: ≤ 5 msg/sec).
+
+**Custom message type**
+- Optional `customMessageType` to label message (e.g., `text`, `action`, `poll`).
+
+### Method(s)
+
+To `Publish a message`, you can use the following method(s) in the JavaScript SDK:
 
 ```
 `1pubnub.publish({  
@@ -40,26 +41,36 @@ Key points:
 `
 ```
 
-Parameters:
-- message (required, any): Any JSON type.
-- channel (required, string): Channel ID.
-- storeInHistory (boolean, default true): Store in persistence; if omitted, key’s history setting applies.
-- sendByPost (boolean, default false): Use HTTP POST; compresses body; RESTful best practice.
-- meta (any): Extra metadata.
-- ttl (number): Per-message TTL for persistence.
-- customMessageType (string): 3–50 chars; alphanumeric, dashes, underscores; cannot start with special chars or pn_/pn- (examples: text, action, poll).
+*  requiredParameterDescription`message` *Type: anyDefault:  
+n/aThe `message` may be any valid JSON type including objects, arrays, strings, and numbers.`channel` *Type: stringDefault:  
+n/aSpecifies the `channel` ID to publish messages to.`storeInHistory`Type: booleanDefault:  
+`true`If `true` the messages are stored in history.   
+If `storeInHistory` is not specified, then the history configuration on the key is used.`sendByPost`Type: booleanDefault:  
+`false`When `true`, the SDK uses HTTP POST to publish the messages. The message is sent in the BODY of the request, instead of the query string when HTTP GET is used. Also the messages are compressed thus reducing the size of the messages. Using HTTP POST to publish messages adheres to RESTful API best practices.`meta`Type: anyDefault:  
+n/aPublish extra `meta` with the request.`ttl`Type: numberDefault:  
+n/aSet a per message time to live in Message Persistence. 
+1. $1
+2. $1
+3. $1
+4. $1
 
-### Sample code[​](#sample-code)
+`customMessageType`Type: stringDefault:  
+n/aA case-sensitive, alphanumeric string from 3 to 50 characters describing the business-specific label or category of the message. Dashes `-` and underscores `_` are allowed. The value cannot start with special characters or the string `pn_` or `pn-`.   
+   
+ Examples: `text`, `action`, `poll`.
+
+### Sample code
 
 ##### Reference code
+Self-contained snippet with imports and console logging (used as a base for other examples).
+
+#### Publish a message to a channel
 
 ```
 1
   
 
 ```
-
-#### Publish a message to a channel[​](#publish-a-message-to-a-channel)
 
 ```
 1
@@ -68,10 +79,9 @@ Parameters:
 ```
 
 ##### Subscribe to the channel
+Before running the publish example, subscribe to the same channel (via Debug Console or separate script) as described in [Subscribe](#subscribe).
 
-Before publishing, subscribe to the target channel and add listeners to receive messages.
-
-### Response[​](#response)
+### Response
 
 ```
 `1type PublishResponse = {  
@@ -80,17 +90,9 @@ Before publishing, subscribe to the target channel and add listeners to receive 
 `
 ```
 
-### Other examples[​](#other-examples)
+### Other examples
 
-#### Publish a JSON-serialized message[​](#publish-a-json-serialized-message)
-
-```
-1
-  
-
-```
-
-#### Store the published message for 10 hours[​](#store-the-published-message-for-10-hours)
+#### Publish a JSON-serialized message
 
 ```
 1
@@ -98,7 +100,7 @@ Before publishing, subscribe to the target channel and add listeners to receive 
 
 ```
 
-#### Publish successful[​](#publish-successful)
+#### Store the published message for 10 hours
 
 ```
 1
@@ -106,7 +108,7 @@ Before publishing, subscribe to the target channel and add listeners to receive 
 
 ```
 
-#### Publish unsuccessful by network down[​](#publish-unsuccessful-by-network-down)
+#### Publish successful
 
 ```
 1
@@ -114,7 +116,7 @@ Before publishing, subscribe to the target channel and add listeners to receive 
 
 ```
 
-#### Publish unsuccessful by initialization without a publish key[​](#publish-unsuccessful-by-initialization-without-a-publish-key)
+#### Publish unsuccessful by network down
 
 ```
 1
@@ -122,11 +124,26 @@ Before publishing, subscribe to the target channel and add listeners to receive 
 
 ```
 
-## Fire[​](#fire)
+#### Publish unsuccessful by initialization without a publish key
 
-Sends a message to Functions event handlers and Illuminate on a channel. Not delivered to subscribers and not stored in history.
+```
+1
+  
 
-### Method(s)[​](#methods-1)
+```
+
+---
+
+## Fire
+
+`fire()` sends a message directly to **Functions event handlers** and **Illuminate** handlers registered on the target channel. Messages sent via `fire()`:
+- **aren’t replicated to subscribers**
+- **aren’t stored in history**
+- handler can read request body
+
+### Method(s)
+
+To `Fire a message`, you can use the following method(s) in the JavaScript SDK:
 
 ```
 `1fire({  
@@ -138,15 +155,15 @@ Sends a message to Functions event handlers and Illuminate on a channel. Not del
 `
 ```
 
-Parameters:
-- message (Object): Any JSON type.
-- channel (String): Target channel.
-- sendByPost (Boolean, default false): Send via POST.
-- meta (Object): Extra metadata.
+*  requiredParameterDescription`message` *Type: ObjectDefault:  
+n/aThe `message` may be any valid JSON type including objects, arrays, strings, and numbers.`channel` *Type: StringDefault:  
+n/aSpecifies `channel` ID to publish messages to.`sendByPost`Type: BooleanDefault:  
+`false`If `true` the messages sent via POST.`meta`Type: ObjectDefault:  
+n/aPublish extra `meta` with the request.
 
-### Sample code[​](#sample-code-1)
+### Sample code
 
-#### Fire a message to a channel[​](#fire-a-message-to-a-channel)
+#### Fire a message to a channel
 
 ```
 1
@@ -154,13 +171,17 @@ Parameters:
 
 ```
 
-## Signal[​](#signal)
+---
 
-Sends a lightweight signal to channel subscribers.
+## Signal
 
-- Payload limit: 64 bytes (payload only). Contact support to increase.
+`signal()` sends a signal to all subscribers of a channel.
 
-### Method(s)[​](#methods-2)
+- Default payload limit: **64 bytes** (payload only, not URI/headers). For larger payloads, contact support.
+
+### Method(s)
+
+To `Signal a message`, you can use the following method(s) in the JavaScript SDK:
 
 ```
 `1pubnub.signal({  
@@ -171,14 +192,13 @@ Sends a lightweight signal to channel subscribers.
 `
 ```
 
-Parameters:
-- message (string): Signal payload.
-- channel (string): Target channel.
-- customMessageType (string): 3–50 chars; alphanumeric, dashes, underscores; cannot start with special chars or pn_/pn- (examples: text, action, poll).
+*  requiredParameterDescription`message` *Type: stringThe `message` may be any valid JSON type including objects, arrays, strings, and numbers.`channel` *Type: stringSpecifies `channel` ID to send messages to.`customMessageType`Type: stringA case-sensitive, alphanumeric string from 3 to 50 characters describing the business-specific label or category of the message. Dashes `-` and underscores `_` are allowed. The value cannot start with special characters or the string `pn_` or `pn-`.   
+   
+ Examples: `text`, `action`, `poll`.
 
-### Sample code[​](#sample-code-2)
+### Sample code
 
-#### Signal a message to a channel[​](#signal-a-message-to-a-channel)
+#### Signal a message to a channel
 
 ```
 1
@@ -186,7 +206,7 @@ Parameters:
 
 ```
 
-### Response[​](#response-1)
+### Response
 
 ```
 `1type SignalResponse = {  
@@ -195,23 +215,26 @@ Parameters:
 `
 ```
 
-## Subscribe[​](#subscribe)
+---
 
-Opens a persistent connection to receive messages and events for specified entities. Initialize with subscribeKey.
+## Subscribe
 
-Notes:
-- Newly subscribed clients receive messages after subscribe() completes.
-- retryConfiguration can attempt reconnection and best-effort catch-up.
-- subscribe() only opens the connection; you must add event listeners to receive messages. Message objects include publisher (sender ID).
+`subscribe()` opens a persistent TCP connection and listens for updates on specified entities. You must initialize PubNub with a **`subscribeKey`**.
 
-### Subscription scope[​](#subscription-scope)
+Key points:
+- `subscribe()` **only opens the connection**; to receive messages/events you must add **event listeners**.
+- Message objects delivered through listeners include sender ID in `publisher`.
+- Configure `retryConfiguration` at initialization to auto-reconnect and best-effort retrieve available messages after disconnects.
 
-- subscription: entity-level (e.g., one channel).
-- subscriptionSet: client-level; includes one or more subscriptions; single event listener handles all.
+### Subscription scope
 
-Adding to an existing subscribed set auto-subscribes new entries.
+Two ways to subscribe:
+- **`subscription`**: created from an entity; scoped to that entity (e.g., a single channel).
+- **`subscriptionSet`**: created from the PubNub client; scoped to the client; contains one or more subscriptions.
 
-### Create a subscription[​](#create-a-subscription)
+If you subscribe to a set and later add more subscriptions to it, they are **automatically subscribed**.
+
+### Create a subscription
 
 ```
 `1// entity-based, local-scoped  
@@ -220,9 +243,9 @@ Adding to an existing subscribed set auto-subscribes new entries.
 `
 ```
 
-- subscriptionOptions (subscriptionOptions): Behavior configuration.
+*  requiredParameterDescription`subscriptionOptions`Type: `subscriptionOptions``Subscription` [behavior configuration](#subscriptionoptions).
 
-### Create a subscription set[​](#create-a-subscription-set)
+### Create a subscription set
 
 ```
 `1// client-based, general-scoped  
@@ -234,25 +257,29 @@ Adding to an existing subscribed set auto-subscribes new entries.
 `
 ```
 
-Parameters:
-- channels (string[]): Channels to subscribe. Require channels or channelGroups.
-- channelGroups (string[]): Channel groups. Require channels or channelGroups.
-- subscriptionOptions (subscriptionOptions): Behavior configuration.
+*  requiredParameterDescription → `channels`Type: `string[]`Channels to subscribe to. Either `channels` or `channelGroups` is mandatory. → `channelGroups`Type: `string[]`Channel groups to subscribe to. Either `channels` or `channelGroups` is mandatory. → `subscriptionOptions`Type: `subscriptionOptions``Subscription` [behavior configuration](#subscriptionoptions).
 
-#### `subscriptionOptions`[​](#subscriptionoptions)
+#### `subscriptionOptions`
 
-- receivePresenceEvents (boolean): Deliver presence updates via listeners.
-- cursor (object): Best-effort cached message retrieval from timetoken/region. Structure: cursor?: { timetoken?: string; region?: number }. Non-17-digit numeric or non-numeric strings are ignored.
+`subscriptionOptions` is a class. Available properties include:
 
-#### Modify a subscription set[​](#modify-a-subscription-set)
+OptionTypeDescription`receivePresenceEvents`booleanWhether presence updates for `userId`s should be delivered through the listener streams.   
+   
+ For information on how to receive presence events and what those events are, refer to [Presence Events](/docs/general/presence/presence-events#subscribe-to-presence-channel).`cursor`objectCursor from which to return any available cached messages. Message retrieval with cursor is not guaranteed and should only be considered a best-effort service. A cursor consists of a timetoken and region: `cursor?: { timetoken?: string; region?: number }`   
+   
+ If you pass any primitive type, the SDK converts them into `SubscriptionCursor` but if their value is not a 17-digit number or a string with numeric characters, the provided value will be ignored.
 
-Add or remove subscriptions from a set. New subscriptions are auto-subscribed if the set is active.
+#### Modify a subscription set
 
-### Method(s)[​](#methods-3)
+Add/remove subscriptions to/from a set to create new sets; adding subscriptions to a subscribed set auto-subscribes them.
 
-`subscription` and `subscriptionSet` both use subscribe().
+### Method(s)
 
-#### Subscribe[​](#subscribe-1)
+`subscription` and `subscriptionSet` use the same `subscribe()` method.
+
+#### Subscribe
+
+To subscribe, you can use the following method in the JavaScript SDK:
 
 ```
 `1subscription.subscribe()  
@@ -260,7 +287,7 @@ Add or remove subscriptions from a set. New subscriptions are auto-subscribed if
 `
 ```
 
-##### Sample code[​](#sample-code-3)
+##### Sample code
 
 ```
 1
@@ -269,23 +296,14 @@ Add or remove subscriptions from a set. New subscriptions are auto-subscribed if
 ```
 
 ##### Wildcard subscribe and message objects
+Wildcard subscribe (for example `sports.*`) behaves like regular subscribe; you still need listeners. Message objects include:
+- `publisher`: sender ID
+- `channel`: actual channel name
+- `subscription`: wildcard match
 
-Wildcard (e.g., sports.*) works like regular subscribe; add listeners. Message object includes:
-- publisher: sender ID
-- channel: actual channel name
-- subscription: wildcard pattern matched
+##### Other examples
 
-##### Other examples[​](#other-examples-1)
-
-###### Create a subscription set from 2 individual subscriptions[​](#create-a-subscription-set-from-2-individual-subscriptions)
-
-```
-1
-  
-
-```
-
-###### Create a subscription set from 2 sets[​](#create-a-subscription-set-from-2-sets)
+###### Create a subscription set from 2 individual subscriptions
 
 ```
 1
@@ -293,7 +311,7 @@ Wildcard (e.g., sports.*) works like regular subscribe; add listeners. Message o
 
 ```
 
-###### Add subscriptions to an existing set[​](#add-subscriptions-to-an-existing-set)
+###### Create a subscription set from 2 sets
 
 ```
 1
@@ -301,29 +319,38 @@ Wildcard (e.g., sports.*) works like regular subscribe; add listeners. Message o
 
 ```
 
-##### Returns[​](#returns)
+###### Add subscriptions to an existing set
 
-No return value.
+```
+1
+  
 
-## Entities[​](#entities)
+```
 
-Subscribable objects that emit real-time updates:
+##### Returns
+`subscribe()` has no return value.
 
-- channel
-- channelGroup
-- userMetadata
-- channelMetadata
+---
 
-### Create channels[​](#create-channels)
+## Entities
+
+Entities are subscribable objects for real-time updates.
+
+- `channel`
+- `channelGroup`
+- `userMetadata`
+- `channelMetadata`
+
+### Create channels
 
 ```
 `1pubnub.channel(string)  
 `
 ```
 
-- channel (string): Channel ID.
+*  requiredParameterDescription`channel` *Type: `string`The ID of the [channel](/docs/general/channels/overview) to create a subscription of.
 
-#### Sample code[​](#sample-code-4)
+#### Sample code
 
 ```
 1
@@ -331,16 +358,16 @@ Subscribable objects that emit real-time updates:
 
 ```
 
-### Create channel groups[​](#create-channel-groups)
+### Create channel groups
 
 ```
 `1pubnub.channelGroup(string)  
 `
 ```
 
-- channel_group (string): Channel group name.
+*  requiredParameterDescription`channel_group` *Type: `string`The name of the [channel group](/docs/general/channels/subscribe#channel-groups) to create a subscription of.
 
-#### Sample code[​](#sample-code-5)
+#### Sample code
 
 ```
 1
@@ -348,16 +375,16 @@ Subscribable objects that emit real-time updates:
 
 ```
 
-### Create channel metadata[​](#create-channel-metadata)
+### Create channel metadata
 
 ```
 `1pubnub.channelMetadata(string)  
 `
 ```
 
-- channelMetadata (string): Channel metadata identifier.
+*  requiredParameterDescription`channelMetadata` *Type: `string`The String identifier of the [channel metadata](/docs/general/metadata/channel-metadata) object to create a subscription of.
 
-#### Sample code[​](#sample-code-6)
+#### Sample code
 
 ```
 1
@@ -365,32 +392,16 @@ Subscribable objects that emit real-time updates:
 
 ```
 
-### Create user metadata[​](#create-user-metadata)
+### Create user metadata
 
 ```
 `1pubnub.userMetadata(string)  
 `
 ```
 
-- userMetadata (string): User metadata identifier.
+*  requiredParameterDescription`userMetadata` *Type: `string`The String identifier of the [user metadata](/docs/general/metadata/users-metadata) object to create a subscription of.
 
-#### Sample code[​](#sample-code-7)
-
-```
-1
-  
-
-```
-
-## Event listeners[​](#event-listeners)
-
-Attach listeners to subscription, subscriptionSet, or PubNub client (for connection status) to receive messages, signals, files, presence, etc.
-
-### Add listeners[​](#add-listeners)
-
-Supports multiple listeners and event-specific listeners (message, file, etc.).
-
-#### Method(s)[​](#methods-4)
+#### Sample code
 
 ```
 1
@@ -398,7 +409,28 @@ Supports multiple listeners and event-specific listeners (message, file, etc.).
 
 ```
 
-#### Sample code[​](#sample-code-8)
+---
+
+## Event listeners
+
+Listeners are how your app receives messages, signals, and events. You can attach listeners to:
+- `subscription`
+- `subscriptionSet`
+- PubNub client (connection status)
+
+### Add listeners
+
+You can implement multiple listeners with `addListener()` or register event-specific listeners (e.g., only `message` or `file`).
+
+#### Method(s)
+
+```
+1
+  
+
+```
+
+#### Sample code
 
 ```
 1
@@ -407,18 +439,13 @@ Supports multiple listeners and event-specific listeners (message, file, etc.).
 ```
 
 ##### Message object contains sender information
+Listener-delivered message objects include `publisher` (sender ID), plus content, channel, timetoken, and metadata.
 
-Listener message objects include publisher (sender ID), message content, channel name, timetoken, and metadata.
+### Add connection status listener
 
-### Add connection status listener[​](#add-connection-status-listener)
+Client-scope (PubNub object only) listener for connection status updates.
 
-Client-only listener for connection status.
-
-##### Client scope
-
-Available only on the PubNub client.
-
-#### Method(s)[​](#methods-5)
+#### Method(s)
 
 ```
 1
@@ -426,7 +453,7 @@ Available only on the PubNub client.
 
 ```
 
-#### Sample code[​](#sample-code-9)
+#### Sample code
 
 ```
 1
@@ -434,15 +461,16 @@ Available only on the PubNub client.
 
 ```
 
-#### Returns[​](#returns-1)
+#### Returns
+Subscription status (see [SDK statuses](/docs/general/setup/connection-management#sdk-statuses)).
 
-Subscription status (see SDK statuses).
+---
 
-## Unsubscribe[​](#unsubscribe)
+## Unsubscribe
 
-Stop receiving updates from a subscription or subscriptionSet.
+Stop receiving updates from a `subscription` or `subscriptionSet`.
 
-### Method(s)[​](#methods-6)
+### Method(s)
 
 ```
 1subscription.unsubscribe()  
@@ -452,7 +480,7 @@ Stop receiving updates from a subscription or subscriptionSet.
 
 ```
 
-### Sample code[​](#sample-code-10)
+### Sample code
 
 ```
 1
@@ -460,26 +488,25 @@ Stop receiving updates from a subscription or subscriptionSet.
 
 ```
 
-### Returns[​](#returns-2)
-
+### Returns
 None
 
-## Unsubscribe all[​](#unsubscribe-all)
+---
 
-Stop all streams and remove associated entities.
+## Unsubscribe all
 
-##### Client scope
+Stop receiving updates from **all** data streams and remove associated entities.
 
-Available only on the PubNub client.
+Client scope (PubNub object only).
 
-### Method(s)[​](#methods-7)
+### Method(s)
 
 ```
 `1pubnub.unsubscribeAll()  
 `
 ```
 
-### Sample code[​](#sample-code-11)
+### Sample code
 
 ```
 1
@@ -487,6 +514,5 @@ Available only on the PubNub client.
 
 ```
 
-### Returns[​](#returns-3)
-
+### Returns
 None

@@ -1,36 +1,30 @@
 # Publish/Subscribe API for Objective-C SDK
 
-Low-latency real-time Publish/Subscribe messaging.
+PubNub provides low-latency global message delivery. Publish to a single channel (not multiple at once) and receive messages via listeners.
 
-For conceptual guidance, see Connection Management and Publish Messages.
+---
 
-## Publish[​](#publish)
+## Publish
 
-publish() sends a JSON-serializable message to all subscribers of one channel.
+`publish()` sends a message to all subscribers on a channel (you do **not** need to be subscribed to publish). Successful publishes are replicated across PubNub PoPs and delivered to subscribed clients.
 
-Key points:
-- Initialize with publishKey.
-- You don’t need to subscribe to publish; you can’t publish to multiple channels simultaneously.
-- Enable SSL/TLS in configuration (ssl = true) and optionally enable encryption (cryptoModule).
-- Message data must be JSON-serializable (NSString, NSNumber, NSArray, NSDictionary). Don’t include special classes or functions.
-- Don’t JSON serialize message or meta parameters yourself; the SDK handles it.
-- Max message size: 32 KiB (including escaped payload and channel name). Optimal < 1800 bytes. Over-limit returns Message Too Large. See Message Size Limit.
-- Compression:
-  - Objective-C and C-Core SDKs support compressed messages.
-  - Not enabled by default; explicitly request compression.
-  - PubNub auto-adapts payload for recipients that don’t support compression.
-  - Benefits typically when payload > 1 KiB; very small payloads can expand.
-  - Increased CPU usage for compression/decompression; consider device resources.
-- Publish rate/queue:
-  - Publish as fast as bandwidth allows; subscriber in-memory queue is ~100 messages.
-  - Publishing 200 at once may drop the first ~100 if subscriber lags.
-- customMessageType: Optional string to label/categorize messages (e.g., text, action, poll).
-- Best practices:
-  - Publish serially per channel; publish next only after success response.
-  - On failure, retry.
-  - Avoid queue overflow; throttle bursts (e.g., ≤ 5 msg/s) per app latency needs.
+### Key prerequisites / limits
 
-Refer to the code below for an example of sending a compressed message:
+- Initialize PubNub with a **`publishKey`** to publish.
+- Message must be **JSON-serializable** Foundation objects (`NSString`, `NSNumber`, `NSArray`, `NSDictionary`). Avoid special Objective-C classes/functions.
+- **Do not JSON serialize** `message`/`meta` yourself—SDK serializes automatically.
+- Max message size: **32 KiB** (includes escaped payload + channel name). Optimal: **< 1800 bytes**.
+- If exceeded: `Message Too Large`.
+- Optional transport security: set `ssl = true` during initialization; optional message encryption via `cryptoModule`.
+
+### Compression
+
+- Objective-C SDK supports compressed messages.
+- Not enabled by default; must explicitly set.
+- Best when payload > ~1 KiB; small payloads can expand; compression adds CPU overhead.
+- Server adapts compression format for recipients if needed.
+
+Example (compressed publish):
 
 ```
 `1[self.client publish:@{@"message": @"This message will be compressed"}  
@@ -45,11 +39,21 @@ Refer to the code below for an example of sending a compressed message:
 `
 ```
 
-### Method(s)[​](#methods)
+### Publish rate / queue behavior (soft limits)
 
-To Publish a message you can use the following method(s) in the Objective-C SDK:
+Publish as fast as bandwidth allows, but subscribers may miss messages if they can’t keep up (in-memory queue stores ~100 messages). Recommended: publish serially per channel, check success responses, retry failures, avoid burst overflow (example: throttle to ~5 msg/sec if needed).
 
-#### Publish a message with block[​](#publish-a-message-with-block)
+### Custom message type
+
+Optional `customMessageType` is a business label/category (for example `text`, `action`, `poll`).
+
+---
+
+## Method(s)
+
+To `Publish a message` you can use the following method(s) in the Objective-C SDK:
+
+### Publish a message with block
 
 ```
 `1- (void)publish:(id)message   
@@ -60,7 +64,7 @@ To Publish a message you can use the following method(s) in the Objective-C SDK:
 
 *  requiredParameterDescription`message` *Type: idReference on Foundation object ( `NSString`, `NSNumber`, `NSArray`, `NSDictionary`) which will be published.`channel` *Type: NSStringReference on ID of the `channel` to which `message` should be published.`block`Type: PNPublishCompletionBlock`Publish` processing completion `block` which pass only one argument - request processing status to report about how data pushing was successful or not.
 
-#### Publish a message with compression and block[​](#publish-a-message-with-compression-and-block)
+### Publish a message with compression and block
 
 ```
 `1- (void)publish:(id)message   
@@ -72,7 +76,7 @@ To Publish a message you can use the following method(s) in the Objective-C SDK:
 
 *  requiredParameterDescription`message` *Type: idReference on Foundation object (`NSString`, `NSNumber`, `NSArray`, `NSDictionary`) which will be published.`channel` *Type: NSStringReference on ID of the `channel` to which `message` should be published.`compressed` *Type: BOOLWhether `message` should be `compressed` and sent with request body instead of URI part. Compression useful in case if large data should be published, in another case it will lead to packet size grow.`block`Type: PNPublishCompletionBlockPublish processing completion `block` which pass only one argument - request processing status to report about how data pushing was successful or not.
 
-#### Publish a message with storage and block[​](#publish-a-message-with-storage-and-block)
+### Publish a message with storage and block
 
 ```
 `1- (void)publish:(id)message   
@@ -84,7 +88,7 @@ To Publish a message you can use the following method(s) in the Objective-C SDK:
 
 *  requiredParameterDescription`message` *Type: idReference on Foundation `object` (`NSString`, `NSNumber`, `NSArray`,`NSDictionary`) which will be published.`channel` *Type: NSStringReference on ID of the `channel` to which `message` should be published.`shouldStore` *Type: BOOLWith `NO` this `message` later won't be fetched using Message Persistence API.`block`Type: PNPublishCompletionBlock`Publish` processing completion `block` which pass only one argument - request processing status to report about how data pushing was successful or not.
 
-#### Publish a message with storage, compression, and block[​](#publish-a-message-with-storage-compression-and-block)
+### Publish a message with storage, compression, and block
 
 ```
 `1- (void)publish:(id)message   
@@ -97,7 +101,7 @@ To Publish a message you can use the following method(s) in the Objective-C SDK:
 
 *  requiredParameterDescription`message` *Type: idReference on Foundation object (`NSString`, `NSNumber`, `NSArray`,`NSDictionary`) which will be published.`channel` *Type: NSStringReference on ID of the `channel` to which `message` should be published.`shouldStore` *Type: BOOLWith `NO` this `message` later won't be fetched using Message Persistence API.`compressed` *Type: BOOLCompression useful in case if large data should be published, in another case it will lead to packet size grow.`block`Type: PNPublishCompletionBlock`Publish` processing completion `block` which pass only one argument - request processing status to report about how data pushing was successful or not.
 
-#### Publish a message with payload and block[​](#publish-a-message-with-payload-and-block)
+### Publish a message with payload and block
 
 ```
 `1- (void)publish:(nullable id)message   
@@ -109,7 +113,7 @@ To Publish a message you can use the following method(s) in the Objective-C SDK:
 
 *  requiredParameterDescription`message`Type: idReference on Foundation `object` (`NSString`, `NSNumber`, `NSArray`, `NSDictionary`) which will be published.`channel` *Type: NSStringReference on ID of the `channel` to which `message` should be published.`payloads`Type: NSDictionaryDictionary with payloads for different vendors (Apple with `apns` key and Google with `fcm`).`block`Type: PNPublishCompletionBlockPublish processing completion block which pass only one argument - request processing status to report about how data pushing was successful or not.
 
-#### Publish a message with payload, compression, and block[​](#publish-a-message-with-payload-compression-and-block)
+### Publish a message with payload, compression, and block
 
 ```
 `1- (void)publish:(nullable id)message   
@@ -120,9 +124,9 @@ To Publish a message you can use the following method(s) in the Objective-C SDK:
 `
 ```
 
-*  requiredParameterDescription`message`Type: idReference on Foundation `object` (`NSString`, `NSNumber`, `Array`, `NSDictionary`) which will be published.`channel` *Type: NSStringReference on ID of the `channel` to which `message` should be published.`payloads` *Type: NSDictionaryDictionary with payloads for different vendors (Apple with `apns` key and Google with `fcm`).`compressed` *Type: BOOLCompression useful in case if large data should be published, in another case it will lead to packet size grow.`block`Type: PNPublishCompletionBlockPublish processing completion `block` which pass only one argument - request processing status to report about how data pushing was successful or not.
+*  requiredParameterDescription`message`Type: idReference on Foundation `object` (`NSString`, `NSNumber`, `NSArray`, `NSDictionary`) which will be published.`channel` *Type: NSStringReference on ID of the `channel` to which `message` should be published.`payloads` *Type: NSDictionaryDictionary with payloads for different vendors (Apple with `apns` key and Google with `fcm`).`compressed` *Type: BOOLCompression useful in case if large data should be published, in another case it will lead to packet size grow.`block`Type: PNPublishCompletionBlockPublish processing completion `block` which pass only one argument - request processing status to report about how data pushing was successful or not.
 
-#### Publish a message with payload, storage, and block[​](#publish-a-message-with-payload-storage-and-block)
+### Publish a message with payload, storage, and block
 
 ```
 `1- (void)publish:(nullable id)message   
@@ -135,7 +139,7 @@ To Publish a message you can use the following method(s) in the Objective-C SDK:
 
 *  requiredParameterDescription`message`Type: idReference on Foundation `object` (`NSString`, `NSNumber`, `NSArray`,`NSDictionary`) which will be published.`channel` *Type: NSStringReference on ID of the `channel` to which `message` should be published.`payloads`Type: NSDictionaryDictionary with payloads for different vendors (Apple with `apns` key and Google with `fcm`).`shouldStore` *Type: BOOLWith `NO` this `message` later won't be fetched using Message Persistence API.`block`Type: PNPublishCompletionBlockPublish processing completion `block` which pass only one argument - request processing status to report about how data pushing was successful or not.
 
-#### Publish a message with payloads, storage, compression, and block[​](#publish-a-message-with-payloads-storage-compression-and-block)
+### Publish a message with payloads, storage, compression, and block
 
 ```
 `1- (void)publish:(nullable id)message   
@@ -149,7 +153,7 @@ To Publish a message you can use the following method(s) in the Objective-C SDK:
 
 *  requiredParameterDescription`message`Type: idReference on Foundation `object` (`NSString`, `NSNumber`, `NSArray`,`NSDictionary`) which will be published.`channel` *Type: NSStringReference on ID of the `channel` to which message should be published.`payloads`Type: NSDictionaryDictionary with payloads for different vendors (Apple with "apns" key and Google with "fcm").`shouldStore` *Type: BOOLWith `NO` this `message` later won't be fetched using Message Persistence API.`compressed` *Type: BOOLCompression useful in case if large data should be published, in another case it will lead to packet size grow.`block`Type: PNPublishCompletionBlockPublish processing completion block which pass only one argument - request processing status to report about how data pushing was successful or not.
 
-#### Publish a message with metadata and block[​](#publish-a-message-with-metadata-and-block)
+### Publish a message with metadata and block
 
 ```
 `1- (void)publish:(id)message   
@@ -161,7 +165,7 @@ To Publish a message you can use the following method(s) in the Objective-C SDK:
 
 *  requiredParameterDescription`message` *Type: idThe `message` may be any valid foundation `object` (`String`, `NSNumber`, `Array`, `Dictionary`).`channel` *Type: NSStringSpecifies `channel` ID to publish messages to.`metadata`Type: NSDictionary`NSDictionary` with values which should be used by `PubNub` service to filter messages.`block`Type: PNPublishCompletionBlockThe completion `block` which will be called when the processing is complete, has one argument: - `request` status reports the publish was successful or not (`errorData` contains error information in case of failure).
 
-#### Publish a message with compression, metadata, and block[​](#publish-a-message-with-compression-metadata-and-block)
+### Publish a message with compression, metadata, and block
 
 ```
 `1- (void)publish:(id)message   
@@ -174,7 +178,7 @@ To Publish a message you can use the following method(s) in the Objective-C SDK:
 
 *  requiredParameterDescription`message` *Type: idThe `message` may be any valid foundation `object` (`String`, `NSNumber`, `Array`, `Dictionary`).`channel` *Type: NSStringSpecifies `channel` ID to publish messages to.`compressed` *Type: BOOLIf `true` the `message` will be `compressed` and sent with request body instead of the URI. Compression useful in case of large data, in another cases it will increase the packet size.`metadata`Type: NSDictionary`NSDictionary` with values which should be used by `PubNub` service to filter messages.`block`Type: PNPublishCompletionBlockThe completion `block` which will be called when the processing is complete, has one argument: - `request` status reports the publish was successful or not (`errorData` contains error information in case of failure).
 
-#### Publish a message with storage, metadata, and block[​](#publish-a-message-with-storage-metadata-and-block)
+### Publish a message with storage, metadata, and block
 
 ```
 `1- (void)publish:(id)message   
@@ -187,7 +191,7 @@ To Publish a message you can use the following method(s) in the Objective-C SDK:
 
 *  requiredParameterDescription`message` *Type: idThe `message` may be any valid foundation `object` (`String`, `NSNumber`, `Array`, `Dictionary`).`channel` *Type: NSStringSpecifies `channel` ID to publish messages to.`shouldStore` *Type: BOOLIf `false` the messages will not be stored in Message Persistence, default `true`.`metadata`Type: NSDictionary`NSDictionary` with values which should be used by `PubNub` service to filter messages.`block`Type: PNPublishCompletionBlockThe completion `block` which will be called when the processing is complete, has one argument: - `request` status reports the publish was successful or not (`errorData` contains error information in case of failure).
 
-#### Publish a message with storage, compression, metadata, and block[​](#publish-a-message-with-storage-compression-metadata-and-block)
+### Publish a message with storage, compression, metadata, and block
 
 ```
 `1- (void)publish:(id)message   
@@ -201,7 +205,7 @@ To Publish a message you can use the following method(s) in the Objective-C SDK:
 
 *  requiredParameterDescription`message` *Type: idThe `message` may be any valid foundation `object` (`String`, `NSNumber`, `Array`, `Dictionary`).`channel` *Type: NSStringSpecifies `channel` ID to publish messages to.`shouldStore` *Type: BOOLIf `false` the messages will not be stored in Message Persistence, default `true`.`compressed` *Type: BOOLIf `true` the `message` will be `compressed` and sent with request body instead of the URI. Compression useful in case of large data, in another cases it will increase the packet size.`metadata`Type: NSDictionary`NSDictionary` with values which should be used by `PubNub` service to filter messages.`block`Type: PNPublishCompletionBlockThe completion `block` which will be called when the processing is complete, has one argument: - `request` status reports the publish was successful or not (`errorData` contains error information in case of failure).
 
-#### Publish a message with payload, metadata, and block[​](#publish-a-message-with-payload-metadata-and-block)
+### Publish a message with payload, metadata, and block
 
 ```
 `1- (void)publish:(nullable id)message   
@@ -214,7 +218,7 @@ To Publish a message you can use the following method(s) in the Objective-C SDK:
 
 *  requiredParameterDescription`message`Type: idThe `message` may be any valid foundation `object` (`String`, `NSNumber`, `Array`, `Dictionary`).`channel` *Type: NSStringSpecifies `channel` ID to publish messages to.`payloads`Type: NSDictionaryDictionary with `payloads` for different vendors (Apple with `aps` key and Google with `fcm`). Either payloads or `message` should be provided..`metadata`Type: NSDictionary`NSDictionary` with values which should be used by `PubNub` service to filter messages.`block`Type: PNPublishCompletionBlockThe completion `block` which will be called when the processing is complete, has one argument: - `request` status reports the publish was successful or not (`errorData` contains error information in case of failure).
 
-#### Publish a message with payload, compression, metadata, and block[​](#publish-a-message-with-payload-compression-metadata-and-block)
+### Publish a message with payload, compression, metadata, and block
 
 ```
 `1- (void)publish:(nullable id)message   
@@ -228,7 +232,7 @@ To Publish a message you can use the following method(s) in the Objective-C SDK:
 
 *  requiredParameterDescription`message`Type: idThe `message` may be any valid foundation object (`String`, `NSNumber`, `Array`, `Dictionary`).`channel` *Type: NSStringSpecifies `channel` ID to `publish` messages to.`payloads`Type: NSDictionaryDictionary with `payloads` for different vendors (Apple with `aps` key and Google with `fcm`). Either `payloads` or `message` should be provided.`compressed` *Type: BOOLIf `true` the `message` will be compressed and sent with request body instead of the URI. Compression useful in case of large data, in another cases it will increase the packet size.`metadata`Type: NSDictionary`NSDictionary` with values which should be used by `PubNub` service to filter messages.`block`Type: PNPublishCompletionBlockThe completion `block` which will be called when the processing is complete, has one argument: - `request` status reports the publish was successful or not (`errorData` contains error information in case of failure).
 
-#### Publish a message with payload, storage, metadata, and block[​](#publish-a-message-with-payload-storage-metadata-and-block)
+### Publish a message with payload, storage, metadata, and block
 
 ```
 `1- (void)publish:(nullable id)message   
@@ -242,7 +246,7 @@ To Publish a message you can use the following method(s) in the Objective-C SDK:
 
 *  requiredParameterDescription`message`Type: idThe `message` may be any valid foundation `object` (`String`, `NSNumber`, `Array`, `Dictionary`).`channel` *Type: NSStringSpecifies `channel` ID to publish messages to.`payloads`Type: NSDictionaryDictionary with `payloads` for different vendors (Apple with `a ps` key and Google with `fcm`). Either `payloads` or `message` should be provided.`shouldStore` *Type: BOOLIf `false` the messages will not be stored in Message Persistence, default `true`.`metadata`Type: NSDictionary`NSDictionary` with values which should be used by `PubNub` service to filter messages.`block`Type: PNPublishCompletionBlockThe completion `block` which will be called when the processing is complete, has one argument: - `request` status reports the publish was successful or not (`errorData` contains error information in case of failure).
 
-#### Publish a message with payload, storage, compression, metadata, and block[​](#publish-a-message-with-payload-storage-compression-metadata-and-block)
+### Publish a message with payload, storage, compression, metadata, and block
 
 ```
 `1- (void)publish:(nullable id)message   
@@ -257,9 +261,11 @@ To Publish a message you can use the following method(s) in the Objective-C SDK:
 
 *  requiredParameterDescription`message`Type: idThe `message` may be any valid foundation object (`String`, `NSNumber`, `Array`, `Dictionary`).`channel` *Type: NSStringSpecifies `channel` ID to `publish` messages to.`payloads`Type: NSDictionaryDictionary with `payloads` for different vendors (Apple with `aps` key and Google with `fcm`). Either `payloads` or `message` should be provided.`shouldStore` *Type: BOOLIf `false` the messages will not be stored in Message Persistence, default `true`.`compressed` *Type: BOOLIf `true` the `message` will be compressed and sent with request body instead of the URI. Compression useful in case of large data, in another cases it will increase the packet size.`metadata`Type: NSDictionary`NSDictionary` with values which should be used by `PubNub` service to filter messages.`block`Type: PNPublishCompletionBlockThe completion `block` which will be called when the processing is complete, has one argument: - `request` status reports the publish was successful or not (`errorData` contains error information in case of failure).
 
-### Sample code[​](#sample-code)
+---
 
-#### Publish a message to a channel[​](#publish-a-message-to-a-channel)
+## Sample code
+
+### Publish a message to a channel
 
 ```
 1#import Foundation/Foundation.h>  
@@ -434,15 +440,14 @@ To Publish a message you can use the following method(s) in the Objective-C SDK:
 147}  
 
 ```
-show all 147 lines
 
-##### Subscribe to the channel
+> Subscribe to the same channel (via Debug Console or another client) to see delivered messages.
 
-Before running the above publish example, either using the Debug Console or in a separate script, subscribe to the same channel.
+---
 
-### Response[​](#response)
+## Response
 
-Response objects returned by client when publish API is used:
+Response objects which is returned by client when publish API is used:
 
 ```
 1@interface PNPublishData : PNServiceData  
@@ -465,9 +470,11 @@ Response objects returned by client when publish API is used:
 
 ```
 
-### Other examples[​](#other-examples)
+---
 
-#### Publish with metadata[​](#publish-with-metadata)
+## Other examples
+
+### Publish with metadata
 
 ```
 1[self publish: @"Hello from the PubNub Objective-C" toChannel:@"chat_channel"  
@@ -494,23 +501,18 @@ Response objects returned by client when publish API is used:
 19}];  
 
 ```
-show all 19 lines
 
-#### Push payload helper[​](#push-payload-helper)
+### Push payload helper
 
-Use helper to format payload for Push messages. See Create Push Payload Helper Section.
+Helper can format APNS/FCM payloads for Push publishing. See **Create Push Payload Helper** section in misc docs.
 
-## Publish (builder pattern)[​](#publish-builder-pattern)
+---
 
-This function publishes a message on a channel using fluent setters.
+## Publish (builder pattern)
 
-##### Note
+Publishes a message using builder pattern; omit optional args as needed.
 
-This method uses the builder pattern; optional args can be omitted.
-
-### Method(s)[​](#methods-1)
-
-To run Publish Builder you can use the following method(s) in the Objective-C SDK:
+### Method(s)
 
 ```
 `1publish()  
@@ -531,9 +533,9 @@ Default `YES`.`compress`Type: BOOLIf `YES` the `message` will be compressed and 
    
  Examples: `text`, `action`, `poll`.`block`Type: PNPublishCompletionBlockThe completion `block` which will be called when the processing is complete, has one argument: - `request` status reports the publish was successful or not (`errorData` contains error information in case of failure).
 
-### Sample code[​](#sample-code-1)
+### Sample code
 
-Publish message stored for 16 hours:
+Publish message stored in Message Persistence for next 16 hours.
 
 ```
 1self.client.publish()  
@@ -565,19 +567,18 @@ Publish message stored for 16 hours:
 24});  
 
 ```
-show all 24 lines
 
-## Fire (builder pattern)[​](#fire-builder-pattern)
+---
 
-Send messages directly to BLOCKS Event Handlers; not replicated or stored.
+## Fire (builder pattern)
 
-##### Note
+`fire()` sends a message to **BLOCKS Event Handlers** only. Fired messages:
+- trigger Event Handlers on the channel
+- are **not replicated**
+- are **not received by subscribers**
+- are **not stored in history**
 
-This method uses the builder pattern; optional args can be omitted.
-
-### Method(s)[​](#methods-2)
-
-To Fire a message you can use the following method(s) in the Objective-C SDK:
+### Method(s)
 
 ```
 `1fire()  
@@ -592,7 +593,7 @@ To Fire a message you can use the following method(s) in the Objective-C SDK:
 
 *  requiredParameterDescription`message`Type: idThe `message` may be any valid foundation object (`NSString`, `NSNumber`, `NSArray`, `NSDictionary`).`channel` *Type: NSStringSpecifies `channel` ID to `publish` messages to.`compress`Type: BOOLIf `YES` the `message` will be compressed and sent with request body instead of the URI. Compression useful in case of large data, in another cases it will increase the packet size.`payloads`Type: NSDictionaryDictionary with `payloads` for different vendors (Apple with `aps` key and Google with `fcm`). Either `payloads` or `message` should be provided.`metadata`Type: NSDictionary`NSDictionary` with values which should be used by `PubNub` service to filter messages.`block`Type: PNPublishCompletionBlockThe completion `block` which will be called when the processing is complete, has one argument: - `request` status reports the publish was successful or not (`errorData` contains error information in case of failure).
 
-### Sample code[​](#sample-code-2)
+### Sample code
 
 ```
 1self.client.fire()  
@@ -622,16 +623,16 @@ To Fire a message you can use the following method(s) in the Objective-C SDK:
 22});  
 
 ```
-show all 22 lines
 
-## Signal[​](#signal)
+---
 
-signal() sends a signal to all subscribers of a channel.
-- Payload limit: 64 bytes (payload only). Contact support for larger limits.
+## Signal
 
-### Method(s)[​](#methods-3)
+`signal()` sends a lightweight message to all subscribers of a channel.
 
-To Signal a message you can use the following method(s) in the Objective-C SDK:
+- Default signal payload limit: **64 bytes** (payload only; excludes URI/headers). Larger limits require support request.
+
+### Method(s)
 
 ```
 `1- (void)signal:(id)message   
@@ -642,9 +643,9 @@ To Signal a message you can use the following method(s) in the Objective-C SDK:
 
 *  requiredParameterDescription`message` *Type: idObject (`NSString`, `NSNumber`, `NSArray`, `NSDictionary`) which will be sent with signal.`channel` *Type: NSStringID of the `channel` to which `signal` should be sent.`block`Type: PNSignalCompletionBlockSignal processing completion `block` which pass only one argument - request processing status to report about how data pushing was successful or not.
 
-### Sample code[​](#sample-code-3)
+### Sample code
 
-#### Signal a message to a channel[​](#signal-a-message-to-a-channel)
+#### Signal a message to a channel
 
 ```
 1[self.client signal:@{ @"Hello": @"world" } channel:@"announcement"  
@@ -665,7 +666,7 @@ To Signal a message you can use the following method(s) in the Objective-C SDK:
 
 ```
 
-### Response[​](#response-1)
+### Response
 
 Response objects returned by the client when Signal API is used:
 
@@ -690,15 +691,11 @@ Response objects returned by the client when Signal API is used:
 
 ```
 
-## Signal (builder pattern)[​](#signal-builder-pattern)
+---
 
-##### Note
+## Signal (builder pattern)
 
-This method uses the builder pattern; optional args can be omitted.
-
-### Method(s)[​](#methods-4)
-
-To run Signal Builder you can use the following method(s) in the Objective-C SDK:
+### Method(s)
 
 ```
 `1signal()  
@@ -713,9 +710,9 @@ To run Signal Builder you can use the following method(s) in the Objective-C SDK
    
  Examples: `text`, `action`, `poll`.`block`Type: PNSignalCompletionBlockSignal processing completion `block` which pass only one argument - request processing status to report about how data pushing was successful or not.
 
-### Sample code[​](#sample-code-4)
+### Sample code
 
-#### Signal a message to a channel[​](#signal-a-message-to-a-channel-1)
+#### Signal a message to a channel
 
 ```
 1self.client.signal().message(@{ @"Hello": @"world" }).channel(@"announcement").customMessageType(@"text-message-signal").performWithCompletion(^(PNSignalStatus *status) {  
@@ -735,7 +732,7 @@ To run Signal Builder you can use the following method(s) in the Objective-C SDK
 
 ```
 
-##### Response[​](#response-2)
+##### Response
 
 Response objects which is returned by client when Signal API is used::
 
@@ -760,25 +757,25 @@ Response objects which is returned by client when Signal API is used::
 
 ```
 
-## Subscribe[​](#subscribe)
+---
 
-### Receive messages[​](#receive-messages)
+## Subscribe
 
-Add a single event listener (PNObjectEventListener) to receive messages, signals, and events on subscribed channels.
+### Receive messages
 
-### Description[​](#description)
+Apps receive messages/signals/events via event listeners (single entry point). Add a listener per SDK docs.
 
-Opens a TCP socket and listens on specified channels. Requires subscribeKey. By default, you receive messages published after subscribe completes.
+### Description
 
-Connectivity:
-- Use the connect callback for publish-after-subscribe race avoidance.
-- Set restore = YES for best-effort catch-up after disconnect (default reconnect after ~320s timeout).
+Subscribing opens a TCP connection and listens on specified channels. Requires `subscribeKey` at initialization. By default, a newly subscribed client receives messages published **after** the subscribe call completes.
 
-Unsubscribing from all channels resets last timetoken and can cause message gaps.
+- Connectivity: wait for `connect` callback to avoid publish/subscribe race conditions.
+- Auto-reconnect + catch-up: set `restore = YES` to attempt reconnection and retrieve missed messages (best-effort); default reconnection attempt after **320s** timeout.
+- **Unsubscribe all caution:** unsubscribing from all channels resets last timetoken, potentially causing message gaps vs unsubscribing selectively.
 
-### Method(s)[​](#methods-5)
+### Method(s)
 
-To Subscribe to a channel you can use the following method(s) in the Objective-C SDK:
+To `Subscribe to a channel` you can use the following method(s) in the Objective-C SDK:
 
 ```
 `1- (void)subscribeToChannels:(NSArrayNSString *> *)channels   
@@ -788,7 +785,7 @@ To Subscribe to a channel you can use the following method(s) in the Objective-C
 
 *  requiredParameterDescription`channels` *Type: NSArrayList of `channel` IDs on which client should try to `subscribe`.`shouldObservePresence` *Type: BOOLWhether presence observation should be enabled for `channels` or not.   
    
- For information on how to receive presence events and what those events are, refer to Presence Events.
+ For information on how to receive presence events and what those events are, refer to [Presence Events](/docs/general/presence/presence-events#subscribe-to-presence-channel).
 
 ```
 `1- (void)subscribeToChannels:(NSArrayNSString *> *)channels   
@@ -818,7 +815,7 @@ To Subscribe to a channel you can use the following method(s) in the Objective-C
 
 *  requiredParameterDescription`channels` *Type: NSArrayList of `channel` IDs on which client should try to `subscribe`.`shouldObservePresence` *Type: BOOLWhether presence observation should be enabled for `channels` or not.`timeToken`Type: NSNumberSpecifies time from which to start returning any available cached messages. `Message` retrieval with `timetoken` is not guaranteed and should only be considered a best-effort service.`state`Type: NSDictionaryReference on dictionary which stores key-value pairs based on `channel` ID and value which should be assigned to it.
 
-### Sample code[​](#sample-code-5)
+### Sample code
 
 Subscribe to a channel:
 
@@ -859,7 +856,8 @@ Subscribe to a channel:
 28                // For a subscribe, this is expected, and means there are no errors or issues  
 29            }  
 30            else {  
-31  
+31
+  
 32                // This usually occurs if there is a transient error. The subscribe fails but  
 33                 // then reconnects, and there is no longer any issue.  
 34            }  
@@ -877,12 +875,14 @@ Subscribe to a channel:
   
 45            PNErrorStatus *errorStatus = (PNErrorStatus *)status;  
 46            if (errorStatus.category == PNAccessDeniedCategory) {  
-47  
+47
+  
 48                // Access Manager prohibited this client from subscribing to this channel and channel group.  
 49                // This is another explicit error.  
 50            }  
 51            else {  
-52  
+52
+  
 53                /**  
 54                 You can directly specify more errors by creating explicit cases  
 55                 for other categories of `PNStatusCategory` errors, such as:  
@@ -914,7 +914,8 @@ Subscribe to a channel:
 78         PNObjectEventListener callback, refer to  
 79         http://www.pubnub.com/docs/sdks/objective-c/api-reference/configuration#configuration_basic_usage  
 80         */  
-81  
+81
+  
 82        if (!status.isError) { /* Heartbeat operation was successful */ }  
 83        else { /* There was an error with the heartbeat operation: handle it here */ }  
 84    }  
@@ -935,9 +936,8 @@ Subscribe to a channel:
 97}  
 
 ```
-show all 97 lines
 
-### Response[​](#response-3)
+### Response
 
 ```
 1@interface PNSubscriberData : PNServiceData  
@@ -949,138 +949,181 @@ show all 97 lines
   
 6// Name of channel or channel group (if not equal to channel name).  
 7@property (nonatomic, nullable, readonly, strong) NSString *subscription;  
-8  
+8
+  
 9// Time at which the event arrived.  
 10@property (nonatomic, readonly, strong) NSNumber *timetoken;  
-11  
+11
+  
 12// Stores a reference to the metadata information passed along with the received event.  
 13@property (nonatomic, nullable, readonly, strong) NSDictionaryNSString *, id> *userMetadata;  
-14  
+14
+  
 15@end  
-16  
+16
+  
 17@interface PNSubscribeStatus : PNErrorStatus  
-18  
+18
+  
 19// Timetoken used to establish the current subscription cycle.  
 20@property (nonatomic, readonly, strong) NSNumber *currentTimetoken;  
-21  
+21
+  
 22// Stores a reference to the previous key used in the subscription cycle to receive  
 23// currentTimetoken along with other events.  
 24@property (nonatomic, readonly, strong) NSNumber *lastTimeToken;  
-25  
+25
+  
 26// List of channels to which the client is currently subscribed.  
 27@property (nonatomic, readonly, copy) NSArrayNSString *> *subscribedChannels;  
-28  
+28
+  
 29//  List of channel group names to which the client is currently subscribed.  
 30@property (nonatomic, readonly, copy) NSArrayNSString *> *subscribedChannelGroups;  
-31  
+31
+  
 32// Structured PNResult data field information.  
 33@property (nonatomic, readonly, strong) PNSubscriberData *data;  
-34  
+34
+  
 35@end  
-36  
+36
+  
 37// Message arrives to event listeners as model described below  
-38  
+38
+  
 39@interface PNMessageData : PNSubscriberData  
-40  
+40
+  
 41// Message sender identifier.  
 42@property (nonatomic, readonly, strong) NSString *publisher;  
-43  
+43
+  
 44// Message delivered through the data object live feed.  
 45@property (nonatomic, nullable, readonly, strong) id message;  
-46  
+46
+  
 47@end  
-48  
+48
+  
 49@interface PNMessageResult : PNResult  
-50  
+50
+  
 51// Stores a reference to the message object from live feed.  
 52@property (nonatomic, readonly, strong) PNMessageData *data;  
-53  
+53
+  
 54@end  
-55  
+55
+  
 56// Signal arrives to event listeners as model described below  
 57@interface PNSignalData : PNMessageData  
-58  
+58
+  
 59// Signal sender identifier.  
 60@property (nonatomic, readonly, strong) NSString *publisher;  
-61  
+61
+  
 62// Signal message delivered through the data object live feed.  
 63@property (nonatomic, nullable, readonly, strong) id message;  
-64  
+64
+  
 65@end  
-66  
+66
+  
 67@interface PNSignalResult : PNResult  
-68  
+68
+  
 69// Stores reference to signal object from live feed.  
 70@property (nonatomic, readonly, strong) PNSignalData *data;  
-71  
+71
+  
 72@end  
-73  
+73
+  
 74// Object events arrive to event listeners as model described below  
 75@interface PNObjectEventData : PNSubscriberData  
-76  
+76
+  
 77// This property will be set only if event 'type' is 'channel' and represent channel metadata.  
 78@property (nonatomic, nullable, readonly, strong) PNChannelMetadata *channelMetadata;  
-79  
+79
+  
 80// This property will be set only if event 'type' is 'uuid' and represent uuid metadata.  
 81@property (nonatomic, nullable, readonly, strong) PNUUIDMetadata *uuidMetadata;  
-82  
+82
+  
 83// This property will be set only if event `type` is 'membership' and represent uuid membership.  
 84@property (nonatomic, nullable, readonly, strong) PNMembership *membership;  
-85  
+85
+  
 86// Time when object event has been triggered.  
 87@property (nonatomic, readonly, strong) NSNumber *timestamp;  
-88  
+88
+  
 89// Name of action for which object event has been sent.  
 90@property (nonatomic, readonly, strong) NSString *event;  
-91  
+91
+  
 92// Type of object which has been changed and triggered event.  
 93@property (nonatomic, readonly, strong) NSString *type;  
-94  
+94
+  
 95@end  
-96  
+96
+  
 97@interface PNObjectEventResult : PNResult  
-98  
+98
+  
 99// Object event object from live feed.  
 100@property (nonatomic, readonly, strong) PNObjectEventData *data;  
-101  
+101
+  
 102@end  
-103  
+103
+  
 104// Message action events arrive to event listeners as model described below  
 105@interface PNMessageActionData : PNSubscriberData  
-106  
+106
+  
 107// Action for which event has been received.  
 108@property (nonatomic, readonly, strong) PNMessageAction *action;  
-109  
+109
+  
 110// Name of action for which message action event has been sent ('added') or ('removed')  
 111@property (nonatomic, readonly, copy) NSString *event;  
-112  
+112
+  
 113@end  
-114  
+114
+  
 115@interface PNMessageActionResult : PNResult  
-116  
+116
+  
 117// Message action object from live feed.  
 118@property (nonatomic, readonly, strong) PNMessageActionData *data;  
-119  
+119
+  
 120@end  
 
 ```
-show all 120 lines
 
-### Other examples[​](#other-examples-1)
+---
 
-#### Wildcard subscribe to channels[​](#wildcard-subscribe-to-channels)
+## Other examples
 
-Requires Stream Controller add-on (Enable Wildcard Subscribe in Admin Portal).
-- Only one wildcard level supported: a.*. Grants/revokes must match wildcard pattern used.
+### Wildcard subscribe to channels
+
+Requires *Stream Controller* add-on and wildcard enabled in Admin Portal. Supports one level: `a.*`.
 
 ```
 `1[self.client subscribeToChannels: @[@"my_channel.*"] withPresence:YES];  
 `
 ```
 
-#### Subscribing to a Presence channel[​](#subscribing-to-a-presence-channel)
+### Subscribing to a Presence channel
 
-Requires Presence add-on. Subscribe directly to my_channel-pnpres to receive presence events.
+Requires Presence add-on. Presence channel is `<channel>-pnpres`.
 
 ```
 1/**  
@@ -1101,14 +1144,13 @@ Requires Presence add-on. Subscribe directly to my_channel-pnpres to receive pre
 13        // Presence event has been received on channel group stored in event.data.subscription.  
 14    }  
 15    else {  
-16  
+16
+  
 17        // Presence event has been received on channel stored in event.data.channel.  
 18    }  
-19
-  
+19  
 20    if (![event.data.presenceEvent isEqualToString:@"state-change"]) {  
-21
-  
+21  
 22        NSLog(@"%@ \"%@'ed\"\nat: %@ on %@ (Occupancy: %@)", event.data.presence.uuid,  
 23                event.data.presenceEvent, event.data.presence.timetoken, event.data.channel,  
 24                event.data.presence.occupancy);  
@@ -1121,11 +1163,10 @@ Requires Presence add-on. Subscribe directly to my_channel-pnpres to receive pre
 31}  
 
 ```
-show all 31 lines
 
-#### Sample Responses[​](#sample-responses)
+#### Sample Responses
 
-##### Join event[​](#join-event)
+##### Join event
 
 ```
 `1{  
@@ -1137,7 +1178,7 @@ show all 31 lines
 `
 ```
 
-##### Leave event[​](#leave-event)
+##### Leave event
 
 ```
 `1{  
@@ -1149,7 +1190,7 @@ show all 31 lines
 `
 ```
 
-##### Timeout event[​](#timeout-event)
+##### Timeout event
 
 ```
 `1{  
@@ -1161,7 +1202,7 @@ show all 31 lines
 `
 ```
 
-##### State change event[​](#state-change-event)
+##### State change event
 
 ```
 `1{  
@@ -1175,7 +1216,7 @@ show all 31 lines
 `
 ```
 
-##### Interval event[​](#interval-event)
+##### Interval event
 
 ```
 `1{  
@@ -1186,7 +1227,7 @@ show all 31 lines
 `
 ```
 
-When presence_deltas is enabled, interval may also include joined, left, timedout arrays. If the interval message would exceed ~30 KB, the arrays are omitted and here_now_refresh: true is included; call hereNow to fetch the full list.
+With `presence_deltas` enabled, interval may include `joined`, `left`, `timedout`:
 
 ```
 `1{  
@@ -1199,6 +1240,8 @@ When presence_deltas is enabled, interval may also include joined, left, timedou
 `
 ```
 
+If full interval message > ~30KB, extra fields omitted and `here_now_refresh: true` is sent:
+
 ```
 `1{  
 2    "action" : "interval",  
@@ -1209,11 +1252,9 @@ When presence_deltas is enabled, interval may also include joined, left, timedou
 `
 ```
 
-#### Subscribing with state[​](#subscribing-with-state)
+### Subscribing with state
 
-Requires Presence add-on.
-
-Required UUID: Always set configuration.uuid to a stable, unique value for the user/device.
+Requires Presence add-on and a persistent UUID.
 
 ```
 1// Initialize and configure PubNub client instance  
@@ -1225,16 +1266,13 @@ Required UUID: Always set configuration.uuid to a stable, unique value for the u
   
 7// Subscribe to demo channel with presence observation  
 8[self.client subscribeToChannels: @[@"my_channel"] withPresence:YES];  
-9
-  
+9  
 10- (void)client:(PubNub *)client didReceiveStatus:(PNStatus *)status {  
-11
-  
+11  
 12    if (status.category == PNConnectedCategory) {  
 13        [self.client setState: @{@"new": @"state"} forUUID:self.client.uuid onChannel: @"my_channel"  
 14                withCompletion:^(PNClientStateUpdateStatus *status) {  
-15
-  
+15  
 16            if (!status.isError) {  
 17                // Client state successfully modified on specified channel.  
 18            } else {  
@@ -1250,16 +1288,13 @@ Required UUID: Always set configuration.uuid to a stable, unique value for the u
 28        }];  
 29    }  
 30}  
-31
-  
+31  
 32// Handle new message from one of channels on which client has been subscribed.  
 33- (void)client:(PubNub *)client didReceiveMessage:(PNMessageResult *)message {  
-34
-  
+34  
 35    // Handle new message stored in message.data.message  
 36    if (![message.data.channel isEqualToString:message.data.subscription]) {  
-37
-  
+37  
 38        // Message has been received on channel group stored in message.data.subscription.  
 39    }  
 40    else {  
@@ -1272,15 +1307,14 @@ Required UUID: Always set configuration.uuid to a stable, unique value for the u
 47}  
 
 ```
-show all 47 lines
 
-## Subscribe channel group[​](#subscribe-channel-group)
+---
 
-Requires Stream Controller add-on. Subscribe to a channel group.
+## Subscribe channel group
 
-### Method(s)[​](#methods-6)
+Requires *Stream Controller* add-on. Subscribes to a channel group.
 
-To Subscribe to a Channel Group you can use:
+### Method(s)
 
 ```
 `1- (void)subscribeToChannelGroups:(NSArrayNSString *> *)groups   
@@ -1299,7 +1333,7 @@ To Subscribe to a Channel Group you can use:
 
 *  requiredParameterDescription`groups` *Type: NSArrayList of `channel` group names on which client should try to `subscribe`.`shouldObservePresence` *Type: BOOLWhether presence observation should be enabled for `groups` or not.`state`Type: NSDictionaryReference on dictionary which stores key-value pairs based on `channel` group name and value which should be assigned to it.
 
-### Sample code[​](#sample-code-6)
+### Sample code
 
 Subscribe to a channel group
 
@@ -1353,11 +1387,13 @@ Subscribe to a channel group
 33            // Status object for those categories can be casted to `PNSubscribeStatus` for use below.  
 34            PNSubscribeStatus *subscribeStatus = (PNSubscribeStatus *)status;  
 35            if (subscribeStatus.category == PNConnectedCategory) {  
-36  
+36
+  
 37                // This is expected for a subscribe, this means there is no error or issue whatsoever.  
 38            }  
 39            else {  
-40  
+40
+  
 41                /**  
 42                 This usually occurs if subscribe temporarily fails but reconnects. This means there was  
 43                 an error but there is no longer any issue.  
@@ -1365,7 +1401,8 @@ Subscribe to a channel group
 45            }  
 46        }  
 47        else if (status.category == PNUnexpectedDisconnectCategory) {  
-48  
+48
+  
 49            /**  
 50             This is usually an issue with the internet connection, this is an error, handle  
 51             appropriately retry will be called automatically.  
@@ -1374,17 +1411,20 @@ Subscribe to a channel group
 54        // Looks like some kind of issues happened while client tried to subscribe or disconnected from  
 55        // network.  
 56        else {  
-57  
+57
+  
 58            PNErrorStatus *errorStatus = (PNErrorStatus *)status;  
 59            if (errorStatus.category == PNAccessDeniedCategory) {  
-60  
+60
+  
 61                /**  
 62                 This means that Access Manager does allow this client to subscribe to this channel and channel group  
 63                 configuration. This is another explicit error.  
 64                 */  
 65            }  
 66            else {  
-67  
+67
+  
 68                /**  
 69                 More errors can be directly specified by creating explicit cases for other error categories  
 70                 of `PNStatusCategory` such as: `PNDecryptionErrorCategory`,  
@@ -1397,9 +1437,8 @@ Subscribe to a channel group
 77}  
 
 ```
-show all 77 lines
 
-### Response[​](#response-4)
+### Response
 
 ```
 1@interface PNSubscriberData : PNServiceData  
@@ -1413,11 +1452,14 @@ show all 77 lines
 8@property (nonatomic, readonly, strong) NSNumber *timetoken;  
 9// Stores reference on metadata information which has been passed along with received event.  
 10@property (nonatomic, nullable, readonly, strong) NSDictionaryNSString *, id> *userMetadata;  
-11  
+11
+  
 12@end  
-13  
+13
+  
 14@interface PNSubscribeStatus : PNErrorStatus  
-15  
+15
+  
 16// Timetoken which has been used to establish current subscription cycle.  
 17@property (nonatomic, readonly, strong) NSNumber *currentTimetoken;  
 18// Stores reference on previous key which has been used in subscription cycle to receive  
@@ -1429,35 +1471,41 @@ show all 77 lines
 24@property (nonatomic, readonly, copy) NSArrayNSString *> *subscribedChannelGroups;  
 25// Structured PNResult data field information.  
 26@property (nonatomic, readonly, strong) PNSubscriberData *data;  
-27  
+27
+  
 28@end  
-29  
+29
+  
 30// Message arrive to event listeners as model described below  
-31  
+31
+  
 32@interface PNMessageData : PNSubscriberData  
-33  
+33
+  
 34// Message sender identifier.  
 35@property (nonatomic, readonly, strong) NSString *publisher;  
 36// Message which has been delivered through data object live feed.  
 37@property (nonatomic, nullable, readonly, strong) id message;  
-38  
+38
+  
 39@end  
-40  
+40
+  
 41@interface PNMessageResult : PNResult  
-42  
+42
+  
 43// Stores reference on message object from live feed.  
 44@property (nonatomic, readonly, strong) PNMessageData *data;  
 45  
 46@end  
 
 ```
-show all 46 lines
 
-### Other examples[​](#other-examples-2)
+### Other examples
 
-#### Subscribe to the Presence channel of a channel group[​](#subscribe-to-the-presence-channel-of-a-channel-group)
+#### Subscribe to the Presence channel of a channel group
 
-Requires Stream Controller and Presence add-ons.
+Requires Stream Controller + Presence add-ons.
 
 ```
 1/**  
@@ -1479,7 +1527,8 @@ Requires Stream Controller and Presence add-ons.
 14        // Message has been received on channel group stored in message.data.subscription.  
 15    }  
 16    else {  
-17  
+17
+  
 18        // Message has been received on channel stored in message.data.channel.  
 19    }  
 20
@@ -1494,23 +1543,27 @@ Requires Stream Controller and Presence add-ons.
 27
   
 28    if (![event.data.channel isEqualToString:event.data.subscription]) {  
-29  
+29
+  
 30        // Presence event has been received on channel group stored in event.data.subscription.  
 31    }  
 32    else {  
-33  
+33
+  
 34        // Presence event has been received on channel stored in event.data.channel.  
 35    }  
 36
   
 37    if (![event.data.presenceEvent isEqualToString:@"state-change"]) {  
-38  
+38
+  
 39        NSLog(@"%@ \"%@'ed\"\nat: %@ on %@ (Occupancy: %@)", event.data.presence.uuid,  
 40                event.data.presenceEvent, event.data.presence.timetoken, event.data.channel,  
 41                event.data.presence.occupancy);  
 42    }  
 43    else {  
-44  
+44
+  
 45        NSLog(@"%@ changed state at: %@ on %@ to: %@", event.data.presence.uuid,  
 46                event.data.presence.timetoken, event.data.channel, event.data.presence.state);  
 47    }  
@@ -1522,18 +1575,22 @@ Requires Stream Controller and Presence add-ons.
 52
   
 53    if (status.operation == PNSubscribeOperation) {  
-54  
+54
+  
 55        // Check whether received information about successful subscription or restore.  
 56        if (status.category == PNConnectedCategory || status.category == PNReconnectedCategory) {  
-57  
+57
+  
 58            // Status object for those categories can be casted to `PNSubscribeStatus` for use below.  
 59            PNSubscribeStatus *subscribeStatus = (PNSubscribeStatus *)status;  
 60            if (subscribeStatus.category == PNConnectedCategory) {  
-61  
+61
+  
 62                // This is expected for a subscribe, this means there is no error or issue whatsoever.  
 63            }  
 64            else {  
-65  
+65
+  
 66                /**  
 67                    This usually occurs if subscribe temporarily fails but reconnects. This means there was  
 68                    an error but there is no longer any issue.  
@@ -1541,7 +1598,8 @@ Requires Stream Controller and Presence add-ons.
 70            }  
 71        }  
 72        else if (status.category == PNUnexpectedDisconnectCategory) {  
-73  
+73
+  
 74            /**  
 75                This is usually an issue with the internet connection, this is an error, handle  
 76                appropriately retry will be called automatically.  
@@ -1550,17 +1608,20 @@ Requires Stream Controller and Presence add-ons.
 79        // Looks like some kind of issues happened while client tried to subscribe or disconnected from  
 80        // network.  
 81        else {  
-82  
+82
+  
 83            PNErrorStatus *errorStatus = (PNErrorStatus *)status;  
 84            if (errorStatus.category == PNAccessDeniedCategory) {  
-85  
+85
+  
 86                /**  
 87                    This means that Access Manager does allow this client to subscribe to this channel and channel group  
 88                    configuration. This is another explicit error.  
 89                    */  
 90            }  
 91            else {  
-92  
+92
+  
 93                /**  
 94                    More errors can be directly specified by creating explicit cases for other error categories  
 95                    of `PNStatusCategory` such as: `PNDecryptionErrorCategory`,  
@@ -1573,15 +1634,14 @@ Requires Stream Controller and Presence add-ons.
 102}  
 
 ```
-show all 102 lines
 
-## Unsubscribe[​](#unsubscribe)
+---
 
-Unsubscribe from specific channels (socket remains open while others remain). Unsubscribing from all channels first resets timetoken and may cause message gaps.
+## Unsubscribe
 
-### Method(s)[​](#methods-7)
+Unsubscribing from specific channels removes them; socket stays open until no channels remain. Unsubscribing from all resets timetoken and may cause message gaps.
 
-To Unsubscribe from a channel you can use:
+### Method(s)
 
 ```
 `1- (void)unsubscribeFromChannels:(NSArrayNSString *> *)channels   
@@ -1591,7 +1651,7 @@ To Unsubscribe from a channel you can use:
 
 *  requiredParameterDescription`channels` *Type: NSArrayList of `channel` IDs from which client should try to `unsubscribe`.`shouldObservePresence` *Type: BOOLWhether client should disable presence observation on specified `channels` or keep listening for presence event on them.
 
-### Sample code[​](#sample-code-7)
+### Sample code
 
 Unsubscribe from a channel:
 
@@ -1619,9 +1679,8 @@ Unsubscribe from a channel:
 18}  
 
 ```
-show all 18 lines
 
-### Response[​](#response-5)
+### Response
 
 ```
 1@interface PNSubscriberData : PNServiceData  
@@ -1635,11 +1694,14 @@ show all 18 lines
 8@property (nonatomic, readonly, strong) NSNumber *timetoken;  
 9// Stores reference on metadata information which has been passed along with received event.  
 10@property (nonatomic, nullable, readonly, strong) NSDictionaryNSString *, id> *userMetadata;  
-11  
+11
+  
 12@end  
-13  
+13
+  
 14@interface PNSubscribeStatus : PNErrorStatus  
-15  
+15
+  
 16// Timetoken which has been used to establish current subscription cycle.  
 17@property (nonatomic, readonly, strong) NSNumber *currentTimetoken;  
 18// Stores reference on previous key which has been used in subscription cycle to receive  
@@ -1651,24 +1713,26 @@ show all 18 lines
 24@property (nonatomic, readonly, copy) NSArrayNSString *> *subscribedChannelGroups;  
 25// Structured PNResult data field information.  
 26@property (nonatomic, readonly, strong) PNSubscriberData *data;  
-27  
+27
+  
 28@end  
 
 ```
-show all 28 lines
 
-## Unsubscribe all[​](#unsubscribe-all)
+---
+
+## Unsubscribe all
 
 Unsubscribe from all channels and all channel groups.
 
-### Method(s)[​](#methods-8)
+### Method(s)
 
 ```
 `1- (void)unsubscribeFromAll;  
 `
 ```
 
-### Sample code[​](#sample-code-8)
+### Sample code
 
 ```
 1/**  
@@ -1694,19 +1758,16 @@ Unsubscribe from all channels and all channel groups.
 18}  
 
 ```
-show all 18 lines
 
-### Returns[​](#returns)
+### Returns
 
 None
 
-## Unsubscribe from a channel group[​](#unsubscribe-from-a-channel-group)
+---
 
-Unsubscribe from channel groups.
+## Unsubscribe from a channel group
 
-### Method(s)[​](#methods-9)
-
-To run Unsubscribe from a Channel Group you can use:
+### Method(s)
 
 ```
 `1- (void)unsubscribeFromChannelGroups:(NSArrayNSString *> *)groups   
@@ -1716,9 +1777,9 @@ To run Unsubscribe from a Channel Group you can use:
 
 *  requiredParameterDescription`groups` *Type: NSArrayList of `channel` group names from which client should try to `unsubscribe`.`shouldObservePresence` *Type: BOOLWhether client should disable presence observation on specified `channel` groups or keep listening for presence event on them.
 
-### Sample code[​](#sample-code-9)
+### Sample code
 
-#### Unsubscribe from a channel group[​](#unsubscribe-from-a-channel-group-1)
+#### Unsubscribe from a channel group
 
 ```
 1/**  
@@ -1744,9 +1805,8 @@ To run Unsubscribe from a Channel Group you can use:
 18}  
 
 ```
-show all 18 lines
 
-### Response[​](#response-6)
+### Response
 
 ```
 1@interface PNSubscriberData : PNServiceData  
@@ -1760,11 +1820,14 @@ show all 18 lines
 8@property (nonatomic, readonly, strong) NSNumber *timetoken;  
 9// Stores reference on metadata information which has been passed along with received event.  
 10@property (nonatomic, nullable, readonly, strong) NSDictionaryNSString *, id> *userMetadata;  
-11  
+11
+  
 12@end  
-13  
+13
+  
 14@interface PNSubscribeStatus : PNErrorStatus  
-15  
+15
+  
 16// Timetoken which has been used to establish current subscription cycle.  
 17@property (nonatomic, readonly, strong) NSNumber *currentTimetoken;  
 18// Stores reference on previous key which has been used in subscription cycle to receive  
@@ -1776,19 +1839,19 @@ show all 18 lines
 24@property (nonatomic, readonly, copy) NSArrayNSString *> *subscribedChannelGroups;  
 25// Structured PNResult data field information.  
 26@property (nonatomic, readonly, strong) PNSubscriberData *data;  
-27  
+27
+  
 28@end  
 
 ```
-show all 28 lines
 
-## Presence[​](#presence)
+---
 
-Subscribe to presence channels (channel-pnpres) to receive join/leave/timeout/state-change/interval events. With restore = true, the client attempts to reconnect and catch up after disconnects (best-effort); default reconnect after ~320s.
+## Presence
 
-### Method(s)[​](#methods-10)
+Subscribes to presence channels. With Objective-C SDK you can enable automatic reconnect and best-effort catch-up via `restore = true` (default reconnect attempt after **320s** timeout).
 
-To do Presence you can use:
+### Method(s)
 
 ```
 `1- (void)subscribeToPresenceChannels:(NSArrayNSString *> *)channels;  
@@ -1797,9 +1860,9 @@ To do Presence you can use:
 
 *  requiredParameterDescription`channels` *Type: NSArrayList of `channel` IDs for which client should try to `subscribe` on presence observing `channels`.
 
-### Sample code[​](#sample-code-10)
+### Sample code
 
-Subscribe to the presence channel:
+Subscribe to the presence channel (`<channel>-pnpres`):
 
 ```
 1/**  
@@ -1820,7 +1883,8 @@ Subscribe to the presence channel:
 13        // Presence event has been received on channel group stored in event.data.subscription.  
 14    }  
 15    else {  
-16  
+16
+  
 17        // Presence event has been received on channel stored in event.data.channel.  
 18    }  
 19  
@@ -1838,9 +1902,8 @@ Subscribe to the presence channel:
 31}  
 
 ```
-show all 31 lines
 
-### Response[​](#response-7)
+### Response
 
 ```
 1@interface PNSubscriberData : PNServiceData  
@@ -1854,11 +1917,14 @@ show all 31 lines
 8@property (nonatomic, readonly, strong) NSNumber *timetoken;  
 9// Stores reference on metadata information which has been passed along with received event.  
 10@property (nonatomic, nullable, readonly, strong) NSDictionaryNSString *, id> *userMetadata;  
-11  
+11
+  
 12@end  
-13  
+13
+  
 14@interface PNSubscribeStatus : PNErrorStatus  
-15  
+15
+  
 16// Timetoken which has been used to establish current subscription cycle.  
 17@property (nonatomic, readonly, strong) NSNumber *currentTimetoken;  
 18// Stores reference on previous key which has been used in subscription cycle to receive  
@@ -1870,13 +1936,17 @@ show all 31 lines
 24@property (nonatomic, readonly, copy) NSArrayNSString *> *subscribedChannelGroups;  
 25// Structured PNResult data field information.  
 26@property (nonatomic, readonly, strong) PNSubscriberData *data;  
-27  
+27
+  
 28@end  
-29  
+29
+  
 30// Presence events arrive to event listeners as model described below  
-31  
+31
+  
 32@interface PNPresenceDetailsData : PNSubscriberData  
-33  
+33
+  
 34// Time when presence event has been triggered.  
 35@property (nonatomic, readonly, strong) NSNumber *timetoken;  
 36// Reference on unique user identifier for which event has been triggered.  
@@ -1891,35 +1961,41 @@ show all 31 lines
 45@property (nonatomic, readonly, strong) NSNumber *occupancy;  
 46// User changed client state.  
 47@property (nonatomic, nullable, readonly, strong) NSDictionaryNSString *, id> *state;  
-48  
+48
+  
 49@end  
-50  
+50
+  
 51@interface PNPresenceEventData : PNSubscriberData  
-52  
+52
+  
 53// Type of presence event.  
 54@property (nonatomic, readonly, strong) NSString *presenceEvent;  
 55// Additional presence information.  
 56@property (nonatomic, readonly, strong) PNPresenceDetailsData *presence;  
-57  
+57
+  
 58@end  
-59  
+59
+  
 60@interface PNPresenceEventResult : PNResult  
-61  
+61
+  
 62// Stores reference on presence event object from live feed.  
 63@property (nonatomic, readonly, strong) PNPresenceEventData *data;  
-64  
+64
+  
 65@end  
 
 ```
-show all 65 lines
 
-## Presence unsubscribe[​](#presence-unsubscribe)
+---
 
-Stop monitoring presence for channels (socket remains open while others remain).
+## Presence unsubscribe
 
-### Method(s)[​](#methods-11)
+Stops monitoring presence for specified channels.
 
-To Unsubscribe from Presence of a channel you can use:
+### Method(s)
 
 ```
 `1- (void)unsubscribeFromPresenceChannels:(NSArrayNSString *> *)channels;  
@@ -1928,7 +2004,7 @@ To Unsubscribe from Presence of a channel you can use:
 
 *  requiredParameterDescription`channels` *Type: NSArrayList of `channel` IDs for which client should try to `unsubscribe` from presence observing `channels`
 
-### Sample code[​](#sample-code-11)
+### Sample code
 
 Unsubscribe from the presence channel:
 
@@ -1937,7 +2013,7 @@ Unsubscribe from the presence channel:
 `
 ```
 
-### Response[​](#response-8)
+### Response
 
 ```
 1@interface PNSubscriberData : PNServiceData  
@@ -1951,11 +2027,14 @@ Unsubscribe from the presence channel:
 8@property (nonatomic, readonly, strong) NSNumber *timetoken;  
 9// Stores reference on metadata information which has been passed along with received event.  
 10@property (nonatomic, nullable, readonly, strong) NSDictionaryNSString *, id> *userMetadata;  
-11  
+11
+  
 12@end  
-13  
+13
+  
 14@interface PNSubscribeStatus : PNErrorStatus  
-15  
+15
+  
 16// Timetoken which has been used to establish current subscription cycle.  
 17@property (nonatomic, readonly, strong) NSNumber *currentTimetoken;  
 18// Stores reference on previous key which has been used in subscription cycle to receive  
@@ -1971,4 +2050,3 @@ Unsubscribe from the presence channel:
 **28@end  
 
 ```
-show all 28 linesLast updated on Nov 6, 2025**

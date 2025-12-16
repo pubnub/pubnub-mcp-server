@@ -1,15 +1,12 @@
-# Mobile Push Notifications API for Swift Native SDK (Condensed)
+# Mobile Push Notifications API for Swift Native SDK
 
-Connect PubNub publishing to APNs (Apple Push Notification service) and FCM for mobile push.
-
-Prerequisite
-- Requires Mobile Push Notifications add-on enabled for your key in the Admin Portal: https://admin.pubnub.com/
-- Learn more: https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-
-- Overview: /docs/general/push/send
+Mobile Push Notifications connects PubNub publishing to third-party push services (Google Android **FCM** and Apple iOS **APNs**).
 
 ## Add a device to APNs2 channels
 
-Enable APNs2 mobile push notifications on a set of channels.
+##### Requires Mobile Push Notifications add-on
+Enable Mobile Push Notifications for your key in the [Admin Portal](https://admin.pubnub.com/) (see [enable add-on features](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-)).  
+Registers/enables **APNs2** push notifications for a device token on the specified channels.
 
 ### Method(s)
 
@@ -25,29 +22,38 @@ Enable APNs2 mobile push notifications on a set of channels.
 `
 ```
 
-Parameters
-- _: Type: Data, Default: n/a — Channels to add for the device.
-- device: Type: Data, Default: n/a — Device token.
-- on: Type: String, Default: n/a — APNs topic (bundle identifier).
-- environment: Type: PubNub.PushEnvironment, Default: .development — APNs environment.
-- custom: Type: PubNub.RequestConfiguration, Default: PubNub.RequestConfiguration() — Per-request configuration.
-- completion: Type: ((Result<[String], Error>) -> Void)?, Default: nil — Async result callback.
+**Parameters**
+- `_` *(required, [String])*: Channels to add for the device.
+- `device token` *(required, Data)*: Device token.
+- `on` *(required, String)*: APNs topic (bundle identifier).
+- `environment` *(PubNub.PushEnvironment, default `.development`)*: APNs environment.
+- `custom requestConfig` *(PubNub.RequestConfiguration, default `PubNub.RequestConfiguration()`)*: Per-request configuration.
+- `completion` *(optional, `((Result<[String], Error>) -> Void)?`, default `nil`)*: Async result callback.
 
-Completion handler result
-- Success: Array of channels added for the device token.
-- Failure: Error.
+**Completion handler result**
+- **Success:** `[String]` channels added for the device token.
+- **Failure:** `Error`.
 
 ### Sample code
 
+##### Reference code
+Self-contained runnable snippet with imports and console logging.
+
 #### Adding device to channel
+
 ```
 1
   
+
 ```
+
+---
 
 ## List APNs2 channels for a device
 
-List channels with APNs2 push enabled for a device token and topic.
+##### Requires Mobile Push Notifications add-on
+Enable Mobile Push Notifications in the [Admin Portal](https://admin.pubnub.com/) (see [enable add-on features](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-)).  
+Lists channels with **APNs2** push enabled for the specified device token and topic.
 
 ### Method(s)
 
@@ -62,28 +68,34 @@ List channels with APNs2 push enabled for a device token and topic.
 `
 ```
 
-Parameters
-- for: Type: Data, Default: n/a — Device token.
-- on: Type: String, Default: n/a — APNs topic (bundle identifier).
-- environment: Type: PubNub.PushEnvironment, Default: .development — APNs environment.
-- custom: Type: PubNub.RequestConfiguration, Default: PubNub.RequestConfiguration() — Per-request configuration.
-- completion: Type: ((Result<[String], Error>) -> Void)?, Default: nil — Async result callback.
+**Parameters**
+- `for deviceToken` *(required, Data)*: Device token.
+- `on topic` *(required, String)*: APNs topic (bundle identifier).
+- `environment` *(PubNub.PushEnvironment, default `.development`)*: APNs environment.
+- `custom requestConfig` *(PubNub.RequestConfiguration, default `PubNub.RequestConfiguration()`)*: Per-request configuration.
+- `completion` *(optional, `((Result<[String], Error>) -> Void)?`, default `nil`)*: Async result callback.
 
-Completion handler result
-- Success: Array of channels for the device token.
-- Failure: Error.
+**Completion handler result**
+- **Success:** `[String]` channels registered for the device token.
+- **Failure:** `Error`.
 
 ### Sample code
 
 #### List APNs2 channels for device
+
 ```
 1
   
+
 ```
+
+---
 
 ## Remove a device from APNs2 channels
 
-Disable APNs2 mobile push notifications on a set of channels.
+##### Requires Mobile Push Notifications add-on
+Enable Mobile Push Notifications in the [Admin Portal](https://admin.pubnub.com/) (see [enable add-on features](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-)).  
+Disables **APNs2** push on the specified channels for the device token.
 
 ### Method(s)
 
@@ -99,29 +111,35 @@ Disable APNs2 mobile push notifications on a set of channels.
 `
 ```
 
-Parameters
-- _: Type: Data, Default: n/a — Channels to remove for the device.
-- device: Type: Data, Default: n/a — Device token.
-- on: Type: String, Default: n/a — APNs topic (bundle identifier).
-- environment: Type: PubNub.PushEnvironment, Default: .development — APNs environment.
-- custom: Type: PubNub.RequestConfiguration, Default: PubNub.RequestConfiguration() — Per-request configuration.
-- completion: Type: ((Result<[String], Error>) -> Void)?, Default: nil — Async result callback.
+**Parameters**
+- `_` *(required, [String])*: Channels to remove for the device.
+- `device token` *(required, Data)*: Device token.
+- `on topic` *(required, String)*: APNs topic (bundle identifier).
+- `environment` *(PubNub.PushEnvironment, default `.development`)*: APNs environment.
+- `custom requestConfig` *([PubNub.RequestConfiguration](/docs/sdks/swift/api-reference/configuration#request-configuration), default `PubNub.RequestConfiguration()`)*: Per-request configuration.
+- `completion` *(optional, `((Result<[String], Error>) -> Void)?`, default `nil`)*: Async result callback.
 
-Completion handler result
-- Success: Array of channels disabled for the device token.
-- Failure: Error.
+**Completion handler result**
+- **Success:** `[String]` channels disabled for the device token.
+- **Failure:** `Error`.
 
 ### Sample code
 
 #### Remove device from channel
+
 ```
 1
   
+
 ```
+
+---
 
 ## Remove a device from all APNs2 channels
 
-Disable APNs2 push notifications for all channels registered to the device token.
+##### Requires Mobile Push Notifications add-on
+Enable Mobile Push Notifications in the [Admin Portal](https://admin.pubnub.com/) (see [enable add-on features](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-)).  
+Disables **APNs2** push from **all** channels registered for the specified device token.
 
 ### Method(s)
 
@@ -136,30 +154,36 @@ Disable APNs2 push notifications for all channels registered to the device token
 `
 ```
 
-Parameters
-- for: Type: Data, Default: n/a — The device token used during registration.
-- on: Type: String, Default: n/a — APNs topic (typically the app bundle ID).
-- environment: Type: PubNub.PushEnvironment, Default: .development — APS environment.
-- custom: Type: PubNub.RequestConfiguration, Default: PubNub.RequestConfiguration() — Per-request configuration (see: /docs/sdks/swift/api-reference/configuration#request-configuration).
-- completion: Type: ((Result<[String], Error>) -> Void)?, Default: nil — Async result callback.
+**Parameters**
+- `for deviceToken` *(required, Data)*: The device token used during registration.
+- `on topic` *(required, String)*: The remote notification topic (typically your app bundle ID).
+- `environment` *(PubNub.PushEnvironment, default `.development`)*: APS environment.
+- `custom requestConfig` *([PubNub.RequestConfiguration](/docs/sdks/swift/api-reference/configuration#request-configuration), default `PubNub.RequestConfiguration()`)*: Per-request customization of PubNub config/network session (see [Request Configuration](/docs/sdks/swift/api-reference/configuration#request-configuration)).
+- `completion` *(optional, `((Result<[String], Error>) -> Void)?`, default `nil`)*: Async `Result` of the call.
 
-Completion handler result
-- Success: Void.
-- Failure: Error.
+**Completion handler result**
+- **Success:** `Void`.
+- **Failure:** `Error`.
 
 ### Sample code
 
 #### Remove all mobile push notifications
+
 ```
 1
   
+
 ```
+
+---
 
 ## Add device to channel (deprecated)
 
-Enable mobile push notifications on channels (legacy binary APNs). Prefer APNs2 methods.
+##### Requires Mobile Push Notifications add-on
+Enable Mobile Push Notifications in the [Admin Portal](https://admin.pubnub.com/) (see [enable add-on features](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-)).  
+Deprecated in favor of **APNs2 (HTTP/2)** methods above; use only for legacy **binary APNs** publishing.
 
-### Method(s)
+#### Method(s)
 
 ```
 `1func addPushChannelRegistrations(  
@@ -172,30 +196,36 @@ Enable mobile push notifications on channels (legacy binary APNs). Prefer APNs2 
 `
 ```
 
-Parameters
-- _: Type: [String], Default: n/a — Channels to add.
-- for: Type: Data, Default: n/a — Device token.
-- of: Type: PubNub.PushService, Default: .apns — Remote Notification service type.
-- custom: Type: PubNub.RequestConfiguration, Default: PubNub.RequestConfiguration() — Per-request configuration.
-- completion: Type: ((Result<[String], Error>) -> Void)?, Default: nil — Async result callback.
+**Parameters**
+- `_` *(required, [String])*: Channels to add registration to.
+- `for deviceToken` *(required, Data)*: Device token.
+- `of pushType` *(PubNub.PushService, default `.apns`)*: Push service type.
+- `custom requestConfig` *([PubNub.RequestConfiguration](/docs/sdks/swift/api-reference/configuration#request-configuration), default `PubNub.RequestConfiguration()`)*: Per-request configuration.
+- `completion` *(optional, `((Result<[String], Error>) -> Void)?`, default `nil`)*: Async result.
 
-Completion handler result
-- Success: Array of channels added for the device token.
-- Failure: Error.
+**Completion handler result**
+- **Success:** `[String]` channels added for the device token.
+- **Failure:** `Error`.
 
-### Sample code
+#### Sample code
 
-#### Add device to channel
+##### Add device to channel
+
 ```
 1
   
+
 ```
+
+---
 
 ## List channels for device (deprecated)
 
-List channels with push enabled for the device token (legacy binary APNs). Prefer APNs2 methods.
+##### Requires Mobile Push Notifications add-on
+Requires the add-on enabled in the [Admin Portal](https://admin.pubnub.com/) (see [enable add-on features](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-)).  
+Deprecated in favor of **APNs2 (HTTP/2)** methods above; use only for legacy **binary APNs** publishing.
 
-### Method(s)
+#### Method(s)
 
 ```
 `1func listPushChannelRegistrations(  
@@ -207,29 +237,37 @@ List channels with push enabled for the device token (legacy binary APNs). Prefe
 `
 ```
 
-Parameters
-- for: Type: Data, Default: n/a — Device token.
-- of: Type: PubNub.PushService, Default: .apns — Remote Notification service type.
-- custom: Type: PubNub.RequestConfiguration, Default: PubNub.RequestConfiguration() — Per-request configuration.
-- completion: Type: ((Result<[String], Error>) -> Void)?, Default: nil — Async result callback.
+**Parameters**
+- `for deviceToken` *(required, Data)*: Device token.
+- `of pushType` *(PubNub.PushService, default `.apns`)*: Push service type.
+- `custom requestConfig` *([PubNub.RequestConfiguration](/docs/sdks/swift/api-reference/configuration#request-configuration), default `PubNub.RequestConfiguration()`)*: Per-request configuration.
+- `completion` *(optional, `((Result<[String], Error>) -> Void)?`, default `nil`)*: Async result callback.
 
-Completion handler result
-- Success: Array of channels for the device token.
-- Failure: Error.
+**Completion handler result**
+- **Success:** `[String]` channels registered for the device token.
+- **Failure:** `Error`.
 
-### Sample code
+#### Sample code
 
-#### Listing channels for device
+##### Listing channels for device
+
 ```
 1
   
+
 ```
+
+---
 
 ## Remove device from channel (deprecated)
 
-Disable mobile push notifications on specified channels (legacy binary APNs). Prefer APNs2 methods.
+##### Requires Mobile Push Notifications add-on
+Requires the add-on enabled in the [Admin Portal](https://admin.pubnub.com/) (see [enable add-on features](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-)).  
+Deprecated in favor of **APNs2 (HTTP/2)** methods above; use only for legacy **binary APNs** publishing.
 
-### Method(s)
+#### Method(s)
+
+To run `Removing Device From Channel` you can use the following method(s) in the Swift SDK:
 
 ```
 `1removePushChannelRegistrations(  
@@ -242,30 +280,38 @@ Disable mobile push notifications on specified channels (legacy binary APNs). Pr
 `
 ```
 
-Parameters
-- _: Type: [String], Default: n/a — Channels to remove.
-- for: Type: Data, Default: n/a — Device token.
-- of: Type: PubNub.PushService, Default: .apns — Remote Notification service type.
-- custom: Type: PubNub.RequestConfiguration, Default: PubNub.RequestConfiguration() — Per-request configuration.
-- completion: Type: ((Result<[String], Error>) -> Void)?, Default: nil — Async result callback.
+**Parameters**
+- `_` *(required, [String])*: Channels to remove registration from.
+- `for deviceToken` *(required, Data)*: Device token.
+- `of pushType` *(PubNub.PushService, default `.apns`)*: Push service type.
+- `custom requestConfig` *([PubNub.RequestConfiguration](/docs/sdks/swift/api-reference/configuration#request-configuration), default `PubNub.RequestConfiguration()`)*: Per-request configuration.
+- `completion` *(optional, `((Result<[String], Error>) -> Void)?`, default `nil`)*: Async result.
 
-Completion handler result
-- Success: Array of channels removed for the device token.
-- Failure: Error.
+**Completion handler result**
+- **Success:** `[String]` channels added for notifications on a specific device token.
+- **Failure:** `Error`.
 
-### Sample code
+#### Sample code
 
-#### Remove device from channel
+##### Remove device from channel
+
 ```
 1
   
+
 ```
+
+---
 
 ## Remove all mobile push notifications (deprecated)
 
-Disable mobile push notifications from all channels registered with the device token (legacy binary APNs). Prefer APNs2 methods.
+##### Requires Mobile Push Notifications add-on
+Requires the add-on enabled in the [Admin Portal](https://admin.pubnub.com/) (see [enable add-on features](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-)).  
+Deprecated in favor of **APNs2 (HTTP/2)** methods above; use only for legacy **binary APNs** publishing.
 
-### Method(s)
+#### Method(s)
+
+To run `Remove all mobile push notifications`, you can use the following method(s) in the Swift SDK:
 
 ```
 `1func removeAllPushChannelRegistrations(  
@@ -277,22 +323,21 @@ Disable mobile push notifications from all channels registered with the device t
 `
 ```
 
-Parameters
-- for: Type: Data, Default: n/a — Device token.
-- of: Type: PubNub.PushService, Default: .apns — Remote Notification service type.
-- custom: Type: PubNub.RequestConfiguration, Default: PubNub.RequestConfiguration() — Per-request configuration.
-- completion: Type: ((Result<Void, Error>) -> Void)?, Default: nil — Async result callback.
+**Parameters**
+- `for deviceToken` *(required, Data)*: Device token.
+- `of pushType` *(PubNub.PushService, default `.apns`)*: Push service type.
+- `custom requestConfig` *([PubNub.RequestConfiguration](/docs/sdks/swift/api-reference/configuration#request-configuration), default `PubNub.RequestConfiguration()`)*: Per-request configuration.
+- `completion` *(optional, `((Result<Void, Error>) -> Void)?`, default `nil`)*: Async result.
 
-Completion handler result
-- Success: Void.
-- Failure: Error.
+**Completion handler result**
+- **Success:** `Void`.
+- **Failure:** `Error`.
 
-### Sample code
+#### Sample code
 
-#### Remove all mobile push notifications
+##### Remove all mobile push notifications
+
 ```
 1
 **
 ```
-
-Last updated on Oct 29, 2025**

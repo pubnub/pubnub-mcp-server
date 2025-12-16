@@ -1,16 +1,17 @@
 # File Sharing API for JavaScript SDK
 
-Upload and share files up to 5 MB. Files uploaded to a channel are stored using a storage service and associated with your key. Subscribers to that channel receive a file event containing file ID, filename, and optional description.
+Upload/share files up to **5 MB**. Uploading on a `channel` stores the file via a storage service associated with your key; subscribers receive a file event containing **file `ID`**, **`filename`**, and optional **`description`**.
 
-##### Supported and recommended asynchronous patterns
-- Supports Callbacks, Promises, and Async/Await (recommended).
-- Async/Await returns status only on error; use try...catch to handle errors.
+## Supported async patterns
+Supports **Callbacks, Promises, Async/Await**. Samples use **Async/Await**; add `try...catch` to capture error status (status returned only on error).
 
-## Send file
+---
 
-Uploads a file to a channel and publishes a file message. Internally calls publishFile to announce the uploaded file to subscribers.
+## Send file[​](#send-file)
 
-### Method(s)
+Uploads a file to a channel end-to-end: preparation → upload to storage → publish file message on the channel. Internally calls [`publishFile`](#publish-file-message) for the final publish step.
+
+### Method(s)[​](#methods)
 
 ```
 `1pubnub.sendFile(  
@@ -19,22 +20,24 @@ Uploads a file to a channel and publishes a file message. Internally calls publi
 `
 ```
 
-- params: SendFileParameters (required)
+* requiredParameterDescription `params` *Type: [SendFileParameters](#sendfileparameters) Parameters used to upload the file to a channel.
 
-#### SendFileParameters
+#### SendFileParameters[​](#sendfileparameters)
 
-- channel (string, required): Channel to send the file to.
-- file (FileInput, required): File to send.
-- message (any, optional): Optional message to attach.
-- storeInHistory (boolean, default: true): Store published file messages in history; if omitted, key’s history config applies.
-- ttl (number, default: 0): Message history TTL; defaults to key set’s retention.
-- meta (any, optional): Metadata for the message.
-- customMessageType (string, optional): Case-sensitive, 3–50 chars, alphanumeric; dashes and underscores allowed; cannot start with special chars or pn_/pn-. Examples: text, action, poll.
+* requiredParameterDescription `channel` *Type: string Default: n/a Channel to send the file to.  
+`file` *Type: [FileInput](#fileinput) Default: n/a File to send.  
+`message` Type: any Default: n/a Optional message to attach to the file.  
+`storeInHistory` Type: boolean Default: `true` Whether to store published file messages in the channel's history. If `storeInHistory` is not specified, the history configuration on the key is used.  
+`ttl` Type: number Default: 0 How long the message should be stored in the channel's history. If not specified, defaults to the key set's retention value.  
+`meta` Type: any Default: n/a Metadata for the message.  
+`customMessageType` Type: string Default: n/a A case-sensitive, alphanumeric string from 3 to 50 characters describing the business-specific label or category of the message. Dashes `-` and underscores `_` are allowed. The value cannot start with special characters or the string `pn_` or `pn-`.
 
-Deprecated parameter:
-- cipherKey: Deprecated. Configure the crypto module instead. Passing cipherKey overrides crypto module and uses legacy 128-bit encryption.
+Examples: `text`, `action`, `poll`.
 
-### Sample code
+##### Deprecated parameter
+`cipherKey` is deprecated; configure the **crypto module** instead. If passed, it overrides crypto module configuration and uses legacy encryption with 128-bit cipher key entropy.
+
+### Sample code[​](#sample-code)
 
 ##### Reference code
 
@@ -50,7 +53,7 @@ Deprecated parameter:
 
 ```
 
-### Returns
+### Returns[​](#returns)
 
 ```
 `1{  
@@ -61,9 +64,9 @@ Deprecated parameter:
 `
 ```
 
-### Other examples
+### Other examples[​](#other-examples)
 
-#### Usage with a message and custom cipher key
+#### Usage with a message and custom cipher key[​](#usage-with-a-message-and-custom-cipher-key)
 
 ```
 1
@@ -71,11 +74,13 @@ Deprecated parameter:
 
 ```
 
-## List channel files
+---
 
-Retrieve a list of files uploaded to a channel.
+## List channel files[​](#list-channel-files)
 
-### Method(s)
+Retrieve files uploaded to a `channel`.
+
+### Method(s)[​](#methods-1)
 
 ```
 `1pubnub.listFiles(  
@@ -84,15 +89,15 @@ Retrieve a list of files uploaded to a channel.
 `
 ```
 
-- params: ListFilesParameters (required)
+* requiredParameterDescription `params` *Type: [ListFilesParameters](#listfilesparameters) Parameters used to retrieve the list of uploaded files.
 
-#### ListFilesParameters
+#### ListFilesParameters[​](#listfilesparameters)
 
-- channel (string, required): Channel to list files from.
-- limit (number, default: 100): Number of files to return.
-- next (string, optional): Token for next page.
+* requiredParameterDescription `channel` *Type: string Default: n/a Retrieve list of files for this channel.  
+`limit` Type: number Default: 100 Number of files to return.  
+`next` Type: string Default: n/a String token to get the next batch of files.
 
-### Sample code
+### Sample code[​](#sample-code-1)
 
 ```
 1
@@ -100,7 +105,7 @@ Retrieve a list of files uploaded to a channel.
 
 ```
 
-### Returns
+### Returns[​](#returns-1)
 
 ```
 `1{  
@@ -117,11 +122,13 @@ Retrieve a list of files uploaded to a channel.
 `
 ```
 
-## Get file URL
+---
 
-Construct a file’s direct download URL. No API calls; does not decrypt encrypted files.
+## Get file URL[​](#get-file-url)
 
-### Method(s)
+Construct a direct download URL. **No API calls** and **does not decrypt** encrypted files.
+
+### Method(s)[​](#methods-2)
 
 ```
 `1pubnub.getFileUrl(  
@@ -130,15 +137,15 @@ Construct a file’s direct download URL. No API calls; does not decrypt encrypt
 `
 ```
 
-- params: GetFileUrlParams (required)
+* requiredParameterDescription `params` *Type: [GetFileUrlParams](#getfileurlparams) Parameters used to construct file URL.
 
-#### GetFileUrlParams
+#### GetFileUrlParams[​](#getfileurlparams)
 
-- channel (string, required): Channel the file was sent to.
-- id (string, required): File identifier.
-- name (string, required): File name.
+* requiredParameterDescription `channel` *Type: string Channel that the file was sent to.  
+`id` *Type: string The file's unique identifier.  
+`name` *Type: string Name of the file.
 
-### Sample code
+### Sample code[​](#sample-code-2)
 
 ```
 1
@@ -146,18 +153,20 @@ Construct a file’s direct download URL. No API calls; does not decrypt encrypt
 
 ```
 
-### Returns
+### Returns[​](#returns-2)
 
 ```
 `1'https://ps.pndsn.com/v1/files/demo/channels/my_channel/files/12345678-1234-5678-123456789012/cat_picture.jpg'  
 `
 ```
 
-## Download file
+---
 
-Download a file from a channel.
+## Download file[​](#download-file)
 
-### Method(s)
+Download a file from a `channel`.
+
+### Method(s)[​](#methods-3)
 
 ```
 `1pubnub.downloadFile(  
@@ -166,24 +175,18 @@ Download a file from a channel.
 `
 ```
 
-- params: DownloadFileParams (required)
+* requiredParameterDescription `params` *Type: [DownloadFileParams](#downloadfileparams) Parameters used to download the file.
 
-#### DownloadFileParams
+#### DownloadFileParams[​](#downloadfileparams)
 
-- channel (string, required): Channel the file was sent to.
-- id (string, required): File identifier.
-- name (string, required): File name.
+* requiredParameterDescription `channel` *Type: string Default: n/a Channel that the file was sent to.  
+`id` *Type: string Default: n/a The file's unique identifier.  
+`name` *Type: string Default: n/a Name of the file.
 
-Deprecated parameter:
-- cipherKey: Deprecated. Configure the crypto module instead. Passing cipherKey overrides crypto module and uses legacy 128-bit encryption.
+##### Deprecated parameter
+`cipherKey` is deprecated; configure the **crypto module** instead. If passed, it overrides crypto module configuration and uses legacy encryption with 128-bit cipher key entropy.
 
-### Sample code
-
-```
-1
-  
-
-```
+### Sample code[​](#sample-code-3)
 
 ```
 1
@@ -197,13 +200,19 @@ Deprecated parameter:
 
 ```
 
-### Returns
+```
+1
+  
+
+```
+
+### Returns[​](#returns-3)
 
 Returns instance of [PubNubFile](#pubnub-file).
 
-### Other examples
+### Other examples[​](#other-examples-1)
 
-#### Usage with custom cipher key
+#### Usage with custom cipher key[​](#usage-with-custom-cipher-key)
 
 ```
 1
@@ -211,11 +220,13 @@ Returns instance of [PubNubFile](#pubnub-file).
 
 ```
 
-## Delete file
+---
 
-Delete a file from a channel.
+## Delete file[​](#delete-file)
 
-### Method(s)
+Delete a file from a `channel`.
+
+### Method(s)[​](#methods-4)
 
 ```
 `1pubnub.deleteFile(  
@@ -224,15 +235,15 @@ Delete a file from a channel.
 `
 ```
 
-- params: DeleteFileParams (required)
+* requiredParameterDescription `params` *Type: [DeleteFileParams](#deletefileparams) Parameters used to delete the file.
 
-#### DeleteFileParams
+#### DeleteFileParams[​](#deletefileparams)
 
-- channel (string, required): Channel the file was sent to.
-- id (string, required): File identifier.
-- name (string, required): File name.
+* requiredParameterDescription `channel` *Type: string Channel that the file was sent to.  
+`id` *Type: string The file's unique identifier.  
+`name` *Type: string Name of the file.
 
-### Sample code
+### Sample code[​](#sample-code-4)
 
 ```
 1
@@ -240,7 +251,7 @@ Delete a file from a channel.
 
 ```
 
-### Returns
+### Returns[​](#returns-4)
 
 Example of successful deletion:
 
@@ -251,11 +262,13 @@ Example of successful deletion:
 `
 ```
 
-## Publish file message
+---
 
-Publish a message about an already-uploaded file to a channel. Called by sendFile after upload. If sendFile fails with status.operation === PNPublishFileMessageOperation, you can retry by calling publishFile using data from the status object without re-uploading.
+## Publish file message[​](#publish-file-message)
 
-### Method(s)
+Publish a message referencing an **already uploaded** file (file `id` + `name`) to a channel. Called internally by [`sendFile`](#send-file). Useful to retry only the publish step when `sendFile` fails with `status.operation === PNPublishFileMessageOperation`.
+
+### Method(s)[​](#methods-5)
 
 ```
 `1pubnub.publishFile(  
@@ -264,20 +277,22 @@ Publish a message about an already-uploaded file to a channel. Called by sendFil
 `
 ```
 
-- params: PublishFileParams (required)
+* requiredParameterDescription `params` *Type: [PublishFileParams](#publishfileparams) Parameters used to publish the file.
 
-#### PublishFileParams
+#### PublishFileParams[​](#publishfileparams)
 
-- channel (string, required): Channel where the file was sent.
-- message (any, optional): Optional message to attach.
-- fileId (string, required): File identifier.
-- fileName (string, required): File name.
-- storeInHistory (boolean, default: true): Store published file messages in history; if omitted, key’s history config applies.
-- ttl (number, default: 0): Message history TTL; defaults to key set’s retention.
-- meta (any, optional): Metadata for the message.
-- customMessageType (string, optional): Case-sensitive, 3–50 chars, alphanumeric; dashes and underscores allowed; cannot start with special chars or pn_/pn-. Examples: text, action, poll.
+* requiredParameterDescription `channel` *Type: string Default: n/a Channel to which the file was sent.  
+`message` Type: any Default: n/a Optional message to attach to the file.  
+`fileId` *Type: string Default: n/a The file's unique identifier.  
+`fileName` *Type: string Default: n/a Name of the file.  
+`storeInHistory` Type: boolean Default: `true` Whether to store published file messages in the channel's history. If `storeInHistory` is not specified, the history configuration on the key is used.  
+`ttl` Type: number Default: 0 How long the message should be stored in the channel's history. If not specified, defaults to the key set's retention value.  
+`meta` Type: any Default: n/a Metadata for the message.  
+`customMessageType` Type: string Default: n/a A case-sensitive, alphanumeric string from 3 to 50 characters describing the business-specific label or category of the message. Dashes `-` and underscores `_` are allowed. The value cannot start with special characters or the string `pn_` or `pn-`.
 
-### Sample code
+Examples: `text`, `action`, `poll`.
+
+### Sample code[​](#sample-code-5)
 
 ```
 1
@@ -285,7 +300,7 @@ Publish a message about an already-uploaded file to a channel. Called by sendFil
 
 ```
 
-### Returns
+### Returns[​](#returns-5)
 
 ```
 `1{  
@@ -294,13 +309,15 @@ Publish a message about an already-uploaded file to a channel. Called by sendFil
 `
 ```
 
-## FileInput
+---
 
-Represents environment-specific file inputs.
+## FileInput[​](#fileinput)
 
-#### Node.js
+`FileInput` is a cross-environment file representation.
 
-##### Using streams
+#### Node.js[​](#nodejs)
+
+##### Using streams[​](#using-streams)
 
 ```
 `1{  
@@ -311,7 +328,7 @@ Represents environment-specific file inputs.
 `
 ```
 
-##### Using buffers
+##### Using buffers[​](#using-buffers)
 
 ```
 `1{  
@@ -322,16 +339,16 @@ Represents environment-specific file inputs.
 `
 ```
 
-#### Browsers
+#### Browsers[​](#browsers)
 
-##### Using File API
+##### Using File API[​](#using-file-api)
 
 ```
 `1File  
 `
 ```
 
-##### Using strings
+##### Using strings[​](#using-strings)
 
 ```
 `1{  
@@ -342,7 +359,7 @@ Represents environment-specific file inputs.
 `
 ```
 
-##### Using ArrayBuffer
+##### Using ArrayBuffer[​](#using-arraybuffer)
 
 ```
 `1{  
@@ -353,9 +370,9 @@ Represents environment-specific file inputs.
 `
 ```
 
-#### React and React Native
+#### React and React Native[​](#react-and-react-native)
 
-##### Using URI
+##### Using URI[​](#using-uri)
 
 ```
 `1{  
@@ -366,25 +383,27 @@ Represents environment-specific file inputs.
 `
 ```
 
-## PubNub file
+---
 
-Internal file representation with environment-specific extraction methods.
+## PubNub file[​](#pubnub-file)
 
-##### Methods supported in Node.js
+SDK internal file representation returned by download.
 
-- file.toBuffer(): Promise<Buffer>
-- file.toStream(): Promise<Readable>
-- file.toString(encoding: string): string (defaults to utf8 if not available)
+##### Methods supported in Node.js[​](#methods-supported-in-nodejs)
 
-##### Methods supported in a browser
+- `file.toBuffer()` returns `Promise<Buffer>`
+- `file.toStream()` returns `Promise<Readable>`
+- `file.toString(encoding: string)` returns a string encoded using `encoding` (if not available, defaults to `utf8`)
 
-- file.toFile(): Promise<File>
-- file.toBlob(): Promise<Blob>
-- file.toArrayBuffer(): Promise<ArrayBuffer>
-- file.toString(encoding: string): string (defaults to utf8 if not available)
+##### Methods supported in a browser[​](#methods-supported-in-a-browser)
 
-##### React and React Native
+- `file.toFile()` returns `Promise<File>`
+- `file.toBlob()` returns `Promise<Blob>`
+- `file.toArrayBuffer()` returns `Promise<ArrayBuffer>`
+- `file.toString(encoding: string)` returns a string encoded using `encoding` (if not available, defaults to `utf8`)
 
-- file.toBlob(): Promise<Blob>
+##### React and React Native[​](#react-and-react-native-1)
 
-Last updated on Sep 3, 2025
+- `file.toBlob()` returns `Promise<Blob>`
+
+Last updated on **Sep 3, 2025**

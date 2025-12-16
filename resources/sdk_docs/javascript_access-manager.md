@@ -1,38 +1,34 @@
 # Access Manager v3 API for JavaScript SDK
 
-Access Manager issues time-limited tokens with embedded permissions for PubNub resources:
-- Scope by resource lists or RegEx patterns.
-- Multiple resources and permission levels in a single request.
-- Optionally restrict token usage to a specific authorized client (authorizedUuid/userId).
+Access Manager enforces client access controls in PubNub using **time-limited tokens** with embedded permissions for specific resources, optionally restricted to a single client via `authorized_uuid` (token usable only by that `userId`/UUID). Tokens can grant different permission levels across multiple resources in **one request**, including via **resource lists** or **RegEx patterns**.
 
-User ID / UUID
-- User ID is referred to as UUID/uuid in some APIs and responses; its value equals the userId set at initialization.
+**User ID / UUID:** `UUID`/`uuid` in APIs maps to the `userId` set during initialization.
 
-Asynchronous patterns
-- Supports Callbacks, Promises, Async/Await. Recommended: Async/Await with try...catch to receive error status.
+**Async patterns:** Callbacks, Promises, Async/Await supported; examples use Async/Await. Add `try...catch` to capture error status.
 
-## Grant token
+---
 
-Requires:
-- Access Manager add-on enabled in Admin Portal.
-- Secret Key authentication on server-side SDK instance.
+## Grant token[​](#grant-token)
 
-Generates a time-limited token with TTL (minutes), authorized_uuid, and permissions over:
-- channels
-- groups (channel groups)
-- uuids (users’ object metadata)
+**Requires Access Manager add-on** enabled for the keyset in Admin Portal.
 
-Permissions by resource:
-- channel: read, write, get, manage, update, join, delete
-- group: read, manage
-- uuids: get, update, delete
+**Requires Secret Key authentication (server-side):** Use an SDK instance initialized with a **Secret Key**. Do not use Secret Key in client apps.
 
-Notes:
-- ttl is required, in minutes: min 1, max 43,200 (30 days).
-- Use patterns to define permissions by RegEx.
-- authorized_uuid restricts token usage to a single client; if omitted, any uuid can use the token.
+`grantToken()` generates a token embedding:
+- `ttl` (minutes, required; max **43,200** = 30 days; min **1**; no default)
+- optional `authorized_uuid` (restrict token to one client)
+- permissions for `channels`, `groups`, `uuids`
+- optional `patterns` (RegEx-based permissions)
+- optional scalar-only `meta`
 
-### Method(s)
+**Permission keys (by resource type):**
+- `channel`: `read`, `write`, `get`, `manage`, `update`, `join`, `delete`
+- `group`: `read`, `manage`
+- `uuids`: `get`, `update`, `delete`
+
+**Required mapping:** You must specify permissions for at least one `uuid`, `channel`, or `group` via `resources` or `patterns`.
+
+### Method(s)[​](#methods)
 
 ```
 `1pubnub.grantToken({  
@@ -45,25 +41,22 @@ Notes:
 `
 ```
 
-Parameters
-- ttl (number, required): minutes token is valid; 1–43,200.
-- authorized_uuid (string): single uuid authorized to use the token.
-- resources (object): explicit resource permissions.
-  - resources.uuids (object): e.g., {"uuid-1": {get: true, update: true, delete: true}, "uuid-2": {...}}.
-  - resources.channels (object): e.g., {"channel-id-1": {read: true, write: true, manage: true, delete: true, get: true, update: true, join: true}, "channel-id-2": {...}}.
-  - resources.groups (object): e.g., {"group-id-1": {read: true, manage: true}, "group-id-2": {...}}.
-- patterns (object): RegEx-based permissions.
-  - patterns.uuids (object): e.g., {"uuid-pattern-1": {get: true, update: true, delete: true}, "uuid-pattern-2": {...}}.
-  - patterns.channels (object): e.g., {"channel-pattern-1": {read: true, write: true, manage: true, delete: true, get: true, update: true, join: true}, "channel-pattern-2": {...}}.
-  - patterns.groups (object): e.g., {"group-pattern-1": {read: true, manage: true}, "group-pattern-2": {...}}.
-- meta (any): scalar-only extra metadata; arrays/objects not supported.
+**Parameters**
+- `ttl` *(required)*: `number` — minutes token is valid; min `1`, max `43,200`.
+- `authorized_uuid`: `string` — single `uuid` allowed to use token.
+- `resources`: `any` — explicit resource permissions:
+  - `resources.uuids`: `any` — e.g. `{"uuid-1": {get: true, update: true, delete: true}, ...}`
+  - `resources.channels`: `any` — e.g. `{"channel-id-1": {read: true, write: true, manage: true, delete: true, get: true, update: true, join: true}, ...}`
+  - `resources.groups`: `any` — e.g. `{"group-id-1": {read: true, manage: true}, ...}`
+- `patterns`: `any` — RegEx-based permissions:
+  - `patterns.uuids`: `any` — e.g. `{"uuid-pattern-1": {get: true, update: true, delete: true}, ...}`
+  - `patterns.channels`: `any` — e.g. `{"channel-pattern-1": {read: true, write: true, manage: true, delete: true, get: true, update: true, join: true}, ...}`
+  - `patterns.groups`: `any` — e.g. `{"group-pattern-1": {read: true, manage: true}, ...}`
+- `meta`: `any` — scalar-only metadata (no arrays/objects).
 
-Required key/value mappings
-- Provide permissions for at least one uuid, channel, or group via resources or patterns.
+### Sample code[​](#sample-code)
 
-### Sample code
-
-Reference code
+##### Reference code
 
 ```
 1
@@ -77,30 +70,20 @@ Reference code
 
 ```
 
-### Returns
+### Returns[​](#returns)
 
 ```
 `1"p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI"  
 `
 ```
 
-### Other examples
+### Other examples[​](#other-examples)
 
-Grant an authorized client different levels of access to various resources in a single call
+#### Grant an authorized client different levels of access to various resources in a single call[​](#grant-an-authorized-client-different-levels-of-access-to-various-resources-in-a-single-call)
 
-- Grants my-authorized-uuid:
-  - Read to channel-a, channel-group-b, and get to uuid-c.
-  - Read/write to channel-b, channel-c, channel-d, and get/update to uuid-d.
-
-```
-1
-  
-
-```
-
-Grant an authorized client read access to multiple channels using RegEx
-
-- Grants my-authorized-uuid read on channels matching channel-[A-Za-z0-9].
+Grants `my-authorized-uuid`:
+- Read: `channel-a`, `channel-group-b`; Get: `uuid-c`
+- Read/Write: `channel-b`, `channel-c`, `channel-d`; Get/Update: `uuid-d`
 
 ```
 1
@@ -108,12 +91,9 @@ Grant an authorized client read access to multiple channels using RegEx
 
 ```
 
-Grant an authorized client different levels of access to various resources and read access to channels using RegEx in a single call
+#### Grant an authorized client read access to multiple channels using RegEx[​](#grant-an-authorized-client-read-access-to-multiple-channels-using-regex)
 
-- Grants my-authorized-uuid:
-  - Read to channel-a, channel-group-b, and get to uuid-c.
-  - Read/write to channel-b, channel-c, channel-d, and get/update to uuid-d.
-  - Read to channels matching channel-[A-Za-z0-9].
+Grants `my-authorized-uuid` read access to channels matching `channel-[A-Za-z0-9]`.
 
 ```
 1
@@ -121,20 +101,31 @@ Grant an authorized client different levels of access to various resources and r
 
 ```
 
-### Error responses
+#### Grant an authorized client different levels of access to various resources and read access to channels using RegEx in a single call[​](#grant-an-authorized-client-different-levels-of-access-to-various-resources-and-read-access-to-channels-using-regex-in-a-single-call)
 
-- 400 Bad Request with details (e.g., RegEx, timestamp, permissions issues).
+Combines explicit resources + RegEx channel access in one token grant.
 
-## Revoke token
+```
+1
+  
 
-Requirements:
-- Access Manager add-on enabled.
-- Revoke v3 Token enabled in keyset (Admin Portal > ACCESS MANAGER).
-- Use for tokens with ttl ≤ 30 days; contact support for longer.
+```
 
-Disables an existing token granted via grantToken().
+### Error responses[​](#error-responses)
 
-### Method(s)
+Invalid grant requests return **`400`** with JSON details (e.g., missing/incorrect args, RegEx issues, timestamp issues, invalid permissions). Unauthorized/invalid token usage returns **`403`**.
+
+---
+
+## Revoke token[​](#revoke-token)
+
+**Requires Access Manager add-on** and **token revoke enabled** (Admin Portal → keyset → *ACCESS MANAGER* → check **Revoke v3 Token**).
+
+`revokeToken()` disables an existing token (must be a valid token from `grantToken()`), revoking all embedded permissions.
+
+- Intended for tokens with `ttl` **≤ 30 days**; longer TTL revocation requires support.
+
+### Method(s)[​](#methods-1)
 
 ```
 `1pubnub.revokeToken(  
@@ -143,10 +134,10 @@ Disables an existing token granted via grantToken().
 `
 ```
 
-Parameters
-- token (string, required): existing token to revoke.
+**Parameter**
+- `token` *(required)*: `string` — existing token to revoke.
 
-### Sample code
+### Sample code[​](#sample-code-1)
 
 ```
 1
@@ -154,21 +145,21 @@ Parameters
 
 ```
 
-### Returns
+### Returns[​](#returns-1)
 
-- 200 OK on success.
+Success returns **200 OK**.
 
-### Error Responses
+### Error Responses[​](#error-responses-1)
 
-- 400 Bad Request
-- 403 Forbidden
-- 503 Service Unavailable
+Possible errors: **`400`**, **`403`**, **`503`**.
 
-## Parse token
+---
 
-Decodes a token and returns its embedded permissions and TTL. Useful for debugging.
+## Parse token[​](#parse-token)
 
-### Method(s)
+`parseToken()` decodes a token and returns its embedded permission object (useful for debugging, checking permissions and `ttl`).
+
+### Method(s)[​](#methods-2)
 
 ```
 `1pubnub.parseToken(  
@@ -177,10 +168,10 @@ Decodes a token and returns its embedded permissions and TTL. Useful for debuggi
 `
 ```
 
-Parameters
-- token (string, required): token to decode.
+**Parameter**
+- `token` *(required)*: `string` — token to decode.
 
-### Sample code
+### Sample code[​](#sample-code-2)
 
 ```
 1
@@ -188,7 +179,7 @@ Parameters
 
 ```
 
-### Returns
+### Returns[​](#returns-2)
 
 ```
 `1{  
@@ -270,15 +261,17 @@ Parameters
 `
 ```
 
-### Error Responses
+### Error Responses[​](#error-responses-2)
 
-- Parsing errors may indicate a damaged token; request a new one from the server.
+Parsing errors may indicate a damaged token; request a new token from the server.
 
-## Set token
+---
 
-Clients use this to update the current authentication token.
+## Set token[​](#set-token)
 
-### Method(s)
+`setToken()` is used by clients to set/update the current auth token provided by the server.
+
+### Method(s)[​](#methods-3)
 
 ```
 `1pubnub.setToken(  
@@ -287,10 +280,10 @@ Clients use this to update the current authentication token.
 `
 ```
 
-Parameters
-- token (string, required): token with embedded permissions.
+**Parameter**
+- `token` *(required)*: `string` — current token with embedded permissions.
 
-### Sample code
+### Sample code[​](#sample-code-3)
 
 ```
 1
@@ -298,33 +291,34 @@ Parameters
 
 ```
 
-### Returns
+### Returns[​](#returns-3)
 
-- No response value.
+No return value.
 
-## Grant token - spaces & users (deprecated)
+---
 
-Deprecated: Use grantToken() (channels, groups, uuids). This variant targets spaces and users and will be removed in a future version.
+## Grant token - spaces & users (deprecated)[​](#grant-token---spaces--users-deprecated)
 
-Requirements:
-- Access Manager add-on enabled.
-- Server-only: requires secretKey; never use in client SDKs.
+**Deprecated:** will be removed; use `grantToken()` (channels/groups/uuids) instead.
 
-Generates a token with ttl, authorizedUserId, and permissions over:
-- spaces
-- users (user metadata)
+**Requires Access Manager add-on.**  
+**Server-only:** requires initialization with `secretKey`.
 
-Permissions:
-- space: read, write, get, manage, update, join, delete
-- user: get, update, delete
+Generates token for:
+- `spaces`
+- `users`
 
-TTL: required; 1–43,200 minutes.
+Only `authorizedUserId` can use the token; invalid/unauthorized usage returns `403`.
 
-RegEx: define permissions under patterns.
+**Deprecated permission keys:**
+- `space`: `read`, `write`, `get`, `manage`, `update`, `join`, `delete`
+- `user`: `get`, `update`, `delete`
 
-Authorized user ID: authorizedUserId restricts token usage to one client.
+**TTL:** required; min `1`, max `43,200` (30 days). Recommended `10`–`60` for security.  
+**RegEx:** supported via `patterns`.  
+**Required mapping:** specify at least one `userId` or `space` via `resources` or `patterns`.
 
-### Method(s) - spaces & users (deprecated)
+#### Method(s) - spaces & users (deprecated)[​](#methods---spaces--users-deprecated)
 
 ```
 `1pubnub.grantToken({  
@@ -337,19 +331,7 @@ Authorized user ID: authorizedUserId restricts token usage to one client.
 `
 ```
 
-Parameters
-- ttl (number, required): 1–43,200 minutes.
-- authorizedUserId (string): single userId authorized to use the token.
-- resources.users (object): e.g., {"userId-1": {get: true, update: true, delete: true}, "userId-2": {...}}.
-- resources.spaces (object): e.g., {"space-id-1": {read: true, write: true, manage: true, delete: true, get: true, update: true, join: true}, "space-id-2": {...}}.
-- patterns.users (object): e.g., {"userId-pattern-1": {get: true, update: true, delete: true}, "userId-pattern-2": {...}}.
-- patterns.spaces (object): e.g., {"space-pattern-1": {read: true, write: true, manage: true, delete: true, get: true, update: true, join: true}, "space-pattern-2": {...}}.
-- meta (any): scalar-only metadata.
-
-Required key/value mappings
-- Provide permissions for at least one userId or space via resources or patterns.
-
-### Sample code - spaces & users (deprecated)
+#### Sample code - spaces & users (deprecated)[​](#sample-code---spaces--users-deprecated)
 
 ```
 `1try {  
@@ -370,20 +352,16 @@ Required key/value mappings
 `
 ```
 
-### Returns - spaces & users (deprecated)
+#### Returns - spaces & users (deprecated)[​](#returns---spaces--users-deprecated)
 
 ```
 `1"p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI"  
 `
 ```
 
-### Other examples - spaces & users (deprecated)
+#### Other examples - spaces & users (deprecated)[​](#other-examples---spaces--users-deprecated)
 
-Grant an authorized client different levels of access to various resources in a single call - spaces & users (deprecated)
-
-- Grants my-authorized-userId:
-  - Read access to space-a, and get to userId-c.
-  - Read/write to space-b, space-c, space-d, and get/update to userId-d.
+##### Grant an authorized client different levels of access to various resources in a single call - spaces & users (deprecated)[​](#grant-an-authorized-client-different-levels-of-access-to-various-resources-in-a-single-call---spaces--users-deprecated)
 
 ```
 `1try {  
@@ -425,9 +403,7 @@ Grant an authorized client different levels of access to various resources in a 
 `
 ```
 
-Grant an authorized client read access to multiple channels using RegEx - spaces & users (deprecated)
-
-- Grants my-authorized-userId read access to spaces matching ^space-[A-Za-z0-9]$.
+##### Grant an authorized client read access to multiple channels using RegEx - spaces & users (deprecated)[​](#grant-an-authorized-client-read-access-to-multiple-channels-using-regex---spaces--users-deprecated)
 
 ```
 `1try {  
@@ -448,12 +424,7 @@ Grant an authorized client read access to multiple channels using RegEx - spaces
 `
 ```
 
-Grant an authorized client different levels of access to various resources and read access to channels using RegEx in a single call - spaces & users (deprecated)
-
-- Grants my-authorized-userId:
-  - Read access to space-a and userId-c.
-  - Read/write access to space-b, space-c, space-d, and get/update to userId-d.
-  - Read access to spaces matching ^space-[A-Za-z0-9]$.
+##### Grant an authorized client different levels of access to various resources and read access to channels using RegEx in a single call - spaces & users (deprecated)[​](#grant-an-authorized-client-different-levels-of-access-to-various-resources-and-read-access-to-channels-using-regex-in-a-single-call---spaces--users-deprecated)
 
 ```
 `1try {  
@@ -502,8 +473,6 @@ Grant an authorized client different levels of access to various resources and r
 `
 ```
 
-#### Error responses - spaces & users (deprecated)
+#### Error responses - spaces & users (deprecated)[​](#error-responses---spaces--users-deprecated)
 
-- 400 Bad Request with details (e.g., RegEx, timestamp, permissions issues).
-
-Last updated on Sep 3, 2025
+Invalid requests return **`400`** with JSON details (e.g., RegEx/timestamp/permission issues).

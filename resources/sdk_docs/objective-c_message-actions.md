@@ -1,17 +1,26 @@
 # Message Actions API for Objective-C SDK
 
-Use Message Actions to add/remove metadata on published messages (receipts, reactions). Subscribe to channels to receive action events; fetch past actions from Message Persistence.
-
-Note: Requires Message Persistence enabled in the Admin Portal for all operations.
+Use **Message Actions** to add/remove metadata on published messages (for example: receipts, reactions). Clients **subscribe** to receive message action events, and can **fetch** historical actions via **Message Persistence**.
 
 ##### Reactions
-“Message Reactions” are Message Actions used for emoji/social reactions; same underlying API.
+“Message Reactions” is a common use of Message Actions for emoji/social reactions (same underlying API).
+
+---
 
 ## Add message action
 
-Add an action to a published message. Response includes the added action.
+##### Requires Message Persistence
+Enable Message Persistence for your key in the [Admin Portal](https://admin.pubnub.com/) (see [support article](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-)).
+
+Add an action to a published message; response includes the added action.
+
+##### Message Actions vs. Message Reactions
+- **Message Actions**: generic metadata (receipts, confirmations, custom data).
+- **Message Reactions**: Message Actions used specifically for emoji/social reactions (terminology varies across SDKs, functionality is the same).
 
 ### Method(s)
+
+Use this Objective-C method:
 
 ```
 `1- (void)addMessageActionWithRequest:(PNAddMessageActionRequest *)request   
@@ -19,13 +28,11 @@ Add an action to a published message. Response includes the added action.
 `
 ```
 
-Parameters:
-- request (PNAddMessageActionRequest)
-  - type (NSString): Message action type. Max 15 characters.
-  - value (NSString): Message action value.
-  - channel (NSString): Channel name of the target message.
-  - messageTimetoken (NSNumber): Timetoken of the target message.
-- block (PNAddMessageActionCompletionBlock)
+*  requiredParameterDescription`request` *Type: [PNAddMessageActionRequest](#pnaddmessageactionrequest)Request containing the message action details.`block`Type: PNAddMessageActionCompletionBlockCompletion block.
+
+#### PNAddMessageActionRequest
+
+*  requiredParameterDescription`type` *Type: NSStringMessage action type. Maximum `15` characters.`value` *Type: NSStringMessage action value.`channel` *Type: NSStringChannel name of the target message.`messageTimetoken` *Type: NSNumberTimetoken of the target message.
 
 ### Sample code
 
@@ -93,7 +100,9 @@ Parameters:
 53    NSLog(@"📢 Received message action event!");  
 54    NSLog(@"Action type: %@, value: %@", action.data.action.type, action.data.action.value);  
 55}  
+
 ```
+show all 55 lines
 
 ### Response
 
@@ -116,13 +125,19 @@ Parameters:
 12
   
 13@end  
+
 ```
+
+---
 
 ## Add message action (builder pattern)
 
-Add an action to a published message. Response includes the added action.
+##### Requires Message Persistence
+Enable Message Persistence for your key in the [Admin Portal](https://admin.pubnub.com/) (see [support article](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-)).
 
 ### Method(s)
+
+Use this Objective-C method:
 
 ```
 `1addMessageAction()  
@@ -134,12 +149,7 @@ Add an action to a published message. Response includes the added action.
 `
 ```
 
-Parameters:
-- channel (NSString)
-- messageTimetoken (NSNumber)
-- type (NSString)
-- value (NSString)
-- block (PNAddMessageActionCompletionBlock)
+*  requiredParameterDescription`channel` *Type: NSStringChannel name of the target message.`messageTimetoken` *Type: NSNumberTimetoken of the target message.`type` *Type: NSStringMessage action type.`value` *Type: NSStringMessage action value.`block`Type: PNAddMessageActionCompletionBlockCompletion block.
 
 ### Sample code
 
@@ -170,6 +180,7 @@ Parameters:
 24    });  
 `
 ```
+show all 24 lines
 
 ### Response
 
@@ -192,13 +203,21 @@ Parameters:
 12
   
 13@end  
+
 ```
 
+---
+
 ## Remove message action
+
+##### Requires Message Persistence
+Enable Message Persistence for your key in the [Admin Portal](https://admin.pubnub.com/) (see [support article](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-)).
 
 Remove a previously added action from a published message. Response is empty.
 
 ### Method(s)
+
+Use this Objective-C method:
 
 ```
 `1- (void)removeMessageActionWithRequest:(PNRemoveMessageActionRequest *)request   
@@ -206,12 +225,11 @@ Remove a previously added action from a published message. Response is empty.
 `
 ```
 
-Parameters:
-- request (PNRemoveMessageActionRequest)
-  - actionTimetoken (NSNumber): Timetoken of the message action to remove.
-  - channel (NSString): Channel name of the target message.
-  - messageTimetoken (NSNumber): Timetoken of the target message.
-- block (PNRemoveMessageActionCompletionBlock)
+*  requiredParameterDescription`request` *Type: [PNRemoveMessageActionRequest](#pnremovemessageactionrequest)Request containing the message action to remove.`block`Type: PNRemoveMessageActionCompletionBlockCompletion block.
+
+#### PNRemoveMessageActionRequest
+
+*  requiredParameterDescription`actionTimetoken` *Type: NSNumberTimetoken of the message action to remove.`channel` *Type: NSStringChannel name of the target message.`messageTimetoken` *Type: NSNumberTimetoken of the target message.
 
 ### Sample code
 
@@ -236,7 +254,9 @@ Parameters:
 16         */  
 17    }  
 18}];  
+
 ```
+show all 18 lines
 
 ### Response
 
@@ -263,11 +283,16 @@ Parameters:
 15
   
 16@end  
+
 ```
+show all 16 lines
+
+---
 
 ## Remove message action (builder pattern)
 
-Remove a previously added action from a published message. Response is empty.
+##### Requires Message Persistence
+Enable Message Persistence for your key in the [Admin Portal](https://admin.pubnub.com/) (see [support article](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-)).
 
 ### Method(s)
 
@@ -280,11 +305,7 @@ Remove a previously added action from a published message. Response is empty.
 `
 ```
 
-Parameters:
-- channel (NSString)
-- messageTimetoken (NSNumber)
-- actionTimetoken (NSNumber)
-- block (PNRemoveMessageActionCompletionBlock)
+*  requiredParameterDescription`channel` *Type: NSStringChannel name of the target message.`messageTimetoken` *Type: NSNumberTimetoken of the target message.`actionTimetoken` *Type: NSNumberTimetoken of the message action to remove.`block`Type: PNRemoveMessageActionCompletionBlockCompletion block.
 
 ### Sample code
 
@@ -307,6 +328,7 @@ Parameters:
 16    });  
 `
 ```
+show all 16 lines
 
 ### Response
 
@@ -333,13 +355,22 @@ Parameters:
 15
   
 16@end  
+
 ```
+show all 16 lines
+
+---
 
 ## Get message actions
 
-Get a list of message actions in a channel. Response is sorted by action timetoken (ascending).
+##### Requires Message Persistence
+Enable Message Persistence for your key in the [Admin Portal](https://admin.pubnub.com/) (see [support article](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-)).
+
+Fetch message actions for a channel; actions are sorted by **action timetoken ascending**.
 
 ### Method(s)
+
+Use this Objective-C method:
 
 ```
 `1- (void)fetchMessagesActionsWithRequest:(PNFetchMessagesActionsRequest *)request   
@@ -347,13 +378,11 @@ Get a list of message actions in a channel. Response is sorted by action timetok
 `
 ```
 
-Parameters:
-- request (PNFetchMessageActionsRequest)
-  - channel (NSString): Channel name to list message actions for.
-  - start (NSNumber): Message action timetoken for start of range (exclusive).
-  - end (NSNumber): Message action timetoken for end of range (inclusive).
-  - limit (NSUInteger): Number of message actions to return.
-- block (PNFetchMessageActionsCompletionBlock)
+*  requiredParameterDescription`request` *Type: [PNFetchMessageActionsRequest](#pnfetchmessageactionsrequest)Request with parameters to fetch message actions.`block` *Type: PNFetchMessageActionsCompletionBlockCompletion block.
+
+#### PNFetchMessageActionsRequest
+
+*  requiredParameterDescription`start` *Type: NSNumberMessage action timetoken for the start of the range (exclusive).`end` *Type: NSNumberMessage action timetoken for the end of the range (inclusive).`limit` *Type: NSUIntegerNumber of message actions to return.`channel` *Type: NSStringChannel name to list message actions for.
 
 ### Sample code
 
@@ -386,7 +415,9 @@ Parameters:
 24         */  
 25    }  
 26}];  
+
 ```
+show all 26 lines
 
 ### Response
 
@@ -414,15 +445,18 @@ Parameters:
 17
   
 18@interface PNFetchMessageActionsResult : PNResult  
-19  
+19
+  
 20// Fetch message actions request processed information.  
 21@property (nonatomic, readonly, strong) PNFetchMessageActionsData *data;  
 22
   
 23@end  
-```
 
-Error response for API call failure:
+```
+show all 23 lines
+
+Error response which is used in case of Message Action API call failure:
 
 ```
 1@interface PNErrorData : PNServiceData  
@@ -447,13 +481,22 @@ Error response for API call failure:
 15
   
 16@end  
+
 ```
+show all 16 lines
+
+---
 
 ## Get Message Reactions (builder pattern)
 
-Get a list of message actions in a channel. Returns actions sorted by action timetoken (ascending).
+##### Requires Message Persistence
+Message Persistence must be [enabled](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-) in the [Admin Portal](https://admin.pubnub.com/).
+
+Fetch message actions for a `channel`; returns actions sorted by action timetoken ascending.
 
 ### Method(s)
+
+To Get Message Actions you can use the following method(s) in the Objective-C SDK:
 
 ```
 `1fetchMessageActions()  
@@ -465,12 +508,7 @@ Get a list of message actions in a channel. Returns actions sorted by action tim
 `
 ```
 
-Parameters:
-- channel (NSString): Channel to retrieve actions from.
-- start (NSNumber): Start timetoken; return values will be less than start.
-- end (NSNumber): End timetoken; return values will be greater than or equal to end.
-- limit (NSUInteger): Number of actions to return.
-- block (PNFetchMessageActionsCompletionBlock)
+*  requiredParameterDescription`channel` *Type: NSStringName of channel from which list of messages `actions` should be retrieved.`start`Type: NSNumberMessage action timetoken denoting the start of the range requested. Return values will be less than start.`end`Type: NSNumberMessage action timetoken denoting the end of the range requested. Return values will be greater than or equal to end.`limit`Type: NSUIntegerNumber of message actions to return in response.`block` *Type: PNFetchMessageActionsCompletionBlock`Fetch message actions` request completion `block`.
 
 ### Sample code
 
@@ -501,9 +539,13 @@ Parameters:
 23             */  
 24        }  
 25    });  
+
 ```
+show all 25 lines
 
 ### Response
+
+Response objects which is returned by client when `fetch message actions` Message Action API is used:
 
 ```
 1@interface PNFetchMessageActionsData : PNServiceData  
@@ -529,15 +571,18 @@ Parameters:
 17
   
 18@interface PNFetchMessageActionsResult : PNResult  
-19  
+19
+  
 20// Fetch message actions request processed information.  
 21@property (nonatomic, readonly, strong) PNFetchMessageActionsData *data;  
 22
   
 23@end  
-```
 
-Error response for API call failure:
+```
+show all 23 lines
+
+Error response which is used in case of Message Action API call failure:
 
 ```
 1@interface PNErrorData : PNServiceData  
@@ -561,4 +606,8 @@ Error response for API call failure:
 14@property (nonatomic, readonly, strong) PNErrorData *errorData;  
 15
 **16@end  
+
 ```
+show all 16 lines
+
+Last updated on Sep 3, 2025

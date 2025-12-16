@@ -1,18 +1,23 @@
 # Channel Groups API for Objective-C SDK
 
-Channel groups let you bundle many channels under a named group and subscribe to that group to receive messages from all contained channels.
+[Channel groups](/docs/general/channels/subscribe#channel-groups) bundle many [channels](/docs/general/channels/overview) under a single named group. You **can’t publish to a channel group**—only subscribe. To publish, publish to each channel.
 
-Channel group operations
-- You can't publish to a channel group; only subscribe. To publish, send to each channel individually.
+##### Channel group operations
+- Subscribe to a channel group to receive messages from its member channels.
+- Publishing must be done per-channel, not to the group.
 
-## Add channels to a channel group
+---
 
-Requires Stream Controller add-on
-- Enable the Stream Controller add-on for your key in the Admin Portal.
+## Add channels to a channel group[​](#add-channels-to-a-channel-group)
 
-This function adds channels to a channel group.
+##### Requires Stream Controller add-on
+Enable the **Stream Controller** add-on for your key in the PubNub [Admin Portal](https://admin.pubnub.com/). See: https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-
 
-### Method(s)
+Adds channels to a channel group.
+
+### Method(s)[​](#methods)
+
+`Adding Channels` is accomplished by using the following method(s) in the Objective-C SDK:
 
 ```
 `1- (void)addChannels:(NSArrayNSString *> *)channels   
@@ -21,14 +26,13 @@ This function adds channels to a channel group.
 `
 ```
 
-Parameters
-- channels (NSArray): List of channel names to add to the group.
-- group (NSString): Name of the group to modify.
-- block (PNChannelGroupChangeCompletionBlock): Completion block with request processing status (success/error).
+- `channels` (NSArray): List of channel names to add.
+- `group` (NSString): Channel group name.
+- `block` (PNChannelGroupChangeCompletionBlock): Completion; receives request status (success/error).
 
-### Sample code
+### Sample code[​](#sample-code)
 
-#### Add channels
+#### Add channels[​](#add-channels)
 
 ```
 1// Initialize PubNub client with your keys  
@@ -70,25 +74,31 @@ Parameters
 33        NSLog(@"Error category: %@", @(status.category));  
 34    }  
 35}];  
+
 ```
 
-### Response
+### Response[​](#response)
 
 ```
 1@interface PNAcknowledgmentStatus : PNErrorStatus  
 2
   
 3@end  
+
 ```
 
-## List channels in a channel group
+---
 
-Requires Stream Controller add-on
-- Enable the Stream Controller add-on for your key in the Admin Portal.
+## List channels in a channel group[​](#list-channels-in-a-channel-group)
 
-This function lists all channels in a channel group.
+##### Requires Stream Controller add-on
+Enable the **Stream Controller** add-on in the [Admin Portal](https://admin.pubnub.com/).
 
-### Method(s)
+Lists all channels in a channel group.
+
+### Method(s)[​](#methods-1)
+
+`Listing Channels` is accomplished by using the following method(s) in the Objective-C SDK:
 
 ```
 `1- (void)channelsForGroup:(NSString *)group   
@@ -96,15 +106,14 @@ This function lists all channels in a channel group.
 `
 ```
 
-Parameters
-- group (NSString): Name of the group from which channels should be fetched.
-- block (PNClientChannelsForGroupRequestHandlingBlock): Completion block with:
-  - result (PNChannelGroupChannelsResult) on success (data.channels contains the list)
-  - status (PNErrorStatus) on error.
+- `group` (NSString): Group to fetch channels from.
+- `block` (PNClientChannelsForGroupRequestHandlingBlock): Completion with:
+  - `result`: contains `result.data.channels` on success
+  - `status`: error info on failure (supports `[status retry]`)
 
-### Sample code
+### Sample code[​](#sample-code-1)
 
-#### List channels
+#### List channels[​](#list-channels)
 
 ```
 `1NSString *channelGroup = @"family";  
@@ -129,14 +138,16 @@ Parameters
 12         to find out possible reason because of which request did fail.  
 13         Review 'errorData' property (which has PNErrorData data type) of status  
 14         object to get additional information about issue.  
-15  
+15
+  
 16         Request can be resent using: [status retry];  
 17         */  
 18    }  
 19}];  
+
 ```
 
-### Response
+### Response[​](#response-1)
 
 ```
 1@interface PNChannelGroupChannelsData : PNServiceData  
@@ -157,16 +168,21 @@ Parameters
 12
   
 13@end  
+
 ```
 
-## Remove channels from a channel group
+---
 
-Requires Stream Controller add-on
-- Enable the Stream Controller add-on for your key in the Admin Portal.
+## Remove channels from a channel group[​](#remove-channels-from-a-channel-group)
 
-This function removes channels from a channel group.
+##### Requires Stream Controller add-on
+Enable the **Stream Controller** add-on in the [Admin Portal](https://admin.pubnub.com/).
 
-### Method(s)
+Removes channels from a channel group. If `channels` is empty, the **whole channel group is removed**.
+
+### Method(s)[​](#methods-2)
+
+`Removing Channels` is accomplished by using the following method(s) in the Objective-C SDK:
 
 ```
 `1- (void)removeChannels:(NSArrayNSString *> *)channels   
@@ -175,14 +191,13 @@ This function removes channels from a channel group.
 `
 ```
 
-Parameters
-- channels (NSArray): List of channel names to remove from the group. If empty list is passed, the whole channel group will be removed.
-- group (NSString): Channel group to modify.
-- block (PNChannelGroupChangeCompletionBlock): Completion block with request processing status (success/error).
+- `channels` (NSArray): Channels to remove. **Empty list removes the whole group.**
+- `group` (NSString): Group to remove from.
+- `block` (PNChannelGroupChangeCompletionBlock): Completion; receives status (supports `[status retry]` on error).
 
-### Sample code
+### Sample code[​](#sample-code-2)
 
-#### Remove channels
+#### Remove channels[​](#remove-channels)
 
 ```
 `1NSString *channelGroup = @"family";  
@@ -207,30 +222,37 @@ Parameters
 12         to find out possible reason because of which request did fail.  
 13         Review 'errorData' property (which has PNErrorData data type) of status  
 14         object to get additional information about issue.  
-15  
+15
+  
 16         Request can be resent using: [status retry];  
 17         */  
 18    }  
 19}];  
+
 ```
 
-### Response
+### Response[​](#response-2)
 
 ```
 1@interface PNAcknowledgmentStatus : PNErrorStatus  
 2
   
 3@end  
+
 ```
 
-## Delete a channel group
+---
 
-Requires Stream Controller add-on
-- Enable the Stream Controller add-on for your key in the Admin Portal.
+## Delete a channel group[​](#delete-a-channel-group)
 
-This function deletes a channel group.
+##### Requires Stream Controller add-on
+Enable the **Stream Controller** add-on in the [Admin Portal](https://admin.pubnub.com/).
 
-### Method(s)
+Deletes a channel group by removing all channels from it.
+
+### Method(s)[​](#methods-3)
+
+`Deleting Channel Group` is accomplished by using the following method(s) in the Objective-C SDK:
 
 ```
 `1- (void)removeChannelsFromGroup:(NSString *)group   
@@ -238,13 +260,12 @@ This function deletes a channel group.
 `
 ```
 
-Parameters
-- group (NSString): Name of the group from which all channels should be removed.
-- block (PNChannelGroupChangeCompletionBlock): Completion block with request processing status (success/error).
+- `group` (NSString): Group to remove all channels from.
+- `block` (PNChannelGroupChangeCompletionBlock): Completion; receives status (supports `[status retry]` on error).
 
-### Sample code
+### Sample code[​](#sample-code-3)
 
-Deleting Channel Group:
+Deleting Channel Group :
 
 ```
 `1NSString *channelGroup = @"family";  
@@ -268,19 +289,20 @@ Deleting Channel Group:
 11         to find out possible reason because of which request did fail.  
 12         Review 'errorData' property (which has PNErrorData data type) of status  
 13         object to get additional information about issue.  
-14  
+14
+  
 15         Request can be resent using: [status retry];  
 16         */  
 17    }  
 18}];  
+
 ```
 
-### Response
+### Response[​](#response-3)
 
 ```
 1@interface PNAcknowledgmentStatus : PNErrorStatus  
 2
 **3@end  
-```
 
-Last updated on Sep 3, 2025
+```

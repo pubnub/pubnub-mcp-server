@@ -1,20 +1,23 @@
 # Presence API for Objective-C SDK
 
-Presence tracks online/offline users and their state:
-- Join/leave events
-- Channel occupancy (counts)
-- Channels a user/UUID is subscribed to
-- Presence state per user/UUID
+Presence tracks online/offline users and optional per-user state. It supports join/leave events, occupancy, channel membership per UUID, and state. Presence add-on must be enabled in the Admin Portal (see links in original doc). Presence event details: [Presence Events](/docs/general/presence/presence-events#subscribe-to-presence-channel).
 
-Requires Presence add-on enabled for your keys in the Admin Portal. See Presence Events for subscribing to presence channels. Learn more in the Presence overview.
+---
 
-## Here now
+## Here now[​](#here-now)
 
-Returns current presence info for channels/channel groups: UUIDs and occupancy counts.
+##### Requires Presence
 
-- Cache: 3-second response cache time.
+Presence add-on must be enabled for the key.  
+Presence events reference: [Presence Events](/docs/general/presence/presence-events#subscribe-to-presence-channel).
 
-### Method(s)
+Returns current channel presence: UUIDs currently subscribed and occupancy.
+
+##### Cache
+
+3-second response cache time.
+
+### Method(s)[​](#methods)
 
 ```
 `1- (void)hereNowWithRequest:(PNHereNowRequest *)request   
@@ -22,20 +25,19 @@ Returns current presence info for channels/channel groups: UUIDs and occupancy c
 `
 ```
 
-Parameters:
-- request: Type PNHereNowRequest. Presence query configuration.
-- block: Type PNHereNowCompletionBlock. Completion with result (success) or status (error).
+*  requiredParameterDescription`request` *Type: [PNHereNowRequest](#pnherenowrequest)Request with information required to retrieve presence information.`block` *Type: PNHereNowCompletionBlockHere now processing completion `block` which pass two arguments: result - in case of successful request processing data field will contain results of here now operation; status - in case if error occurred during request processing.
 
-#### PNHereNowRequest
+#### PNHereNowRequest[​](#pnherenowrequest)
 
-- channels: Type NSArray<NSString *> — Channel list to fetch presence for.
-- channelGroups: Type NSArray<NSString *> — Channel group list to fetch presence for.
-- verbosityLevel: Type PNHereNowVerbosityLevel, Default PNHereNowState — Response detail level (occupancy only, UUIDs, or UUIDs with state).
-- limit: Type NSUInteger, Default 1000, Range 0–1000 — Max occupants per channel. Use 0 to get occupancy only without UUID details.
+PropertyDescription`channels`Type: `NSArray<NSString *>`Default:  
+-List of channels for which here now information should be received.`channelGroups`Type: `NSArray<NSString *>`Default:  
+-List of channel groups for which here now information should be received.`verbosityLevel`Type: `PNHereNowVerbosityLevel`Default:  
+`PNHereNowState`One of `PNHereNowVerbosityLevel` fields to instruct what exactly data it expected in response.`limit`Type: `NSUInteger`Default:  
+`1000`Maximum number of occupants to return per channel. Valid range: `0-1000`. Use `0` to get occupancy counts without user details.
 
-### Sample code
+### Sample code[​](#sample-code)
 
-#### Get a list of uuids subscribed to channel
+#### Get a list of uuids subscribed to channel[​](#get-a-list-of-uuids-subscribed-to-channel)
 
 ```
 1#import Foundation/Foundation.h>  
@@ -180,7 +182,7 @@ Parameters:
 
 ```
 
-### Response
+### Response[​](#response)
 
 ```
 1@interface PNPresenceGlobalHereNowData : PNServiceData  
@@ -214,9 +216,14 @@ Parameters:
 
 ```
 
-### Other examples
+### Other examples[​](#other-examples)
 
-#### Returning state
+#### Returning state[​](#returning-state)
+
+##### Requires Presence
+
+Presence add-on must be enabled for the key.  
+Presence events reference: [Presence Events](/docs/general/presence/presence-events#subscribe-to-presence-channel).
 
 ```
 1/**  
@@ -256,7 +263,7 @@ Parameters:
 
 ```
 
-##### Example response
+##### Example response[​](#example-response)
 
 ```
 `1{  
@@ -300,7 +307,12 @@ Parameters:
 `
 ```
 
-#### Return occupancy only
+#### Return occupancy only[​](#return-occupancy-only)
+
+##### Requires Presence
+
+Presence add-on must be enabled for the key.  
+Presence events reference: [Presence Events](/docs/general/presence/presence-events#subscribe-to-presence-channel).
 
 ```
 1// With PNHereNowOccupancy client will pull out only occupancy information.  
@@ -323,7 +335,8 @@ Parameters:
 16            to find out possible reason because of which request did fail.  
 17            Review 'errorData' property (which has PNErrorData data type) of status  
 18            object to get additional information about issue.  
-19  
+19
+  
 20            Request can be resent using: [status retry];  
 21            */  
 22    }  
@@ -331,7 +344,7 @@ Parameters:
 
 ```
 
-##### Example response
+##### Example response[​](#example-response-1)
 
 ```
 `1{  
@@ -360,11 +373,13 @@ Parameters:
 `
 ```
 
-## Here now for channel groups
+---
 
-Request presence (UUIDs/state and occupancy) for a channel group.
+## Here now for channel groups[​](#here-now-for-channel-groups)
 
-### Method(s)
+Returns presence for a channel group (UUIDs + optional state per channel, plus occupancy).
+
+### Method(s)[​](#methods-1)
 
 ```
 `1- (void)hereNowForChannelGroup:(NSString *)group   
@@ -372,9 +387,7 @@ Request presence (UUIDs/state and occupancy) for a channel group.
 `
 ```
 
-Parameters:
-- group: Type NSString — Channel group to fetch presence for.
-- block: Type PNChannelGroupHereNowCompletionBlock — Completion with result/status.
+*  requiredParameterDescription`group` *Type: NSStringReference on `channel` `group` for which here now information should be received.`block` *Type: PNChannelGroupHereNowCompletionBlockHere now processing completion `block` which pass two arguments: result - in case of successful request processing data field will contain results of here now operation; status - in case if `error` occurred during request processing.
 
 ```
 `1- (void)hereNowForChannelGroup:(NSString *)group   
@@ -383,14 +396,11 @@ Parameters:
 `
 ```
 
-Parameters:
-- group: Type NSString — Channel group to fetch presence for.
-- level: Type PNHereNowVerbosityLevel — Response detail level.
-- block: Type PNChannelGroupHereNowCompletionBlock — Completion with result/status.
+*  requiredParameterDescription`group` *Type: NSStringReference on `channel` `group` for which here now information should be received.`level` *Type: PNHereNowVerbosityLevelReference on one of `PNHereNowVerbosityLevel` fields to instruct what exactly data it expected in response.`block` *Type: PNChannelGroupHereNowCompletionBlockHere now processing completion `block` which pass two arguments: result - in case of successful request processing data field will contain results of here now operation; status - in case if `error` occurred during request processing.
 
-### Sample code
+### Sample code[​](#sample-code-1)
 
-#### Here now for channel groups
+#### Here now for channel groups[​](#here-now-for-channel-groups-1)
 
 ```
 1[self.client hereNowForChannelGroup:@"my_group"  
@@ -420,7 +430,8 @@ Parameters:
 22         to find out possible reason because of which request did fail.  
 23         Review 'errorData' property (which has PNErrorData data type) of status  
 24         object to get additional information about issue.  
-25  
+25
+  
 26         Request can be resent using: status.retry()  
 27         */  
 28    }  
@@ -428,7 +439,7 @@ Parameters:
 
 ```
 
-### Response
+### Response[​](#response-1)
 
 ```
 1@interface PNPresenceGlobalHereNowData : PNServiceData  
@@ -446,26 +457,38 @@ Parameters:
 11
   
 12@interface PNPresenceChannelGroupHereNowData : PNPresenceGlobalHereNowData  
-13  
+13
+  
 14@end  
-15  
+15
+  
 16@interface PNPresenceChannelGroupHereNowResult : PNResult  
-17  
+17
+  
 18// Stores reference on channel group presence request processing information.  
 19@property (nonatomic, nonnull, readonly, strong) PNPresenceChannelGroupHereNowData *data;  
-20  
+20
+  
 21@end  
 
 ```
 
-## Where now
+---
+
+## Where now[​](#where-now)
+
+##### Requires Presence
+
+Presence add-on must be enabled for the key.  
+Presence events reference: [Presence Events](/docs/general/presence/presence-events#subscribe-to-presence-channel).
 
 Returns the list of channels a UUID is subscribed to.
 
-- Requires Presence.
-- Timeout events: If the app restarts (or the page refreshes) within the heartbeat window, no timeout event is generated.
+##### Timeout events
 
-### Method(s)
+If the app restarts (or the page refreshes) within the heartbeat window, no timeout event is generated.
+
+### Method(s)[​](#methods-2)
 
 ```
 `1- (void)whereNowUUID:(NSString *)uuid   
@@ -473,13 +496,11 @@ Returns the list of channels a UUID is subscribed to.
 `
 ```
 
-Parameters:
-- uuid: Type NSString — UUID to query.
-- block: Type PNWhereNowCompletionBlock — Completion with result/status.
+*  requiredParameterDescription`uuid` *Type: NSStringReference on `UUID` for which request should be performed.`block` *Type: PNWhereNowCompletionBlockWhere now processing completion `block` which pass two arguments: result - in case of successful request processing data field will contain results of where now operation; status - in case if error occurred during request processing.
 
-### Sample code
+### Sample code[​](#sample-code-2)
 
-#### Get a list of channels a UUID is subscribed to
+#### Get a list of channels a UUID is subscribed to[​](#get-a-list-of-channels-a-uuid-is-subscribed-to)
 
 ```
 1[self.client whereNowUUID:self.client.uuid withCompletion:^(PNPresenceWhereNowResult *result,  
@@ -499,7 +520,8 @@ Parameters:
 12         to find out possible reason because of which request did fail.  
 13         Review 'errorData' property (which has PNErrorData data type) of status  
 14         object to get additional information about issue.  
-15  
+15
+  
 16         Request can be resent using: [status retry];  
 17         */  
 18    }  
@@ -507,7 +529,7 @@ Parameters:
 
 ```
 
-### Response
+### Response[​](#response-2)
 
 ```
 1@interface PNPresenceWhereNowData : PNServiceData  
@@ -518,23 +540,33 @@ Parameters:
 5
   
 6@end  
-7  
+7
+  
 8@interface PNPresenceWhereNowResult : PNResult  
-9  
+9
+  
 10// Stores reference on client presence request processing information.  
 11@property (nonatomic, readonly, strong) PNPresenceWhereNowData *data;  
-12  
+12
+  
 13@end  
 
 ```
 
-## User state
+---
 
-Clients can set dynamic custom state for users on channels/groups while subscribed. State is not persisted after disconnect. Requires Presence.
+## User state[​](#user-state)
 
-### Method(s)
+##### Requires Presence
 
-#### Set state
+Presence add-on must be enabled for the key.  
+Presence events reference: [Presence Events](/docs/general/presence/presence-events#subscribe-to-presence-channel).
+
+Set/get ephemeral per-user state on one or more channels (lost on disconnect; not persisted). See [Presence State](/docs/general/presence/presence-state).
+
+### Method(s)[​](#methods-3)
+
+#### Set state[​](#set-state)
 
 ```
 `1- (void)setState:(nullable NSDictionaryNSString *, id> *)state   
@@ -544,11 +576,7 @@ Clients can set dynamic custom state for users on channels/groups while subscrib
 `
 ```
 
-Parameters:
-- state: NSDictionary — Key/value state to bind to uuid on channel. If nil, state will be removed for uuid on channel.
-- uuid: NSString — User UUID.
-- channel: NSString — Channel to store state for uuid.
-- block: PNSetStateCompletionBlock — Completion status.
+*  requiredParameterDescription`state`Type: NSDictionaryReference on dictionary which should be bound to `uuid` on specified channel.`If value is nil, state will be removed for` uuid `on` channel.`uuid` *Type: NSStringReference on unique user identifier for which `state` should be bound.`channel` *Type: NSStringName of the `channel` which will store provided state information for `uuid`.`block`Type: PNSetStateCompletionBlockState modification for user on `channel` processing completion `block` which pass only one argument - request processing status to report about how data pushing was successful or not.
 
 ```
 `1- (void)setState:(nullable NSDictionaryNSString *, id> *)state   
@@ -558,13 +586,9 @@ Parameters:
 `
 ```
 
-Parameters:
-- state: NSDictionary — State to bind to uuid on group. If nil, state will be removed for uuid on group.
-- uuid: NSString — User UUID.
-- group: NSString — Channel group to store state for uuid.
-- block: PNSetStateCompletionBlock — Completion status.
+*  requiredParameterDescription`state`Type: NSDictionaryReference on dictionary which should be bound to `uuid` on specified channel group.`If value is nil, state will be removed for` uuid `on` group.`uuid` *Type: NSStringReference on unique user identifier for which `state` should be bound.`group` *Type: NSStringName of channel group which will store provided state information for `uuid`.`block`Type: PNSetStateCompletionBlockState modification for user on `channel` processing completion `block` which pass only one argument - request processing status to report about how data pushing was successful or not.
 
-#### Get state
+#### Get state[​](#get-state)
 
 ```
 `1- (void)stateForUUID:(NSString *)uuid  
@@ -573,10 +597,7 @@ Parameters:
 `
 ```
 
-Parameters:
-- uuid: NSString — User UUID to retrieve state for.
-- channel: NSString — Channel to read state from.
-- block: PNChannelStateCompletionBlock — Completion with result/status.
+*  requiredParameterDescription`uuid` *Type: NSStringReference on unique user identifier for which state should be retrieved.`channel` *Type: NSStringName of channel from which state information for `uuid` will be pulled out.`block` *Type: PNChannelStateCompletionBlockState audition for user on `cahnnel` processing completion `block` which pass two arguments: result - in case of successful request processing data field will contain results of client state retrieve operation; status - in case if `error` occurred during request processing.
 
 ```
 `1- (void)stateForUUID:(NSString *)uuid  
@@ -585,14 +606,11 @@ Parameters:
 `
 ```
 
-Parameters:
-- uuid: NSString — User UUID to retrieve state for.
-- group: NSString — Channel group to read state from.
-- block: PNChannelGroupStateCompletionBlock — Completion with result/status.
+*  requiredParameterDescription`uuid` *Type: NSStringReference on unique user identifier for which state should be retrieved.`group` *Type: NSStringName of `channel` `group` from which state information for `uuid` will be pulled out.`block` *Type: PNChannelGroupStateCompletionBlockState audition for user on `cahnnel` `group` processing completion `block` which pass two arguments: result - in case of successful request processing data field will contain results of client state retrieve operation; status - in case if error occurred during request processing.
 
-### Sample code
+### Sample code[​](#sample-code-3)
 
-#### Set state
+#### Set state[​](#set-state-1)
 
 ```
 1[self.client setState: @{@"Key": @"Value"} forUUID:self.client.uuid onChannel: @"my_channel"  
@@ -612,7 +630,8 @@ Parameters:
 12         to find out possible reason because of which request did fail.  
 13         Review 'errorData' property (which has PNErrorData data type) of status  
 14         object to get additional information about issue.  
-15  
+15
+  
 16         Request can be resent using: [status retry];  
 17         */  
 18    }  
@@ -620,7 +639,7 @@ Parameters:
 
 ```
 
-#### Get state
+#### Get state[​](#get-state-1)
 
 ```
 1[self.client stateForUUID:self.client.uuid onChannel:@"chat"  
@@ -640,7 +659,8 @@ Parameters:
 12         to find out possible reason because of which request did fail.  
 13         Review 'errorData' property (which has PNErrorData data type) of status  
 14         object to get additional information about issue.  
-15  
+15
+  
 16         Request can be resent using: [status retry];  
 17         */  
 18    }  
@@ -648,9 +668,9 @@ Parameters:
 
 ```
 
-### Response
+### Response[​](#response-3)
 
-#### Set state
+#### Set state[​](#set-state-2)
 
 ```
 1@interface PNClientStateUpdateData : PNChannelClientStateData  
@@ -670,7 +690,7 @@ Parameters:
 
 ```
 
-#### Get state
+#### Get state[​](#get-state-2)
 
 ```
 1@interface PNChannelClientStateData : PNServiceData  
@@ -716,13 +736,20 @@ Parameters:
 
 ```
 
-## User state (builder pattern)
+---
 
-Builder-style APIs for setting/auditing state. Requires Presence.
+## User state (builder pattern)[​](#user-state-builder-pattern)
 
-### Method(s)
+##### Requires Presence
 
-#### Set state
+Presence add-on must be enabled for the key.  
+Presence events reference: [Presence Events](/docs/general/presence/presence-events#subscribe-to-presence-channel).
+
+Builder-style API for set/audit state (JSON key/value pairs) for a subscriber UUID. Optional arguments can be omitted.
+
+### Method(s)[​](#methods-4)
+
+#### Set state[​](#set-state-3)
 
 ```
 `1state()  
@@ -735,14 +762,13 @@ Builder-style APIs for setting/auditing state. Requires Presence.
 `
 ```
 
-Parameters:
-- uuid: NSString — Target UUID. Defaults to current PubNub user ID if nil/omitted.
-- state: NSDictionary — State to bind to uuid on channels/channelGroups.
-- channels: NSArray<NSString *> — Channels to store state (omit if using channelGroups).
-- channelGroups: NSArray<NSString *> — Channel groups to store state (omit if using channels).
-- completion: PNSetStateCompletionBlock — Completion status.
+*  requiredParameterDescription`uuid`Type: NSStringUnique user identifier for which state should be bound. Current `PubNub` user ID will be used by default if not set or set to `nil`.`state`Type: NSDictionaryData which should be bound to specified `uuid` on `channels` / `channelGroups`.`channels`Type: `NSArray<NSString *>`List of the channel names which will store provided `state` information for `uuid`. Not required if `channelGroups` is set.`channelGroups`Type: `NSArray<NSString *>`List of channel group names which will store provided `state` information for `uuid`. Not required if `channels` is set.`completion`Type: PNSetStateCompletionBlockState modification for user on channel / channel group completion block which pass only one argument - request status reports state change was successful or not (`errorData` contains error information in case of failure).
 
-#### Get state
+##### Note
+
+This method uses the builder pattern, you can remove the arguments which are optional.
+
+#### Get state[​](#get-state-3)
 
 ```
 `1state()  
@@ -754,15 +780,15 @@ Parameters:
 `
 ```
 
-Parameters:
-- uuid: NSString — UUID to audit. Defaults to current PubNub user ID if nil/omitted.
-- channels: NSArray<NSString *> — Channels to read state from (omit if using channelGroups).
-- channelGroups: NSArray<NSString *> — Channel groups to read state from (omit if using channels).
-- completion: PNGetStateCompletionBlock — Completion with result/status.
+*  requiredParameterDescription`uuid`Type: NSStringUnique user identifier for which state should be retrieved. Current `PubNub`  user ID will be used by default if not set or set to `nil`.`channels`Type: `NSArray<NSString *>`List of the channel names from which state information for `uuid` will be pulled out. Not required if `channelGroups` is set.`channelGroups`Type: `NSArray<NSString *>`List of channel group names from which state information for `uuid` will be pulled out. Not required if `channels` is set.`completion` *Type: PNGetStateCompletionBlockState audition for user on channel / channel group completion block which pass two arguments: result - in case of successful request processing data field will contain results of client state retrieve operation; status - in case of error occurred during request processing.
 
-### Sample code
+##### Note
 
-#### Set state
+This method uses the builder pattern, you can remove the arguments which are optional.
+
+### Sample code[​](#sample-code-4)
+
+#### Set state[​](#set-state-4)
 
 ```
 1self.client.state().set().state(@{@"state": @"test"})  
@@ -779,7 +805,8 @@ Parameters:
 11             to find out possible reason because of which request did fail.  
 12             Review 'errorData' property (which has PNErrorData data type) of status  
 13             object to get additional information about issue.  
-14  
+14
+  
 15             Request can be resent using: [status retry]  
 16            */  
 17        }  
@@ -787,7 +814,7 @@ Parameters:
 
 ```
 
-#### Get state
+#### Get state[​](#get-state-4)
 
 ```
 1self.client.state().audit().uuid(@"PubNub")  

@@ -1,28 +1,32 @@
 # Access Manager v3 API for Objective-C SDK
 
-Access Manager enforces client access controls using tokens with embedded permissions for PubNub resources (channels, channel groups, UUID metadata):
-- Time-limited access (TTL).
-- Resource lists or patterns (regex).
-- Mixed permissions in a single grant (e.g., read for channel1, write for channel2).
-- Restrict token usage to a single authorized UUID via the authorized UUID parameter.
+Access Manager enforces client access control to PubNub resources (channels, channel groups, UUID metadata) using **server-issued tokens** with embedded permissions that can be:
+
+- Time-limited (`ttl`).
+- Scoped via explicit resource lists or regex **patterns**.
+- Granted for multiple resources/permission levels in a single token (for example, `read` on `channel1`, `write` on `channel2`).
+
+Optional: include an **authorized UUID** in the server grant request to restrict token usage to a single client `uuid` (only that UUID can use the token per granted permissions).
 
 ##### Client device support only
-Objective-C SDK provides client-side functionality only: parsing and setting tokens received from a server. It does not grant permissions.
 
-## Parse token
+Objective-C SDK supports **client-side** Access Manager only: you **cannot grant** permissions; you can **set** and **parse** tokens received from a server SDK.
 
-Decodes a token and returns permissions and metadata.
+## Parse token[​](#parse-token)
 
-### Method(s)
+`parseAuthToken:` decodes a token and returns its embedded permissions and metadata (useful for debugging: resource permissions, `ttl`, etc.).
+
+### Method(s)[​](#methods)
 
 ```
 `1- (PNPAMToken *)parseAuthToken:(NSString *)token  
 `
 ```
 
-- token (required): Type String. Current token with embedded permissions.
+*  requiredParameterDescription`token` *Type: `String`Default:  
+n/aCurrent token with embedded permissions.
 
-### Sample code
+### Sample code[​](#sample-code)
 
 ```
 1#import Foundation/Foundation.h>  
@@ -95,7 +99,8 @@ Decodes a token and returns permissions and metadata.
   
 59    // 7. Access pattern-based permissions  
 60    NSLog(@"\nPattern-based Permissions:");  
-61  
+61
+  
 62    NSLog(@"Channel patterns:");  
 63    if (token.patterns.channels.count > 0) {  
 64        [token.patterns.channels enumerateKeysAndObjectsUsingBlock:^(NSString *pattern, PNPAMResourcePermission *permission, BOOL *stop) {  
@@ -136,92 +141,118 @@ Decodes a token and returns permissions and metadata.
 96} else {  
 97    NSLog(@"Failed to parse token: %@", token.error);  
 98}  
+
 ```
+show all 98 lines
 
-### Returns
+### Returns[​](#returns)
 
-Responds with a PNPAMToken instance:
+This method will respond with a `PNPAMToken` instance:
 
 ```
 1@interface PNPAMToken : NSObject  
-2  
+2
+  
 3// Token version  
 4@property (nonatomic, readonly, assign) NSUInteger version;  
-5  
+5
+  
 6// Token generation date and time  
 7@property (nonatomic, readonly, assign) NSUInteger timestamp;  
-8  
+8
+  
 9// Maximum amount of time (in minutes) during which the token will be valid  
 10@property (nonatomic, readonly, assign) NSUInteger ttl;  
-11  
+11
+  
 12// The uuid that is exclusively authorized to use this token to make API requests  
 13@property (nonatomic, nullable, readonly, strong) NSString *authorizedUUID;  
-14  
+14
+  
 15// Permissions granted to specific resources  
 16@property (nonatomic, readonly, strong) PNPAMTokenResource *resources;  
-17  
+17
+  
 18// Permissions granted to resources which match a specified regular expression  
 19@property (nonatomic, readonly, strong) PNPAMTokenResource *patterns;  
-20  
+20
+  
 21// Additional information which has been added to the token  
 22@property (nonatomic, readonly, strong) NSDictionary *meta;  
-23  
+23
+  
 24// Access Manager token content signature  
 25@property (nonatomic, readonly, strong) NSData *signature;  
-26  
+26
+  
 27// Whether the provided Access Manager token string was valid and properly processed  
 28@property (nonatomic, readonly, assign) BOOL valid;  
-29  
+29
+  
 30// Contains an error with information on what went wrong, in cases when the token is not valid  
 31@property (nonatomic, nullable, readonly, strong) NSError *error;  
-32  
+32
+  
 33@end  
-34  
+34
+  
 35@interface PNPAMTokenResource : NSObject  
-36  
+36
+  
 37// Permissions granted to specific / regexp matching channels  
 38@property (nonatomic, readonly, strong) NSDictionaryNSString *, PNPAMResourcePermission *> *channels;  
-39  
+39
+  
 40// Permissions granted to specific / regexp matching channel groups  
 41@property (nonatomic, readonly, strong) NSDictionaryNSString *, PNPAMResourcePermission *> *groups;  
-42  
+42
+  
 43// Permissions granted to specific / regexp matching uuids  
 44@property (nonatomic, readonly, strong) NSDictionaryNSString *, PNPAMResourcePermission *> *uuids;  
-45  
+45
+  
 46@end  
-47  
+47
+  
 48@interface PNPAMResourcePermission : NSObject  
-49  
+49
+  
 50// Bit field with a given permission value  
 51@property (nonatomic, readonly, assign) PNPAMPermission value;  
-52  
+52
+  
 53@end  
+
 ```
+show all 53 lines
 
-### Error Responses
+### Error Responses[​](#error-responses)
 
-If parsing fails, the token may be damaged. Request a new token from the server.
+Parsing errors may indicate a damaged/invalid token; request a new token from your server.
 
-## Set token
+## Set token[​](#set-token)
 
-Updates the authentication token provided by the server.
+`setAuthToken:` updates the client’s authentication token (provided by your server).
 
-### Method(s)
+### Method(s)[​](#methods-1)
 
 ```
 `1- (void)setAuthToken:(NSString *)token;  
 `
 ```
 
-- token (required): Type String. Current token with embedded permissions.
+*  requiredParameterDescription`token` *Type: `String`Default:  
+n/aCurrent token with embedded permissions.
 
-### Sample code
+### Sample code[​](#sample-code-1)
 
 ```
 `1[self.client setAuthToken:@"p0thisAkFl043rhDdHRsCkNyZXisRGNoYW6hanNlY3JldAFDZ3Jwsample3KgQ3NwY6BDcGF0pERjaGFuoENnctokenVzcqBDc3BjoERtZXRhoENzaWdYIGOAeTyWGJI"];  
 `
 ```
 
-### Returns
+### Returns[​](#returns-1)
 
-No return value.
+This method doesn't return any response value.
+
+Last updated on **Sep 3, 2025**

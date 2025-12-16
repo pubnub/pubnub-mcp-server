@@ -1,18 +1,16 @@
 # Configuration API for Objective-C SDK
 
-Complete API reference for configuring PubNub Objective-C SDK. Includes credentials, connection behavior, retries, encryption, logging, and examples.
-
 ## Configuration
 
-`PNConfiguration` stores client settings (credentials, connection options, retries, encryption, logging).
+`PNConfiguration` stores client credentials and runtime options that control connection behavior, retries, presence heartbeats, message processing, encryption, and logging.
 
-##### Privacy
+### Privacy
 
-MAU billing tracks users (Device and MAU) for analytics and billing. PubNub does not track customers using transactions with random UUIDs/UserIDs.
+MAU billing tracks users (Device/MAU). Random UUIDs/UserIDs aren’t tracked as customers.
 
-### Method(s)
+## Method(s)
 
-Create a configuration instance with:
+Create a configuration instance:
 
 ```
 `1+ (instancetype)configurationWithPublishKey:(NSString *)publishKey   
@@ -21,76 +19,78 @@ Create a configuration instance with:
 `
 ```
 
-- Required parameters:
-  - publishKey (NSString) — Publish key. Example: "demo".
-  - subscribeKey (NSString) — Subscribe key. Example: "demo".
-  - userID (NSString) — UTF‑8 string up to 92 characters. Required.
+### Key configuration fields (critical)
 
-- Core options:
-  - heartbeatNotificationOptions (PNHeartbeatNotificationOptions) — PNHeartbeatNotifySuccess, PNHeartbeatNotifyFailure (default), PNHeartbeatNotifyAll, or PNHeartbeatNotifyNone.
-  - stripMobilePayload (BOOL) — If YES, remove APNs/FCM push metadata from received messages.
-  - subscribeMaximumIdleTime (NSTimeInterval) — Max seconds to wait for events. Default: 310.
-  - nonSubscribeRequestTimeout (NSTimeInterval) — Timeout for non‑subscribe ops, seconds. Default: 10.
-  - presenceHeartbeatValue (NSInteger) — Presence timeout (seconds). Default: 300.
-  - presenceHeartbeatInterval (NSInteger) — Heartbeat interval (seconds). Typical: (presenceHeartbeatValue / 2) - 1. Min: 3.
-  - keepTimeTokenOnListChange (BOOL) — Keep previous timetoken on subscribe list change. Default: YES.
-  - catchUpOnSubscriptionRestore (BOOL) — Catch up on missed events after restore. Default: YES.
-  - applicationExtensionSharedGroupIdentifier (NSString) — Shared App Group ID (iOS 8.0+, macOS 10.10+).
-  - requestMessageCountThreshold (NSUInteger) — Max messages per response before PNRequestMessageCountExceededCategory.
-  - maximumMessagesCacheSize (NSUInteger) — De‑duplication cache size. Default: 100.
-  - completeRequestsBeforeSuspension (BOOL) — Finish in‑flight API calls before suspension. Default: YES.
-  - suppressLeaveEvents (BOOL) — If YES, don’t send presence leave events on unsubscribe.
-  - origin (NSString) — Custom origin (domain), e.g., "ps.pndsn.com".
-  - requestRetry (PNRequestRetryConfiguration) — Retry policy. See requestRetry below.
-  - cryptoModule — Encryption module:
-    - [PNCryptoModule AESCBCCryptoModuleWithCipherKey: NSString randomInitializationVector: BOOL];
-    - [PNCryptoModule legacyCryptoModuleWithCipherKey: NSString randomInitializationVector: BOOL];
-    - Takes cipherKey and useRandomInitializationVector. See cryptoModule below.
-  - logLevel (PNLogLevel) — PNNoneLogLevel (default/disabled), PNTraceLogLevel, PNDebugLogLevel, PNInfoLogLevel, PNWarnLogLevel, PNErrorLogLevel.
-  - enableDefaultConsoleLogger (BOOL) — Enable built-in console logger. Default: YES.
-  - loggers (NSArray<id<PNLogger>>) — Custom loggers conforming to PNLogger (used alongside console logger if enabled).
-  - cipherKey (NSString) — Deprecated; pass to cryptoModule instead.
-  - useRandomInitializationVector (BOOL) — Deprecated; pass to cryptoModule instead. When YES, the IV is random for all requests (recommended and default behavior).
+- `publishKey` *(NSString, required)*: Publish key (example: `"demo"`).
+- `subscribeKey` *(NSString, required)*: Subscribe key (example: `"demo"`).
+- `userID` *(NSString, required)*: UTF‑8 string, up to 92 chars. **Must be set or the client cannot connect.**
+- `heartbeatNotificationOptions` *(PNHeartbeatNotificationOptions)*: `Success`, `Failure` (default), `All`, `None`.
+- `stripMobilePayload` *(BOOL)*: If `YES`, remove APNs/FCM metadata from received messages.
+- `subscribeMaximumIdleTime` *(NSTimeInterval)*: Max seconds to wait for events. Default `310`.
+- `nonSubscribeRequestTimeout` *(NSTimeInterval)*: Non‑subscribe timeout (seconds). Default `10`.
+- `presenceHeartbeatValue` *(NSInteger)*: Presence timeout seconds. Default `300`.
+- `presenceHeartbeatInterval` *(NSInteger)*: Heartbeat interval seconds; typical `(presenceHeartbeatValue / 2) - 1`, min `3`.
+- `keepTimeTokenOnListChange` *(BOOL)*: Keep previous timetoken when subscribe list changes. Default `YES`.
+- `catchUpOnSubscriptionRestore` *(BOOL)*: Catch up on missed events after restore. Default `YES`.
+- `applicationExtensionSharedGroupIdentifier` *(NSString)*: Shared App Group ID for extensions (iOS 8+, macOS 10.10+).
+- `requestMessageCountThreshold` *(NSUInteger)*: Max messages per response before `PNRequestMessageCountExceededCategory`.
+- `maximumMessagesCacheSize` *(NSUInteger)*: De-duplication cache size. Default `100`.
+- `completeRequestsBeforeSuspension` *(BOOL)*: Finish in-flight calls before suspension. Default `YES`.
+- `suppressLeaveEvents` *(BOOL)*: If `YES`, don’t send presence leave events on unsubscribe.
+- `origin` *(NSString)*: Custom origin domain (example: `"ps.pndsn.com"`).
+- `requestRetry` *(PNRequestRetryConfiguration)*: Retry policy (see below).
+- `cryptoModule` *(PNCryptoModule factory methods)*: Encryption/decryption module (see below).
+  - `[PNCryptoModule AESCBCCryptoModuleWithCipherKey: NSString randomInitializationVector: BOOL];`
+  - `[PNCryptoModule legacyCryptoModuleWithCipherKey: NSString randomInitializationVector: BOOL];`
+- Logging:
+  - `logLevel` *(PNLogLevel)*: `PNNoneLogLevel` (default), `PNTraceLogLevel`, `PNDebugLogLevel`, `PNInfoLogLevel`, `PNWarnLogLevel`, `PNErrorLogLevel`.
+  - `enableDefaultConsoleLogger` *(BOOL)*: Default `YES`; when `YES`, prints to Xcode console; when `NO`, only custom loggers run.
+  - `loggers` *(NSArray<id<PNLogger>>)*: Custom loggers conforming to `PNLogger`.
+- Deprecated (use `cryptoModule` instead):
+  - `cipherKey` *(NSString, deprecated)*.
+  - `useRandomInitializationVector` *(BOOL, deprecated)*.
 
-##### Disabling random initialization vector
+### Disabling random initialization vector
 
-Disable random IV only for backward compatibility (<4.16.0). Never disable random IV for new applications.
+Disable random IV only for backward compatibility (<`4.16.0`). Do not disable for new apps.
 
-#### requestRetry
+---
 
-Use `PNRequestRetryConfiguration` to control retry behavior. For reconnection policy details, see Reconnection Policy.
+## `requestRetry`
 
-##### Create a default linear retry policy
+Use `PNRequestRetryConfiguration` to control retry behavior. (Policy details: Reconnection Policy.)
+
+### Create a default linear retry policy
 
 ```
 `1+ (instancetype)configurationWithLinearDelay;  
 `
 ```
 
-###### Example
+Example:
 
 ```
 `1configuration.requestRetry = [PNRequestRetryConfiguration configurationWithLinearDelay];  
 `
 ```
 
-##### Create a linear retry policy with excluded endpoints
+### Create a linear retry policy with excluded endpoints
 
 ```
 `1+ (instancetype)configurationWithLinearDelayExcludingEndpoints:(PNEndpoint)endpoints, ...;  
 `
 ```
 
-- endpoints (PNEndpoint) — Endpoints to exclude. See NS_ENUM(NSUInteger, PNEndpoint) in PNStructures.h.
+- `endpoints` *(PNEndpoint)*: Endpoints to exclude (see `NS_ENUM(NSUInteger, PNEndpoint)` in `PNStructures.h`).
 
-###### Example
+Example:
 
 ```
 `1configuration.requestRetry = [PNRequestRetryConfiguration configurationWithLinearDelayExcludingEndpoints:PNMessageSendEndpoint, 0];  
 `
 ```
 
-##### Create a linear retry policy with excluded endpoints and custom parameters
+### Create a linear retry policy with excluded endpoints and custom parameters
 
 ```
 `1+ (instancetype)configurationWithLinearDelay:(NSTimeInterval)delay  
@@ -99,11 +99,11 @@ Use `PNRequestRetryConfiguration` to control retry behavior. For reconnection po
 `
 ```
 
-- delay (NSTimeInterval) — Delay in seconds between failed requests.
-- maximumRetry (NSUInteger) — Retries before error.
-- excludedEndpoints (PNEndpoint) — Endpoints to exclude.
+- `delay` *(NSTimeInterval)*: Delay between failed requests (seconds).
+- `maximumRetry` *(NSUInteger)*: Retry attempts before error.
+- `excludedEndpoints` *(PNEndpoint)*: Endpoints to exclude.
 
-###### Example
+Example:
 
 ```
 `1/// example  
@@ -113,37 +113,37 @@ Use `PNRequestRetryConfiguration` to control retry behavior. For reconnection po
 `
 ```
 
-##### Create a default exponential retry policy
+### Create a default exponential retry policy
 
 ```
 `1+ (instancetype)configurationWithExponentialDelay;  
 `
 ```
 
-###### Example
+Example:
 
 ```
 `1configuration.requestRetry = [PNRequestRetryConfiguration configurationWithExponentialDelay];  
 `
 ```
 
-##### Create an exponential retry policy with excluded endpoints
+### Create an exponential retry policy with excluded endpoints
 
 ```
 `1+ (instancetype)configurationWithExponentialDelayExcludingEndpoints:(PNEndpoint)endpoints, ...;  
 `
 ```
 
-- endpoints (PNEndpoint) — Endpoints to exclude.
+- `endpoints` *(PNEndpoint)*: Endpoints to exclude.
 
-###### Example
+Example:
 
 ```
 `1configuration.requestRetry = [PNRequestRetryConfiguration configurationWithExponentialDelayExcludingEndpoints:PNMessageSendEndpoint, 0];  
 `
 ```
 
-##### Create an exponential retry policy with excluded endpoints and custom parameters
+### Create an exponential retry policy with excluded endpoints and custom parameters
 
 ```
 `1+ (instancetype)configurationWithExponentialDelay:(NSTimeInterval)minimumDelay  
@@ -153,12 +153,12 @@ Use `PNRequestRetryConfiguration` to control retry behavior. For reconnection po
 `
 ```
 
-- minimumDelay (NSTimeInterval) — Base delay for next delay calculation.
-- maximumDelay (NSTimeInterval) — Max allowed computed delay.
-- maximumRetry (NSUInteger) — Retries before error.
-- excludedEndpoints (PNEndpoint) — Endpoints to exclude.
+- `minimumDelay` *(NSTimeInterval)*: Base delay (seconds).
+- `maximumDelay` *(NSTimeInterval)*: Max computed delay (seconds).
+- `maximumRetry` *(NSUInteger)*: Retry attempts before error.
+- `excludedEndpoints` *(PNEndpoint)*: Endpoints to exclude.
 
-###### Example
+Example:
 
 ```
 `configuration.requestRetry = [PNRequestRetryConfiguration configurationWithExponentialDelay:3.f  
@@ -168,55 +168,49 @@ Use `PNRequestRetryConfiguration` to control retry behavior. For reconnection po
 `
 ```
 
-#### cryptoModule
+---
 
-`cryptoModule` encrypts/decrypts messages and files. From 5.1.3, you can choose algorithms:
-- Legacy 128‑bit encryption (backward compatible).
-- Recommended 256‑bit AES‑CBC.
+## `cryptoModule`
 
-If `cryptoModule` is not set but `cipherKey`/`useRandomInitializationVector` are set, legacy encryption is used.
+`cryptoModule` encrypts/decrypts messages and files. From `5.1.3`, you can configure algorithms.
 
-For configuration and examples, see Encryption.
+- Options:
+  - Legacy 128-bit encryption
+  - Recommended 256-bit AES-CBC
+- If `cryptoModule` is **not** set but `cipherKey` + `useRandomInitializationVector` are set, **legacy encryption** is used.
+- Legacy encryption remains supported; to use AES-CBC 256-bit you must explicitly set it.
 
-##### Legacy encryption with 128-bit cipher key entropy
+---
 
-You may keep legacy encryption; to use 256‑bit AES‑CBC, set it explicitly in `cryptoModule`.
+## Sample code
 
-### Sample code
+### Required User ID
 
-##### Required User ID
-
-Always set a stable User ID (`userID`). If not set, the client cannot connect.
+Always set `userID` and keep it stable for the user/device lifetime; otherwise the client can’t connect.
 
 ```
 1// Basic configuration  
 2PNConfiguration *config = [PNConfiguration configurationWithPublishKey:@"demo"  
 3                                                          subscribeKey:@"demo"  
 4                                                                userID:@"myUniqueUserID"];  
-5
-  
+5  
 6// Create a PubNub client instance  
 7PubNub *client = [PubNub clientWithConfiguration:config];  
-8
-  
+8  
 9// Add listener for PubNub events  
 10[client addListener:self];  
-11
-  
+11  
 12// Subscribe to a test channel  
 13PNSubscribeRequest *subscribeRequest = [PNSubscribeRequest requestWithChannels:@[@"test-channel"]  
 14                                                                 channelGroups:nil];  
 15subscribeRequest.observePresence = YES;  
-16
-  
+16  
 17[client subscribeWithRequest:subscribeRequest];  
-18
-  
+18  
 19// Publish a test message  
 20PNPublishRequest *publishRequest = [PNPublishRequest requestWithChannel:@"test-channel"];  
 21publishRequest.message = @{@"message": @"Hello PubNub!"};  
-22
-  
+22  
 23[client publishWithRequest:publishRequest withCompletion:^(PNPublishStatus *status) {  
 24    if (!status.isError) {  
 25        NSLog(@"✅ Successfully published message! Connection is working.");  
@@ -224,8 +218,7 @@ Always set a stable User ID (`userID`). If not set, the client cannot connect.
 27        NSLog(@"❌ Failed to publish message. Error: %@", status.errorData.information);  
 28    }  
 29}];  
-30
-  
+30  
 31// Required PNEventsListener methods  
 32- (void)client:(PubNub *)client didReceiveStatus:(PNStatus *)status {  
 33    // Checking connectivity only using subscribe operation.  
@@ -239,46 +232,42 @@ Always set a stable User ID (`userID`). If not set, the client cannot connect.
 41        NSLog(@"Received status: %@", status);  
 42    }  
 43}  
-44
-  
+44  
 45- (void)client:(PubNub *)client didReceiveMessage:(PNMessageResult *)message {  
 46    NSLog(@"✅ Received message: %@ on channel: %@", message.data.message, message.data.channel);  
 47}  
-48
-  
+48  
 49- (void)client:(PubNub *)client didReceivePresenceEvent:(PNPresenceEventResult *)event {  
 50    NSLog(@"Presence event: %@", event);  
 51}  
 
 ```
 
-### Returns
+## Returns
 
 Returns a configured client configuration instance.
 
-### Other examples
+---
 
-#### Configure logging
+## Other examples
 
-Enable logging to monitor SDK activity and troubleshoot.
+### Configure logging
 
-##### Basic logging configuration
+#### Basic logging configuration
 
 ```
 1PNConfiguration *config = [PNConfiguration configurationWithPublishKey:@"demo"   
 2                                                          subscribeKey:@"demo"  
 3                                                                userID:@"myUniqueUserID"];  
-4
-  
+4  
 5// Set minimum log level  
 6config.logLevel = PNDebugLogLevel;  
-7
-  
+7  
 8PubNub *client = [PubNub clientWithConfiguration:config];  
 
 ```
 
-##### Change log level at runtime
+#### Change log level at runtime
 
 ```
 `1// Adjust logging detail after initialization  
@@ -286,7 +275,7 @@ Enable logging to monitor SDK activity and troubleshoot.
 `
 ```
 
-##### Disable console logger
+#### Disable console logger
 
 ```
 1PNConfiguration *config = [PNConfiguration configurationWithPublishKey:@"demo"   
@@ -294,13 +283,12 @@ Enable logging to monitor SDK activity and troubleshoot.
 3                                                                userID:@"myUniqueUserID"];  
 4config.logLevel = PNDebugLogLevel;  
 5config.enableDefaultConsoleLogger = NO;  // Disable default logger output to the Xcode console  
-6
-  
+6  
 7PubNub *client = [PubNub clientWithConfiguration:config];  
 
 ```
 
-##### Add custom loggers
+#### Add custom loggers
 
 ```
 1PNConfiguration *config = [PNConfiguration configurationWithPublishKey:@"demo"   
@@ -308,15 +296,14 @@ Enable logging to monitor SDK activity and troubleshoot.
 3                                                                userID:@"myUniqueUserID"];  
 4config.logLevel = PNDebugLogLevel;  
 5config.loggers = @[myCustomLogger];  // Add your PNLogger implementation  
-6
-  
+6  
 7PubNub *client = [PubNub clientWithConfiguration:config];  
 
 ```
 
-#### Configure heartbeat notifications
+### Configure heartbeat notifications
 
-##### PNConfiguration
+#### PNConfiguration
 
 ```
 1PNConfiguration *config = [PNConfiguration configurationWithPublishKey:@"" subscribeKey:@""];  
@@ -325,29 +312,25 @@ Enable logging to monitor SDK activity and troubleshoot.
 4    This is a bitmask of options located at https://github.com/pubnub/objective-c/blob/1f1c7a41a3bd8c32b644a6ad98fe179d45397c2b/PubNub/Misc/PNStructures.h#L24  
 5    */  
 6config.heartbeatNotificationOptions = PNHeartbeatNotifyAll;  
-7
-  
+7  
 8self.client = [PubNub clientWithConfiguration:config];  
 9[self.client addListener:self];  
 
 ```
 
-##### Listener
+#### Listener
 
 ```
 1- (void)client:(PubNub *)client didReceiveStatus:(PNStatus *)status {  
-2
-  
+2  
 3    if (status.operation == PNHeartbeatOperation) {  
-4
-  
+4  
 5        /**  
 6            Heartbeat operations can in fact have errors, so it is important to check first for an error.  
 7            For more information on how to configure heartbeat notifications through the status  
 8            PNObjectEventListener callback, consult http://www.pubnub.com/docs/sdks/objective-c/api-reference/configuration#configuration_basic_usage  
 9            */  
-10
-  
+10  
 11        if (!status.isError) { /* Heartbeat operation was successful. */ }  
 12        else { /* There was an error with the heartbeat operation, handle here. */ }  
 13    }  

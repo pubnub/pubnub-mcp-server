@@ -1,21 +1,31 @@
 # Message Persistence API for Objective-C SDK
 
-Message Persistence provides real-time access to stored, timestamped messages (10 ns precision), reactions, and files. Storage is geo-redundant and supports AES-256 encryption. Configure retention (1 day to Unlimited) in the Admin Portal. Requires Message Persistence enabled for your key.
+Message Persistence provides access to stored message history (timestamped to 10ns). Storage duration is controlled by your account retention (1 day → Unlimited). Stored messages can be AES-256 encrypted (see Message Persistence docs).
 
-- Retrieve: Messages, message reactions, files (File Sharing API).
-- Retention: 1 day, 7 days, 30 days, 3 months, 6 months, 1 year, Unlimited.
+Supports retrieving:
+- Messages
+- Message reactions
+- Files (via File Sharing API)
 
-## Fetch history
+## Fetch history[​](#fetch-history)
 
-Requires Message Persistence. Enable in the Admin Portal.
+##### Requires Message Persistence
+Enable Message Persistence for your key in the Admin Portal.
 
-Fetch historical messages from one or more channels. Use includeMessageActions to include message actions. Ordering and range:
-- start only: messages older than start (exclusive).
-- end only: messages from end (inclusive) and newer.
-- start and end: messages between them (inclusive of end).
-- Limits: up to 100 messages for a single channel; up to 500 channels, 25 messages per channel; 25 when includeMessageActions is YES. Page with iterative calls by adjusting start.
+Fetch historical messages for one or more channels. Use `includeMessageActions` to include actions.
 
-### Method(s)
+**Time range behavior**
+- `start` only: messages older than `start` (start is **exclusive**).
+- `end` only: messages at/after `end` (end is **inclusive**).
+- `start` + `end`: messages between them (end **inclusive**).
+
+**Limits**
+- Single channel: up to 100 messages.
+- Multi-channel (up to 500 channels): up to 25 messages/channel.
+- With `includeMessageActions`: 25 max and **only one channel allowed**.
+If more messages match, page by making iterative calls and adjusting `start` timetoken.
+
+### Method(s)[​](#methods)
 
 Use the following method(s) in the Objective-C SDK:
 
@@ -36,23 +46,13 @@ Use the following method(s) in the Objective-C SDK:
 `
 ```
 
-Parameters:
-- channels (NSArray<NSString *>): Up to 500 channels.
-- start (NSNumber): Start timetoken (exclusive).
-- end (NSNumber): End timetoken (inclusive).
-- limit (NSUInteger): Per-channel message count. Default/max: 100 (single), 25 (multi), 25 with includeMessageActions.
-- reverse (BOOL): Traversal start when paging beyond limit.
-- includeMetadata (BOOL): Include metadata.
-- includeMessageType (BOOL): Include message type. Default YES.
-- includeCustomMessageType (BOOL): Include custom message type. Default YES.
-- includeUUID (BOOL): Include publisher UUID. Default YES.
-- includeMessageActions (BOOL): Include actions. Only one channel allowed.
-- includeTimeToken (BOOL): Include event timetokens.
-- block (PNHistoryCompletionBlock): Completion block.
+*  requiredParameterDescription`channels` *Type: NSStringList of channels to fetch history messages from (up to 500).`start`Type: NSNumberTimetoken delimiting the start (exclusive) of the time slice.`end`Type: NSNumberTimetoken delimiting the end (inclusive) of the time slice.`limit`Type: NSUIntegerNumber of historical messages to return per channel. Default and maximum are 100 (single), 25 (multi), and 25 with `includeMessageActions`.`reverse`Type: BOOLWhether to traverse from oldest to newest.`includeMetadata`Type: BOOLWhether to include metadata in the response.`includeMessageType`Type: BOOLWhether to include message type. Default is `YES`.`includeCustomMessageType`Type: BOOLWhether to include custom message type. Default is `YES`. See [Retrieving Messages](/docs/general/storage#retrieve-messages).`includeUUID`Type: BOOLWhether to include the publisher uuid. Default is `YES`.`includeMessageActions`Type: BOOLWhether to include message actions in the response. If `YES`, only one channel is allowed.`includeTimeToken`Type: BOOLWhether to include event timetokens in the response.`block` *Type: PNHistoryCompletionBlockHistory completion block.
 
-Tip: Messages are returned in ascending time order. reverse determines which end to start from when more than limit messages match.
+##### tip
+Using the `reverse` parameter
+Messages are always returned sorted in ascending time direction from history regardless of `reverse`. The `reverse` direction matters when you have more than 100 (or `limit`, if it's set) messages in the time interval, in which case `reverse` determines the end of the time interval from which it should start retrieving the messages.
 
-### Sample code
+### Sample code[​](#sample-code)
 
 ```
 1#import Foundation/Foundation.h>  
@@ -149,11 +149,13 @@ Tip: Messages are returned in ascending time order. reverse determines which end
   
 79// Example 2: History fetch with timeframe  
 80NSLog(@"Fetching history with timeframe...");  
-81  
+81
+  
 82PNHistoryFetchRequest *timeframeRequest = [PNHistoryFetchRequest requestWithChannels:@[@"history-demo"]];  
 83timeframeRequest.start = @(17457898826964534);  // Example start time  
 84timeframeRequest.end = @(17457898826964534);    // Example end time  
-85  
+85
+  
 86[client fetchHistoryWithRequest:timeframeRequest completion:^(PNHistoryResult *result, PNErrorStatus *status) {  
 87    if (!status.isError) {  
 88        NSLog(@"✅ History fetch with timeframe successful!");  
@@ -162,13 +164,16 @@ Tip: Messages are returned in ascending time order. reverse determines which end
 91        NSLog(@"❌ Error fetching history with timeframe: %@", status.errorData.information);  
 92    }  
 93}];  
-94  
+94
+  
 95// Example 3: History fetch with metadata  
 96NSLog(@"Fetching history with metadata...");  
-97  
+97
+  
 98PNHistoryFetchRequest *metadataRequest = [PNHistoryFetchRequest requestWithChannels:@[@"history-demo"]];  
 99metadataRequest.includeMetadata = YES;  
-100  
+100
+  
 101[client fetchHistoryWithRequest:metadataRequest completion:^(PNHistoryResult *result, PNErrorStatus *status) {  
 102    if (!status.isError) {  
 103        NSLog(@"✅ History fetch with metadata successful!");  
@@ -177,13 +182,16 @@ Tip: Messages are returned in ascending time order. reverse determines which end
 106        NSLog(@"❌ Error fetching history with metadata: %@", status.errorData.information);  
 107    }  
 108}];  
-109  
+109
+  
 110// Example 4: History fetch with message actions  
 111NSLog(@"Fetching history with message actions...");  
-112  
+112
+  
 113PNHistoryFetchRequest *actionsRequest = [PNHistoryFetchRequest requestWithChannels:@[@"history-demo"]];  
 114actionsRequest.includeMessageActions = YES;  
-115  
+115
+  
 116[client fetchHistoryWithRequest:actionsRequest completion:^(PNHistoryResult *result, PNErrorStatus *status) {  
 117    if (!status.isError) {  
 118        NSLog(@"✅ History fetch with message actions successful!");  
@@ -192,13 +200,16 @@ Tip: Messages are returned in ascending time order. reverse determines which end
 121        NSLog(@"❌ Error fetching history with message actions: %@", status.errorData.information);  
 122    }  
 123}];  
-124  
+124
+  
 125// Example 5: History fetch from multiple channels  
 126NSLog(@"Fetching history from multiple channels...");  
-127  
+127
+  
 128PNHistoryFetchRequest *multiChannelRequest = [PNHistoryFetchRequest requestWithChannels:@[@"history-demo", @"history-demo-2"]];  
 129multiChannelRequest.limit = 2;  // Limit per channel  
-130  
+130
+  
 131[client fetchHistoryWithRequest:multiChannelRequest completion:^(PNHistoryResult *result, PNErrorStatus *status) {  
 132    if (!status.isError) {  
 133        NSLog(@"✅ Multi-channel history fetch successful!");  
@@ -209,7 +220,8 @@ Tip: Messages are returned in ascending time order. reverse determines which end
 138        NSLog(@"❌ Error fetching multi-channel history: %@", status.errorData.information);  
 139    }  
 140}];  
-141  
+141
+  
 142// Required PNEventsListener methods  
 143- (void)client:(PubNub *)client didReceiveStatus:(PNStatus *)status {  
 144    // Checking connectivity only using subscribe operation.  
@@ -221,15 +233,18 @@ Tip: Messages are returned in ascending time order. reverse determines which end
 150        NSLog(@"❌ PubNub connection error: %@", status);  
 151    }  
 152}  
-153  
+153
+  
 154- (void)client:(PubNub *)client didReceiveMessage:(PNMessageResult *)message {  
 155    NSLog(@"Received message: %@ on channel: %@", message.data.message, message.data.channel);  
 156}  
+
 ```
+show all 156 lines
 
-### Response
+### Response[​](#response)
 
-Response objects returned by fetch messages:
+Response objects which is returned by client when `fetch messages` Message Persistence API is used:
 
 ```
 1@interface PNHistoryData : PNServiceData  
@@ -268,18 +283,24 @@ Response objects returned by fetch messages:
 30 * Set only for PNHistoryOperation operation and will be 0 for other operation types.  
 31 */  
 32@property (nonatomic, readonly, strong) NSNumber *end;  
-33  
+33
+  
 34@end  
-35  
+35
+  
 36@interface PNHistoryResult : PNResult  
-37  
+37
+  
 38// Fetch history request processed information.  
 39@property (nonatomic, readonly, strong) PNHistoryData *data;  
-40  
+40
+  
 41@end  
-```
 
-Error response used on failure:
+```
+show all 41 lines
+
+Error response which is used in case of Message Persistence API call failure:
 
 ```
 1@interface PNErrorData : PNServiceData  
@@ -287,23 +308,30 @@ Error response used on failure:
   
 3// Stringified error information.  
 4@property (nonatomic, readonly, strong) NSString *information;  
-5  
+5
+  
 6@end  
-7  
+7
+  
 8@interface PNErrorStatus : PNStatus  
-9  
+9
+  
 10// Whether status object represent error or not.  
 11@property (nonatomic, readonly, assign, getter = isError) BOOL error;  
-12  
+12
+  
 13// Additional information related to error status object.  
 14@property (nonatomic, readonly, strong) PNErrorData *errorData;  
-15  
+15
+  
 16@end  
+
 ```
+show all 16 lines
 
-### Other examples
+### Other examples[​](#other-examples)
 
-#### Fetch messages with metadata
+#### Fetch messages with metadata[​](#fetch-messages-with-metadata)
 
 ```
 `1self.client.history()  
@@ -328,8 +356,9 @@ Error response used on failure:
 20    });  
 `
 ```
+show all 20 lines
 
-#### Fetch messages with actions
+#### Fetch messages with actions[​](#fetch-messages-with-actions)
 
 ```
 `1self.client.history()  
@@ -354,8 +383,9 @@ Error response used on failure:
 20    });  
 `
 ```
+show all 20 lines
 
-#### Fetch messages with metadata and actions
+#### Fetch messages with metadata and actions[​](#fetch-messages-with-metadata-and-actions)
 
 ```
 `1self.client.history()  
@@ -382,12 +412,21 @@ Error response used on failure:
 22    });  
 `
 ```
+show all 22 lines
 
-## Delete messages from history
+## Delete messages from history[​](#delete-messages-from-history)
 
-Requires Message Persistence. Enable Delete-From-History in the Admin Portal and initialize the SDK with a secret key. Removes messages from a specific channel, optionally within a time range.
+##### Requires Message Persistence
+Enable Message Persistence for your key in the Admin Portal.
 
-### Method(s)
+Remove messages from a channel’s history.
+
+##### Required setting
+Enable **Delete-From-History** for your key in the Admin Portal and initialize the SDK with a **secret key**.
+
+### Method(s)[​](#methods-1)
+
+To `Delete Messages from History` you can use the following method(s) in the Objective-C SDK.
 
 ```
 `1- (void)deleteMessagesFromChannel:(NSString *)channel   
@@ -397,12 +436,7 @@ Requires Message Persistence. Enable Delete-From-History in the Admin Portal and
 `
 ```
 
-- channel (NSString): Channel to delete from.
-- start (NSNumber, optional): Start timetoken (exclusive).
-- end (NSNumber, optional): End timetoken (inclusive).
-- block: Completion block.
-
-### Sample code
+### Sample code[​](#sample-code-1)
 
 ```
 1[self.client deleteMessagesFromChannel:@"channel" start:@15101397027611671 end:@15101397427611671  
@@ -420,13 +454,14 @@ Requires Message Persistence. Enable Delete-From-History in the Admin Portal and
 12        */  
 13    }  
 14}];  
+
 ```
 
-### Other examples
+### Other examples[​](#other-examples-1)
 
-#### Delete specific message from history
+#### Delete specific message from history[​](#delete-specific-message-from-history)
 
-Delete a specific message by passing the publish timetoken as End and timetoken-1 as Start.
+To delete one message: set `end` to the **publish timetoken**, and `start` to `timetoken - 1`.
 
 ```
 1[self.client deleteMessagesFromChannel:@"channel" start:@15526611838554309 end:@15526611838554310  
@@ -444,13 +479,22 @@ Delete a specific message by passing the publish timetoken as End and timetoken-
 12        */  
 13    }  
 14}];  
+
 ```
 
-## Delete messages from history (builder pattern)
+## Delete messages from history (builder pattern)[​](#delete-messages-from-history-builder-pattern)
 
-Requires Message Persistence. Enable Delete-From-History and use a secret key.
+##### Requires Message Persistence
+Enable Message Persistence for your key in the Admin Portal.
 
-### Method(s)
+Remove messages from a channel’s history.
+
+##### Required setting
+Enable **Delete-From-History** for your key in the Admin Portal and initialize the SDK with a **secret key**.
+
+### Method(s)[​](#methods-2)
+
+To `Delete Messages from History` you can use the following method(s) in the Objective-C SDK.
 
 ```
 `1deleteMessage()  
@@ -461,7 +505,7 @@ Requires Message Persistence. Enable Delete-From-History and use a secret key.
 `
 ```
 
-### Sample code
+### Sample code[​](#sample-code-2)
 
 ```
 1self.client.deleteMessage()  
@@ -482,13 +526,23 @@ Requires Message Persistence. Enable Delete-From-History and use a secret key.
 15        */  
 16    }  
 17});  
+
 ```
+show all 17 lines
 
-## Message counts
+## Message counts[​](#message-counts)
 
-Requires Message Persistence. Returns the number of messages published since the given timetoken(s). Only messages from the last 30 days are counted when retention is Unlimited.
+##### Requires Message Persistence
+Enable Message Persistence for your key in the Admin Portal.
 
-### Method(s)
+Returns the number of messages published since the given time (messages with timetoken **>=** the provided `timetokens` value).
+
+##### Unlimited message retention
+Only the last 30 days are counted.
+
+### Method(s)[​](#methods-3)
+
+You can use the following method(s) in the Objective-C SDK:
 
 ```
 `1messageCounts()  
@@ -498,12 +552,12 @@ Requires Message Persistence. Returns the number of messages published since the
 `
 ```
 
-Parameters:
-- channels (NSArray<NSString *>): Channel names.
-- timetokens (NSArray<NSNumber *>): One or more timetokens; each position corresponds to the matching channel.
-- completion (PNMessageCountCompletionBlock): Returns PNMessageCountResult or PNErrorStatus.
+*  requiredParameterDescription`channels` *Type: NSArray`<NSString *>` *Default:  
+n/aThe `channels` to fetch the message count`timetokens` *Type: NSArray`<NSNumber *>` *Default:  
+n/aList with single or multiple timetokens, where each timetoken position in correspond to target `channel` location in channel names list.`completion` *Type: PNMessageCountCompletionBlockDefault:  
+n/aMessages count fetch completion closure which pass two arguments: `result` - in case of successful request processing data field will contain results of message count fetch operation; `status` - in case of error occurred during request processing.
 
-### Sample code
+### Sample code[​](#sample-code-3)
 
 ```
 1self.client.messageCounts().channels(@[@"unread-channel-1", @"unread-channel-2"])  
@@ -525,11 +579,13 @@ Parameters:
 15            */  
 16        }  
 17    });  
+
 ```
+show all 17 lines
 
-### Returns
+### Returns[​](#returns)
 
-Note: Channels without messages return 0. Channels with 10,000+ messages return 10000.
+`Channels` with no messages return `0`. Channels with `>= 10,000` messages return `10000`.
 
 ```
 1@interface PNMessageCountData : PNServiceData  
@@ -539,22 +595,28 @@ Note: Channels without messages return 0. Channels with 10,000+ messages return 
 4 * @brief Dictionary where each key is name of channel and value is number of messages in it.  
 5 */  
 6@property (nonatomic, readonly, strong) NSDictionaryNSString *, NSNumber *> *channels;  
-7  
+7
+  
 8@end  
-9  
+9
+  
 10@interface PNMessageCountResult : PNResult  
-11  
+11
+  
 12/**  
 13 * @brief Message count request processing information.  
 14 */  
 15@property (nonatomic, readonly, strong) PNMessageCountData *data;  
-16  
+16
+  
 17@end  
+
 ```
+show all 17 lines
 
-### Other examples
+### Other examples[​](#other-examples-2)
 
-#### Retrieve count of messages using different timetokens for each channel
+#### Retrieve count of messages using different timetokens for each channel[​](#retrieve-count-of-messages-using-different-timetokens-for-each-channel)
 
 ```
 1self.client.messageCounts().channels(@[@"unread-channel-1", @"unread-channel-2"])  
@@ -570,30 +632,37 @@ Note: Channels without messages return 0. Channels with 10,000+ messages return 
 10                to find out possible reason because of which request did fail.  
 11                Review 'errorData' property (which has PNErrorData data type) of status  
 12                object to get additional information about issue.  
-13  
+13
+  
 14                Request can be resent using: [status retry]  
 15            */  
 16        }  
 17    });  
+
 ```
+show all 17 lines
 
-## History (deprecated)
+## History (deprecated)[​](#history-deprecated)
 
-Requires Message Persistence. Deprecated; use fetch history instead. Retrieves messages from a channel with options to page, limit, and include metadata/time tokens/actions.
+##### Requires Message Persistence
+Enable Message Persistence for your key in the Admin Portal.
 
-Start & End usage:
-- start only: older than start (exclusive) up to start.
-- end only: end (inclusive) and newer.
-- start and end: between them (inclusive of end).
-- Max 100 per call; page with start.
+##### Alternative method
+Deprecated; use [fetch history](#fetch-history).
 
-### Method(s)
+Same start/end semantics and 100-message max; use paging with iterative calls adjusting `start`.
+
+### Method(s)[​](#methods-4)
+
+To run `History` you can use the following method(s) in the Objective-C SDK:
 
 ```
 `1- (void)historyForChannel:(NSString *)channel   
 2           withCompletion:(PNHistoryCompletionBlock)block;  
 `
 ```
+
+*  requiredParameterDescription`channel` *Type: NSString`Channel` name to retrieve the History information.`block` *Type: PNHistoryCompletionBlock`History` pull processing completion `block` which pass two arguments: result - in case of successful request processing data field will contain results of `history` request operation; status - in case if error occurred during request processing.
 
 ```
 `1- (void)historyForChannel:(NSString *)channel   
@@ -602,12 +671,16 @@ Start & End usage:
 `
 ```
 
+*  requiredParameterDescription`channel` *Type: NSString`Channel` name to retrieve the History information.`shouldIncludeMetadata` *Type: BOOLWhether event metadata should be included in response or not.`block` *Type: PNHistoryCompletionBlockHistory pull completion `block`.
+
 ```
 `1- (void)historyForChannel:(NSString *)channel   
 2       withMessageActions:(BOOL)shouldIncludeMessageActions   
 3               completion:(PNHistoryCompletionBlock)block;  
 `
 ```
+
+*  requiredParameterDescription`channel` *Type: NSString`Channel` name to retrieve the History information.`shouldIncludeMessageActions` *Type: BOOLWhether event actions should be included in response or not.`block` *Type: PNHistoryCompletionBlockHistory pull completion `block`.
 
 ```
 `1- (void)historyForChannel:(NSString *)channel   
@@ -617,6 +690,8 @@ Start & End usage:
 `
 ```
 
+*  requiredParameterDescription`channel` *Type: NSString`Channel` name to retrieve the History information.`shouldIncludeMetadata` *Type: BOOLWhether event metadata should be included in response or not.`shouldIncludeMessageActions` *Type: BOOLWhether event actions should be included in response or not.`block` *Type: PNHistoryCompletionBlockHistory pull completion `block`.
+
 ```
 `1- (void)historyForChannel:(NSString *)channel   
 2                    start:(nullable NSNumber *)startDate   
@@ -624,6 +699,18 @@ Start & End usage:
 4           withCompletion:(PNHistoryCompletionBlock)block;  
 `
 ```
+
+*  requiredParameterDescription`channel` *Type: NSString`Channel` name to retrieve the History information.`startDate`Type: NSNumberReference on timetoken for the oldest event (exclusive) to start pulling messages from.`endDate`Type: NSNumberReference on timetoken for the latest event (inclusive) to stop pulling messages at.`block` *Type: PNHistoryCompletionBlockHistory pull processing completion `block` which pass two arguments: result - in case of successful request processing data field will contain results of history request operation; status - in case if error occurred during request processing.
+
+```
+`1- (void)historyForChannel:(NSString *)channel   
+2             withMetadata:(BOOL)shouldIncludeMetadata   
+3           messageActions:(BOOL)shouldIncludeMessageActions   
+4               completion:(PNHistoryCompletionBlock)block;  
+`
+```
+
+*  requiredParameterDescription`channel` *Type: NSString`Channel` name to retrieve the History information.`shouldIncludeMetadata` *Type: BOOLWhether event metadata should be included in response or not.`shouldIncludeMessageActions` *Type: BOOLWhether event actions should be included in response or not.`block` *Type: PNHistoryCompletionBlockHistory pull completion `block`.
 
 ```
 `1- (void)historyForChannel:(NSString *)channel   
@@ -634,6 +721,8 @@ Start & End usage:
 `
 ```
 
+*  requiredParameterDescription`channel` *Type: NSString`Channel` name to retrieve the History information.`startDate`Type: NSNumberTimetoken for oldest event starting from which next should be returned events. Value will be converted to required precision internally.`endDate`Type: NSNumberTimetoken for latest event till which events should be pulled out. Value will be converted to required precision internally.`shouldIncludeMetadata` *Type: BOOLWhether event metadata should be included in response or not.`block` *Type: PNHistoryCompletionBlockHistory pull completion `block`.
+
 ```
 `1- (void)historyForChannel:(NSString *)channel   
 2                    start:(nullable NSNumber *)startDate   
@@ -642,6 +731,8 @@ Start & End usage:
 5           withCompletion:(PNHistoryCompletionBlock)block;  
 `
 ```
+
+*  requiredParameterDescription`channel` *Type: NSString`Channel` name to retrieve the History information.`startDate`Type: NSNumberTimetoken for oldest event starting from which next should be returned events. Value will be converted to required precision internally.`endDate`Type: NSNumberTimetoken for latest event till which events should be pulled out. Value will be converted to required precision internally.`shouldIncludeMessageActions` *Type: BOOLWhether event actions should be included in response or not.`block` *Type: PNHistoryCompletionBlockHistory pull completion `block`.
 
 ```
 `1- (void)historyForChannel:(NSString *)channel   
@@ -652,6 +743,8 @@ Start & End usage:
 `
 ```
 
+*  requiredParameterDescription`channel` *Type: NSString`Channel` name to retrieve the History information.`startDate`Type: NSNumberReference on timetoken for the oldest event (exclusive) to start pulling messages from.`endDate`Type: NSNumberReference on timetoken for the latest event (inclusive) to stop pulling messages at.`limit` *Type: NSUIntegerMaximum number of events to return (not more than 100).`shouldReverseOrder` *Type: BoolWhether to reverse the order (oldest to newest).`shouldIncludeTimeToken` *Type: BoolWhether to include timetokens in the response.`block` *Type: PNHistoryCompletionBlockHistory pull completion block.
+
 ```
 `1- (void)historyForChannel:(NSString *)channel   
 2                    start:(nullable NSNumber *)startDate   
@@ -660,6 +753,10 @@ Start & End usage:
 5           withCompletion:(PNHistoryCompletionBlock)block;  
 `
 ```
+
+*  requiredParameterDescription`channel` *Type: NSString`Channel` name to retrieve the History information.`startDate`Type: NSNumberReference on timetoken for the oldest event (exclusive) to start pulling messages from.`endDate`Type: NSNumberReference on timetoken for the latest event (inclusive) to stop pulling messages at.`shouldIncludeTimeToken` *Type: BoolWhether to include timetokens in the response.`block` *Type: PNHistoryCompletionBlockHistory pull processing completion `block` which pass two arguments: 
+- result - in case of successful request processing data field will contain results of history request operation;
+- status - in case if error occurred during request processing.
 
 ```
 `1- (void)historyForChannel:(NSString *)channel   
@@ -671,6 +768,8 @@ Start & End usage:
 `
 ```
 
+*  requiredParameterDescription`channel` *Type: NSString`Channel` name to retrieve the History information.`startDate`Type: NSNumberReference on timetoken for oldest event starting from which next should be returned events.`endDate`Type: NSNumberReference on timetoken for latest event till which events should be pulled out.`limit` *Type: NSUIntegerMaximum number of events which should be returned in response (not more then 100).`shouldIncludeTimeToken` *Type: BoolWhether event dates (timetokens) should be included in response or not.`block` *Type: PNHistoryCompletionBlockHistory pull processing completion `block` which pass two arguments: result - in case of successful request processing data field will contain results of history request operation; status - in case if error occurred during request processing.
+
 ```
 `1- (void)historyForChannel:(NSString *)channel   
 2                    start:(nullable NSNumber *)startDate   
@@ -680,6 +779,10 @@ Start & End usage:
 6           withCompletion:(PNHistoryCompletionBlock)block;  
 `
 ```
+
+*  requiredParameterDescription`channel` *Type: NSString`Channel` name to retrieve the History information.`startDate`Type: NSNumberReference on timetoken for oldest event starting from which next should be returned events.`endDate`Type: NSNumberReference on timetoken for latest event till which events should be pulled out.`limit` *Type: NSUIntegerMaximum number of events which should be returned in response (not more then 100).`shouldReverseOrder` *Type: BoolWhether events order in response should be reversed or not.`block` *Type: PNHistoryCompletionBlockHistory pull processing completion `block` which pass two arguments: 
+- result - in case of successful request processing data field will contain results of history request operation;
+- status - in case if error occurred during request processing.
 
 ```
 `1- (void)historyForChannel:(NSString *)channel   
@@ -692,20 +795,13 @@ Start & End usage:
 `
 ```
 
-Key parameters across methods:
-- channel (NSString): Channel name.
-- startDate (NSNumber): Oldest event timetoken (exclusive).
-- endDate (NSNumber): Latest event timetoken (inclusive).
-- limit (NSUInteger): Max 100.
-- reverse (BOOL): Reverse traversal start when paging.
-- shouldIncludeTimeToken (BOOL): Include timetokens in response.
-- shouldIncludeMetadata (BOOL): Include event metadata.
-- shouldIncludeMessageActions (BOOL): Include actions.
-- block (PNHistoryCompletionBlock): Completion.
+*  requiredParameterDescription`channel` *Type: NSString`Channel` name to retrieve the History information.`startDate`Type: NSNumberReference on timetoken for oldest event starting from which next should be returned events.`endDate`Type: NSNumberReference on timetoken for latest event till which events should be pulled out.`limit` *Type: NSUIntegerMaximum number of events which should be returned in response (not more then 100).`shouldReverseOrder` *Type: BoolWhether events order in response should be reversed or not.`shouldIncludeTimeToken` *Type: BoolWhether event dates (timetokens) should be included in response or not.`block` *Type: PNHistoryCompletionBlockHistory pull processing completion `block` which pass two arguments: result - in case of successful request processing data field will contain results of history request operation; status - in case if error occurred during request processing.
 
-Tip: Messages are always returned ascending; reverse selects which end to start from when paging beyond limit.
+##### tip
+Using the `reverse` parameter
+Messages are always returned sorted in ascending time direction from history regardless of `reverse`. The `reverse` direction matters when you have more than 100 (or `limit`, if it's set) messages in the time interval, in which case `reverse` determines the end of the time interval from which it should start retrieving the messages.
 
-### Sample code
+### Sample code[​](#sample-code-4)
 
 Retrieve the last 100 messages on a channel:
 
@@ -732,38 +828,50 @@ Retrieve the last 100 messages on a channel:
 17         to find out possible reason because of which request did fail.  
 18         Review 'errorData' property (which has PNErrorData data type) of status  
 19         object to get additional information about issue.  
-20  
+20
+  
 21         Request can be resent using: [status retry];  
 22         */  
 23    }  
 24}];  
-```
 
-### Response
+```
+show all 24 lines
+
+### Response[​](#response-1)
+
+The response object which is returned by the client when the history API is used:
 
 ```
 1@interface PNHistoryData : PNServiceData  
-2  
+2
+  
 3// Channel history messages.  
 4@property (nonatomic, readonly, strong) NSArray *messages;  
 5// History time frame start time.  
 6@property (nonatomic, readonly, strong) NSNumber *start;  
 7// History time frame end time.  
 8@property (nonatomic, readonly, strong) NSNumber *end;  
-9  
+9
+  
 10@end  
-11  
+11
+  
 12@interface PNHistoryResult : PNResult  
-13  
+13
+  
 14// Stores reference on channel history request processing information.  
 15@property (nonatomic, readonly, strong) PNHistoryData *data;  
-16  
+16
+  
 17@end  
+
 ```
+show all 17 lines
 
-### Other examples
+### Other examples[​](#other-examples-3)
 
-#### Use historyForChannel to retrieve the three oldest messages by retrieving from the time line in reverse
+#### Use historyForChannel to retrieve the three oldest messages by retrieving from the time line in reverse[​](#use-historyforchannel-to-retrieve-the-three-oldest-messages-by-retrieving-from-the-time-line-in-reverse)
 
 ```
 1[self.client historyForChannel:@"my_channel" start:nil end:nil limit:3 reverse:YES  
@@ -781,20 +889,24 @@ Retrieve the last 100 messages on a channel:
 11            */  
 12    }  
 13    else {  
-14  
+14
+  
 15        /**  
 16            Handle message history download error. Check 'category' property  
 17            to find out possible reason because of which request did fail.  
 18            Review 'errorData' property (which has PNErrorData data type) of status  
 19            object to get additional information about issue.  
-20  
+20
+  
 21            Request can be resent using: [status retry];  
 22            */  
 23    }  
 24}];  
-```
 
-##### Response
+```
+show all 24 lines
+
+##### Response[​](#response-2)
 
 ```
 `1[  
@@ -805,7 +917,7 @@ Retrieve the last 100 messages on a channel:
 `
 ```
 
-#### Use historyForChannel to retrieve messages newer than a given timetoken by paging from oldest message to newest message starting at a single point in time (exclusive)
+#### Use historyForChannel to retrieve messages newer than a given timetoken by paging from oldest message to newest message starting at a single point in time (exclusive)[​](#use-historyforchannel-to-retrieve-messages-newer-than-a-given-timetoken-by-paging-from-oldest-message-to-newest-message-starting-at-a-single-point-in-time-exclusive)
 
 ```
 1[self.client historyForChannel:@"my_channel" start:@(13406746780720711) end:nil limit:100  
@@ -813,7 +925,8 @@ Retrieve the last 100 messages on a channel:
 3
   
 4    if (!status) {  
-5  
+5
+  
 6        /**  
 7            Handle downloaded history using:  
 8            result.data.start - oldest message time stamp in response  
@@ -822,20 +935,24 @@ Retrieve the last 100 messages on a channel:
 11            */  
 12    }  
 13    else {  
-14  
+14
+  
 15        /**  
 16            Handle message history download error. Check 'category' property  
 17            to find out possible reason because of which request did fail.  
 18            Review 'errorData' property (which has PNErrorData data type) of status  
 19            object to get additional information about issue.  
-20  
+20
+  
 21            Request can be resent using: [status retry];  
 22            */  
 23    }  
 24}];  
-```
 
-##### Response
+```
+show all 24 lines
+
+##### Response[​](#response-3)
 
 ```
 `1[  
@@ -846,7 +963,7 @@ Retrieve the last 100 messages on a channel:
 `
 ```
 
-#### Use historyForChannel to retrieve messages until a given timetoken by paging from newest message to oldest message until a specific end point in time (inclusive)
+#### Use historyForChannel to retrieve messages until a given timetoken by paging from newest message to oldest message until a specific end point in time (inclusive)[​](#use-historyforchannel-to-retrieve-messages-until-a-given-timetoken-by-paging-from-newest-message-to-oldest-message-until-a-specific-end-point-in-time-inclusive)
 
 ```
 1[self.client historyForChannel:@"my_channel" start:nil end:@(13406746780720711) limit:100  
@@ -854,7 +971,8 @@ Retrieve the last 100 messages on a channel:
 3
   
 4    if (!status) {  
-5  
+5
+  
 6        /**  
 7            Handle downloaded history using:  
 8            result.data.start - oldest message time stamp in response  
@@ -863,20 +981,24 @@ Retrieve the last 100 messages on a channel:
 11            */  
 12    }  
 13    else {  
-14  
+14
+  
 15        /**  
 16            Handle message history download error. Check 'category' property  
 17            to find out possible reason because of which request did fail.  
 18            Review 'errorData' property (which has PNErrorData data type) of status  
 19            object to get additional information about issue.  
-20  
+20
+  
 21            Request can be resent using: [status retry];  
 22            */  
 23    }  
 24}];  
-```
 
-##### Response
+```
+show all 24 lines
+
+##### Response[​](#response-4)
 
 ```
 `1[  
@@ -887,9 +1009,11 @@ Retrieve the last 100 messages on a channel:
 `
 ```
 
-#### History paging example
+#### History paging example[​](#history-paging-example)
 
-Usage: Pass 0 or a valid timetoken.
+##### Usage
+
+You can call the method by passing 0 or a valid **timetoken** as the argument.
 
 ```
 1// Pull out all messages newer than message sent at 14395051270438477.  
@@ -939,21 +1063,25 @@ Usage: Pass 0 or a valid timetoken.
 36            }  
 37        }  
 38        else {  
-39  
+39
+  
 40            /**  
 41                Handle message history download error. Check the 'category' property  
 42                to find out why the request failed.  
 43                Review the 'errorData' property (of type PNErrorData) of the status  
 44                object to get additional information about the issue.  
-45  
+45
+  
 46                Request can be resent using: [status retry];  
 47            */  
 48        }  
 49    }];  
 50}  
-```
 
-#### Fetch messages with metadata
+```
+show all 50 lines
+
+#### Fetch messages with metadata[​](#fetch-messages-with-metadata-1)
 
 ```
 1[self.client historyForChannel:@"storage" withMetadata:YES  
@@ -976,9 +1104,11 @@ Usage: Pass 0 or a valid timetoken.
 17        */  
 18    }  
 19}];  
-```
 
-#### Fetch messages with actions
+```
+show all 19 lines
+
+#### Fetch messages with actions[​](#fetch-messages-with-actions-1)
 
 ```
 1[self.client historyForChannel:@"chat" withMessageActions:YES  
@@ -1001,9 +1131,11 @@ Usage: Pass 0 or a valid timetoken.
 17        */  
 18    }  
 19}];  
-```
 
-#### Fetch messages with metadata and actions
+```
+show all 19 lines
+
+#### Fetch messages with metadata and actions[​](#fetch-messages-with-metadata-and-actions-1)
 
 ```
 1[self.client historyForChannel:@"chat" withMetadata:YES messageActions:YES  
@@ -1026,4 +1158,6 @@ Usage: Pass 0 or a valid timetoken.
 18        */  
 19    }  
 20}];  
+
 ```
+show all 20 linesLast updated on Sep 3, 2025**

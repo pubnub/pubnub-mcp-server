@@ -1,332 +1,400 @@
 # Presence API for JavaScript SDK
 
-Presence tracks user join/leave events, channel occupancy, subscriptions, and per-user presence state.
+Presence tracks online/offline users and per-user custom state. It can report join/leave events, channel occupancy, which channels a UUID is subscribed to, and presence state. See [Presence overview](/docs/general/presence/overview).
 
-- Supported async patterns: Callbacks, Promises, Async/Await (recommended). Use try...catch to handle errors.
-- All methods below require the Presence add-on enabled for your key in the Admin Portal. For receiving events, see Presence Events.
+##### Supported and recommended asynchronous patterns
 
-## Here now
+JavaScript SDK supports **Callbacks, Promises, and Async/Await**. Samples use **Async/Await**; Async/Await returns status only on error—use `try...catch` to receive error status.
 
-Returns current state of one or more channels: list of UUIDs (and optional state) and occupancy per channel.
+---
 
-- Cache: 3-second response cache.
+## Here now[​](#here-now)
 
-### Method(s)
+##### Requires Presence
 
-```js
-pubnub.hereNow({
-  channels?: string[],
-  channelGroups?: string[],
-  includeUUIDs?: boolean,   // default: true
-  includeState?: boolean,   // default: false
-  limit?: number,           // default: 1000 (0–1000). Use 0 for occupancy-only.
-  offset?: number           // zero-based index; requires limit > 0
-}): Promise<HereNowResponse>
-```
+Presence add-on must be enabled for your key in the [Admin Portal](https://admin.pubnub.com/) ([how to enable](https://support.pubnub.com/hc/en-us/articles/360051974791-How-do-I-enable-add-on-features-for-my-keys-)). For presence events, see [Presence Events](/docs/general/presence/presence-events#subscribe-to-presence-channel).
 
-Parameters
-- channels (string[]): Channel names to query. Specify either channels or channelGroups.
-- channelGroups (string[]): Channel Groups to query. Specify either channels or channelGroups. Wildcards not supported.
-- includeUUIDs (boolean, default true): Set to false to omit UUIDs.
-- includeState (boolean, default false): Set to true to include presence state.
-- limit (number, default 1000): Max occupants to return per channel. 0–1000. Use 0 for counts only (no user details).
-- offset (number): Zero-based starting index for pagination. Must be >= 0 and used with limit > 0. Included in request only when offset > 0.
+Returns current channel state: unique UUIDs subscribed and total occupancy.
 
-### Sample code
+##### Cache
 
-#### Reference code
+3-second response cache.
+
+### Method(s)[​](#methods)
 
 ```
-
+`1pubnub.hereNow({  
+2    channels: Arraystring> ,  
+3    channelGroups: Arraystring> ,  
+4    includeUUIDs: boolean ,  
+5    includeState: boolean ,  
+6    limit: number ,  
+7    offset: number  
+8}); PromiseHereNowResponse>  
+`
 ```
 
-#### Get a list of UUIDs subscribed to channel
+Parameters (critical behavior):
+- `channels: array<string>` — channel names to query. **You must specify either `channels` or `channelGroups`.**
+- `channelGroups: array<string>` — channel groups to query. **You must specify either `channels` or `channelGroups`.** Wildcards not supported.
+- `includeUUIDs: boolean` (default `true`) — set `false` to omit UUIDs.
+- `includeState: boolean` (default `false`) — set `true` to include occupants’ state.
+- `limit: number` (default `1000`) — max occupants per channel; range `0-1000`. Use `0` for occupancy counts only (no user details).
+- `offset: number` — zero-based pagination index; must be `>= 0`; requires `limit > 0`. Included only when `offset > 0`.
+
+### Sample code[​](#sample-code)
+
+##### Reference code
+
+Self-contained runnable snippet with imports and console logging (used as a reference for other examples).
+
+#### Get a list of UUIDs subscribed to channel[​](#get-a-list-of-uuids-subscribed-to-channel)
 
 ```
-
-```
-
-### Response
-
-```ts
-type HereNowResponse = {
-  totalChannels: number,     // total number of channels returned
-  totalOccupancy: number,    // total occupants across channels
-  channels: {
-    [channel: string]: {
-      name: string,
-      occupancy: number,
-      occupants: Array<{ uuid: string, state?: any }>
-    }
-  }
-}
-```
-
-### Other examples
-
-#### Returning state
+1
+  
 
 ```
 
 ```
-
-##### Example response
-
-```json
-// Example of Status
-{
-  "error": false,
-  "operation": "PNHereNowOperation",
-  "statusCode": 200
-}
-
-// Example of Response
-{
-  "totalChannels": 1,
-  "totalOccupancy": 3,
-  "channels": {
-    "my_channel": {
-      "occupants": [
-        {
-          "uuid": "User 1"
-        },
-        {
-          "state": {
-            "age": 18
-          },
-          "uuid": "User 2"
-        },
-        {
-          "state": {
-            "age": 24
-          },
-          "uuid": "User 3"
-        }
-      ],
-      "name": "my_channel",
-      "occupancy": 3
-    }
-  }
-}
-```
-
-#### Return occupancy only
-
-You can return only occupancy by setting includeUUIDs and includeState to false.
+1
+  
 
 ```
 
+### Response[​](#response)
+
+```
+`1type hereNowResponse = {  
+2    totalChannels: number, // totalChannels = get total of channels  
+3    totalOccupancy: number, // totalOccupancy = get total of occupancies  
+4    channels: object // channels = get a map with values for each channel with uuids and states for each occupant of the channel  
+5}  
+`
 ```
 
-##### Example response
+### Other examples[​](#other-examples)
 
-```json
-// Example of Status
-{
-  "error": false,
-  "operation": "PNHereNowOperation",
-  "statusCode": 200
-}
+#### Returning state[​](#returning-state)
 
-// Example of Response
-{
-  "totalChannels": 1,
-  "totalOccupancy": 3,
-  "channels": {
-    "my_channel": {
-      "occupants": [],
-      "name": "my_channel",
-      "occupancy": 3
-    }
-  }
-}
+##### Requires Presence
+
+Presence add-on must be enabled (see above). Presence events: [Presence Events](/docs/general/presence/presence-events#subscribe-to-presence-channel).
+
 ```
-
-#### Channel group usage
+1
+  
 
 ```
 
+##### Example response[​](#example-response)
+
 ```
-
-##### Example response
-
-```json
-// Example of Status
-{
-  "error": false,
-  "operation": "PNHereNowOperation",
-  "statusCode": 200
-}
-
-// Example of Response
-{
-  "totalChannels": 2,
-  "totalOccupancy": 3,
-  "channels": {
-    "my_channel_1": {
-      "occupants": [
-        {
-          "state": null,
-          "uuid": "User1"
-        },
-        {
-          "state": null,
-          "uuid": "User3"
-        }
-      ],
-      "name": "my_channel_1",
-      "occupancy": 2
-    },
-    "my_channel_2": {
-      "occupants": [
-        {
-          "state": null,
-          "uuid": "User2"
-        }
-      ],
-      "name": "my_channel_2",
-      "occupancy": 1
-    }
-  }
-}
-```
-
-#### Sample code with promises
+1// Example of Status  
+2{  
+3    "error": false,  
+4    "operation": "PNHereNowOperation",  
+5    "statusCode": 200  
+6}  
+7
+  
+8// Example of Response  
+9{  
+10    "totalChannels": 1,  
+11    "totalOccupancy": 3,  
+12    "channels": {  
+13        "my_channel": {  
+14            "occupants": [  
+15                {  
+16                    "uuid": "User 1"  
+17                },  
+18                {  
+19                    "state": {  
+20                        "age": 18  
+21                    },  
+22                    "uuid": "User 2"  
+23                },  
+24                {  
+25                    "state": {  
+26                        "age": 24  
+27                    },  
+28                    "uuid": "User 3"  
+29                }  
+30            ],  
+31            "name": "my_channel",  
+32            "occupancy": 3  
+33        }  
+34    }  
+35}  
 
 ```
 
+#### Return occupancy only[​](#return-occupancy-only)
+
+##### Requires Presence
+
+Presence add-on must be enabled (see above). Presence events: [Presence Events](/docs/general/presence/presence-events#subscribe-to-presence-channel).
+
+To return only occupancy for a single channel: set `includeUUIDs: false` and `includeState: false`.
+
+```
+1
+  
+
 ```
 
-## Where now
+##### Example response[​](#example-response-1)
+
+```
+1// Example of Status  
+2{  
+3    "error": false,  
+4    "operation": "PNHereNowOperation",  
+5    "statusCode": 200  
+6}  
+7
+  
+8// Example of Response  
+9{  
+10    "totalChannels": 1,  
+11    "totalOccupancy": 3,  
+12    "channels": {  
+13        "my_channel": {  
+14            "occupants": [],  
+15            "name": "my_channel",  
+16            "occupancy": 3  
+17        }  
+18    }  
+19}  
+
+```
+
+#### Channel group usage[​](#channel-group-usage)
+
+##### Requires Presence
+
+Presence add-on must be enabled (see above). Presence events: [Presence Events](/docs/general/presence/presence-events#subscribe-to-presence-channel).
+
+```
+1
+  
+
+```
+
+##### Example response[​](#example-response-2)
+
+```
+1// Example of Status  
+2{  
+3    "error": false,  
+4    "operation": "PNHereNowOperation",  
+5    "statusCode": 200  
+6}  
+7
+  
+8// Example of Response  
+9{  
+10    "totalChannels": 2,  
+11    "totalOccupancy": 3,  
+12    "channels": {  
+13        "my_channel_1": {  
+14            "occupants": [  
+15                {  
+16                    "state": null,  
+17                    "uuid": "User1"  
+18                },  
+19                {  
+20                    "state": null,  
+21                    "uuid": "User3"  
+22                }  
+23            ],  
+24            "name": "my_channel_1",  
+25            "occupancy": 2  
+26        },  
+27        "my_channel_2": {  
+28            "occupants": [  
+29                {  
+30                    "state": null,  
+31                    "uuid": "User2"  
+32                }  
+33            ],  
+34            "name": "my_channel_2",  
+35            "occupancy": 1  
+36        }  
+37    }  
+38}  
+
+```
+
+#### Sample code with promises[​](#sample-code-with-promises)
+
+##### Requires Presence
+
+Presence add-on must be enabled (see above). Presence events: [Presence Events](/docs/general/presence/presence-events#subscribe-to-presence-channel).
+
+```
+1
+  
+
+```
+
+---
+
+## Where now[​](#where-now)
+
+##### Requires Presence
+
+Presence add-on must be enabled for your key (see above). Presence events: [Presence Events](/docs/general/presence/presence-events#subscribe-to-presence-channel).
 
 Returns the list of channels a UUID is subscribed to.
 
-- Timeout events: If the app restarts (or the page refreshes) within the heartbeat window, no timeout event is generated.
+##### Timeout events
 
-### Method(s)
+If the app restarts (or page refreshes) within the heartbeat window, **no timeout event** is generated.
 
-```js
-pubnub.whereNow({
-  uuid?: string        // default: current UUID
-}): Promise<WhereNowResponse>
-```
-
-Parameters
-- uuid (string, default current UUID): UUID to return channel list for.
-
-### Sample code
-
-#### Get a list of channels a UUID is subscribed to
+### Method(s)[​](#methods-1)
 
 ```
-
+`1pubnub.whereNow({  
+2    uuid: string  
+3}): PromiseWhereNowResponse>  
+`
 ```
 
-### Response
+- `uuid: string` (default: `current uuid`) — UUID to return channel list for.
 
-```json
-// Example of Status
-{
-  "error": false,
-  "operation": "PNWhereNowOperation",
-  "statusCode": 200
-}
+### Sample code[​](#sample-code-1)
 
-// Example of Response
-{
-  "channels": ["ch1", "ch2"]
-}
+Define the `uuid` to query.
+
+#### Get a list of channels a UUID is subscribed to[​](#get-a-list-of-channels-a-uuid-is-subscribed-to)
+
 ```
-
-## User state
-
-Clients can set dynamic, non-persistent presence state (for example, score, location) per channel while subscribed. State is not persisted and is lost on disconnect. Keys starting with pn are reserved; no nested objects; supported value types: int, float, string.
-
-### Method(s)
-
-#### Set state
-
-```js
-pubnub.setState({
-  channels?: string[],
-  channelGroups?: string[],
-  state?: any            // JSON of key/value pairs; see constraints below
-}): Promise<SetStateResponse>
-```
-
-Parameters
-- channels (string[]): Channels to set the state. Provide channels or channelGroups.
-- channelGroups (string[]): Channel Groups to set the state. Provide channels or channelGroups.
-- state (any): Flat JSON of key/value pairs. Supported types: int, float, string. No nesting. Keys with pn prefix are reserved.
-  - If state is undefined, the current state for the specified UUID will be returned.
-  - Existing keys are overwritten with new values.
-  - Delete a key by setting its value to null.
-
-#### Get state
-
-```js
-pubnub.getState({
-  uuid?: string,         // default: current UUID
-  channels?: string[],
-  channelGroups?: string[]
-}): Promise<GetStateResponse>
-```
-
-Parameters
-- uuid (string, default current UUID): Subscriber UUID to get current state.
-- channels (string[]): Channels to get the state. Provide channels or channelGroups.
-- channelGroups (string[]): Channel Groups to get the state. Provide channels or channelGroups.
-
-### Sample code
-
-#### Set state
+1
+  
 
 ```
 
-```
-
-#### Get state
+### Response[​](#response-1)
 
 ```
+1// Example of Status  
+2{  
+3    error: false,  
+4    operation: "PNWhereNowOperation",  
+5    statusCode: 200  
+6}  
+7
+  
+8// Example of Response  
+9{  
+10    "channels": ["ch1", "ch2"]  
+11}  
 
 ```
 
-### Response
+---
 
-#### Set state
+## User state[​](#user-state)
 
-```json
-// Example of Status
-{
-  "error": false,
-  "operation": "PNSetStateOperation",
-  "statusCode": 200
-}
+##### Requires Presence
 
-// Example of Response
-{
-  "state": {
-    "me": "typing"
-  }
-}
+Presence add-on must be enabled for your key (see above). Presence events: [Presence Events](/docs/general/presence/presence-events#subscribe-to-presence-channel).
+
+Set/get dynamic per-user state (for example score, game state, location) on one or more channels while subscribed. State is **not persisted**; it is lost on disconnect. See [Presence State](/docs/general/presence/presence-state).
+
+### Method(s)[​](#methods-2)
+
+#### Set state[​](#set-state)
+
+```
+`1pubnub.setState({  
+2    channels: Arraystring> ,  
+3    channelGroups: Arraystring> ,  
+4    state: any  
+5}): PromiseSetStateResponse>;  
+`
 ```
 
-#### Get state
+- `channels: Array` — **either `channels` or `channelGroups` required**; channels to set state on.
+- `channelGroups: Array` — **either `channels` or `channelGroups` required**; channel groups to set state on.
+- `state: any` — JSON key/value pairs (supported types: int, float, string). **No nested objects.** Keys starting with `pn` are reserved.  
+  - If `state` is `undefined`, returns current state for the specified UUID.  
+  - Existing keys are overwritten.  
+  - Delete a key by setting its value to `null`.
 
-```json
-// Example of Status
-{
-  "error": false,
-  "operation": "PNGetStateOperation",
-  "statusCode": 200
-}
+#### Get state[​](#get-state)
 
-// Example of Response
-{
-  "channels": {
-    "ch1": {
-      "me": "typing"
-    }
-  }
-}
+```
+`1pubnub.getState({  
+2    uuid: string,  
+3    channels: Arraystring>,   
+4    channelGroups: Arraystring>  
+5}): PromiseGetStateResponse>;   
+`
+```
+
+- `uuid: string` (default: `current uuid`) — UUID to query.
+- `channels: Array` — **either `channels` or `channelGroups` required**; channels to get state for.
+- `channelGroups: Array` — **either `channels` or `channelGroups` required**; channel groups to get state for.
+
+### Sample code[​](#sample-code-2)
+
+#### Set state[​](#set-state-1)
+
+```
+1
+  
+
+```
+
+#### Get state[​](#get-state-1)
+
+```
+1
+  
+
+```
+
+### Response[​](#response-2)
+
+#### Set state[​](#set-state-2)
+
+```
+1// Example of Status  
+2{  
+3    error: false,  
+4    operation: "PNSetStateOperation",  
+5    statusCode: 200  
+6}  
+7
+  
+8// Example of Response  
+9{  
+10    state: {  
+11        me: 'typing'  
+12    }  
+13}  
+
+```
+
+#### Get state[​](#get-state-2)
+
+```
+1// Example of Status  
+2{  
+3    error: false,  
+4    operation: "PNGetStateOperation",  
+5    statusCode: 200  
+6}  
+7
+**8// Example of Response  
+9{  
+10    channels: {  
+11        ch1: {  
+12            me: 'typing'  
+13        }  
+14    }  
+15}  
+
 ```
