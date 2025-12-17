@@ -1,14 +1,14 @@
 {
-  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-12-11/server.schema.json",
-  "name": "io.github.pubnub/mcp-server",
+  "$schema": "https://static.modelcontextprotocol.io/schemas/2025-10-17/server.schema.json",
+  "name": "io.github.pubnub/mcp",
   "title": "PubNub MCP Server",
-  "description": "PubNub MCP for Real-time messaging. API Access and SDK documentation.",
-  "version": "1.0.132",
+  "description": "PubNub Model Context Protocol MCP Server for Cursor and Claude",
+  "version": "2.0.0",
   "repository": {
     "url": "https://github.com/pubnub/pubnub-mcp-server",
     "source": "github"
   },
-  "websiteUrl": "https://pubnub.github.io/pubnub-mcp-server",
+  "websiteUrl": "https://www.pubnub.com/networking-mcp-server",
   "icons": [
     {
       "src": "https://avatars.githubusercontent.com/u/297109?s=64&v=4",
@@ -21,25 +21,51 @@
       "mimeType": "image/png"
     }
   ],
-  "packages": [{
-    "registryType": "npm",
-    "identifier": "@pubnub/mcp",
-    "version": "1.0.132",
-    "runtimeHint": "npx",
-    "transport": {"type": "stdio"},
-    "environmentVariables": [
-      {
-        "name": "PUBNUB_PUBLISH_KEY",
-        "description": "Your PubNub publish key for sending messages",
-        "isRequired": false,
-        "isSecret": true
-      },
-      {
-        "name": "PUBNUB_SUBSCRIBE_KEY",
-        "description": "Your PubNub subscribe key for receiving messages and history",
-        "isRequired": false,
-        "isSecret": true
-      }
-    ]
-  }]
+  "packages": [
+    {
+      "registryType": "npm",
+      "identifier": "@pubnub/mcp",
+      "version": "2.0.0",
+      "runtimeHint": "npx",
+      "transport": { "type": "stdio" },
+      "environmentVariables": [
+        {
+          "name": "PUBNUB_API_KEY",
+          "description": "Your PubNub API Key. Required for all operations related to your account/keyset",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "PUBNUB_PUBLISH_KEY",
+          "description": "Optional PubNub publish key for real-time operations",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "PUBNUB_SUBSCRIBE_KEY",
+          "description": "Optional PubNub subscribe key for real-time operations",
+          "isRequired": false,
+          "isSecret": true
+        },
+        {
+          "name": "PUBNUB_USER_ID",
+          "description": "Optional variable that can be provided to change the User ID for the SDK (real-time) operations (default: pubnub-mcp)",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "PUBNUB_EMAIL",
+          "description": "(Deprecated - use API Key instead) Your PubNub account email. Required for all operations related to your account/keyset",
+          "isRequired": false,
+          "isSecret": false
+        },
+        {
+          "name": "PUBNUB_PASSWORD",
+          "description": "(Deprecated - use API Key instead) Your PubNub account password. Required for all operations related to your account/keyset",
+          "isRequired": false,
+          "isSecret": true
+        }
+      ]
+    }
+  ]
 }

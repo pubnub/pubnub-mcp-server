@@ -1,1 +1,0 @@
-I don’t have the documentation content to summarize. Please paste the “message-actions” section of the PubNub PHP SDK docs (or provide a link and the SDK version), and I’ll condense it while preserving all code blocks, method signatures, parameters, and essential configuration details.

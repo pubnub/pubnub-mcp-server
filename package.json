@@ -1,54 +1,78 @@
 {
   "name": "@pubnub/mcp",
-  "version": "1.0.132",
+  "version": "2.0.0",
   "mcpName": "io.github.pubnub/mcp-server",
-  "type": "module",
   "description": "PubNub Model Context Protocol MCP Server for Cursor and Claude",
-  "main": "index.js",
-  "bin": "index.js",
-  "scripts": {
-    "test": "node test.js",
-    "test-all": "node test_all.js"
-  },
-  "files": [
-    "index.js",
-    "lib",
-    "chat_sdk_urls.txt",
-    "package.json",
-    "resources"
-  ],
+  "main": "dist/index.js",
+  "bin": "dist/index.js",
+  "type": "module",
   "repository": {
     "type": "git",
     "url": "git+https://github.com/pubnub/pubnub-mcp-server.git"
   },
+  "bugs": "https://github.com/pubnub/pubnub-mcp-server/issues",
+  "homepage": "https://www.pubnub.com/networking-mcp-server",
+  "author": "PubNub",
+  "license": "SEE LICENSE IN LICENSE",
   "keywords": [
     "PubNub",
     "LLM",
     "MPC",
     "Model Context Protocol"
   ],
-  "author": "Stephen Blum",
-  "license": "MIT",
-  "bugs": {
-    "url": "https://github.com/pubnub/pubnub-mcp-server/issues"
-  },
-  "homepage": "https://github.com/pubnub/pubnub-mcp-server#readme",
+  "files": [
+    "dist",
+    "images"
+  ],
   "engines": {
-    "node": ">=18.0.0"
+    "node": ">= 20.0.0"
   },
-  "dependencies": {
-    "@modelcontextprotocol/sdk": "^1.10.2",
-    "cbor-sync": "^1.0.4",
-    "eventsource": "^4.0.0",
-    "express": "^5.1.0",
-    "node-html-parser": "^6.1.13",
-    "pubnub": "^9.6.0",
-    "zod": "^3.25.67"
+  "scripts": {
+    "dev": "rollup -c -w",
+    "dev:http": "concurrently \"rollup -c -w\" \"node --watch dist/index.js --http\"",
+    "dev:local": "concurrently \"rollup -c -w\" \"node --watch dist/index.js\"",
+    "build": "rollup -c && chmod +x dist/index.js",
+    "start": "node dist/index.js",
+    "start:http": "node dist/index.js --http",
+    "clean": "rm -rf dist",
+    "type-check": "tsc --noEmit",
+    "lint": "biome lint ./src",
+    "lint:fix": "biome lint --write ./src",
+    "format": "biome format --write ./src",
+    "format:check": "biome format ./src",
+    "check": "biome check --write ./src",
+    "test:unit": "vitest run --project unit",
+    "test:integration": "npm run build && vitest run --project integration",
+    "test:token-count": "vitest run --project token-count",
+    "test:ui": "vitest --ui",
+    "test:coverage": "vitest --coverage",
+    "test:coverage:unit": "vitest --coverage --project unit"
   },
   "devDependencies": {
-    "openai": "^4.0.0"
+    "@ai-sdk/mcp": "^0.0.7",
+    "@ai-sdk/openai": "^2.0.64",
+    "@biomejs/biome": "2.2.4",
+    "@rollup/plugin-commonjs": "^28.0.6",
+    "@rollup/plugin-json": "^6.1.0",
+    "@rollup/plugin-typescript": "^12.1.4",
+    "@types/express": "^5.0.3",
+    "@types/node": "^24.3.1",
+    "@vitest/coverage-v8": "^4.0.6",
+    "@vitest/ui": "^4.0.6",
+    "ai": "^5.0.89",
+    "concurrently": "^8.2.2",
+    "msw": "^2.11.6",
+    "rollup": "^4.50.0",
+    "tiktoken": "^1.0.22",
+    "tslib": "^2.8.1",
+    "typescript": "^5.9.2",
+    "vitest": "^4.0.6"
   },
-  "overrides": {
-    "react-native-url-polyfill": "npm:whatwg-url@^11.0.0"
+  "dependencies": {
+    "@modelcontextprotocol/sdk": "^1.23.0",
+    "dotenv": "^17.2.3",
+    "express": "^5.1.0",
+    "pubnub": "^10.2.1",
+    "zod": "^4.1.13"
   }
 }
