@@ -69,14 +69,14 @@ jobs:
         with:
           node-version: '18'
 
-      - name: Update server.json version
-        run: |
-          npm install -g json
-          json -I -f server.json -e "this.version = '${{ needs.build-and-test.outputs.version }}'"
+      #- name: Update server.json version
+      #  run: |
+      #    npm install -g json
+      #    json -I -f server.json -e "this.version = '${{ needs.build-and-test.outputs.version }}'"
 
       - name: Install MCP Publisher CLI
         run: |
-          curl -L "https://github.com/modelcontextprotocol/registry/releases/download/v1.3.7/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher && sudo mv mcp-publisher /usr/local/bin/
+          curl -L "https://github.com/modelcontextprotocol/registry/releases/download/v1.4.0/mcp-publisher_$(uname -s | tr '[:upper:]' '[:lower:]')_$(uname -m | sed 's/x86_64/amd64/;s/aarch64/arm64/').tar.gz" | tar xz mcp-publisher && sudo mv mcp-publisher /usr/local/bin/
 
       - name: Login to MCP Registry
         run: mcp-publisher login github-oidc
