@@ -13,8 +13,7 @@ permissions:
 
 jobs:
   run-tests:
-    runs-on:
-      group: ubuntu-latest
+    runs-on: ubuntu-latest
 
     steps:
       - name: Checkout repository

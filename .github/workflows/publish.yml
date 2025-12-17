@@ -12,8 +12,7 @@ permissions:
 jobs:
   npm-publish:
     name: Publish to npm
-    runs-on:
-      group: ubuntu-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -38,8 +37,7 @@ jobs:
 
   docker-publish:
     name: Push Docker image to Docker Hub
-    runs-on:
-      group: ubuntu-latest
+    runs-on: ubuntu-latest
     steps:
       - name: Checkout repository
         uses: actions/checkout@v4
@@ -74,6 +72,7 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           platforms: linux/amd64,linux/arm64
+
   mcp-registry-publish:
     name: Publish to MCP Registry
     runs-on: ubuntu-latest
