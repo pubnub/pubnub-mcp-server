@@ -2,7 +2,7 @@
 
 This repository provides a CLI-based Model Context Protocol (MCP) server that exposes PubNub SDK documentation and PubNub API resources to LLM-powered tools. This improves the LLM AI Agent's ability to understand and interact with PubNub's SDKs and APIs.
 
-![PubNub MCP Server v2](images/pubnub-mcp-server.jpg)
+![PubNub MCP Server v2](https://github.com/pubnub/pubnub-mcp-server/raw/main/images/pubnub-mcp-server.jpg)
 
 
 ## Features
@@ -25,14 +25,14 @@ The installation process for an MCP server depends on the AI assistant you’re 
 
 ### VS Code
 
-[![Open in VS Code](images/add-to-vscode.png)](https://vscode.dev/redirect/mcp/install?name=PubNub&inputs=%5B%7B%22type%22%3A%22promptString%22%2C%22id%22%3A%22pubnub-api-key%22%2C%22description%22%3A%22PubNub%20API%20Key%22%7D%5D&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40pubnub%2Fmcp%40latest%22%5D%2C%22env%22%3A%7B%22PUBNUB_API_KEY%22%3A%22%24%7Binput%3Apubnub-api-key%7D%22%7D%7D)
+[![Open in VS Code](https://github.com/pubnub/pubnub-mcp-server/raw/main/images/add-to-vscode.png)](https://vscode.dev/redirect/mcp/install?name=PubNub&inputs=%5B%7B%22type%22%3A%22promptString%22%2C%22id%22%3A%22pubnub-api-key%22%2C%22description%22%3A%22PubNub%20API%20Key%22%7D%5D&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40pubnub%2Fmcp%40latest%22%5D%2C%22env%22%3A%7B%22PUBNUB_API_KEY%22%3A%22%24%7Binput%3Apubnub-api-key%7D%22%7D%7D)
 
 Just click the link above, then select “Open in Visual Studio Code” on the page that appears. Back in VS Code, click “Install”. You’ll be prompted to enter your PubNub API Key. Once provided, your MCP server is ready to use. For additional configuration options, see Advanced usage.
 
 
 ### Cursor
 
-[![Add to Cursor](images/add-to-cursor.png)](https://tinyurl.com/pubnub-mcp-v2)
+[![Add to Cursor](https://github.com/pubnub/pubnub-mcp-server/raw/main/images/add-to-cursor.png)](https://tinyurl.com/pubnub-mcp-v2)
 
 Click the link above, then select "Open Cursor" on the page that appears. Back in Cursor, there's a "Install MCP Server?" prompt. Make sure to provide the value for variable holding your PubNub API Key. Once you do, click "Install". Your MCP server is now ready to use. For additional configuration options, see Advanced usage.
 
