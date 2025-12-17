@@ -1,17 +1,26 @@
-FROM node:22
+FROM node:lts-alpine AS development
 
-# Create app directory
-WORKDIR /usr/src/app
+WORKDIR /opt/pubnub-mcp
 
-# Install app dependencies
-# A wildcard is used to ensure both package.json AND package-lock.json are copied
 COPY package*.json ./
+RUN npm install --only=development
 
-# Install dependencies (use npm ci for reproducible builds)
-RUN npm ci
-
-# Copy application source
 COPY . .
 
-# Default command to run the MCP server
-CMD ["node", "index.js"]
+RUN npm run lint
+RUN npm run build
+
+FROM node:lts-alpine AS production
+
+ENV MCP_MODE="stdio"
+
+WORKDIR /opt/pubnub-mcp
+
+COPY package*.json ./
+RUN npm install --only=production
+
+COPY --from=development /opt/pubnub-mcp/dist ./dist
+
+EXPOSE 3000
+
+CMD ["sh", "-c", "exec node dist/index.js --${MCP_MODE}"]

@@ -1,0 +1,56 @@
+name: Run tests
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+  workflow_dispatch:
+  release:
+    types: [created]
+
+permissions:
+  contents: read
+
+jobs:
+  run-tests:
+    runs-on:
+      group: ubuntu-latest
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Run lint
+        run: npm run lint
+
+      - name: Run format check
+        run: npm run format:check
+
+      - name: Run unit tests
+        run: npm run test:unit
+
+      - name: Run integration tests
+        id: integration_tests
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: npm run test:integration
+        continue-on-error: true
+
+      - name: Rerun integration tests
+        # LLMs are not deterministic, so we need to rerun the tests if they fail
+        # as they may have different answers each time so it decreases
+        # the likelihood of false positives
+        if: ${{ steps.integration_tests.outcome == 'failure' }}
+        env:
+          OPENAI_API_KEY: ${{ secrets.OPENAI_API_KEY }}
+        run: npm run test:integration
+        continue-on-error: false
