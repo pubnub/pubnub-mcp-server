@@ -36,15 +36,46 @@ Just click the link above, then select “Open in Visual Studio Code” on the p
 
 Click the link above, then select "Open Cursor" on the page that appears. Back in Cursor, there's a "Install MCP Server?" prompt. Make sure to provide the value for variable holding your PubNub API Key. Once you do, click "Install". Your MCP server is now ready to use. For additional configuration options, see Advanced usage.
 
-### Claude
+### Claude Code
 
-With Claude installed run this command to have the MCP added to your configuration. Make sure to replace the value of `<your-api-key>`:
+With Claude Code installed run this command to have the MCP added to your configuration. Make sure to replace the value of `<your-api-key>`:
 
 ```
-claude mcp add --env PUBNUB_API_KEY=<your-api-key> --scope user --transport stdio PubNub -- npx -y @pubnub/mcp@latest
+claude mcp add PubNub --env PUBNUB_API_KEY=<your-api-key> --scope user --transport stdio -- npx -y @pubnub/mcp@latest
 ```
 
 Server is added in the "User" scope which means it will be available accross all projects. For additional configuration options, see Advanced usage.
+
+### Codex
+
+With Codex installed run this command to have the MCP added to your configuration. Make sure to replace the value of `<your-api-key>`:
+
+```
+codex mcp add PubNub --env PUBNUB_API_KEY=<your-api-key> -- npx -y @pubnub/mcp@latest
+```
+
+For additional configuration options, see Advanced usage.
+
+### Gemini CLI
+
+Gemini CLI does not support automatic MCP installations. You'll have manually edit your [settings.json](https://geminicli.com/docs/cli/settings/) file and add the section below. Make sure to replace the value of `<your-api-key>`:
+
+```
+"mcpServers": {
+  "pubnub": {
+    "command": "npx",
+    "args": [
+      "-y",
+      "@pubnub/mcp@latest"
+    ],
+    "env": {
+      "PUBNUB_API_KEY": "<your-api-key>"
+    }
+  }
+}
+```
+
+For additional configuration options, see Advanced usage.
 
 ## Advanced usage
 
