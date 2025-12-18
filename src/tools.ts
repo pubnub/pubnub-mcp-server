@@ -90,10 +90,18 @@ const manageKeysetsTool: ToolDef<ManageKeysetsSchemaType> = {
 const getSDKDocumentationTool: ToolDef<GetSdkDocumentationSchemaType> = {
   name: "get_sdk_documentation",
   definition: {
-    title: "Get PubNub SDK Documentation",
-    description: `Retrieve SDK documentation for a specific programming language and feature.
-      This provides code examples, guides, and API references for using PubNub SDKs.
-      Always use this tool when working with PubNub SDKs to get latest information about PubNub features.`,
+    title: "Get PubNub Core SDK Documentation",
+    description: `Retrieve Core SDK documentation for low-level real-time features (for example (but not limited to), publish/subscribe, presence, storage, access management).
+      
+      **When to use Core SDK:**
+      - Building non-chat real-time apps (IoT, gaming state sync, live analytics, notifications)
+      - Need fine-grained control over pub/sub behavior and message handling
+      - Implementing custom real-time patterns not covered by Chat SDK
+      - Building infrastructure that other applications will use
+      
+      **Relationship with Chat SDK:** The Chat SDK is built ON TOP of this Core SDK. If you're building a chat application, consider using get_chat_sdk_documentation instead for higher-level abstractions. You can also combine both - Chat SDK exposes Core SDK via chat.sdk property.
+      
+      Provides code examples, guides, and API references. Always use this tool when working with PubNub Core SDKs.`,
     inputSchema: GetSdkDocumentationSchema.shape,
   },
   handler: getSDKDocumentationHandler,
@@ -103,9 +111,19 @@ const getChatSDKDocumentationTool: ToolDef<GetChatSdkDocumentationSchemaType> = 
   name: "get_chat_sdk_documentation",
   definition: {
     title: "Get PubNub Chat SDK Documentation",
-    description: `Retrieve Chat SDK documentation for a specific programming language and feature.
-      This provides code examples, guides, and API references for using PubNub Chat SDKs.
-      Always use this tool when working with PubNub Chat SDKs or building chat based applications to get latest information about PubNub features.`,
+    description: `Retrieve Chat SDK documentation for high-level chat features with pre-built abstractions.
+      
+      **When to use Chat SDK (RECOMMENDED for chat apps):**
+      - Building chat/messaging applications (1:1, group chat, channels)
+      - Need typing indicators, read receipts, @mentions, unread message counts
+      - Want threaded conversations, message reactions, pinned messages
+      - Prefer rapid development with intuitive methods like sendText(), startTyping(), join()
+      
+      **Built-in features:** User management, channel management, message threads, read receipts, typing indicators, @mentions, message reactions, moderation tools, push notifications integration.
+      
+      **Relationship with Core SDK:** Chat SDK is built on top of Core SDK and provides access to it via chat.sdk property. Use Core SDK (get_sdk_documentation) only when you need features beyond chat or require low-level control.
+      
+      Provides code examples, guides, and API references. Use this tool first when building any chat-based application.`,
     inputSchema: GetChatSdkDocumentationSchema.shape,
   },
   handler: getChatSDKDocumentationHandler,
