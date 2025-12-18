@@ -99,7 +99,7 @@ const getSDKDocumentationTool: ToolDef<GetSdkDocumentationSchemaType> = {
       - Implementing custom real-time patterns not covered by Chat SDK
       - Building infrastructure that other applications will use
       
-      **Relationship with Chat SDK:** The Chat SDK is built ON TOP of this Core SDK. If you're building a chat application, consider using get_chat_sdk_documentation instead for higher-level abstractions. You can also combine both - Chat SDK exposes Core SDK via chat.sdk property.
+      **Relationship with Chat SDK:** The Chat SDK is built ON TOP of this Core SDK. If you're building a chat application, consider using get_chat_sdk_documentation instead for higher-level abstractions.
       
       Provides code examples, guides, and API references. Always use this tool when working with PubNub Core SDKs.`,
     inputSchema: GetSdkDocumentationSchema.shape,
@@ -121,7 +121,7 @@ const getChatSDKDocumentationTool: ToolDef<GetChatSdkDocumentationSchemaType> = 
       
       **Built-in features:** User management, channel management, message threads, read receipts, typing indicators, @mentions, message reactions, moderation tools, push notifications integration.
       
-      **Relationship with Core SDK:** Chat SDK is built on top of Core SDK and provides access to it via chat.sdk property. Use Core SDK (get_sdk_documentation) only when you need features beyond chat or require low-level control.
+      **Relationship with Core SDK:** Chat SDK is built on top of Core SDK. Use Core SDK (get_sdk_documentation) only when you need features beyond chat or require low-level control or explicitly asked for it.
       
       Provides code examples, guides, and API references. Use this tool first when building any chat-based application.`,
     inputSchema: GetChatSdkDocumentationSchema.shape,
