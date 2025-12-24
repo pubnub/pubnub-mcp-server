@@ -1,7 +1,53 @@
 import { describe, expect, it } from "vitest";
-import { CreateKeysetDataSchema, UpdateKeysetDataSchema } from "./schemas";
+import {
+  CreateKeysetDataSchema,
+  UpdateKeysetDataSchema,
+  FilesRetention,
+  MessageStorageRetention,
+} from "./schemas";
 
 describe("Portal Schemas", () => {
+  describe("FilesRetention", () => {
+    it("should accept valid retention values (1, 7, 30, 90, 180, 365, 0)", () => {
+      const validValues = [1, 7, 30, 90, 180, 365, 0];
+
+      for (const value of validValues) {
+        const result = FilesRetention.safeParse(value);
+        expect(result.success, `Expected ${value} to be valid`).toBe(true);
+      }
+    });
+
+    it("should reject invalid retention values", () => {
+      const invalidValues = [2, 5, 10, 15, 60, 100, 200, 400, -1, -7];
+
+      for (const value of invalidValues) {
+        const result = FilesRetention.safeParse(value);
+        expect(result.success, `Expected ${value} to be rejected`).toBe(false);
+      }
+    });
+  });
+
+  describe("MessageStorageRetention", () => {
+    it("should accept valid retention values (1, 7, 30, 90, 180, 365, 0)", () => {
+      const validValues = [1, 7, 30, 90, 180, 365, 0];
+
+      for (const value of validValues) {
+        const result = MessageStorageRetention.safeParse(value);
+        expect(result.success, `Expected ${value} to be valid`).toBe(true);
+      }
+    });
+
+    it("should reject invalid retention values", () => {
+      const invalidValues = [2, 5, 10, 15, 60, 100, 200, 400, -1, -7];
+
+      for (const value of invalidValues) {
+        const result = MessageStorageRetention.safeParse(value);
+        expect(result.success, `Expected ${value} to be rejected`).toBe(false);
+      }
+    });
+  });
+
+
   describe("CreateKeysetDataSchema - nested config structure", () => {
     it("should accept valid keyset data with all config options", () => {
       const validData = {
@@ -175,6 +221,27 @@ describe("Portal Schemas", () => {
 
       const result = CreateKeysetDataSchema.safeParse(invalidData);
       expect(result.success).toBe(false);
+    });
+
+    it("should accept all valid files.retention values (1, 7, 30, 90, 180, 365, 0)", () => {
+      const validRetentions = [1, 7, 30, 90, 180, 365, 0];
+
+      for (const retention of validRetentions) {
+        const validData = {
+          name: "My Keyset",
+          type: "production",
+          config: {
+            files: {
+              enabled: true,
+              region: "us-east-1",
+              retention,
+            },
+          },
+        };
+
+        const result = CreateKeysetDataSchema.safeParse(validData);
+        expect(result.success, `Expected files.retention=${retention} to be valid`).toBe(true);
+      }
     });
 
     it("should allow disabled features without required fields", () => {
