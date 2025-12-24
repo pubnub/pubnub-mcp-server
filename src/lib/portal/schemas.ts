@@ -45,14 +45,22 @@ export const MessageStorageRetention = z
   );
 
 export const FilesRetention = z
-  .union([z.literal(1), z.literal(7), z.literal(30), z.literal(0)])
+  .union([
+    z.literal(1),
+    z.literal(7),
+    z.literal(30),
+    z.literal(90),
+    z.literal(180),
+    z.literal(365),
+    z.literal(0),
+  ])
   .describe(
     [
       "Retention for Files storage (in days).",
       "Allowed values by billing type:",
       "Free: 1, 7;",
-      "Starter: 30;",
-      "Pro: 0 (unlimited).",
+      "Starter: 30, 90, 180;",
+      "Pro: 365, 0 (unlimited).",
     ].join(" ")
   );
 

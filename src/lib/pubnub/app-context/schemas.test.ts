@@ -89,4 +89,66 @@ describe("App Context Schemas", () => {
       });
     });
   });
+
+  describe("ManageAppContextOptions - limit validation", () => {
+    beforeEach(() => {
+      mockHasPubSubEnvKeys.mockReturnValue(true);
+    });
+
+    it("should accept valid limit values (1-100)", async () => {
+      const { ManageAppContextSchema } = await import("./schemas");
+      const validLimits = [1, 50, 100];
+
+      for (const limit of validLimits) {
+        const payload = {
+          type: "user" as const,
+          operation: "getAll" as const,
+          id: "user-123",
+          options: { limit },
+        };
+
+        const result = ManageAppContextSchema.safeParse(payload);
+        expect(result.success, `Expected limit=${limit} to be valid`).toBe(true);
+      }
+    });
+
+    it("should reject limit less than 1", async () => {
+      const { ManageAppContextSchema } = await import("./schemas");
+      const payload = {
+        type: "user" as const,
+        operation: "getAll" as const,
+        id: "user-123",
+        options: { limit: 0 },
+      };
+
+      const result = ManageAppContextSchema.safeParse(payload);
+      expect(result.success).toBe(false);
+    });
+
+    it("should reject limit greater than 100", async () => {
+      const { ManageAppContextSchema } = await import("./schemas");
+      const payload = {
+        type: "user" as const,
+        operation: "getAll" as const,
+        id: "user-123",
+        options: { limit: 101 },
+      };
+
+      const result = ManageAppContextSchema.safeParse(payload);
+      expect(result.success).toBe(false);
+    });
+
+    it("should reject negative limit values", async () => {
+      const { ManageAppContextSchema } = await import("./schemas");
+      const payload = {
+        type: "user" as const,
+        operation: "getAll" as const,
+        id: "user-123",
+        options: { limit: -5 },
+      };
+
+      const result = ManageAppContextSchema.safeParse(payload);
+      expect(result.success).toBe(false);
+    });
+  });
 });

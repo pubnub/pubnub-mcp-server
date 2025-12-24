@@ -244,7 +244,7 @@ export const ManageAppContextOptions = z
       .describe("Include UUID type field in channel member responses"),
     filter: z.string().optional().describe("Filter expression for results"),
     sort: z.any().optional().describe('Sort criteria (e.g., {id: "asc", name: "desc"})'),
-    limit: z.number().optional().describe("Number of objects to return (max 100)"),
+    limit: z.number().min(1).max(100).optional().describe("Number of objects to return (max 100)"),
     page: z
       .object({
         next: z.string().optional(),
