@@ -51,11 +51,13 @@ export const SubscribeSchema = z
     channel: z.string().describe("Channel ID to subscribe to and receive messages from"),
     messageCount: z
       .number()
+      .min(1)
       .optional()
       .default(1)
       .describe("Number of messages to wait for before unsubscribing (default: 1 message)"),
     timeout: z
       .number()
+      .min(0)
       .max(30)
       .optional()
       .default(10)
