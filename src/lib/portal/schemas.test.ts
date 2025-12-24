@@ -47,7 +47,6 @@ describe("Portal Schemas", () => {
     });
   });
 
-
   describe("CreateKeysetDataSchema - nested config structure", () => {
     it("should accept valid keyset data with all config options", () => {
       const validData = {
