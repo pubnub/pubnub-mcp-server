@@ -35,6 +35,17 @@ export const UserMetadataSchema = z
       .string()
       .url()
       .max(2048)
+      .refine(
+        url => {
+          try {
+            const parsed = new URL(url);
+            return parsed.protocol === "http:" || parsed.protocol === "https:";
+          } catch {
+            return false;
+          }
+        },
+        { message: "Profile URL must use http or https protocol" }
+      )
       .describe("URL for the UUID's profile picture.")
       .optional(),
     email: z.string().email().max(320).describe("The UUID's email address. ").optional(),
