@@ -151,4 +151,62 @@ describe("App Context Schemas", () => {
       expect(result.success).toBe(false);
     });
   });
+
+  describe("UserMetadataSchema - profileUrl security validation", () => {
+    it("should accept valid http profileUrl", async () => {
+      const { UserMetadataSchema } = await import("./schemas");
+      const result = UserMetadataSchema.safeParse({
+        profileUrl: "http://example.com/avatar.png",
+      });
+      expect(result.success).toBe(true);
+    });
+
+    it("should accept valid https profileUrl", async () => {
+      const { UserMetadataSchema } = await import("./schemas");
+      const result = UserMetadataSchema.safeParse({
+        profileUrl: "https://example.com/avatar.png",
+      });
+      expect(result.success).toBe(true);
+    });
+
+    it("should reject javascript: URL scheme", async () => {
+      const { UserMetadataSchema } = await import("./schemas");
+      const result = UserMetadataSchema.safeParse({
+        profileUrl: "javascript:alert(document.cookie)",
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it("should reject data: URL scheme", async () => {
+      const { UserMetadataSchema } = await import("./schemas");
+      const result = UserMetadataSchema.safeParse({
+        profileUrl: "data:text/html,<script>alert(1)</script>",
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it("should reject file: URL scheme", async () => {
+      const { UserMetadataSchema } = await import("./schemas");
+      const result = UserMetadataSchema.safeParse({
+        profileUrl: "file:///etc/passwd",
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it("should reject vbscript: URL scheme", async () => {
+      const { UserMetadataSchema } = await import("./schemas");
+      const result = UserMetadataSchema.safeParse({
+        profileUrl: "vbscript:msgbox('XSS')",
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it("should reject ftp: URL scheme", async () => {
+      const { UserMetadataSchema } = await import("./schemas");
+      const result = UserMetadataSchema.safeParse({
+        profileUrl: "ftp://malicious.com/file",
+      });
+      expect(result.success).toBe(false);
+    });
+  });
 });
