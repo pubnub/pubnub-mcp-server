@@ -74,6 +74,89 @@ describe("PubNub Schemas", () => {
     });
   });
 
+  describe("SubscribeSchema", () => {
+    it("should accept valid timeout values (0-30)", async () => {
+      const { SubscribeSchema } = await import("./schemas");
+      const basePayload = {
+        publishKey: "pub-c-test-key",
+        subscribeKey: "sub-c-test-key",
+        channel: "test-channel",
+      };
+
+      expect(SubscribeSchema.safeParse({ ...basePayload, timeout: 0 }).success).toBe(true);
+      expect(SubscribeSchema.safeParse({ ...basePayload, timeout: 10 }).success).toBe(true);
+      expect(SubscribeSchema.safeParse({ ...basePayload, timeout: 30 }).success).toBe(true);
+    });
+
+    it("should reject negative timeout values", async () => {
+      const { SubscribeSchema } = await import("./schemas");
+      const payload = {
+        publishKey: "pub-c-test-key",
+        subscribeKey: "sub-c-test-key",
+        channel: "test-channel",
+        timeout: -5,
+      };
+
+      const result = SubscribeSchema.safeParse(payload);
+      expect(result.success).toBe(false);
+    });
+
+    it("should reject timeout values greater than 30", async () => {
+      const { SubscribeSchema } = await import("./schemas");
+      const payload = {
+        publishKey: "pub-c-test-key",
+        subscribeKey: "sub-c-test-key",
+        channel: "test-channel",
+        timeout: 31,
+      };
+
+      const result = SubscribeSchema.safeParse(payload);
+      expect(result.success).toBe(false);
+    });
+
+    it("should accept valid messageCount values (>= 1)", async () => {
+      const { SubscribeSchema } = await import("./schemas");
+      const basePayload = {
+        publishKey: "pub-c-test-key",
+        subscribeKey: "sub-c-test-key",
+        channel: "test-channel",
+      };
+
+      expect(SubscribeSchema.safeParse({ ...basePayload, messageCount: 1 }).success).toBe(true);
+      expect(SubscribeSchema.safeParse({ ...basePayload, messageCount: 10 }).success).toBe(true);
+      expect(SubscribeSchema.safeParse({ ...basePayload, messageCount: 100 }).success).toBe(true);
+    });
+
+    it("should reject messageCount values less than 1", async () => {
+      const { SubscribeSchema } = await import("./schemas");
+      const basePayload = {
+        publishKey: "pub-c-test-key",
+        subscribeKey: "sub-c-test-key",
+        channel: "test-channel",
+      };
+
+      expect(SubscribeSchema.safeParse({ ...basePayload, messageCount: 0 }).success).toBe(false);
+      expect(SubscribeSchema.safeParse({ ...basePayload, messageCount: -1 }).success).toBe(false);
+      expect(SubscribeSchema.safeParse({ ...basePayload, messageCount: -10 }).success).toBe(false);
+    });
+
+    it("should use default values when timeout and messageCount are not provided", async () => {
+      const { SubscribeSchema } = await import("./schemas");
+      const payload = {
+        publishKey: "pub-c-test-key",
+        subscribeKey: "sub-c-test-key",
+        channel: "test-channel",
+      };
+
+      const result = SubscribeSchema.safeParse(payload);
+      expect(result.success).toBe(true);
+      if (result.success) {
+        expect(result.data.timeout).toBe(10);
+        expect(result.data.messageCount).toBe(1);
+      }
+    });
+  });
+
   describe("Conditional Key Fields", () => {
     describe("when env keys are NOT set", () => {
       beforeEach(() => {
