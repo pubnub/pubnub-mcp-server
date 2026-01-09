@@ -31,12 +31,12 @@ describe("Tools", () => {
       const MCPToolsNames = tools.map(tool => tool.name);
 
       const expectedTools = [
-        "manage_apps",
-        "manage_keysets",
         "get_sdk_documentation",
         "get_chat_sdk_documentation",
         "how_to",
-        "get_best_practices",
+        "write_pubnub_app",
+        "manage_apps",
+        "manage_keysets",
         "manage_app_context",
         "send_pubnub_message",
         "get_pubnub_presence",
