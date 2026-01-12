@@ -103,10 +103,6 @@ const getSDKDocumentationTool: ToolDef<GetSdkDocumentationSchemaType> = {
       - Chat/messaging apps → use "get_chat_sdk_documentation" instead
       - Conceptual guides → use "how_to"
       
-      **Parameters:**
-      - language: SDK language (javascript, python, swift, kotlin, java, go, c-sharp, unity, unreal, etc.)
-      - feature: SDK feature area (publish-and-subscribe, presence, storage-and-playback, access-manager, files, objects, etc.)
-      
       Returns code examples, API references, and implementation guides for the specified language/feature combination.`,
     inputSchema: GetSdkDocumentationSchema.shape,
   },
@@ -130,10 +126,6 @@ const getChatSDKDocumentationTool: ToolDef<GetChatSdkDocumentationSchemaType> = 
       - Non-chat real-time apps (IoT, gaming state, analytics) → use "get_sdk_documentation"
       - Conceptual guides → use "how_to"
       
-      **Parameters:**
-      - language: Chat SDK language (javascript, kotlin, swift, unity, unreal)
-      - feature: Chat feature area (channels-*, messages-*, users-*, typing-indicator, read-receipts, etc.)
-      
       **Example features:**
       - messages-send-receive, messages-threads, messages-reactions
       - channels-create, channels-join, channels-typing-indicator
@@ -150,23 +142,15 @@ const howToTool: ToolDef<HowToSchemaType> = {
   definition: {
     title: "Get PubNub How-To Guide",
     description: `Retrieve conceptual guides for specific PubNub use cases and integrations.
-      
       **When to use:**
       - Learning how to implement a specific use case (gaming, healthcare, IoT)
-      - Need step-by-step integration guide for a platform (Unity, Unreal, Alexa)
-      - Understanding PubNub features in context (presence, push notifications, moderation, functions)
+      - Need step-by-step integration guide for a platform (Unity, Unreal etc)
+      - Understanding PubNub features in context (presence, push notifications, functions)
       
       **Do NOT use for:**
       - API reference or code samples of a specific PubNub features → use \`get_sdk_documentation\` or \`get_chat_sdk_documentation\`
-      - General best practices → use \`get_best_practices\`
-      
-      **Example slugs:**
-      - Gaming: add-pubnub-to-your-unity-game, add-presence-to-your-unreal-engine-game
-      - Chat: chat-sdk-mention-users, chat-sdk-add-reactions-to-messages
-      - Portal: admin-portal-create-keys, admin-portal-presence
-      - IoT: develop-an-iot-solution, implement-iot-predictive-maintenance
-      
-      **Parameter:** slug - The guide identifier (e.g., "add-pubnub-to-your-unity-game")`,
+      - General best practices → use \`write_pubnub_app\`
+      `,
     inputSchema: HowToSchema.shape,
   },
   handler: howToHandler,
@@ -239,7 +223,7 @@ const getHistoryTool: ToolDef<GetHistoryHandlerArgs> = {
   definition: {
     title: "Get PubNub Channel History",
     description:
-      "Fetches historical messages from one or more PubNub channels. Call this tool whenever you need to access past message history. Provide a list of channel names. Returns message content and metadata in JSON format. Supports pagination with start/end timetokens and count limit. Requires publish and subscribe keys from your PubNub keyset.",
+      "Fetches historical messages from one or more PubNub channels. Call this tool whenever you need to access past message history. Provide a list of channel names. Returns message content and metadata in JSON format. Supports pagination with start/end timetokens and count limit.",
     inputSchema: GetHistorySchema.shape,
   },
   handler: getHistoryHandler,
