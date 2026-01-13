@@ -19,8 +19,13 @@ class PubNubMCPServer {
 
   constructor() {
     this.server = new McpServer(SERVER_INFO, {
-      instructions:
-        "Use this MCP to build real-time/chat applications. ALways use get_sdk_documentation or get_chat_sdk_documentation (when building chat based application) to get latest information about PubNub features.",
+      instructions: `PubNub MCP Server - Build real-time applications with PubNub.
+        TOOL SELECTION GUIDE:
+        1. **Start here**: Call "write_pubnub_app" first when unsure which tool to use and for production-ready patterns
+        2. **Chat apps**: Use "get_chat_sdk_documentation" for chat/messaging features
+        3. **Non-chat real-time**: Use "get_sdk_documentation" for IoT, gaming, analytics, pub/sub and for non-chat real-time applications
+        4. **Use case guides**: Use "how_to" for conceptual/integration guides
+      `,
     });
 
     this.setupToolHandlers();

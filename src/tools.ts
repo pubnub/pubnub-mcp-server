@@ -90,10 +90,20 @@ const manageKeysetsTool: ToolDef<ManageKeysetsSchemaType> = {
 const getSDKDocumentationTool: ToolDef<GetSdkDocumentationSchemaType> = {
   name: "get_sdk_documentation",
   definition: {
-    title: "Get PubNub SDK Documentation",
-    description: `Retrieve SDK documentation for a specific programming language and feature.
-      This provides code examples, guides, and API references for using PubNub SDKs.
-      Always use this tool when working with PubNub SDKs to get latest information about PubNub features.`,
+    title: "Get PubNub Core SDK Documentation",
+    description: `Retrieve Core SDK documentation for low-level real-time features.
+      
+      **When to use:**
+      - Building NON-CHAT real-time apps (IoT, gaming state sync, live analytics, notifications)
+      - Need fine-grained control over pub/sub, presence, storage, or access management
+      - Implementing custom real-time patterns
+      - Need API reference for specific SDK methods (publish, subscribe, history, etc.)
+      
+      **Do NOT use for:**
+      - Chat/messaging apps → use "get_chat_sdk_documentation" instead
+      - Conceptual guides → use "how_to"
+      
+      Returns code examples, API references, and implementation guides for the specified language/feature combination.`,
     inputSchema: GetSdkDocumentationSchema.shape,
   },
   handler: getSDKDocumentationHandler,
@@ -103,9 +113,25 @@ const getChatSDKDocumentationTool: ToolDef<GetChatSdkDocumentationSchemaType> = 
   name: "get_chat_sdk_documentation",
   definition: {
     title: "Get PubNub Chat SDK Documentation",
-    description: `Retrieve Chat SDK documentation for a specific programming language and feature.
-      This provides code examples, guides, and API references for using PubNub Chat SDKs.
-      Always use this tool when working with PubNub Chat SDKs or building chat based applications to get latest information about PubNub features.`,
+    description: `Retrieve Chat SDK documentation for building chat/messaging applications.
+      
+      **When to use:**
+      - Building ANY chat or messaging application (1:1, group, channels)
+      - Need typing indicators, read receipts, @mentions, unread counts
+      - Want message threads, reactions, pinned messages, moderation
+      - Need user/channel management with chat-specific features
+      - Prefer rapid development with intuitive methods like sendText(), startTyping(), join()
+      
+      **Do NOT use for:**
+      - Non-chat real-time apps (IoT, gaming state, analytics) → use "get_sdk_documentation"
+      - Conceptual guides → use "how_to"
+      
+      **Example features:**
+      - messages-send-receive, messages-threads, messages-reactions
+      - channels-create, channels-join, channels-typing-indicator
+      - users-mentions, users-presence
+      
+      Returns code examples and API references for the specified language/feature.`,
     inputSchema: GetChatSdkDocumentationSchema.shape,
   },
   handler: getChatSDKDocumentationHandler,
@@ -115,16 +141,23 @@ const howToTool: ToolDef<HowToSchemaType> = {
   name: "how_to",
   definition: {
     title: "Get PubNub How-To Guide",
-    description: `Retrieve a PubNub conceptual guides. Returns detailed instructions for implementing specific PubNub features and use cases.
-      Available guides include topics like: Unity/Unreal game development, chat SDK features, admin portal configuration, IoT solutions, presence, push notifications, moderation, and more.
-      Call this tool for overviews, integration instructions, best practices, and troubleshooting tips. For detailed API reference and SDK code samples, also call the get_sdk_documentation or get_chat_sdk_documentation tool.'`,
+    description: `Retrieve conceptual guides for specific PubNub use cases and integrations.
+      **When to use:**
+      - Learning how to implement a specific use case (gaming, healthcare, IoT)
+      - Need step-by-step integration guide for a platform (Unity, Unreal etc)
+      - Understanding PubNub features in context (presence, push notifications, functions)
+      
+      **Do NOT use for:**
+      - API reference or code samples of a specific PubNub features → use \`get_sdk_documentation\` or \`get_chat_sdk_documentation\`
+      - General best practices → use \`write_pubnub_app\`
+      `,
     inputSchema: HowToSchema.shape,
   },
   handler: howToHandler,
 };
 
-const getBestPracticesTool: ToolDef = {
-  name: "get_best_practices",
+const writePubNubAppTool: ToolDef = {
+  name: "write_pubnub_app",
   definition: {
     title: "Get PubNub Best Practices",
     description: `Retrieve PubNub best practices guide covering: 
@@ -190,19 +223,19 @@ const getHistoryTool: ToolDef<GetHistoryHandlerArgs> = {
   definition: {
     title: "Get PubNub Channel History",
     description:
-      "Fetches historical messages from one or more PubNub channels. Call this tool whenever you need to access past message history. Provide a list of channel names. Returns message content and metadata in JSON format. Supports pagination with start/end timetokens and count limit. Requires publish and subscribe keys from your PubNub keyset.",
+      "Fetches historical messages from one or more PubNub channels. Call this tool whenever you need to access past message history. Provide a list of channel names. Returns message content and metadata in JSON format. Supports pagination with start/end timetokens and count limit.",
     inputSchema: GetHistorySchema.shape,
   },
   handler: getHistoryHandler,
 };
 
 export const tools = [
-  manageAppsTool,
-  manageKeysetsTool,
   getSDKDocumentationTool,
   getChatSDKDocumentationTool,
   howToTool,
-  getBestPracticesTool,
+  writePubNubAppTool,
+  manageAppsTool,
+  manageKeysetsTool,
   manageAppContextTool,
   publishMessageTool,
   getPresenceTool,
