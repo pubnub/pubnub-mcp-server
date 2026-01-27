@@ -3,7 +3,15 @@ import { getApiVersion } from "./auth";
 import type { KeysetConfig } from "./types";
 import * as v1 from "./v1/api";
 import { toProperties } from "./v1/mappers";
+import type {
+  UsageMetricsParams as UsageMetricsV1Params,
+  UsageMetricsResponse as UsageMetricsV1Response,
+} from "./v1/types";
 import * as v2 from "./v2/api";
+import type {
+  UsageMetricsParams as UsageMetricsV2Params,
+  UsageMetricsResponse as UsageMetricsV2Response,
+} from "./v2/types";
 
 export interface App {
   id: string;
@@ -230,4 +238,16 @@ async function getEnvKeysetId(): Promise<string | undefined> {
   );
 
   return matchingKeyset ? matchingKeyset.id : undefined;
+}
+
+export async function getUsageMetricsV1(
+  params: UsageMetricsV1Params
+): Promise<UsageMetricsV1Response> {
+  return await v1.getUsageMetrics(params);
+}
+
+export async function getUsageMetricsV2(
+  params: UsageMetricsV2Params
+): Promise<UsageMetricsV2Response> {
+  return await v2.getUsageMetrics(params);
 }
