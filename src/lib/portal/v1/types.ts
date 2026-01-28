@@ -88,3 +88,27 @@ export interface FaasConflictsResponse {
     packageDeployments: Array<unknown>;
   }>;
 }
+
+export type UsageMetricsType = "monthly_active_users" | "transaction";
+
+export interface UsageMetricsParams {
+  appId?: string | undefined;
+  keyId?: string | undefined;
+  usageType: UsageMetricsType;
+  start: string; // YYYY-MM-DD
+  end: string; // YYYY-MM-DD
+}
+
+export interface UsageMetricData {
+  days: Record<string, number>;
+  hours: Record<string, number>;
+  peak: number;
+  peak_ts: number;
+  sum: number;
+}
+
+export interface UsageMetricsResponse {
+  [metricName: string]: {
+    [timestamp: string]: UsageMetricData;
+  };
+}

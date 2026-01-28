@@ -102,3 +102,21 @@ export interface ErrorResponse {
   error: string;
   message: string[];
 }
+
+export type UsageMetricsEntityType = "account" | "app" | "keyset";
+
+export interface UsageMetricsParams {
+  entityType: UsageMetricsEntityType;
+  entityId: string;
+  from: string;
+  to: string;
+  metrics: string[];
+}
+
+export interface UsageMetricsResponse {
+  metrics: {
+    [metricName: string]: {
+      [date: string]: number;
+    };
+  };
+}

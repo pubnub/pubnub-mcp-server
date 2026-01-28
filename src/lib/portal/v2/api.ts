@@ -9,6 +9,8 @@ import type {
   KeysetConfigResponse,
   KeysetsResponse,
   KeysetWithConfig,
+  UsageMetricsParams,
+  UsageMetricsResponse,
 } from "./types";
 
 const API_VERSION = "2025-11-15";
@@ -142,5 +144,19 @@ export async function updateKeysetConfig(
   return await makeRequest<KeysetConfigResponse>(`/v2/keysets/${keysetId}/config`, {
     method: "PATCH",
     body: JSON.stringify(config),
+  });
+}
+
+export async function getUsageMetrics(params: UsageMetricsParams): Promise<UsageMetricsResponse> {
+  const queryParams = new URLSearchParams({
+    entityType: params.entityType,
+    entityId: params.entityId,
+    from: params.from,
+    to: params.to,
+    metrics: params.metrics.join(","),
+  });
+
+  return await makeRequest<UsageMetricsResponse>(`/v2/usage-metrics?${queryParams.toString()}`, {
+    method: "GET",
   });
 }

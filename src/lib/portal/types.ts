@@ -1,13 +1,15 @@
 import type z from "zod";
 import type {
+  CreateAppDataSchema,
+  CreateKeysetDataSchema,
   KeysetConfigSchema,
+  ListKeysetDataSchema,
   ManageAppsSchema,
   ManageKeysetsSchema,
-  CreateAppDataSchema,
   UpdateAppDataSchema,
-  CreateKeysetDataSchema,
   UpdateKeysetDataSchema,
-  ListKeysetDataSchema,
+  UsageMetricsV1Schema,
+  UsageMetricsV2Schema,
 } from "./schemas";
 
 // Inferred types from schemas
@@ -21,3 +23,5 @@ export type UpdateAppData = z.infer<typeof UpdateAppDataSchema>;
 export type CreateKeysetData = z.infer<typeof CreateKeysetDataSchema>;
 export type UpdateKeysetData = z.infer<typeof UpdateKeysetDataSchema>;
 export type ListKeysetData = z.infer<typeof ListKeysetDataSchema>;
+export type UsageMetricsV1SchemaType = z.infer<typeof UsageMetricsV1Schema>;
+export type UsageMetricsV2SchemaType = z.infer<typeof UsageMetricsV2Schema>;

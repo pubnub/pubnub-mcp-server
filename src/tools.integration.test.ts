@@ -37,6 +37,7 @@ describe("Tools", () => {
         "write_pubnub_app",
         "manage_apps",
         "manage_keysets",
+        "get_usage_metrics",
         "manage_app_context",
         "send_pubnub_message",
         "get_pubnub_presence",
@@ -45,7 +46,7 @@ describe("Tools", () => {
       ];
 
       expect(tools).toBeDefined();
-      expect(tools.length).toBe(11);
+      expect(tools.length).toBe(12);
       expect(MCPToolsNames).toEqual(expectedTools);
     });
 
@@ -63,6 +64,7 @@ describe("Tools", () => {
         "subscribe_and_receive_pubnub_messages",
         "get_pubnub_messages",
         "how_to",
+        "get_usage_metrics",
       ];
 
       for (const toolName of toolsWithInputs) {

@@ -10,6 +10,8 @@ import type {
   KeysetResponse,
   KeysetsResponse,
   UpdateKeysetRequest,
+  UsageMetricsParams,
+  UsageMetricsResponse,
 } from "./types";
 
 let sessionToken: string | undefined;
@@ -166,4 +168,24 @@ export async function getAMConflicts(keysetId: number, channels: string[]) {
   );
   const conflicts = response.data.filter(d => d.packageDeployments.length > 0);
   return conflicts;
+}
+
+export async function getUsageMetrics(params: UsageMetricsParams): Promise<UsageMetricsResponse> {
+  const queryParams = new URLSearchParams({
+    usageType: params.usageType,
+    file_format: "json",
+    start: params.start,
+    end: params.end,
+  });
+
+  if (params.appId) {
+    queryParams.set("app_id", params.appId);
+  } else if (params.keyId) {
+    queryParams.set("key_id", params.keyId);
+  }
+
+  return await makeRequest<UsageMetricsResponse>(
+    `/v4/services/usage/legacy/usage?${queryParams.toString()}`,
+    { method: "GET" }
+  );
 }
