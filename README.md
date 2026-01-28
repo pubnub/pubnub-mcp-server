@@ -158,32 +158,24 @@ This PubNub MCP server provides a comprehensive set of tools, resources, and pro
 
 #### Documentation Access
 
-- **`get_sdk_documentation`** - Get PubNub SDK documentation for specific programming languages and features
+- **`get_sdk_documentation`** - Get PubNub Core SDK documentation for specific programming languages and features
 - **`get_chat_sdk_documentation`** - Get PubNub Chat SDK documentation for specific programming languages and features
+- **`how_to`** - Get PubNub conceptual guides for specific use cases and integrations
+- **`write_pubnub_app`** - Get PubNub best practices guide covering architecture, security, channel modeling, and optimization
 
-#### Account & App Management
+#### App & Keyset Management
 
-- **`get_account_info`** - Retrieve account subscription status and feature availability
-- **`list_apps`** - List all PubNub apps on your account
-- **`create_app`** - Create a new PubNub app with custom name
-- **`update_app`** - Update an existing PubNub app name
+- **`manage_apps`** - Manage PubNub apps with operations: list, create, and update (requires API key authentication)
+- **`manage_keysets`** - Manage PubNub keysets with operations: get, list, create, and update (requires API key authentication)
 - **`get_usage_metrics`** - Fetch usage metrics for an account, app, or keyset (requires API key authentication)
-
-#### Keyset Management
-
-- **`list_keysets`** - List all keysets on your account or within a specific app
-- **`create_keyset`** - Create a new keyset with default features enabled (Message Persistence, App Context, Files, Presence)
-- **`update_keyset`** - Modify properties of an existing keyset
 
 #### Real-time Communication
 
 - **`send_pubnub_message`** - Send messages or lightweight signals to PubNub channels in real-time
 - **`subscribe_and_receive_pubnub_messages`** - Subscribe to channels and receive real-time messages with configurable timeout and message limits
-
-#### Other PubNub features
-
-- **`manage_app_context`** - Manage PubNub App Context (Objects API) for users, channels, and memberships with full CRUD operations
+- **`get_pubnub_messages`** - Fetch historical messages from one or more PubNub channels
 - **`get_pubnub_presence`** - Get presence data using HereNow (channel occupancy) or WhereNow (user's channels)
+- **`manage_app_context`** - Manage PubNub App Context (Objects API) for users, channels, and memberships with full CRUD operations
 
 ### Prompts
 
