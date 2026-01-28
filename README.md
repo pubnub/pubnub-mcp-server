@@ -167,6 +167,7 @@ This PubNub MCP server provides a comprehensive set of tools, resources, and pro
 - **`list_apps`** - List all PubNub apps on your account
 - **`create_app`** - Create a new PubNub app with custom name
 - **`update_app`** - Update an existing PubNub app name
+- **`get_usage_metrics`** - Fetch usage metrics for an account, app, or keyset (requires API key authentication)
 
 #### Keyset Management
 
