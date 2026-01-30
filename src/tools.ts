@@ -16,9 +16,24 @@ import type {
   GetSdkDocumentationSchemaType,
   HowToSchemaType,
 } from "./lib/docs/types";
-import { manageAppsHandler, manageKeysetsHandler } from "./lib/portal/handlers";
-import { ManageAppsDefinitionSchema, ManageKeysetsDefinitionSchema } from "./lib/portal/schemas";
-import type { ManageAppsSchemaType, ManageKeysetsSchemaType } from "./lib/portal/types";
+import { hasV2Auth } from "./lib/portal/auth";
+import {
+  getUsageMetricsHandler,
+  manageAppsHandler,
+  manageKeysetsHandler,
+} from "./lib/portal/handlers";
+import {
+  ManageAppsDefinitionSchema,
+  ManageKeysetsDefinitionSchema,
+  UsageMetricsV1DefinitionSchema,
+  UsageMetricsV2Schema as UsageMetricsV2DefinitionSchema,
+} from "./lib/portal/schemas";
+import type {
+  ManageAppsSchemaType,
+  ManageKeysetsSchemaType,
+  UsageMetricsV1SchemaType,
+  UsageMetricsV2SchemaType,
+} from "./lib/portal/types";
 import { ManageAppContextSchema } from "./lib/pubnub/app-context/schemas";
 import type { ManageAppContextHandlerArgs } from "./lib/pubnub/app-context/types";
 import {
@@ -87,22 +102,70 @@ const manageKeysetsTool: ToolDef<ManageKeysetsSchemaType> = {
   handler: manageKeysetsHandler,
 };
 
+const usageMetricsV2Description = `Fetches usage metrics from the PubNub Admin API for an account, app, or keyset.
+
+      **Parameters:**
+      - entityType: 'account', 'app', or 'keyset'
+      - entityId: The ID of the entity
+      - from: Start date (inclusive) in YYYY-MM-DD format
+      - to: End date (exclusive) in YYYY-MM-DD format
+      - metrics: Array of metric names to retrieve
+
+      **Available Metric Categories:**
+      - Core transactions: txn_total, mtd_txn_total, replicated, signals, edge
+      - MAU/UUID: mtd_uuid, uuid, pn_uuid
+      - Messages: msgs_total, publish, subscribe_msgs, history_msgs, files_msgs, push_msgs
+      - Storage: bytes_stored, bytes_stored_messages, bytes_stored_files, etc.
+      - Access Manager: accessmanager_grants_transactions, accessmanager_audits_transactions
+      - Functions: executions, kv_read_transactions, kv_write_transactions
+      - History: history_transactions, history_with_actions_transactions
+      - Message Actions: message_actions_add_transactions, message_actions_get_transactions
+      - Objects/App Context: objects_create_user_transactions, objects_get_user_transactions, etc.
+      - Presence: presence_herenow_transactions, presence_wherenow_transactions
+      - Push Notifications: apns_sent_transactions, gcm_sent_transactions
+      - Subscribe: subscribe_transactions, subscribe_heartbeats_transactions
+      - Publish: publish_transactions, publish_bytes
+      - Signal: signal_transactions
+      - Files: files_publish_transactions, files_get_file_transactions`;
+
+const usageMetricsV1Description = `Fetches usage metrics from the PubNub Provisioning API.
+
+      **Parameters:**
+      - scope: 'app' or 'keyset' (determines which ID to use)
+      - appId: Required when scope='app'
+      - keysetId: Required when scope='keyset'
+      - usageType: 'monthly_active_users' (for chat) or 'transaction' (for other use cases)
+      - start: Start date in YYYY-MM-DD format
+      - end: End date in YYYY-MM-DD format`;
+
+const getUsageMetricsTool: ToolDef<UsageMetricsV2SchemaType | UsageMetricsV1SchemaType> = {
+  name: "get_usage_metrics",
+  definition: {
+    title: "Get PubNub Usage Metrics",
+    description: hasV2Auth() ? usageMetricsV2Description : usageMetricsV1Description,
+    inputSchema: hasV2Auth()
+      ? UsageMetricsV2DefinitionSchema.shape
+      : UsageMetricsV1DefinitionSchema.shape,
+  },
+  handler: getUsageMetricsHandler,
+};
+
 const getSDKDocumentationTool: ToolDef<GetSdkDocumentationSchemaType> = {
   name: "get_sdk_documentation",
   definition: {
     title: "Get PubNub Core SDK Documentation",
     description: `Retrieve Core SDK documentation for low-level real-time features.
-      
+
       **When to use:**
       - Building NON-CHAT real-time apps (IoT, gaming state sync, live analytics, notifications)
       - Need fine-grained control over pub/sub, presence, storage, or access management
       - Implementing custom real-time patterns
       - Need API reference for specific SDK methods (publish, subscribe, history, etc.)
-      
+
       **Do NOT use for:**
       - Chat/messaging apps → use "get_chat_sdk_documentation" instead
       - Conceptual guides → use "how_to"
-      
+
       Returns code examples, API references, and implementation guides for the specified language/feature combination.`,
     inputSchema: GetSdkDocumentationSchema.shape,
   },
@@ -114,23 +177,23 @@ const getChatSDKDocumentationTool: ToolDef<GetChatSdkDocumentationSchemaType> = 
   definition: {
     title: "Get PubNub Chat SDK Documentation",
     description: `Retrieve Chat SDK documentation for building chat/messaging applications.
-      
+
       **When to use:**
       - Building ANY chat or messaging application (1:1, group, channels)
       - Need typing indicators, read receipts, @mentions, unread counts
       - Want message threads, reactions, pinned messages, moderation
       - Need user/channel management with chat-specific features
       - Prefer rapid development with intuitive methods like sendText(), startTyping(), join()
-      
+
       **Do NOT use for:**
       - Non-chat real-time apps (IoT, gaming state, analytics) → use "get_sdk_documentation"
       - Conceptual guides → use "how_to"
-      
+
       **Example features:**
       - messages-send-receive, messages-threads, messages-reactions
       - channels-create, channels-join, channels-typing-indicator
       - users-mentions, users-presence
-      
+
       Returns code examples and API references for the specified language/feature.`,
     inputSchema: GetChatSdkDocumentationSchema.shape,
   },
@@ -146,7 +209,7 @@ const howToTool: ToolDef<HowToSchemaType> = {
       - Learning how to implement a specific use case (gaming, healthcare, IoT)
       - Need step-by-step integration guide for a platform (Unity, Unreal etc)
       - Understanding PubNub features in context (presence, push notifications, functions)
-      
+
       **Do NOT use for:**
       - API reference or code samples of a specific PubNub features → use \`get_sdk_documentation\` or \`get_chat_sdk_documentation\`
       - General best practices → use \`write_pubnub_app\`
@@ -160,11 +223,11 @@ const writePubNubAppTool: ToolDef = {
   name: "write_pubnub_app",
   definition: {
     title: "Get PubNub Best Practices",
-    description: `Retrieve PubNub best practices guide covering: 
-      1) Architecture & project setup (environments, payload sizes), 2) Security (Access Manager tokens, least privilege, PII hygiene), 
-      3) Channel & data modeling (naming conventions, message schemas), 4) Publish/Subscribe patterns, 
-      5) History usage, 6) Client reliability (reconnect, idempotency, ordering), 
-      7) Functions/edge logic, 8) Presence & state, 9) App Context, 10) Mobile specifics (push notifications, caching), 
+    description: `Retrieve PubNub best practices guide covering:
+      1) Architecture & project setup (environments, payload sizes), 2) Security (Access Manager tokens, least privilege, PII hygiene),
+      3) Channel & data modeling (naming conventions, message schemas), 4) Publish/Subscribe patterns,
+      5) History usage, 6) Client reliability (reconnect, idempotency, ordering),
+      7) Functions/edge logic, 8) Presence & state, 9) App Context, 10) Mobile specifics (push notifications, caching),
       11) Web specifics (tab lifecycle, Service Workers), 12) Observability & ops, 13) Performance & cost optimization.
       Call this tool when building PubNub applications to ensure robust, scalable, and secure implementations.`,
   },
@@ -236,6 +299,7 @@ export const tools = [
   writePubNubAppTool,
   manageAppsTool,
   manageKeysetsTool,
+  getUsageMetricsTool,
   manageAppContextTool,
   publishMessageTool,
   getPresenceTool,

@@ -367,3 +367,228 @@ export const ManageKeysetsDefinitionSchema = z.object({
       "Operation-specific data. For 'get': {id}. For 'list': {appId?}. For 'create': {name, appId?, type, config}. For 'update': {id, config}."
     ),
 });
+
+const UsageMetricsDateFormat = z
+  .string()
+  .regex(/^\d{4}-\d{2}-\d{2}$/, "Date must be in YYYY-MM-DD format")
+  .describe("Date in YYYY-MM-DD format.");
+
+export const UsageMetricsV2EntityType = z
+  .enum(["account", "app", "keyset"])
+  .describe("The type of entity to fetch metrics for.");
+
+export const UsageMetricV2Name = z.enum([
+  "txn_total",
+  "mtd_txn_total",
+  "replicated",
+  "signals",
+  "edge",
+  "message_actions",
+  "free",
+  "mtd_uuid",
+  "uuid",
+  "pn_uuid",
+  "msgs_total",
+  "publish",
+  "subscribe_msgs",
+  "history_msgs",
+  "files_msgs",
+  "push_msgs",
+  "bytes_stored",
+  "bytes_stored_blocks",
+  "bytes_stored_channel_groups",
+  "bytes_stored_files",
+  "bytes_stored_messages",
+  "bytes_stored_push",
+  "bytes_stored_size_auth",
+  "bytes_stored_users",
+  "bytes_stored_memberships",
+  "accessmanager_audits_transactions",
+  "accessmanager_grants_v3_transactions",
+  "accessmanager_grants_transactions",
+  "accessmanager_replicated",
+  "accessmanager_edge",
+  "accessmanager_clienterrors_transactions",
+  "executions",
+  "kv_read_transactions",
+  "kv_write_transactions",
+  "xhr_transactions",
+  "functions_replicated",
+  "functions_edge",
+  "misfire_client_transactions",
+  "misfire_eh_transactions",
+  "fire_transactions",
+  "fire_eh_transactions",
+  "fire_client_transactions",
+  "history_messages_count_transactions",
+  "history_transactions",
+  "history_edge",
+  "history_with_actions_transactions",
+  "history_clienterrors_transactions",
+  "history_with_actions_clienterrors_transactions",
+  "history_with_actions_unauthorized_transactions",
+  "message_actions_add_transactions",
+  "message_actions_get_transactions",
+  "message_actions_remove_transactions",
+  "subscribe_message_actions_transactions",
+  "message_actions_clienterrors_transactions",
+  "message_actions_unauthorized_transactions",
+  "objects_create_space_transactions",
+  "objects_create_user_transactions",
+  "objects_delete_space_transactions",
+  "objects_delete_user_transactions",
+  "objects_get_all_spaces_transactions",
+  "objects_get_all_users_transactions",
+  "objects_get_space_transactions",
+  "objects_get_user_space_memberships_transactions",
+  "objects_get_space_user_memberships_transactions",
+  "objects_get_user_transactions",
+  "objects_update_space_transactions",
+  "objects_update_space_user_memberships_transactions",
+  "objects_update_user_space_memberships_transactions",
+  "objects_update_user_transactions",
+  "internal_publish_objects_transactions",
+  "objects_replicated",
+  "objects_edge",
+  "objects_users",
+  "objects_spaces",
+  "objects_memberships",
+  "objects_errors",
+  "objects_clienterrors_transactions",
+  "objects_unauthorized_transactions",
+  "presence_getuserstate_transactions",
+  "presence_herenow_global_transactions",
+  "presence_herenow_transactions",
+  "presence_leave_transactions",
+  "presence_setuserstate_transactions",
+  "presence_heartbeats_transactions",
+  "presence_wherenow_transactions",
+  "presence_replicated",
+  "presence_edge",
+  "presence_clienterrors_transactions",
+  "apns_sent_transactions",
+  "apns_removed_transactions",
+  "mpns_sent_transactions",
+  "mpns_removed_transactions",
+  "gcm_removed_transactions",
+  "gcm_sent_transactions",
+  "push_device_writes_transactions",
+  "push_device_reads_transactions",
+  "push_notifications_replicated",
+  "push_notifications_edge",
+  "push_notifications_apple",
+  "push_notifications_android",
+  "push_notifications_microsoft",
+  "push_device_clienterrors_transactions",
+  "steam_controller_edge",
+  "steam_controller_replicated",
+  "streamcontroller_reads_transactions",
+  "streamcontroller_writes_transactions",
+  "streamcontroller_clienterrors_transactions",
+  "subscribe_transactions",
+  "subscribe_timeouts_transactions",
+  "subscribe_objects_transactions",
+  "subscribe_heartbeats_transactions",
+  "subscribe_streaming_transactions",
+  "subscribe_clientclosedconnection_transactions",
+  "subscribe_edge",
+  "subscribe_signal_transactions",
+  "subscribe_files_transactions",
+  "subscribe_clienterrors_transactions",
+  "subscribe_unauthorized_transactions",
+  "publish_transactions",
+  "publish_edge",
+  "publish_replicated",
+  "publish_bytes",
+  "publish_msg_average_size",
+  "publish_clienterrors_transactions",
+  "publish_unauthorized_transactions",
+  "signal_transactions",
+  "signal_clienterrors_transactions",
+  "signal_unauthorized_transactions",
+  "files_publish_transactions",
+  "files_delete_file_transactions",
+  "files_generate_url_transactions",
+  "files_get_file_transactions",
+  "files_get_all_files_transactions",
+  "files_replicated",
+  "files_edge",
+  "files_clienterrors_transactions",
+  "files_unauthorized_transactions",
+  "events_ingested",
+  "subscribe_bytes",
+  "message_ratio",
+  "mtd_txn_mtd_uuid_ratio",
+  "channel",
+  "ip",
+  "key_ip_ch",
+  "key_ip_ua",
+  "pres_pub",
+]);
+
+export const UsageMetricsV2Schema = z
+  .object({
+    entityType: UsageMetricsV2EntityType.describe(
+      "The type of entity to fetch metrics for: 'account', 'app', or 'keyset'."
+    ),
+    entityId: z.string().describe("The ID of the entity (account ID, app ID, or keyset ID)."),
+    from: UsageMetricsDateFormat.describe("Start date (inclusive) in YYYY-MM-DD format."),
+    to: UsageMetricsDateFormat.describe("End date (exclusive) in YYYY-MM-DD format."),
+    metrics: z
+      .array(UsageMetricV2Name)
+      .min(1, "At least one metric must be specified")
+      .describe("Array of metric names to retrieve."),
+  })
+  .strict();
+
+export const UsageMetricsV1Type = z.enum(["monthly_active_users", "transaction"]);
+
+const UsageMetricsV1AppSchema = z
+  .object({
+    scope: z.literal("app"),
+    appId: z.string().describe("The app ID to fetch metrics for."),
+    usageType: UsageMetricsV1Type.describe(
+      "Type of usage metrics: 'monthly_active_users' for chat, 'transaction' for other use cases."
+    ),
+    start: UsageMetricsDateFormat.describe("Start date in YYYY-MM-DD format."),
+    end: UsageMetricsDateFormat.describe("End date in YYYY-MM-DD format."),
+  })
+  .strict();
+
+const UsageMetricsV1KeysetSchema = z
+  .object({
+    scope: z.literal("keyset"),
+    keysetId: z.string().describe("The keyset (key) ID to fetch metrics for."),
+    usageType: UsageMetricsV1Type.describe(
+      "Type of usage metrics: 'monthly_active_users' for chat, 'transaction' for other use cases."
+    ),
+    start: UsageMetricsDateFormat.describe("Start date in YYYY-MM-DD format."),
+    end: UsageMetricsDateFormat.describe("End date in YYYY-MM-DD format."),
+  })
+  .strict();
+
+export const UsageMetricsV1Schema = z.discriminatedUnion("scope", [
+  UsageMetricsV1AppSchema,
+  UsageMetricsV1KeysetSchema,
+]);
+
+export const UsageMetricsV1DefinitionSchema = z.object({
+  scope: z
+    .enum(["app", "keyset"])
+    .describe(
+      "Scope of the metrics: 'app' to fetch metrics for an app, 'keyset' to fetch metrics for a keyset."
+    ),
+  appId: z
+    .string()
+    .optional()
+    .describe("The app ID to fetch metrics for. Required when scope='app'."),
+  keysetId: z
+    .string()
+    .optional()
+    .describe("The keyset (key) ID to fetch metrics for. Required when scope='keyset'."),
+  usageType: UsageMetricsV1Type.describe(
+    "Type of usage metrics: 'monthly_active_users' for chat, 'transaction' for other use cases."
+  ),
+  start: UsageMetricsDateFormat.describe("Start date in YYYY-MM-DD format."),
+  end: UsageMetricsDateFormat.describe("End date in YYYY-MM-DD format."),
+});
