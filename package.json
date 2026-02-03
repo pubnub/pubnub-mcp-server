@@ -1,6 +1,6 @@
 {
   "name": "@pubnub/mcp",
-  "version": "2.1.0",
+  "version": "2.1.1",
   "mcpName": "io.github.pubnub/mcp-server",
   "description": "PubNub Model Context Protocol MCP Server for Cursor and Claude",
   "main": "dist/index.js",
@@ -17,7 +17,7 @@
   "keywords": [
     "PubNub",
     "LLM",
-    "MPC",
+    "MCP",
     "Model Context Protocol"
   ],
   "files": [
