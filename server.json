@@ -3,7 +3,7 @@
   "name": "io.github.pubnub/mcp-server",
   "title": "PubNub MCP Server",
   "description": "PubNub Model Context Protocol MCP Server for Cursor and Claude",
-  "version": "2.2.2",
+  "version": "2.2.0",
   "repository": {
     "url": "https://github.com/pubnub/pubnub-mcp-server",
     "source": "github"
@@ -25,7 +25,7 @@
     {
       "registryType": "npm",
       "identifier": "@pubnub/mcp",
-      "version": "2.1.0",
+      "version": "2.2.0",
       "runtimeHint": "npx",
       "transport": { "type": "stdio" },
       "environmentVariables": [
