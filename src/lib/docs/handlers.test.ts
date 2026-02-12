@@ -22,7 +22,7 @@ describe("Docs Handlers", () => {
 
   describe("getSDKDocumentationHandler", () => {
     it("should get SDK documentation successfully", async () => {
-      const args = { language: "javascript" as const, feature: "publish-and-subscribe" as const };
+      const args = { language: "javascript" as const, feature: "publish" as const };
       const result = await getSDKDocumentationHandler(args);
 
       expect(result.content).toHaveLength(1);
@@ -97,8 +97,8 @@ describe("Docs Handlers", () => {
 
   describe("getSDKDocumentationResourceHandler", () => {
     it("should handle resource request successfully", async () => {
-      const uri = new URL("pubnub-docs://sdk/javascript/publish-and-subscribe");
-      const args = { language: "javascript" as const, feature: "publish-and-subscribe" as const };
+      const uri = new URL("pubnub-docs://sdk/javascript/publish");
+      const args = { language: "javascript" as const, feature: "publish" as const };
 
       const result = await getSDKDocumentationResourceHandler(uri, args);
 
@@ -113,10 +113,10 @@ describe("Docs Handlers", () => {
     });
 
     it("should throw error for missing language", async () => {
-      const uri = new URL("pubnub-docs://sdk//publish-and-subscribe");
+      const uri = new URL("pubnub-docs://sdk//publish");
       const args = {
         language: "" as unknown as GetSdkDocumentationSchemaType["language"],
-        feature: "publish-and-subscribe" as const,
+        feature: "publish" as const,
       };
 
       await expect(getSDKDocumentationResourceHandler(uri, args)).rejects.toThrow(
