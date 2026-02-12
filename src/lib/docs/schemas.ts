@@ -656,6 +656,7 @@ export const howToSlugs = [
   "understand-demo-keys",
   "understand-http-499-errors",
   "understand-publish-subscribe",
+  "understand-pubnub-usage-metrics",
   "understand-userid-uuid",
   "understand-your-pubnub-data-better-using-analyze-with-ai",
   "upgrade-encryption-to-256-bit-key-length",
