@@ -577,7 +577,6 @@ export const howToSlugs = [
   "admin-portal-presence",
   "admin-portal-push-notifications-android",
   "admin-portal-push-notifications-apns",
-  "build-and-bundle-pubnub-functions",
   "build-chat-app-using-html-css-vue-js",
   "build-chat-for-virtual-events",
   "build-collaborative-applications",
