@@ -1,6 +1,6 @@
 {
   "name": "@pubnub/mcp",
-  "version": "2.2.0",
+  "version": "2.3.0",
   "mcpName": "io.github.pubnub/mcp-server",
   "description": "PubNub Model Context Protocol MCP Server for Cursor and Claude",
   "main": "dist/index.js",
