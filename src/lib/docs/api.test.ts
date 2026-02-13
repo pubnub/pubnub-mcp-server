@@ -38,7 +38,7 @@ describe("Docs API", () => {
         }
       );
 
-      await expect(getSdkDocumentation("javascript", "publish-and-subscribe")).rejects.toThrow(
+      await expect(getSdkDocumentation("javascript", "publish")).rejects.toThrow(
         "Failed to fetch SDK documentation: 404 Not Found"
       );
     });
@@ -46,7 +46,7 @@ describe("Docs API", () => {
     it("should throw error on network failure", async () => {
       overrideDocsRoute("get", "/sdk", () => HttpResponse.error());
 
-      await expect(getSdkDocumentation("javascript", "publish-and-subscribe")).rejects.toThrow();
+      await expect(getSdkDocumentation("javascript", "publish")).rejects.toThrow();
     });
 
     it("should reject invalid language/feature combination", async () => {
@@ -68,7 +68,7 @@ describe("Docs API", () => {
       // Need to reimport to pick up new env var
       const { getSdkDocumentation: getCustomSdkDocs } = await import("./api");
 
-      const result = await getCustomSdkDocs("javascript", "publish-and-subscribe");
+      const result = await getCustomSdkDocs("javascript", "publish");
 
       expect(result).toEqual(mockSdkDocumentation);
     });
