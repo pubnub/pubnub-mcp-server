@@ -5,12 +5,12 @@ export const PubNubConfigSchema = z.object({
   publishKey: z
     .string()
     .describe(
-      "Publish Key that can be obtained from your keyset by list_keysets tool or in PubNub admin portal"
+      "Publish Key that can be obtained from your keyset by manage_keysets tool with parameter operation list or in PubNub admin portal"
     ),
   subscribeKey: z
     .string()
     .describe(
-      "Subscribe Key that can be obtained from your keyset by list_keysets tool or in PubNub admin portal"
+      "Subscribe Key that can be obtained from your keyset by manage_keysets tool with parameter operation list or in PubNub admin portal"
     ),
 });
 
