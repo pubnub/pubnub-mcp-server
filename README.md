@@ -1,9 +1,8 @@
 # PubNub MCP Server v2
 
-This repository provides a CLI-based Model Context Protocol (MCP) server that exposes PubNub SDK documentation and PubNub API resources to LLM-powered tools. This improves the LLM AI Agent's ability to understand and interact with PubNub's SDKs and APIs.
+This repository provides a CLI-based Model Context Protocol (MCP) server that exposes [PubNub SDK documentation](https://www.pubnub.com/docs/sdks) and PubNub API resources to LLM-powered tools. This improves the LLM AI Agent's ability to understand and interact with PubNub's SDKs and APIs.
 
 ![PubNub MCP Server v2](https://github.com/pubnub/pubnub-mcp-server/raw/main/images/pubnub-mcp-server.jpg)
-
 
 ## Features
 
@@ -19,48 +18,47 @@ This repository provides a CLI-based Model Context Protocol (MCP) server that ex
 
 ### API Key
 
-Before you begin, we highly recommend [creating a Service Integration](https://www.pubnub.com/docs/admin-api#get-the-api-key) in the PubNub Admin Portal and providing your API key to the MCP server. While some basic features will work without it, adding an API key unlocks much more functionality. Alternatively, see Advanced Usage for instructions on configuring the server to work with a single PubNub keyset.
+Before you begin, we highly recommend [creating a Service Integration](https://www.pubnub.com/docs/general/portal/service-integrations#create-a-service-integration) in the PubNub Admin Portal and providing your API key to the MCP server. While some basic features will work without it, adding an API key unlocks much more functionality. Alternatively, refer to [Advanced Usage](#advanced-usage) for instructions on configuring the server to work with a single PubNub keyset.
 
-The installation process for an MCP server depends on the AI assistant you’re using. For the standard setup, you’ll need [Node.js](https://nodejs.org/en).
+The installation process for an MCP server depends on the AI assistant you’re using. For the standard setup, you’ll need [Node.js](https://nodejs.org/en) (v20.0.0 or higher).
 
 ### VS Code
 
 [![Open in VS Code](https://github.com/pubnub/pubnub-mcp-server/raw/main/images/add-to-vscode.png)](https://vscode.dev/redirect/mcp/install?name=PubNub&inputs=%5B%7B%22type%22%3A%22promptString%22%2C%22id%22%3A%22pubnub-api-key%22%2C%22description%22%3A%22PubNub%20API%20Key%22%7D%5D&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40pubnub%2Fmcp%40latest%22%5D%2C%22env%22%3A%7B%22PUBNUB_API_KEY%22%3A%22%24%7Binput%3Apubnub-api-key%7D%22%7D%7D)
 
-Just click the link above, then select “Open in Visual Studio Code” on the page that appears. Back in VS Code, click “Install”. You’ll be prompted to enter your PubNub API Key. Once provided, your MCP server is ready to use. For additional configuration options, see Advanced usage.
-
+Just click the link above, then select “Open in Visual Studio Code” on the page that appears. Back in VS Code, click “Install”. You’ll be prompted to enter your PubNub API Key. Once provided, your MCP server is ready to use. For additional configuration options, refer to [Advanced usage](#advanced-usage).
 
 ### Cursor
 
 [![Add to Cursor](https://github.com/pubnub/pubnub-mcp-server/raw/main/images/add-to-cursor.png)](https://tinyurl.com/pubnub-mcp-v2)
 
-Click the link above, then select "Open Cursor" on the page that appears. Back in Cursor, there's a "Install MCP Server?" prompt. Make sure to provide the value for variable holding your PubNub API Key. Once you do, click "Install". Your MCP server is now ready to use. For additional configuration options, see Advanced usage.
+Click the link above, then select "Open Cursor" on the page that appears. Back in Cursor, there's a "Install MCP Server?" prompt. Make sure to provide the value for variable holding your PubNub API Key. Once you do, click "Install". Your MCP server is now ready to use. For additional configuration options, refer to [Advanced usage](#advanced-usage).
 
 ### Claude Code
 
 With Claude Code installed run this command to have the MCP added to your configuration. Make sure to replace the value of `<your-api-key>`:
 
-```
+```bash
 claude mcp add PubNub --env PUBNUB_API_KEY=<your-api-key> --scope user --transport stdio -- npx -y @pubnub/mcp@latest
 ```
 
-Server is added in the "User" scope which means it will be available accross all projects. For additional configuration options, see Advanced usage.
+Server is added in the "User" scope which means it will be available accross all projects. For additional configuration options, refer to [Advanced usage](#advanced-usage).
 
 ### Codex
 
 With Codex installed run this command to have the MCP added to your configuration. Make sure to replace the value of `<your-api-key>`:
 
-```
+```bash
 codex mcp add PubNub --env PUBNUB_API_KEY=<your-api-key> -- npx -y @pubnub/mcp@latest
 ```
 
-For additional configuration options, see Advanced usage.
+For additional configuration options, refer to [Advanced usage](#advanced-usage).
 
 ### Gemini CLI
 
 Gemini CLI does not support automatic MCP installations. You'll have manually edit your [settings.json](https://geminicli.com/docs/cli/settings/) file and add the section below. Make sure to replace the value of `<your-api-key>`:
 
-```
+```json
 "mcpServers": {
   "pubnub": {
     "command": "npx",
@@ -75,7 +73,7 @@ Gemini CLI does not support automatic MCP installations. You'll have manually ed
 }
 ```
 
-For additional configuration options, see Advanced usage.
+For additional configuration options, refer to [Advanced usage](#advanced-usage).
 
 ## Advanced usage
 
@@ -98,7 +96,7 @@ When `PUBNUB_PUBLISH_KEY` and `PUBNUB_SUBSCRIBE_KEY` are **not provided**, the s
 
 - Tools will request keys as parameters in each call
 - The AI agent can work with **multiple keysets** in a single session
-- Keys can be discovered dynamically via `list_keysets` tool
+- Keys can be discovered dynamically via `manage_keysets` tool
 - More autonomous - the agent decides which keyset to use based on context
 
 This mode is ideal when you want the AI to help manage multiple applications or when the keyset should be determined at runtime.
@@ -200,7 +198,6 @@ This PubNub MCP server provides a comprehensive set of tools, resources, and pro
 - **`multi-tenant-onboarding-short`** - Implement automated tenant onboarding for SaaS applications
 - **`multi-tenant-onboarding-long`** - Enterprise-grade multi-tenant onboarding with data isolation and error handling
 
-
 ### Resources
 
 - **`pubnub_sdk_docs`** - Access PubNub SDK documentation via URI scheme: `pubnub-docs://sdk/{language}/{feature}`
@@ -208,7 +205,6 @@ This PubNub MCP server provides a comprehensive set of tools, resources, and pro
 **Supported languages**: asyncio, c-core, c-sharp, dart, freertos, go, java, javascript, kotlin, mbed, objective-c, php, posix-c, posix-cpp, python, ruby, rust, swift, unity, unreal, windows-c, windows-cpp
 
 **Supported features**: access-manager, access-manager-v2, channel-groups, configuration, encryption, files, message-actions, misc, mobile-push, objects, presence, publish-and-subscribe, storage-and-playback
-
 
 - **`pubnub_chat_sdk_docs`** - Access PubNub Chat SDK documentation via URI scheme: `pubnub-docs://chat-sdk/{language}/{feature}`
 
