@@ -233,7 +233,7 @@ export const sdkLanguageToFeatures = {
     "publish-methods",
     "storage-and-playback-builder",
     "storage-and-playback-methods",
-    "subscribe-methods",
+    "subscribe",
   ],
   php: [
     "access-manager",
