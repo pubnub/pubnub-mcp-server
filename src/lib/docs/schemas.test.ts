@@ -22,10 +22,10 @@ describe("Docs Schemas", () => {
     });
 
     it("should reject feature not supported by specific language", () => {
-      // javascript doesn't have '_users' feature
+      // javascript doesn't have 'publish-builder' feature (only objective-c does)
       const invalidData = {
         language: "javascript",
-        feature: "_users",
+        feature: "publish-builder",
       };
 
       const result = GetSdkDocumentationSchemaRefined.safeParse(invalidData);

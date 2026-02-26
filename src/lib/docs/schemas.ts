@@ -178,9 +178,6 @@ export const sdkLanguageToFeatures = {
     "subscribe",
   ],
   kotlin: [
-    "_memberships",
-    "_spaces",
-    "_users",
     "access-manager",
     "access-manager-v2",
     "appcontext-channel",
@@ -274,9 +271,6 @@ export const sdkLanguageToFeatures = {
     "subscribe",
   ],
   python: [
-    "_memberships",
-    "_spaces",
-    "_users",
     "access-manager",
     "access-manager-v2",
     "appcontext-channel",
