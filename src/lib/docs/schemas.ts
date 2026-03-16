@@ -50,7 +50,6 @@ function createLanguageFeatureSchemas<TMapping extends Record<string, readonly s
 export const sdkLanguageToFeatures = {
   asyncio: [
     "access-manager",
-    "access-manager-v2",
     "channel-groups",
     "configuration",
     "files",
@@ -75,7 +74,6 @@ export const sdkLanguageToFeatures = {
   ],
   "c-sharp": [
     "access-manager",
-    "access-manager-v2",
     "appcontext-channel",
     "appcontext-members",
     "appcontext-memberships",
@@ -94,7 +92,6 @@ export const sdkLanguageToFeatures = {
   ],
   dart: [
     "access-manager",
-    "access-manager-v2",
     "appcontext-channel",
     "appcontext-members",
     "appcontext-memberships",
@@ -122,7 +119,6 @@ export const sdkLanguageToFeatures = {
   ],
   go: [
     "access-manager",
-    "access-manager-v2",
     "appcontext-channel",
     "appcontext-members",
     "appcontext-memberships",
@@ -141,7 +137,6 @@ export const sdkLanguageToFeatures = {
   ],
   java: [
     "access-manager",
-    "access-manager-v2",
     "appcontext-channel",
     "appcontext-members",
     "appcontext-memberships",
@@ -160,7 +155,6 @@ export const sdkLanguageToFeatures = {
   ],
   javascript: [
     "access-manager",
-    "access-manager-v2",
     "appcontext-channel",
     "appcontext-members",
     "appcontext-memberships",
@@ -179,7 +173,6 @@ export const sdkLanguageToFeatures = {
   ],
   kotlin: [
     "access-manager",
-    "access-manager-v2",
     "appcontext-channel",
     "appcontext-members",
     "appcontext-memberships",
@@ -234,7 +227,6 @@ export const sdkLanguageToFeatures = {
   ],
   php: [
     "access-manager",
-    "access-manager-v2",
     "appcontext-channel",
     "appcontext-members",
     "appcontext-memberships",
@@ -272,7 +264,6 @@ export const sdkLanguageToFeatures = {
   ],
   python: [
     "access-manager",
-    "access-manager-v2",
     "appcontext-channel",
     "appcontext-members",
     "appcontext-memberships",
@@ -291,7 +282,6 @@ export const sdkLanguageToFeatures = {
   ],
   ruby: [
     "access-manager",
-    "access-manager-v2",
     "appcontext-channel",
     "appcontext-members",
     "appcontext-memberships",
