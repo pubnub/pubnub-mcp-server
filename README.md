@@ -2,7 +2,7 @@
 
 A hosted Model Context Protocol (MCP) server that exposes [PubNub SDK documentation](https://www.pubnub.com/docs/sdks) and PubNub API resources to LLM-powered tools. This improves the LLM AI Agent's ability to understand and interact with PubNub's SDKs and APIs. Uses HTTP transport with OAuth authentication.
 
-![PubNub MCP Server](https://github.com/pubnub/pubnub-mcp-server/raw/main/images/pubnub-mcp-server.jpg)
+![PubNub MCP Server](https://github.com/pubnub/pubnub-mcp-server/raw/main/pubnub-mcp-server.jpg)
 
 ## Features
 
