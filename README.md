@@ -11,6 +11,7 @@ A hosted Model Context Protocol (MCP) server that exposes [PubNub SDK documentat
 - **💬 Real-time Communication** - Send and receive messages across channels, implement live chat, notifications, and real-time updates with support for both messages and lightweight signals
 - **👥 User & Channel Management** - Manage user profiles, channel metadata, and membership relationships with full CRUD operations for building community and social features
 - **📍 Presence & Activity Tracking** - Monitor real-time user presence, see who's online in channels, and track user activity across your application
+- **📊 Illuminate Analytics & Automation** - Configure Illuminate business objects, queries, metrics, decisions, and dashboards to build real-time analytics pipelines and event-driven automation
 - **🔧 Multi-Platform Integration** - Works with Cursor, Visual Studio Code, Claude Code, and other MCP-compatible AI assistants
 - **⚡ Developer Experience** - Built with TypeScript for type safety, includes testing infrastructure
 
@@ -48,12 +49,23 @@ This PubNub MCP server provides a comprehensive set of tools, resources, and pro
 - **`get_pubnub_presence`** - Get presence data using HereNow (channel occupancy) or WhereNow (user's channels)
 - **`manage_app_context`** - Manage PubNub App Context (Objects API) for users, channels, and memberships with full CRUD operations
 
+#### Illuminate Analytics & Automation
+
+- **`manage_illuminate`** - Manage PubNub Illuminate resources (business objects, queries, metrics, decisions, dashboards) with full CRUD, activation, analytics queries, action log inspection, and test data publishing
+
 ### Prompts
 
 #### Healthcare & HIPAA Compliance
 
 - **`hipaa-chat-short`** - Quick prompt to create HIPAA compliant chat applications
 - **`hipaa-chat-long`** - Detailed prompt for HIPAA compliant chat with Pub/Sub, Presence, and App Context
+
+#### Illuminate Analytics & Automation
+
+- **`illuminate-spam-detection`** - Set up an Illuminate spam detection pipeline with escalating moderation actions
+- **`illuminate-reward-engagement`** - Build an Illuminate engagement reward pipeline for live events and gaming
+- **`illuminate-use-case`** - Guided setup of any Illuminate analytics and automation use case
+- **`illuminate-test-verify`** - Test and verify an existing Illuminate configuration end-to-end
 
 #### React Development
 
