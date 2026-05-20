@@ -191,25 +191,6 @@ describe("Portal Handlers", () => {
       expect(result.content?.[0]?.text).toBe("Keyset updated successfully");
     });
 
-    it("should handle environment key restrictions", async () => {
-      const error = new Error(
-        "Cannot update keyset 999. When PUBNUB_PUBLISH_KEY and PUBNUB_SUBSCRIBE_KEY are set, only the configured keyset (ID: 1) can be updated."
-      );
-      vi.mocked(api.updateKeysetConfig).mockRejectedValue(error);
-
-      const result = await manageKeysetsHandler({
-        operation: "update",
-        data: {
-          id: "999",
-          config: { messagePersistence: { enabled: true, retention: 30 as const } },
-        },
-      });
-
-      expect(result.isError).toBe(true);
-      const parsed = JSON.parse(result.content?.[0]?.text ?? "");
-      expect(parsed.message).toContain("Cannot update keyset 999");
-    });
-
     it("should handle API errors", async () => {
       const error = new Error("Keyset creation failed");
       vi.mocked(api.createKeyset).mockRejectedValue(error);

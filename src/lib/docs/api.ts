@@ -1,17 +1,24 @@
 import type { z } from "zod";
+import { createLogger } from "../logger";
 import {
   GetBestPracticesSchema,
   GetChatSdkDocumentationSchemaRefined,
+  GetGeneralMigrationGuideSchemaRefined,
   GetSdkDocumentationSchemaRefined,
+  GetSdkMigrationGuideSchemaRefined,
   HowToSchema,
 } from "./schemas";
 import type {
-  GetBestPracticesSchemaType,
   DocumentationApiResponse,
+  GetBestPracticesSchemaType,
   GetChatSdkDocumentationSchemaType,
+  GetGeneralMigrationGuideSchemaType,
   GetSdkDocumentationSchemaType,
+  GetSdkMigrationGuideSchemaType,
   HowToSchemaType,
 } from "./types";
+
+const log = createLogger("docs:api");
 
 const baseUrl = process.env.SDK_DOCS_API_URL ?? "https://docs.pubnubtools.com/api/v1";
 
@@ -31,8 +38,11 @@ async function makeDocsRequest<T>({
   const { success: isValid, error } = schema.safeParse(args);
   if (!isValid) {
     const errors = error?.issues.map(e => e.message).join(", ");
+    log.warn({ errors, path }, "Documentation request validation failed");
     throw new Error(errors);
   }
+
+  log.debug({ path }, "Documentation API request");
 
   const response = await fetch(baseUrl + path, {
     method: "GET",
@@ -43,6 +53,7 @@ async function makeDocsRequest<T>({
   });
 
   if (!response.ok) {
+    log.error({ status: response.status, path }, "Documentation API request failed");
     throw new Error(`Failed to fetch SDK documentation: ${response.status} ${response.statusText}`);
   }
 
@@ -100,5 +111,28 @@ export async function getBestPractices() {
     path,
     schema: GetBestPracticesSchema,
     args: {},
+  });
+}
+
+export async function getSdkMigrationGuide(
+  language: GetSdkMigrationGuideSchemaType["language"],
+  version: GetSdkMigrationGuideSchemaType["version"]
+) {
+  const path = `/migration-guide?language=${language}&version=${version}`;
+
+  return await makeDocsRequest<GetSdkMigrationGuideSchemaType>({
+    path,
+    schema: GetSdkMigrationGuideSchemaRefined,
+    args: { language, version },
+  });
+}
+
+export async function getGeneralMigrationGuide(slug: GetGeneralMigrationGuideSchemaType["slug"]) {
+  const path = `/general-migration-guide?slug=${slug}`;
+
+  return await makeDocsRequest<GetGeneralMigrationGuideSchemaType>({
+    path,
+    schema: GetGeneralMigrationGuideSchemaRefined,
+    args: { slug },
   });
 }

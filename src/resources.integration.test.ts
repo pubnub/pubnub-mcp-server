@@ -1,29 +1,56 @@
+import type { Server } from "node:http";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
+import { PubNubMCPServer } from "./index";
 import { chatSdkLanguageToFeatures, sdkLanguageToFeatures } from "./lib/docs/schemas";
 import { createMcpClient } from "./test-utils/mcp-client";
+import { createApp } from "./transporters/http";
 
-let mcpClient: ReturnType<typeof createMcpClient>["mcpClient"] | undefined;
-let stdioTransport: ReturnType<typeof createMcpClient>["stdioTransport"] | undefined;
+const TEST_PORT = 3460;
+
+let mcpClient: ReturnType<typeof createMcpClient>["mcpClient"];
+let httpTransport: ReturnType<typeof createMcpClient>["httpTransport"];
+let httpServer: Server | undefined;
 
 const getClient = () => {
   if (!mcpClient) {
     throw new Error("MCP client not initialized");
   }
-
   return mcpClient;
 };
 
 describe("Resources", () => {
   beforeEach(async () => {
-    ({ mcpClient, stdioTransport } = createMcpClient());
-    await mcpClient.connect(stdioTransport);
+    process.env.MCP_OAUTH_ENABLED = "false";
+    const serverInstance = new PubNubMCPServer();
+    const app = createApp(serverInstance.getServer());
+    httpServer = app.listen(TEST_PORT);
+    await new Promise<void>((resolve, reject) => {
+      if (httpServer) {
+        httpServer.on("listening", resolve);
+        httpServer.on("error", reject);
+      }
+    });
+
+    ({ mcpClient, httpTransport } = createMcpClient(TEST_PORT));
+    await mcpClient.connect(httpTransport);
   });
 
   afterEach(async () => {
     await mcpClient?.close();
-    await stdioTransport?.close();
+    await httpTransport?.close();
     mcpClient = undefined;
-    stdioTransport = undefined;
+    httpTransport = undefined;
+
+    await new Promise<void>(resolve => {
+      if (httpServer) {
+        httpServer.close(() => {
+          resolve();
+        });
+      } else {
+        resolve();
+      }
+    });
+    httpServer = undefined;
   });
 
   describe("Resource Registration", () => {
@@ -51,14 +78,12 @@ describe("Resources", () => {
       expect(Array.isArray(resourceTemplates)).toBe(true);
       expect(resourceTemplates.length).toBe(2);
 
-      // Verify SDK docs resource template
       const sdkTemplate = resourceTemplates.find(t => t.name === "pubnub_sdk_docs");
       expect(sdkTemplate).toBeDefined();
       expect(sdkTemplate?.uriTemplate).toBe("pubnub-docs://sdk/{language}/{feature}");
       expect(sdkTemplate?.title).toBe("PubNub SDK Documentation");
       expect(sdkTemplate?.mimeType).toBe("application/json");
 
-      // Verify Chat SDK docs resource template
       const chatSdkTemplate = resourceTemplates.find(t => t.name === "pubnub_chat_sdk_docs");
       expect(chatSdkTemplate).toBeDefined();
       expect(chatSdkTemplate?.uriTemplate).toBe("pubnub-docs://chat-sdk/{language}/{feature}");
@@ -69,17 +94,14 @@ describe("Resources", () => {
     it("should generate all possible SDK resources from template", async () => {
       const { resources } = await getClient().listResources();
 
-      // Calculate expected number of SDK resources
       let expectedSdkResourceCount = 0;
       for (const features of Object.values(sdkLanguageToFeatures)) {
         expectedSdkResourceCount += features.length;
       }
 
-      // Filter SDK resources
       const sdkResources = resources.filter(r => r.uri.includes("pubnub-docs://sdk/"));
       expect(sdkResources.length).toBe(expectedSdkResourceCount);
 
-      // Verify each language/feature combination exists
       for (const [language, features] of Object.entries(sdkLanguageToFeatures)) {
         for (const feature of features) {
           const expectedUri = `pubnub-docs://sdk/${language}/${feature}`;
@@ -96,17 +118,14 @@ describe("Resources", () => {
     it("should generate all possible Chat SDK resources from template", async () => {
       const { resources } = await getClient().listResources();
 
-      // Calculate expected number of Chat SDK resources
       let expectedChatSdkResourceCount = 0;
       for (const features of Object.values(chatSdkLanguageToFeatures)) {
         expectedChatSdkResourceCount += features.length;
       }
 
-      // Filter Chat SDK resources
       const chatSdkResources = resources.filter(r => r.uri.includes("pubnub-docs://chat-sdk/"));
       expect(chatSdkResources.length).toBe(expectedChatSdkResourceCount);
 
-      // Verify each language/feature combination exists
       for (const [language, features] of Object.entries(chatSdkLanguageToFeatures)) {
         for (const feature of features) {
           const expectedUri = `pubnub-docs://chat-sdk/${language}/${feature}`;

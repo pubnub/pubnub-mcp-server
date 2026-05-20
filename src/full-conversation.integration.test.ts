@@ -2,12 +2,11 @@
  * Full Conversation Flow Integration Test
  *
  * This test validates complete multi-turn conversations with OpenAI using AI SDK v5 and MCP tools.
- * Unlike the existing tool-call.integration.test.ts which stops after the first tool call,
- * this test runs until the conversation completes naturally.
+ * Uses HTTP transport to connect to the MCP server.
  *
  * Key features:
  * - Uses AI SDK's experimental_createMCPClient for MCP integration
- * - Uses MSW to mock PubNub API responses (Portal API and Docs API)
+ * - Uses mock API servers for PubNub Portal and Docs APIs
  * - Tests both single and multi-tool call scenarios
  * - Allows up to 10 conversation turns (maxSteps)
  * - Validates that expected tools are called and conversations complete successfully
@@ -16,13 +15,14 @@
 import type { Server } from "node:http";
 import { experimental_createMCPClient as createMCPClient } from "@ai-sdk/mcp";
 import { createOpenAI } from "@ai-sdk/openai";
-import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
-import { generateText, stepCountIs } from "ai";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
+import { generateText, stepCountIs, type ToolSet } from "ai";
 import { afterAll, beforeAll, describe, expect, it } from "vitest";
 import { createMockDocsApiServer, createMockPortalApiServer } from "./test-utils/api-server-mocks";
 
 const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
 const OPENAI_MODEL = process.env.OPENAI_MODEL ?? "gpt-4o-mini";
+const MCP_SERVER_PORT = 3459;
 const MOCK_PORTAL_API_PORT = 3457;
 const MOCK_DOCS_API_PORT = 3458;
 
@@ -58,8 +58,9 @@ const TEST_SCENARIOS: TestScenario[] = [
   {
     prompt: `Create a javascript chat application that allows users to send and receive messages in a channel using PubNub.
      Use the PubNub Chat SDK. Use available tools (they are PubNub related).
-     Do not ask use for any input, just figure it yourself.
-     Use latest documentation, and create new app and keyset and then produce the code for the application`,
+     You must retrieve the PubNub Chat SDK documentation to get the correct API usage and initialization patterns.
+     Also create a new app and keyset for this project, then produce the final code for the application.
+     Do not ask me for any input, just figure it yourself.`,
     expectedTools: ["get_chat_sdk_documentation", "manage_apps", "manage_keysets"],
     description: "Multi-tool call - create a chat application",
   },
@@ -69,6 +70,7 @@ describe.skipIf(!OPENAI_API_KEY)("Full conversation flow with OpenAI", () => {
   let mcpClient: Awaited<ReturnType<typeof createMCPClient>>;
   let mockPortalServer: { server: Server; close: () => Promise<void> } | undefined;
   let mockDocsServer: { server: Server; close: () => Promise<void> } | undefined;
+  let mcpHttpServer: Server | undefined;
   let openai: ReturnType<typeof createOpenAI>;
   let aiTools: Awaited<
     ReturnType<NonNullable<Awaited<ReturnType<typeof createMCPClient>>>["tools"]>
@@ -80,30 +82,33 @@ describe.skipIf(!OPENAI_API_KEY)("Full conversation flow with OpenAI", () => {
     mockPortalServer = await createMockPortalApiServer(MOCK_PORTAL_API_PORT);
     mockDocsServer = await createMockDocsApiServer(MOCK_DOCS_API_PORT);
 
-    const ADMIN_API_V1_URL = `http://localhost:${MOCK_PORTAL_API_PORT}/api`;
+    const ADMIN_API_V2_URL = `http://localhost:${MOCK_PORTAL_API_PORT}`;
     const SDK_DOCS_API_URL = `http://localhost:${MOCK_DOCS_API_PORT}/api/v1`;
 
+    process.env.ADMIN_API_V2_URL = ADMIN_API_V2_URL;
+    process.env.SDK_DOCS_API_URL = SDK_DOCS_API_URL;
+
     console.log(`\n[Test Setup] Environment configured:`);
-    console.log(`  Mock Portal API: ${ADMIN_API_V1_URL}`);
+    console.log(`  Mock Portal API: ${ADMIN_API_V2_URL}`);
     console.log(`  Mock Docs API: ${SDK_DOCS_API_URL}`);
+
+    // Start MCP server in HTTP mode
+    const { PubNubMCPServer } = await import("./index");
+    const { createApp } = await import("./transporters/http");
+    const serverInstance = new PubNubMCPServer();
+    const app = createApp(serverInstance.getServer());
+    mcpHttpServer = app.listen(MCP_SERVER_PORT);
+    await new Promise<void>(resolve => {
+      mcpHttpServer?.on("listening", resolve);
+    });
 
     openai = createOpenAI({
       apiKey: OPENAI_API_KEY ?? "",
     });
 
-    console.log("[Test Setup] Starting MCP client with stdio transport...");
+    console.log("[Test Setup] Starting MCP client with HTTP transport...");
     mcpClient = await createMCPClient({
-      transport: new StdioClientTransport({
-        command: "npm",
-        args: ["start"],
-        env: {
-          ...process.env,
-          ADMIN_API_V1_URL: ADMIN_API_V1_URL,
-          SDK_DOCS_API_URL: SDK_DOCS_API_URL,
-          PUBNUB_EMAIL: "test@example.com",
-          PUBNUB_PASSWORD: "test-password",
-        },
-      }),
+      transport: new StreamableHTTPClientTransport(new URL(`http://localhost:${MCP_SERVER_PORT}`)),
     });
 
     console.log("[Test Setup] MCP client connected");
@@ -120,6 +125,20 @@ describe.skipIf(!OPENAI_API_KEY)("Full conversation flow with OpenAI", () => {
     await mockDocsServer?.close();
     mockPortalServer = undefined;
     mockDocsServer = undefined;
+
+    await new Promise<void>(resolve => {
+      if (mcpHttpServer) {
+        mcpHttpServer.close(() => {
+          resolve();
+        });
+      } else {
+        resolve();
+      }
+    });
+    mcpHttpServer = undefined;
+
+    delete process.env.ADMIN_API_V2_URL;
+    delete process.env.SDK_DOCS_API_URL;
   });
 
   for (const scenario of TEST_SCENARIOS) {
@@ -135,7 +154,7 @@ describe.skipIf(!OPENAI_API_KEY)("Full conversation flow with OpenAI", () => {
             content: scenario.prompt,
           },
         ],
-        tools: aiTools as any, // Mismatch between AI SDK and AI MCP tools types
+        tools: aiTools as ToolSet,
         stopWhen: stepCountIs(10),
       });
 
@@ -172,9 +191,7 @@ describe.skipIf(!OPENAI_API_KEY)("Full conversation flow with OpenAI", () => {
       expect(["stop", "length", "tool-calls"]).toContain(result.finishReason);
       expect(allToolCalls.length).toBeGreaterThan(0);
 
-      // Verify expected tools were called
       if (scenario.expectedTools.length === 1) {
-        // Single tool scenario - verify at least the expected tool was called
         const expectedTool = scenario.expectedTools[0];
         if (!expectedTool) {
           throw new Error("Test configuration error: expectedTools[0] is undefined");
@@ -185,7 +202,6 @@ describe.skipIf(!OPENAI_API_KEY)("Full conversation flow with OpenAI", () => {
           `Expected tool '${expectedTool}' was not called. Called: [${Array.from(toolCallsMade).join(", ")}]`
         ).toBe(true);
       } else {
-        // Multi-tool scenario - verify ALL expected tools were called
         console.log(
           `Multi-tool scenario - verifying all ${scenario.expectedTools.length} expected tools were called`
         );
@@ -200,14 +216,10 @@ describe.skipIf(!OPENAI_API_KEY)("Full conversation flow with OpenAI", () => {
         console.log(`✓ All ${scenario.expectedTools.length} expected tools were called`);
       }
 
-      // Verify the response - text might be empty if finishReason is "tool-calls"
-      // In that case, the LLM made tool calls but didn't generate a final text response
       if (result.finishReason === "stop") {
-        // When conversation finishes normally, there should be text
         expect(result.text).toBeTruthy();
         expect(result.text.length).toBeGreaterThan(0);
       } else {
-        // For other finish reasons (tool-calls, length), text might be empty
         console.log(`Note: Empty text is acceptable with finishReason: ${result.finishReason}`);
       }
 

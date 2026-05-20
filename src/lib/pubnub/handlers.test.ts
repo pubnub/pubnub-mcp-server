@@ -1,5 +1,5 @@
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
-import { clearEnvKeys, clearTestEnv, setupEnvKeys, setupTestEnv } from "../../test-utils/msw-setup";
+import { clearTestEnv, setupTestEnv } from "../../test-utils/msw-setup";
 import type { ManageAppContextHandlerArgs } from "./app-context/types";
 import {
   getPresenceHandler,
@@ -47,7 +47,6 @@ vi.mock("./app-context/api", () => {
 describe("PubNub Handlers", () => {
   beforeEach(() => {
     setupTestEnv();
-    clearEnvKeys();
     vi.clearAllMocks();
 
     const mockSubscription = {
@@ -95,40 +94,6 @@ describe("PubNub Handlers", () => {
       const parsed = JSON.parse(response.content?.[0]?.text ?? "{}");
 
       expect(parsed).toEqual({ name: "PubNubError", message: "Access denied" });
-    });
-
-    it("should use env keys when no keys are provided in args", async () => {
-      setupEnvKeys("pub-c-env-key", "sub-c-env-key");
-      const mockResult = { status: 200, data: [{ id: "user-123" }] };
-      mockManageAppContext.mockResolvedValue(mockResult);
-
-      const argsWithoutKeys: ManageAppContextHandlerArgs = {
-        type: "user",
-        operation: "get",
-        id: "user-123",
-      };
-
-      await manageAppContextHandler(argsWithoutKeys);
-
-      expect(mockManageAppContext).toHaveBeenCalledWith({
-        ...argsWithoutKeys,
-        publishKey: "pub-c-env-key",
-        subscribeKey: "sub-c-env-key",
-      });
-    });
-
-    it("should prefer env keys over args keys", async () => {
-      setupEnvKeys("pub-c-env-key", "sub-c-env-key");
-      const mockResult = { status: 200, data: [{ id: "user-123" }] };
-      mockManageAppContext.mockResolvedValue(mockResult);
-
-      await manageAppContextHandler(baseArgs);
-
-      expect(mockManageAppContext).toHaveBeenCalledWith({
-        ...baseArgs,
-        publishKey: "pub-c-env-key",
-        subscribeKey: "sub-c-env-key",
-      });
     });
   });
 
@@ -212,40 +177,6 @@ describe("PubNub Handlers", () => {
         channel: "test-channel",
         message: { text: "Simple string message" },
       });
-    });
-
-    it("should use env keys when no keys are provided in args", async () => {
-      setupEnvKeys("pub-c-env-key", "sub-c-env-key");
-      mockPublish.mockResolvedValue({
-        timetoken: "17034567890123456",
-      });
-
-      const argsWithoutKeys: PublishMessageHandlerArgs = {
-        channel: "test-channel",
-        message: "Hello World",
-        type: "message",
-      };
-
-      await publishMessageHandler(argsWithoutKeys);
-
-      expect(mockPublish).toHaveBeenCalledWith({
-        channel: "test-channel",
-        message: { text: "Hello World" },
-      });
-    });
-
-    it("should throw error when no keys are available", async () => {
-      const argsWithoutKeys: PublishMessageHandlerArgs = {
-        channel: "test-channel",
-        message: "Hello World",
-        type: "message",
-      };
-
-      const result = await publishMessageHandler(argsWithoutKeys);
-      const parsed = JSON.parse(result.content?.[0]?.text ?? "{}");
-
-      expect(parsed.name).toBe("Error");
-      expect(parsed.message).toContain("PubNub keys are required");
     });
   });
 
@@ -386,28 +317,6 @@ describe("PubNub Handlers", () => {
         name: "Error",
       });
     });
-
-    it("should use env keys when no keys are provided in args", async () => {
-      setupEnvKeys("pub-c-env-key", "sub-c-env-key");
-      const mockResponse = {
-        totalChannels: 1,
-        totalOccupancy: 5,
-        usersInChannels: {},
-      };
-      mockHereNow.mockResolvedValue(mockResponse);
-
-      const argsWithoutKeys: GetPresenceHandlerArgs = {
-        channels: ["test-channel"],
-        channelGroups: [],
-      };
-
-      await getPresenceHandler(argsWithoutKeys);
-
-      expect(mockHereNow).toHaveBeenCalledWith({
-        channels: ["test-channel"],
-        channelGroups: [],
-      });
-    });
   });
 
   describe("subscribeHandler", () => {
@@ -420,7 +329,7 @@ describe("PubNub Handlers", () => {
     };
 
     it("should receive specified number of messages before timeout", async () => {
-      let messageListener: any;
+      let messageListener: { message: (event: Record<string, unknown>) => void };
       mockAddListener.mockImplementation(listener => {
         messageListener = listener;
       });
@@ -441,7 +350,7 @@ describe("PubNub Handlers", () => {
     });
 
     it("should timeout when not receiving specified number of messages", async () => {
-      let messageListener: any;
+      let messageListener: { message: (event: Record<string, unknown>) => void };
       mockAddListener.mockImplementation(listener => {
         messageListener = listener;
       });
@@ -482,22 +391,6 @@ describe("PubNub Handlers", () => {
       expect(parsedResult.note).toBe(
         "Timeout: No messages received on channel 'test-channel' within 1s"
       );
-    });
-
-    it("should use env keys when no keys are provided in args", async () => {
-      setupEnvKeys("pub-c-env-key", "sub-c-env-key");
-      mockAddListener.mockImplementation(() => {});
-
-      const argsWithoutKeys: SubscribeHandlerArgs = {
-        channel: "test-channel",
-        messageCount: 1,
-        timeout: 1,
-      };
-
-      const result = await subscribeHandler(argsWithoutKeys);
-      const parsedResult = JSON.parse(result.content?.[0]?.text ?? "");
-
-      expect(parsedResult.messageCount).toBe(0);
     });
   });
 });

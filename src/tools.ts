@@ -3,20 +3,31 @@ import type { z } from "zod";
 import {
   getBestPracticesHandler,
   getChatSDKDocumentationHandler,
+  getGeneralMigrationGuideHandler,
   getSDKDocumentationHandler,
+  getSdkMigrationGuideHandler,
   howToHandler,
 } from "./lib/docs/handlers";
 import {
   GetChatSdkDocumentationSchema,
+  GetGeneralMigrationGuideSchema,
   GetSdkDocumentationSchema,
+  GetSdkMigrationGuideSchema,
   HowToSchema,
 } from "./lib/docs/schemas";
 import type {
   GetChatSdkDocumentationSchemaType,
+  GetGeneralMigrationGuideSchemaType,
   GetSdkDocumentationSchemaType,
+  GetSdkMigrationGuideSchemaType,
   HowToSchemaType,
 } from "./lib/docs/types";
-import { hasV2Auth } from "./lib/portal/auth";
+import { manageIlluminateHandler } from "./lib/illuminate/handlers";
+import { ManageIlluminateSchema } from "./lib/illuminate/schemas";
+import type { ManageIlluminateSchemaType } from "./lib/illuminate/types";
+import { insightsHandler } from "./lib/insights/handlers";
+import { InsightsSchema } from "./lib/insights/schemas";
+import type { InsightsSchemaType } from "./lib/insights/types";
 import {
   getUsageMetricsHandler,
   manageAppsHandler,
@@ -25,13 +36,11 @@ import {
 import {
   ManageAppsDefinitionSchema,
   ManageKeysetsDefinitionSchema,
-  UsageMetricsV1DefinitionSchema,
   UsageMetricsV2Schema as UsageMetricsV2DefinitionSchema,
 } from "./lib/portal/schemas";
 import type {
   ManageAppsSchemaType,
   ManageKeysetsSchemaType,
-  UsageMetricsV1SchemaType,
   UsageMetricsV2SchemaType,
 } from "./lib/portal/types";
 import { ManageAppContextSchema } from "./lib/pubnub/app-context/schemas";
@@ -128,24 +137,12 @@ const usageMetricsV2Description = `Fetches usage metrics from the PubNub Admin A
       - Signal: signal_transactions
       - Files: files_publish_transactions, files_get_file_transactions`;
 
-const usageMetricsV1Description = `Fetches usage metrics from the PubNub Provisioning API.
-
-      **Parameters:**
-      - scope: 'app' or 'keyset' (determines which ID to use)
-      - appId: Required when scope='app'
-      - keysetId: Required when scope='keyset'
-      - usageType: 'monthly_active_users' (for chat) or 'transaction' (for other use cases)
-      - start: Start date in YYYY-MM-DD format
-      - end: End date in YYYY-MM-DD format`;
-
-const getUsageMetricsTool: ToolDef<UsageMetricsV2SchemaType | UsageMetricsV1SchemaType> = {
+const getUsageMetricsTool: ToolDef<UsageMetricsV2SchemaType> = {
   name: "get_usage_metrics",
   definition: {
     title: "Get PubNub Usage Metrics",
-    description: hasV2Auth() ? usageMetricsV2Description : usageMetricsV1Description,
-    inputSchema: hasV2Auth()
-      ? UsageMetricsV2DefinitionSchema.shape
-      : UsageMetricsV1DefinitionSchema.shape,
+    description: usageMetricsV2Description,
+    inputSchema: UsageMetricsV2DefinitionSchema.shape,
   },
   handler: getUsageMetricsHandler,
 };
@@ -217,6 +214,49 @@ const howToTool: ToolDef<HowToSchemaType> = {
     inputSchema: HowToSchema.shape,
   },
   handler: howToHandler,
+};
+
+const getSdkMigrationGuideTool: ToolDef<GetSdkMigrationGuideSchemaType> = {
+  name: "get_sdk_migration_guide",
+  definition: {
+    title: "Get PubNub SDK Migration Guide",
+    description: `Retrieve SDK migration guides for upgrading between PubNub SDK versions.
+
+      **When to use:**
+      - Upgrading a PubNub SDK to a newer major version
+      - Need step-by-step instructions for migrating breaking changes
+      - Refactoring a codebase after a PubNub SDK version bump
+
+      **Do NOT use for:**
+      - General SDK documentation → use "get_sdk_documentation"
+      - Chat SDK documentation → use "get_chat_sdk_documentation"
+
+      Returns the migration guide content for the specified language and target version.`,
+    inputSchema: GetSdkMigrationGuideSchema.shape,
+  },
+  handler: getSdkMigrationGuideHandler,
+};
+
+const getGeneralMigrationGuideTool: ToolDef<GetGeneralMigrationGuideSchemaType> = {
+  name: "get_general_migration_guide",
+  definition: {
+    title: "Get PubNub General Migration Guide",
+    description: `Retrieve general migration guides for cross-cutting PubNub platform changes.
+
+      **When to use:**
+      - Migrating to a new encryption standard (e.g. 256-bit encryption)
+      - Upgrading push notification setup (e.g. APNs HTTP/2, FCM v1)
+      - Migrating to new API versions (e.g. Access Manager v3, Objects v2)
+      - Replacing deprecated features (e.g. legacy webhooks)
+
+      **Do NOT use for:**
+      - SDK version upgrades (e.g. JavaScript v7→v8) → use "get_sdk_migration_guide"
+      - General SDK documentation → use "get_sdk_documentation"
+
+      Returns the migration guide content for the specified slug.`,
+    inputSchema: GetGeneralMigrationGuideSchema.shape,
+  },
+  handler: getGeneralMigrationGuideHandler,
 };
 
 const writePubNubAppTool: ToolDef = {
@@ -292,9 +332,153 @@ const getHistoryTool: ToolDef<GetHistoryHandlerArgs> = {
   handler: getHistoryHandler,
 };
 
+const manageIlluminateTool: ToolDef<ManageIlluminateSchemaType> = {
+  name: "manage_illuminate",
+  definition: {
+    title: "Manage PubNub Illuminate",
+    description: `Manages PubNub Illuminate resources with operations: list, get, create, update, delete, activate, deactivate, get-fields, execute-adhoc, publish-fake-data, verify-query, check-action-log, raw-snapshot, aggregate, field-health, and custom-query.
+
+      Supports full CRUD for: Business Objects, Metrics, Queries, Decisions, and Dashboards.
+
+      **Operations:**
+      - list: GET all resources of a given type
+      - get: GET one resource by id
+      - create: POST a new resource (Decisions use automatic 2-step POST→PUT workflow)
+      - update: PUT/replace a resource
+      - delete: DELETE a resource (Business Object delete cascades to all associated resources)
+      - activate / deactivate: toggle isActive (Business Object) or enabled (Decision)
+      - get-fields: fetch Query output field definitions (required before building a Query Decision)
+      - execute-adhoc: run a one-off Query pipeline without saving it
+      - publish-fake-data: generate type-aware fake PubNub messages and publish them to test Decisions. Fetches BO field schema and produces realistic values per field type. Payloads are NESTED to match each field's JSONPath (e.g. \`$.message.body.application.user_id\` produces \`{ application: { user_id: ... } }\`, not the flat key \`"application.user_id"\`), so JSONPath resolution works against nested BO schemas. Pass secret_key when the keyset has Access Manager enabled — initializing with the secret key grants root permissions and bypasses 403 errors. Alternatively pass auth_key with a token from grantToken(). Failures are reported per-message; partial publishes return success with a 'failures' array. NOTE: Illuminate ingests with a 20–30 second delay — wait before querying after publish.
+      - verify-query: execute a saved Query by id and return results (confirms data is flowing)
+      - check-action-log: fetch recent Decision action log entries to verify a Decision fired
+      - raw-snapshot: return the most recent rows from a Business Object via ad-hoc query
+      - aggregate: group and count BO data by user/channel or custom group_by fields
+      - field-health: check which BO fields are populated vs empty (reveals JSONPath mismatches)
+      - custom-query: run a fully custom ad-hoc pipeline
+
+      **ID Dependency Chain — always capture before proceeding:**
+      Business Object → id, fields[*].id
+      Metric          → id, measureId, dimensionIds
+      Query           → id, then call get-fields for output field IDs
+      Decision        → id, inputFields[*].id, outputFields[*].id, actions[*].id
+      Dashboard       → id, charts[*].id
+
+      **Critical Decision rules:**
+      hitType ('SINGLE'|'MATCH_ALL') and executeOnce (boolean) are required — omitting causes HTTP 500.
+      Handler auto-injects safe defaults (hitType=SINGLE, executeOnce=false, activeFrom=now, activeUntil=now+2yr).
+      The 2-step create workflow resolves field/action names → UUIDs in: action templates
+      (both output variable names AND input field names — input names are sentinel-substituted
+      pre-POST and restored post-POST), inputValues.inputFieldId, outputValues.outputFieldId,
+      outputValues.value (dollar-brace), actionValues.actionId, and
+      actionValues.executionLimitInputFieldIds. Use names everywhere.
+      If the PUT step fails the handler deletes the orphaned scaffold automatically.
+
+      **CRITICAL — QUERY decision input field naming:**
+      For sourceType=QUERY decisions, each inputField.name MUST exactly match the source
+      query's output field alias (case-sensitive, including underscores). Illuminate binds
+      query result rows to decision inputs by NAME — not by sourceId. If names don't match,
+      the decision will be created and activated successfully but will silently NEVER fire
+      even with valid data. Always run get-fields on the source query first and copy the
+      'field' values verbatim into your decision's inputFields[].name.
+
+      **Business Object limits (handler pre-flights and rejects on violation):**
+      - name: 1-100 characters
+      - fields[].name: 1-50 characters
+      - max 100 fields per BO
+      - **max 5 TEXT_LONG fields per BO** (use TEXT, which holds 256 chars, for shorter strings)
+      - keep \`description\` concise — overly long descriptions are rejected with HTTP 400 by the API
+
+      **Decision action default:**
+      When the user doesn't specify what action to fire, default to actionType='PUBNUB_PUBLISH'
+      with a message body that includes the relevant input/output values via dollar-brace
+      template references. PUBNUB_PUBLISH requires no external infrastructure and is trivially
+      verifiable via check-action-log or by subscribing to the target channel. Only use WEBHOOK
+      when the user has provided a specific URL.
+
+      NEVER delete without explicit user confirmation.
+
+      TOOL SELECTION GUIDE — Illuminate Claude Behavior:
+      1. Intent-first: Always start from the user's desired outcome. Ask what they want
+         to achieve before suggesting Business Objects, Metrics, or Decisions.
+      2. Preview-first: Before creating any resources, describe automation in 1-2 sentences
+         and show a conditions → actions decision table. Ask for confirmation before building.
+      3. Predefined templates: For spam (flooding/cross-posting) and ranking (Top N/Bottom N),
+         use the Query Builder predefined templates. Never recreate these from scratch.
+      4. Built-in BO fields: For chat/moderation/ranking, User/Channel/Message/Message Type
+         are auto-created. Never ask users to define them.
+      5. Start simple: Minimal decision for the core goal; add complexity only when requested.
+      6. PubNub extension: For delayed checks, scheduling, or orchestration beyond Illuminate,
+         suggest PubNub Functions or pub/sub as the first extension path.`,
+    inputSchema: ManageIlluminateSchema.shape,
+  },
+  handler: manageIlluminateHandler,
+};
+
+const insightsTool: ToolDef<InsightsSchemaType> = {
+  name: "insights",
+  definition: {
+    title: "Query PubNub Insights",
+    description: `Queries PubNub Insights — read-only aggregated analytics scoped to an account, app, or keyset.
+
+      **Entity scoping:** Every query requires an entityType ('account', 'app', or 'keyset') and
+      an entityId. For 'account' and 'app', the entityId is the numeric ID. For 'keyset', the
+      entityId is the subscribe key (sub-c-...).
+
+      Two endpoints, picked automatically by metric name:
+      - /v2/insights        → aggregated metrics (unique_channels, unique_users, messages, etc.)
+      - /v2/insights/top    → ranked metrics (top_20_channels, top_20_users, top_10_message_types, etc.)
+
+      TOOL SELECTION GUIDE — Insights Claude Behavior:
+
+      1. Group-aware: Insights metrics are organized into 5 functional groups — Channels, Users,
+         Messages, User Behavior, Devices. When a user asks an analytic question, pick the right
+         group first and then the specific metric. See the how-to guides:
+         how_to(slug="how-to-get-insights-api-access"), channels, users, messages,
+         user-behavior-and-devices, filters.
+
+      2. Period rules (enforced at runtime):
+         - Duration metrics (avg_user_duration, unique_users_by_duration_timeframe,
+           top_*_channels_with_user_duration) → period=hourly ONLY.
+         - Top-N metrics (top_20_*, top_1000_*) → hourly or daily ONLY (no weekly/monthly).
+         - Country metrics → hourly or daily ONLY.
+         - new_vs_recurring_users → daily / weekly / monthly only (NOT hourly).
+         - All other metrics → all four periods supported.
+
+      3. Top metrics REQUIRE category. Without it, the call errors. Valid categories:
+         by_messages, by_chats, by_subscribers, by_users_with_messages,
+         by_users_with_chats, by_subscribed_channels, all.
+
+      4. Top-metric filtering uses \`filters\` (JSON), not \`filter\`. Use \`filters\` on
+         top_20_* / top_1000_* for thresholds (count_messages gt), allowlists (channel_name
+         in), and prefixes (uuid startsWith). Use \`filter\` only on channel_patterns.
+
+      5. UTC timestamps. fromDate and toDate are YYYY-MM-DD in UTC. Always frame the response
+         with the date range and timezone so the user has unambiguous context.
+
+      6. Top-N counts CANNOT be summed across periods. If the user asks for "top channels this
+         week" and you query with period=daily, return one ranking per day, not a weekly sum.
+
+      7. Default to period=daily for most queries. It supports the widest set of metrics and
+         gives a clean trend view. Use hourly only when intra-day granularity is needed or for
+         duration metrics.
+
+      8. Account must be on Insights Premium. Free plan has no API access. Pro existing
+         customers may need to upgrade from Standard to Premium. If a 403 comes back, surface
+         this as the likely cause.
+
+      9. The tool does not write or store anything. Insights is strictly read-only.
+    `,
+    inputSchema: InsightsSchema.shape,
+  },
+  handler: insightsHandler,
+};
+
 export const tools = [
   getSDKDocumentationTool,
   getChatSDKDocumentationTool,
+  getSdkMigrationGuideTool,
+  getGeneralMigrationGuideTool,
   howToTool,
   writePubNubAppTool,
   manageAppsTool,
@@ -305,4 +489,6 @@ export const tools = [
   getPresenceTool,
   subscribeTool,
   getHistoryTool,
+  manageIlluminateTool,
+  insightsTool,
 ];

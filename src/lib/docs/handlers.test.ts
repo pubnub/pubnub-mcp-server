@@ -5,8 +5,10 @@ import {
   getBestPracticesHandler,
   getChatSDKDocumentationHandler,
   getChatSDKDocumentationResourceHandler,
+  getGeneralMigrationGuideHandler,
   getSDKDocumentationHandler,
   getSDKDocumentationResourceHandler,
+  getSdkMigrationGuideHandler,
   howToHandler,
 } from "./handlers";
 import type { GetChatSdkDocumentationSchemaType, GetSdkDocumentationSchemaType } from "./types";
@@ -272,6 +274,72 @@ describe("Docs Handlers", () => {
       );
 
       const result = await getBestPracticesHandler();
+
+      const parsedText = JSON.parse(result.content?.[0]?.text ?? "{}");
+      expect(parsedText.message).toBeDefined();
+    });
+  });
+
+  describe("getSdkMigrationGuideHandler", () => {
+    it("should get migration guide successfully", async () => {
+      const args = { language: "go" as const, version: "8" as const };
+      const result = await getSdkMigrationGuideHandler(args);
+
+      expect(result.content).toHaveLength(1);
+      const response = result.content?.[0];
+      expect(response?.type).toBe("text");
+
+      const parsedText = JSON.parse(response?.text ?? "{}");
+      expect(parsedText.content).toContain("Go SDK v8 Migration Guide");
+      expect(parsedText.metadata.title).toBe("Go SDK v8 Migration Guide");
+    });
+
+    it("should handle API error", async () => {
+      overrideDocsResponse(
+        "get",
+        "/migration-guide",
+        { error: "Not Found" },
+        {
+          status: 404,
+          statusText: "Not Found",
+        }
+      );
+
+      const args = { language: "go" as const, version: "8" as const };
+      const result = await getSdkMigrationGuideHandler(args);
+
+      const parsedText = JSON.parse(result.content?.[0]?.text ?? "{}");
+      expect(parsedText.message).toBeDefined();
+    });
+  });
+
+  describe("getGeneralMigrationGuideHandler", () => {
+    it("should get general migration guide successfully", async () => {
+      const args = { slug: "pam-v3-migration" as const };
+      const result = await getGeneralMigrationGuideHandler(args);
+
+      expect(result.content).toHaveLength(1);
+      const response = result.content?.[0];
+      expect(response?.type).toBe("text");
+
+      const parsedText = JSON.parse(response?.text ?? "{}");
+      expect(parsedText.content).toContain("PAM v3 Migration Guide");
+      expect(parsedText.metadata.title).toBe("PAM v3 Migration Guide");
+    });
+
+    it("should handle API error", async () => {
+      overrideDocsResponse(
+        "get",
+        "/general-migration-guide",
+        { error: "Not Found" },
+        {
+          status: 404,
+          statusText: "Not Found",
+        }
+      );
+
+      const args = { slug: "pam-v3-migration" as const };
+      const result = await getGeneralMigrationGuideHandler(args);
 
       const parsedText = JSON.parse(result.content?.[0]?.text ?? "{}");
       expect(parsedText.message).toBeDefined();

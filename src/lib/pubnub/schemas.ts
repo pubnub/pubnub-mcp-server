@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { hasPubSubEnvKeys } from "../utils";
 
 export const PubNubConfigSchema = z.object({
   publishKey: z
@@ -13,8 +12,6 @@ export const PubNubConfigSchema = z.object({
       "Subscribe Key that can be obtained from your keyset by manage_keysets tool with parameter operation list or in PubNub admin portal"
     ),
 });
-
-const conditionalKeysShape = hasPubSubEnvKeys() ? {} : PubNubConfigSchema.shape;
 
 export const PublishMessageSchema = z
   .object({
@@ -30,7 +27,7 @@ export const PublishMessageSchema = z
       )
       .default("message"),
   })
-  .extend(conditionalKeysShape);
+  .extend(PubNubConfigSchema.shape);
 
 export const GetPresenceSchema = z
   .object({
@@ -44,7 +41,7 @@ export const GetPresenceSchema = z
       .describe("List of channel group names (strings) to query presence data for"),
     uuid: z.string().optional().describe("UUID to query channel subscriptions for (WhereNow)"),
   })
-  .extend(conditionalKeysShape);
+  .extend(PubNubConfigSchema.shape);
 
 export const SubscribeSchema = z
   .object({
@@ -65,7 +62,7 @@ export const SubscribeSchema = z
         "Maximum timeout in seconds. If not all messages are received within this time, the subscription will end (default: 10 seconds, max 30 seconds)"
       ),
   })
-  .extend(conditionalKeysShape);
+  .extend(PubNubConfigSchema.shape);
 
 export const GetHistorySchema = z
   .object({
@@ -82,4 +79,4 @@ export const GetHistorySchema = z
       .describe("Timetoken delimiting the end (inclusive) of the time slice to pull messages from"),
     count: z.number().optional().describe("Number of historical messages to return per channel"),
   })
-  .extend(conditionalKeysShape);
+  .extend(PubNubConfigSchema.shape);

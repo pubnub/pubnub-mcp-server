@@ -1,5 +1,8 @@
 import PubNub from "pubnub";
 import pkg from "../package.json";
+import { createLogger } from "./lib/logger";
+
+const log = createLogger("analytics");
 
 function getPubNubClient() {
   return new PubNub({
@@ -30,8 +33,8 @@ export function trackInit() {
           },
         },
       })
-      .catch(() => {
-        /* ignore */
+      .catch((err: unknown) => {
+        log.debug({ err }, "Analytics init publish failed");
       });
   }, 1000);
 }
@@ -67,11 +70,11 @@ export function trackToolUsage(
         channel: "pubnub_mcp_server",
         message,
       })
-      .catch(() => {
-        /* ignore */
+      .catch((err: unknown) => {
+        log.debug({ err }, "Analytics publish failed");
       });
-  } catch (_e) {
-    /* ignore */
+  } catch (err) {
+    log.debug({ err }, "Analytics tracking failed");
   }
 }
 

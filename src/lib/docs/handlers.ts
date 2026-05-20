@@ -1,11 +1,23 @@
+import { createLogger } from "../logger";
 import { createResponse, parseError } from "../utils";
-import { getBestPractices, getChatSdkDocumentation, getHowTo, getSdkDocumentation } from "./api";
+import {
+  getBestPractices,
+  getChatSdkDocumentation,
+  getGeneralMigrationGuide,
+  getHowTo,
+  getSdkDocumentation,
+  getSdkMigrationGuide,
+} from "./api";
 import type {
   DocumentationApiResponse,
   GetChatSdkDocumentationSchemaType,
+  GetGeneralMigrationGuideSchemaType,
   GetSdkDocumentationSchemaType,
+  GetSdkMigrationGuideSchemaType,
   HowToSchemaType,
 } from "./types";
+
+const log = createLogger("docs:handlers");
 
 /**
  * Factory function to create a documentation resource handler
@@ -55,7 +67,10 @@ export async function getSDKDocumentationHandler(args: GetSdkDocumentationSchema
     const result = await getSdkDocumentation(args.language, args.feature);
     return createResponse(JSON.stringify(result, null, 2));
   } catch (e) {
-    console.error(e);
+    log.error(
+      { err: e, language: args.language, feature: args.feature },
+      "Failed to get SDK documentation"
+    );
     return createResponse(JSON.stringify(parseError(e)), true);
   }
 }
@@ -65,7 +80,10 @@ export async function getChatSDKDocumentationHandler(args: GetChatSdkDocumentati
     const result = await getChatSdkDocumentation(args.language, args.feature);
     return createResponse(JSON.stringify(result, null, 2));
   } catch (e) {
-    console.error(e);
+    log.error(
+      { err: e, language: args.language, feature: args.feature },
+      "Failed to get Chat SDK documentation"
+    );
     return createResponse(JSON.stringify(parseError(e)), true);
   }
 }
@@ -75,7 +93,7 @@ export async function howToHandler(args: HowToSchemaType) {
     const result = await getHowTo(args.slug);
     return createResponse(JSON.stringify(result, null, 2));
   } catch (e) {
-    console.error(e);
+    log.error({ err: e, slug: args.slug }, "Failed to get how-to guide");
     return createResponse(JSON.stringify(parseError(e)), true);
   }
 }
@@ -85,7 +103,30 @@ export async function getBestPracticesHandler() {
     const result = await getBestPractices();
     return createResponse(JSON.stringify(result, null, 2));
   } catch (e) {
-    console.error(e);
+    log.error({ err: e }, "Failed to get best practices");
+    return createResponse(JSON.stringify(parseError(e)), true);
+  }
+}
+
+export async function getSdkMigrationGuideHandler(args: GetSdkMigrationGuideSchemaType) {
+  try {
+    const result = await getSdkMigrationGuide(args.language, args.version);
+    return createResponse(JSON.stringify(result, null, 2));
+  } catch (e) {
+    log.error(
+      { err: e, language: args.language, version: args.version },
+      "Failed to get SDK migration guide"
+    );
+    return createResponse(JSON.stringify(parseError(e)), true);
+  }
+}
+
+export async function getGeneralMigrationGuideHandler(args: GetGeneralMigrationGuideSchemaType) {
+  try {
+    const result = await getGeneralMigrationGuide(args.slug);
+    return createResponse(JSON.stringify(result, null, 2));
+  } catch (e) {
+    log.error({ err: e, slug: args.slug }, "Failed to get general migration guide");
     return createResponse(JSON.stringify(parseError(e)), true);
   }
 }

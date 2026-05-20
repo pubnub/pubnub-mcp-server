@@ -1,89 +1,44 @@
 import { HttpResponse, http } from "msw";
 import type { DocumentationApiResponse } from "../lib/docs/types";
-import type * as v1 from "../lib/portal/v1/types";
-import type * as v2 from "../lib/portal/v2/types";
+import type * as v2 from "../lib/portal/types";
 import {
   mockApiError,
-  mockAppsListResponse,
-  mockAuthError,
-  mockAuthResponse,
   mockBestPracticesDocumentation,
   mockChatSdkDocumentation,
-  mockCreateAppResponse,
-  mockCreateKeyResponse,
-  mockFaasNoConflictsResponse,
+  mockGeneralMigrationGuideDocumentation,
   mockHowToDocumentation,
-  mockListKeysResponse,
+  mockIlluminateActionLog,
+  mockIlluminateBusinessObject,
+  mockIlluminateQueryFields,
+  mockIlluminateQueryResult,
+  mockInsightsResult,
+  mockInsightsTopResult,
   mockSdkDocumentation,
+  mockSdkMigrationGuideDocumentation,
   mockV2App,
   mockV2AppsListResponse,
   mockV2CreateKeysetResponse,
   mockV2KeysetsListResponse,
 } from "./test-fixtures";
 
-const ADMIN_API_V1_URL = process.env.ADMIN_API_V1_URL ?? "https://admin.pubnub.com/api";
 const ADMIN_API_V2_URL = process.env.ADMIN_API_V2_URL ?? "https://admin-api.pubnub.com";
 const SDK_DOCS_API_URL = process.env.SDK_DOCS_API_URL ?? "https://docs.pubnubtools.com/api/v1";
 
-// v1 Portal API Handlers
-export const portalV1Handlers = [
-  http.post(`${ADMIN_API_V1_URL}/me`, () => {
-    return HttpResponse.json<v1.AuthResponse>(mockAuthResponse);
-  }),
-
-  http.get(`${ADMIN_API_V1_URL}/apps`, () => {
-    return HttpResponse.json<v1.AppsResponse>(mockAppsListResponse);
-  }),
-
-  http.post(`${ADMIN_API_V1_URL}/apps`, () => {
-    return HttpResponse.json<v1.AppResponse>(mockCreateAppResponse);
-  }),
-
-  http.put(`${ADMIN_API_V1_URL}/apps/:id`, () => {
-    return HttpResponse.json<v1.AppResponse>(mockCreateAppResponse);
-  }),
-
-  http.get(`${ADMIN_API_V1_URL}/keys`, () => {
-    return HttpResponse.json<v1.KeysetsResponse>(mockListKeysResponse);
-  }),
-
-  http.post(`${ADMIN_API_V1_URL}/keys`, () => {
-    return HttpResponse.json<v1.KeysetResponse>(mockCreateKeyResponse);
-  }),
-
-  http.put(`${ADMIN_API_V1_URL}/keys/:id`, () => {
-    return HttpResponse.json<v1.KeysetResponse>(mockCreateKeyResponse);
-  }),
-
-  http.post(`${ADMIN_API_V1_URL}/bizops-dashboards/accounts/:accountId/word-lists`, () => {
-    return HttpResponse.json<v1.CreateWordListRequest>();
-  }),
-
-  http.get(`${ADMIN_API_V1_URL}/faas/v1/package-deployments/intersected`, () => {
-    return HttpResponse.json<v1.FaasConflictsResponse>(mockFaasNoConflictsResponse);
-  }),
-
-  http.post(`${ADMIN_API_V1_URL}/bizops-dashboards/auto-moderation/:accountId/configs`, () => {
-    return HttpResponse.json({});
-  }),
-];
-
-// v2 Admin API Handlers
 export const portalV2Handlers = [
   http.get(`${ADMIN_API_V2_URL}/v2/apps`, () => {
     return HttpResponse.json<v2.AppsResponse>(mockV2AppsListResponse);
   }),
 
   http.post(`${ADMIN_API_V2_URL}/v2/apps`, () => {
-    return HttpResponse.json<v2.App>(mockV2App, { status: 201 });
+    return HttpResponse.json<v2.ApiApp>(mockV2App, { status: 201 });
   }),
 
   http.get(`${ADMIN_API_V2_URL}/v2/apps/:id`, () => {
-    return HttpResponse.json<v2.App>(mockV2App);
+    return HttpResponse.json<v2.ApiApp>(mockV2App);
   }),
 
   http.patch(`${ADMIN_API_V2_URL}/v2/apps/:id`, () => {
-    return HttpResponse.json<v2.App>(mockV2App);
+    return HttpResponse.json<v2.ApiApp>(mockV2App);
   }),
 
   http.get(`${ADMIN_API_V2_URL}/v2/keysets`, () => {
@@ -119,21 +74,72 @@ export const docsHandlers = [
   http.get(`${SDK_DOCS_API_URL}/best-practice`, () => {
     return HttpResponse.json<DocumentationApiResponse>(mockBestPracticesDocumentation);
   }),
+
+  http.get(`${SDK_DOCS_API_URL}/migration-guide`, () => {
+    return HttpResponse.json<DocumentationApiResponse>(mockSdkMigrationGuideDocumentation);
+  }),
+
+  http.get(`${SDK_DOCS_API_URL}/general-migration-guide`, () => {
+    return HttpResponse.json<DocumentationApiResponse>(mockGeneralMigrationGuideDocumentation);
+  }),
 ];
 
-export const handlers = [...portalV1Handlers, ...portalV2Handlers, ...docsHandlers];
+export const illuminateHandlers = [
+  http.get(`${ADMIN_API_V2_URL}/v2/illuminate/queries/:id/fields`, () => {
+    return HttpResponse.json(mockIlluminateQueryFields);
+  }),
+
+  http.post(`${ADMIN_API_V2_URL}/v2/illuminate/queries/execute`, () => {
+    return HttpResponse.json(mockIlluminateQueryResult);
+  }),
+
+  http.post(`${ADMIN_API_V2_URL}/v2/illuminate/queries/:id/execute`, () => {
+    return HttpResponse.json(mockIlluminateQueryResult);
+  }),
+
+  http.get(`${ADMIN_API_V2_URL}/v2/illuminate/decisions/:id/action-log`, () => {
+    return HttpResponse.json(mockIlluminateActionLog);
+  }),
+
+  http.get(`${ADMIN_API_V2_URL}/v2/illuminate/:resource`, () => {
+    return HttpResponse.json([mockIlluminateBusinessObject]);
+  }),
+
+  http.get(`${ADMIN_API_V2_URL}/v2/illuminate/:resource/:id`, () => {
+    return HttpResponse.json(mockIlluminateBusinessObject);
+  }),
+
+  http.post(`${ADMIN_API_V2_URL}/v2/illuminate/:resource`, () => {
+    return HttpResponse.json(mockIlluminateBusinessObject, { status: 201 });
+  }),
+
+  http.put(`${ADMIN_API_V2_URL}/v2/illuminate/:resource/:id`, () => {
+    return HttpResponse.json(mockIlluminateBusinessObject);
+  }),
+
+  http.delete(`${ADMIN_API_V2_URL}/v2/illuminate/:resource/:id`, () => {
+    return new HttpResponse(null, { status: 204 });
+  }),
+];
+
+export const insightsHandlers = [
+  http.get(`${ADMIN_API_V2_URL}/v2/insights/top`, () => {
+    return HttpResponse.json(mockInsightsTopResult);
+  }),
+
+  http.get(`${ADMIN_API_V2_URL}/v2/insights`, () => {
+    return HttpResponse.json(mockInsightsResult);
+  }),
+];
+
+export const handlers = [
+  ...portalV2Handlers,
+  ...docsHandlers,
+  ...illuminateHandlers,
+  ...insightsHandlers,
+];
 
 export const errorHandlers = {
-  authError: () =>
-    http.post(`${ADMIN_API_V1_URL}/me`, () => {
-      return HttpResponse.json(mockAuthError, { status: 401 });
-    }),
-
-  portalError: (status = 500, message = "Internal Server Error") =>
-    http.all(`${ADMIN_API_V1_URL}/*`, () => {
-      return HttpResponse.json(mockApiError, { status, statusText: message });
-    }),
-
   adminApiError: (status = 500, message = "Internal Server Error") =>
     http.all(`${ADMIN_API_V2_URL}/*`, () => {
       return HttpResponse.json(mockApiError, { status, statusText: message });

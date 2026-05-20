@@ -1,90 +1,8 @@
 import type { DocumentationApiResponse } from "../lib/docs/types";
-import type * as v1 from "../lib/portal/v1/types";
-import type * as v2 from "../lib/portal/v2/types";
-
-// v1 Portal API Fixtures
-export const mockAuthResponse: v1.AuthResponse = {
-  result: {
-    token: "mock-session-token-123",
-    user_id: 456,
-    user: {
-      account_id: 789,
-    },
-  },
-};
-
-export const mockKey: v1.Keyset = {
-  id: 1,
-  app_id: 100,
-  subscribe_key: "sub-c-mock-key",
-  publish_key: "pub-c-mock-key",
-  secret_key: "sec-c-mock-key",
-  created: Date.now(),
-  modified: Date.now(),
-  type: 0,
-  properties: {
-    name: "Test Keyset",
-    history: true,
-    message_storage_ttl: 7,
-    objects: true,
-    objects_region: "aws-iad-1",
-    presence: true,
-    files_enabled: true,
-    files_s3_bucket_region: "us-east-1",
-    files_ttl_in_days: 7,
-  },
-};
-
-export const mockApp: v1.App = {
-  id: 100,
-  name: "Test App",
-  keys: [mockKey],
-};
-
-export const mockAppsListResponse: v1.AppsResponse = {
-  result: [mockApp],
-  total: 1,
-};
-
-export const mockCreateAppResponse: v1.AppResponse = {
-  result: {
-    id: 100,
-  },
-};
-
-export const mockCreateKeyResponse: v1.KeysetResponse = {
-  result: mockKey,
-};
-
-export const mockListKeysResponse: v1.KeysetsResponse = {
-  result: [mockKey],
-};
-
-export const mockWordList: v1.CreateWordListRequest = {
-  name: "Test Word List",
-  words: ["word1", "word2", "word3"],
-};
-
-export const mockFaasNoConflictsResponse: v1.FaasConflictsResponse = {
-  data: [
-    {
-      channel: "*",
-      packageDeployments: [],
-    },
-  ],
-};
-
-export const mockFaasConflictsResponse: v1.FaasConflictsResponse = {
-  data: [
-    {
-      channel: "*",
-      packageDeployments: ["there is a conflict"],
-    },
-  ],
-};
+import type * as v2 from "../lib/portal/types";
 
 // v2 Portal API Fixtures
-export const mockV2App: v2.App = {
+export const mockV2App: v2.ApiApp = {
   id: "100",
   name: "Test App",
   createdAt: "2024-01-01T00:00:00Z",
@@ -96,7 +14,7 @@ export const mockV2AppsListResponse: v2.AppsResponse = {
   total: 1,
 };
 
-export const mockV2Keyset: v2.Keyset = {
+export const mockV2Keyset: v2.ApiKeyset = {
   id: "1",
   name: "Test Keyset",
   appId: "100",
@@ -201,6 +119,25 @@ export const mockBestPracticesDocumentation: DocumentationApiResponse = {
   },
 };
 
+export const mockSdkMigrationGuideDocumentation: DocumentationApiResponse = {
+  content:
+    "# Go SDK v8 Migration Guide\n\nThis guide covers the breaking changes when upgrading to Go SDK v8.",
+  metadata: {
+    title: "Go SDK v8 Migration Guide",
+    source_url: "https://www.pubnub.com/docs/sdks/go/migration-guides/go-v8-migration-guide",
+    updated_at: "2024-06-01T00:00:00Z",
+  },
+};
+
+export const mockGeneralMigrationGuideDocumentation: DocumentationApiResponse = {
+  content: "# PAM v3 Migration Guide\n\nThis guide covers migrating from Access Manager v2 to v3.",
+  metadata: {
+    title: "PAM v3 Migration Guide",
+    source_url: "https://www.pubnub.com/docs/general/resources/migration-guides/pam-v3-migration",
+    updated_at: "2024-03-01T00:00:00Z",
+  },
+};
+
 // Billing fixtures (used by integration tests)
 export const mockBillingInfoPro = {
   base: true,
@@ -212,15 +149,28 @@ export const mockBillingInfoPro = {
   illuminate: true,
 };
 
+// Insights API Fixtures
+export const mockInsightsResult = {
+  metric: "unique_channels",
+  data: [
+    { timestamp: "2026-04-01T00:00:00Z", value: 42 },
+    { timestamp: "2026-04-02T00:00:00Z", value: 45 },
+  ],
+};
+
+export const mockInsightsTopResult = {
+  metric: "top_20_channels",
+  category: "by_messages",
+  data: [
+    { name: "channel-a", count_messages: 1000 },
+    { name: "channel-b", count_messages: 500 },
+  ],
+};
+
 // Error fixtures
 export const mockApiError = {
   message: "API request failed",
   name: "APIError",
-};
-
-export const mockAuthError = {
-  message: "Authentication failed: 401 Unauthorized",
-  name: "Error",
 };
 
 export const mockNetworkError = {
@@ -232,4 +182,95 @@ export const mockV2Error: v2.ErrorResponse = {
   statusCode: 400,
   error: "BadRequest",
   message: ["Invalid request"],
+};
+
+// Illuminate API Fixtures
+export const mockIlluminateBusinessObject = {
+  id: "bo-abc-123",
+  name: "Chat Messages",
+  isActive: true,
+  subkeys: ["sub-c-mock-key"],
+  fields: [
+    {
+      id: "f-user",
+      name: "userId",
+      source: "custom",
+      jsonPath: "$.message.body.userId",
+      jsonFieldType: "TEXT",
+    },
+    {
+      id: "f-channel",
+      name: "channel",
+      source: "custom",
+      jsonPath: "$.message.body.channel",
+      jsonFieldType: "TEXT",
+    },
+    {
+      id: "f-msg",
+      name: "message",
+      source: "custom",
+      jsonPath: "$.message.body.message",
+      jsonFieldType: "TEXT_LONG",
+    },
+    {
+      id: "f-count",
+      name: "messageCount",
+      source: "custom",
+      jsonPath: "$.message.body.messageCount",
+      jsonFieldType: "NUMERIC",
+    },
+  ],
+};
+
+export const mockIlluminateDecisionScaffold = {
+  id: "dec-xyz-789",
+  name: "Spam Detection",
+  hitType: "SINGLE",
+  executeOnce: false,
+  enabled: false,
+  rules: [],
+  sourceType: "BUSINESSOBJECT",
+  sourceId: "bo-abc-123",
+  inputFields: [{ id: "if-aaa", name: "message_count", sourceType: "BUSINESSOBJECT" }],
+  outputFields: [{ id: "of-bbb", name: "alert_level", variable: "alert_level" }],
+  actions: [{ id: "act-ccc", name: "notify_moderator", actionType: "WEBHOOK" }],
+  activeFrom: "2026-01-01T00:00:00.000Z",
+  activeUntil: "2027-12-31T23:59:59.000Z",
+};
+
+export const mockIlluminateDecisionWithRules = {
+  ...mockIlluminateDecisionScaffold,
+  enabled: true,
+  rules: [
+    {
+      inputValues: [{ inputFieldId: "if-aaa", operation: "GREATER_THAN", value: "10" }],
+      outputValues: [{ outputFieldId: "of-bbb", value: "high" }],
+      actionValues: [{ actionId: "act-ccc", enabled: true }],
+    },
+  ],
+};
+
+export const mockIlluminateQueryFields = [
+  { id: "qf-1", name: "userId", alias: "userId", type: "dimension" },
+  { id: "qf-2", name: "channel", alias: "channel", type: "dimension" },
+  { id: "qf-3", name: "count", alias: "count", type: "measure" },
+];
+
+export const mockIlluminateQueryResult = {
+  data: [
+    { userId: "user-1", channel: "general", count: 42 },
+    { userId: "user-2", channel: "random", count: 17 },
+  ],
+};
+
+export const mockIlluminateActionLog = {
+  entries: [
+    {
+      id: "log-1",
+      decisionId: "dec-xyz-789",
+      actionName: "notify_moderator",
+      firedAt: "2026-04-01T12:00:00Z",
+      result: "SUCCESS",
+    },
+  ],
 };
