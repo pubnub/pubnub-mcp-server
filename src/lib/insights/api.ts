@@ -12,14 +12,20 @@ function getBaseUrl(): string {
 }
 
 function getAuthHeader(): string {
-  const token = getOAuthToken();
-  if (!token) {
-    log.error("No OAuth token available for Insights API request");
-    throw new Error(
-      "No authentication token available. Ensure OAuth is configured and the request includes a valid Bearer token."
-    );
+  const oauthToken = getOAuthToken();
+  if (oauthToken) {
+    return `Bearer ${oauthToken}`;
   }
-  return `Bearer ${token}`;
+
+  const apiKey = process.env.PUBNUB_API_KEY;
+  if (apiKey) {
+    return apiKey;
+  }
+
+  log.error("No authentication available for Illuminate API request");
+  throw new Error(
+    "No authentication available. Provide a Bearer token (HTTP/OAuth mode) or set PUBNUB_API_KEY environment variable (stdio mode)."
+  );
 }
 
 function getHeaders(): Record<string, string> {
