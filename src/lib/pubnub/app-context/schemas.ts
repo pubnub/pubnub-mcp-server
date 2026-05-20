@@ -1,5 +1,4 @@
 import { z } from "zod";
-import { hasPubSubEnvKeys } from "../../utils";
 import { PubNubConfigSchema } from "../schemas";
 
 export const AppContextType = z
@@ -281,4 +280,4 @@ export const ManageAppContextSchema = z
       ),
     options: ManageAppContextOptions,
   })
-  .extend(hasPubSubEnvKeys() ? {} : PubNubConfigSchema.shape);
+  .extend(PubNubConfigSchema.shape);

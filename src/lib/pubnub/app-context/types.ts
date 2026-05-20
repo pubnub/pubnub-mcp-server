@@ -1,15 +1,14 @@
 import type { AppContext } from "pubnub";
 import type z from "zod";
-import type { ApiParams, HandlerArgs } from "../types";
 import type { ManageAppContextSchema } from "./schemas";
 
 export type ManageAppContextSchemaType = z.infer<typeof ManageAppContextSchema>;
 
-// Type for handler args where keys are optional (may come from env)
-export type ManageAppContextHandlerArgs = HandlerArgs<ManageAppContextSchemaType>;
+// Type for handler args (same as schema type, keys are required)
+export type ManageAppContextHandlerArgs = ManageAppContextSchemaType;
 
-// Type for API params where keys are ALWAYS required (withEnvKeys guarantees this)
-export type ManageAppContextParams = ApiParams<ManageAppContextSchemaType>;
+// Type for API params (same as schema type)
+export type ManageAppContextParams = ManageAppContextSchemaType;
 
 export type MetadataSortingOptions = AppContext.MetadataSortingOptions<
   AppContext.UUIDMetadataObject<AppContext.CustomData>

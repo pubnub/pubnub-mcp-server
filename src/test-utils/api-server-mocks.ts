@@ -1,21 +1,22 @@
 import type { Server } from "node:http";
 import express, { type Express } from "express";
 import {
-  mockAppsListResponse,
-  mockAuthResponse,
   mockBestPracticesDocumentation,
-  mockBillingInfoPro,
   mockChatSdkDocumentation,
-  mockCreateAppResponse,
   mockHowToDocumentation,
-  mockListKeysResponse,
+  mockIlluminateActionLog,
+  mockIlluminateBusinessObject,
+  mockIlluminateDecisionScaffold,
+  mockIlluminateDecisionWithRules,
+  mockIlluminateQueryFields,
+  mockIlluminateQueryResult,
   mockSdkDocumentation,
+  mockV2App,
+  mockV2AppsListResponse,
+  mockV2CreateKeysetResponse,
+  mockV2KeysetsListResponse,
 } from "./test-fixtures";
 
-/**
- * Creates a mock Portal API server that handles all PubNub Portal API endpoints
- * This server runs in the test process and handles requests from the MCP child process
- */
 export function createMockPortalApiServer(
   port: number
 ): Promise<{ server: Server; close: () => Promise<void> }> {
@@ -23,7 +24,6 @@ export function createMockPortalApiServer(
     const app: Express = express();
     app.use(express.json());
 
-    // Enable CORS
     app.use((req, res, next) => {
       res.header("Access-Control-Allow-Origin", "*");
       res.header("Access-Control-Allow-Methods", "GET, POST, PATCH, DELETE, OPTIONS");
@@ -35,72 +35,73 @@ export function createMockPortalApiServer(
       }
     });
 
-    // Authentication endpoint - CRITICAL
-    app.post("/api/me", (_req, res) => {
-      res.json(mockAuthResponse);
+    app.get("/v2/apps", (_req, res) => {
+      res.json(mockV2AppsListResponse);
     });
 
-    // Apps endpoints
-    app.get("/api/apps", (_req, res) => {
-      res.json(mockAppsListResponse);
+    app.post("/v2/apps", (_req, res) => {
+      res.status(201).json(mockV2App);
     });
 
-    app.post("/api/apps", (_req, res) => {
-      res.json(mockCreateAppResponse);
+    app.get("/v2/apps/:id", (_req, res) => {
+      res.json(mockV2App);
     });
 
-    app.patch("/api/apps/:appId", (_req, res) => {
-      res.json({ success: true });
+    app.patch("/v2/apps/:id", (_req, res) => {
+      res.json(mockV2App);
     });
 
-    // Keysets endpoints
-    app.get("/api/keys", (_req, res) => {
-      res.json(mockListKeysResponse);
+    app.get("/v2/keysets", (_req, res) => {
+      res.json(mockV2KeysetsListResponse);
     });
 
-    app.post("/api/keys", (_req, res) => {
-      res.json(mockListKeysResponse);
+    app.post("/v2/keysets", (_req, res) => {
+      res.status(201).json(mockV2CreateKeysetResponse);
     });
 
-    app.patch("/api/keys/:keysetId", (_req, res) => {
-      res.json({ success: true });
+    app.get("/v2/keysets/:id/config", (_req, res) => {
+      res.json(mockV2CreateKeysetResponse.config);
     });
 
-    // Account/billing endpoint
-    app.get("/api/subscription/accounts/:accountId/is-paid", (_req, res) => {
-      res.json(mockBillingInfoPro);
+    app.patch("/v2/keysets/:id/config", (_req, res) => {
+      res.json(mockV2CreateKeysetResponse.config);
     });
 
-    // Auto moderation config endpoints
-    // Check for conflicts (called before creating AM config)
-    app.get("/api/faas/v1/package-deployments/intersected", (_req, res) => {
-      res.json({
-        data: [], // No conflicts - empty array
+    const httpServer = app.listen(port, () => {
+      resolve({
+        server: httpServer,
+        close: () =>
+          new Promise(resolveClose => {
+            httpServer.close(() => resolveClose());
+          }),
       });
     });
 
-    // Create word list (called when word masking is enabled)
-    app.post("/api/bizops-dashboards/accounts/:accountId/word-lists", (req, res) => {
-      res.json({
-        id: 123, // Must be a number, not a string
-        name: req.body?.name || "Test Word List",
-        words: req.body?.words || [],
-      });
+    httpServer.on("error", reject);
+  });
+}
+
+export function createMockDocsApiServer(
+  port: number
+): Promise<{ server: Server; close: () => Promise<void> }> {
+  return new Promise((resolve, reject) => {
+    const app: Express = express();
+    app.use(express.json());
+
+    app.get("/api/v1/sdk", (_req, res) => {
+      res.json(mockSdkDocumentation);
     });
 
-    // Create auto moderation config
-    app.post("/api/bizops-dashboards/auto-moderation/:accountId/configs", (req, res) => {
-      res.json({
-        success: true,
-        config: {
-          id: "am-config-123",
-          keysetId: req.body?.keysetId || "123456",
-          name: req.body?.name || "Test Config",
-          description: req.body?.description || "",
-          channels: req.body?.channels || [],
-          activate: true,
-        },
-      });
+    app.get("/api/v1/chat-sdk", (_req, res) => {
+      res.json(mockChatSdkDocumentation);
+    });
+
+    app.get("/api/v1/how-to", (_req, res) => {
+      res.json(mockHowToDocumentation);
+    });
+
+    app.get("/api/v1/best-practice", (_req, res) => {
+      res.json(mockBestPracticesDocumentation);
     });
 
     const httpServer = app.listen(port, () => {
@@ -118,25 +119,106 @@ export function createMockPortalApiServer(
 }
 
 /**
- * Creates a mock Docs API server that handles all documentation API endpoints
+ * Creates a mock Illuminate API server that handles all Illuminate REST endpoints
  * This server runs in the test process and handles requests from the MCP child process
  */
-export function createMockDocsApiServer(
+export function createMockIlluminateApiServer(
   port: number
 ): Promise<{ server: Server; close: () => Promise<void> }> {
   return new Promise((resolve, reject) => {
     const app: Express = express();
     app.use(express.json());
 
-    // SDK documentation endpoint
-    app.get("/api/v1/sdk", (_req, res) => {
-      res.json(mockSdkDocumentation);
+    const router = express.Router();
+
+    // Business Objects
+    router.get("/business-objects", (_req, res) => {
+      res.json([mockIlluminateBusinessObject]);
     });
 
-    // Chat SDK documentation endpoint
-    app.get("/api/v1/chat-sdk", (_req, res) => {
-      res.json(mockChatSdkDocumentation);
+    router.get("/business-objects/:id", (_req, res) => {
+      res.json(mockIlluminateBusinessObject);
     });
+
+    router.post("/business-objects", (req, res) => {
+      res.json({ ...mockIlluminateBusinessObject, ...req.body });
+    });
+
+    router.put("/business-objects/:id", (req, res) => {
+      res.json({ ...mockIlluminateBusinessObject, ...req.body });
+    });
+
+    router.delete("/business-objects/:id", (_req, res) => {
+      res.status(204).send();
+    });
+
+    // Metrics
+    router.get("/metrics", (_req, res) => {
+      res.json([]);
+    });
+
+    router.get("/metrics/:id", (req, res) => {
+      res.json({ id: req.params.id, name: "Test Metric", function: "COUNT" });
+    });
+
+    router.post("/metrics", (req, res) => {
+      res.json({ id: "met-001", ...req.body });
+    });
+
+    // Decisions
+    router.get("/decisions", (_req, res) => {
+      res.json([mockIlluminateDecisionWithRules]);
+    });
+
+    router.get("/decisions/:id", (_req, res) => {
+      res.json(mockIlluminateDecisionWithRules);
+    });
+
+    router.post("/decisions", (req, res) => {
+      const scaffoldActions = mockIlluminateDecisionScaffold.actions.map(
+        (a: Record<string, unknown>, i: number) => {
+          const reqAction = req.body?.actions?.[i];
+          return reqAction ? { ...a, ...reqAction } : a;
+        }
+      );
+      res.json({ ...mockIlluminateDecisionScaffold, actions: scaffoldActions });
+    });
+
+    router.put("/decisions/:id", (req, res) => {
+      res.json({ ...mockIlluminateDecisionScaffold, ...req.body });
+    });
+
+    router.delete("/decisions/:id", (_req, res) => {
+      res.status(204).send();
+    });
+
+    router.get("/decisions/:id/action-log", (_req, res) => {
+      res.json(mockIlluminateActionLog);
+    });
+
+    // Queries
+    router.get("/queries/:id/fields", (_req, res) => {
+      res.json(mockIlluminateQueryFields);
+    });
+
+    router.post("/queries/execute", (_req, res) => {
+      res.json(mockIlluminateQueryResult);
+    });
+
+    router.post("/queries/:id/execute", (_req, res) => {
+      res.json(mockIlluminateQueryResult);
+    });
+
+    // Dashboards
+    router.get("/dashboards", (_req, res) => {
+      res.json([]);
+    });
+
+    router.post("/dashboards", (req, res) => {
+      res.json({ id: "dash-001", ...req.body });
+    });
+
+    app.use("/v2/illuminate", router);
 
     const httpServer = app.listen(port, () => {
       resolve({
@@ -146,14 +228,6 @@ export function createMockDocsApiServer(
             httpServer.close(() => resolveClose());
           }),
       });
-    });
-
-    app.get("/api/v1/how-to", (_req, res) => {
-      res.json(mockHowToDocumentation);
-    });
-
-    app.get("/api/v1/best-practice", (_req, res) => {
-      res.json(mockBestPracticesDocumentation);
     });
 
     httpServer.on("error", reject);

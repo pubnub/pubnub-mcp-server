@@ -1,7 +1,7 @@
 import { Client } from "@modelcontextprotocol/sdk/client/index.js";
-import { StdioClientTransport } from "@modelcontextprotocol/sdk/client/stdio.js";
+import { StreamableHTTPClientTransport } from "@modelcontextprotocol/sdk/client/streamableHttp.js";
 
-export const createMcpClient = () => {
+export const createMcpClient = (port = 3456) => {
   const mcpClient = new Client(
     {
       name: "mcp-client",
@@ -12,10 +12,7 @@ export const createMcpClient = () => {
     }
   );
 
-  const stdioTransport = new StdioClientTransport({
-    command: "npm",
-    args: ["start"],
-  });
+  const httpTransport = new StreamableHTTPClientTransport(new URL(`http://localhost:${port}`));
 
-  return { mcpClient, stdioTransport };
+  return { mcpClient, httpTransport };
 };

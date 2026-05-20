@@ -696,6 +696,12 @@ export const howToSlugs = [
   "send-receive-json",
   "set-up-events-and-actions",
   "set-up-illuminate-gaming",
+  "how-to-get-insights-api-access",
+  "how-to-query-insights-channels",
+  "how-to-query-insights-filters",
+  "how-to-query-insights-messages",
+  "how-to-query-insights-user-behavior-and-devices",
+  "how-to-query-insights-users",
   "signing-and-verifying-onrequest-function-requests",
   "skill-based-matchmaking-with-pubnub",
   "smooth-driver-location",
@@ -750,3 +756,67 @@ export const HowToSchema = z.object({
 });
 
 export const GetBestPracticesSchema = z.object({});
+
+export const sdkMigrationGuideLanguageToVersions = {
+  go: ["8"],
+  java: ["10", "13"],
+  javascript: ["8"],
+  kotlin: ["10", "13"],
+  php: ["8"],
+  unity: ["7"],
+} as const;
+
+function createLanguageVersionSchemas<TMapping extends Record<string, readonly string[]>>(
+  mapping: TMapping
+) {
+  type Language = Extract<keyof TMapping, string>;
+  type Version = TMapping[keyof TMapping][number];
+
+  const languageSchema = z.enum(
+    toTuple(Object.keys(mapping) as unknown as readonly [Language, ...Language[]])
+  );
+
+  const allVersions = Array.from(new Set(Object.values(mapping).flat())) as readonly Version[];
+
+  const versionSchema = z.enum(toTuple(allVersions));
+
+  const baseSchema = z.object({
+    language: languageSchema,
+    version: versionSchema,
+  });
+
+  const refinedSchema = baseSchema.superRefine((val, ctx) => {
+    const language = val.language as string;
+    const version = val.version as string;
+    const allowed = mapping[language] as readonly string[];
+
+    if (allowed && !allowed.includes(version)) {
+      ctx.addIssue({
+        code: z.ZodIssueCode.custom,
+        path: ["version"],
+        message: `Version "${version}" is not available for language "${language}". Available: ${allowed.join(", ")}`,
+      });
+    }
+  });
+
+  return { baseSchema, refinedSchema, mapping } as const;
+}
+
+const sdkMigrationGuideSchemas = createLanguageVersionSchemas(sdkMigrationGuideLanguageToVersions);
+export const GetSdkMigrationGuideSchema = sdkMigrationGuideSchemas.baseSchema;
+export const GetSdkMigrationGuideSchemaRefined = sdkMigrationGuideSchemas.refinedSchema;
+
+export const generalMigrationGuideSlugs = [
+  "256-bit-encryption-migration",
+  "apns2-migration-guide",
+  "legacy-fcm-migration-guide",
+  "legacy-webhooks-migration-guide",
+  "objects-v2-migration",
+  "pam-v3-migration",
+  "react-components-chat-sdk",
+] as const;
+
+export const GetGeneralMigrationGuideSchema = z.object({
+  slug: z.enum(toTuple(generalMigrationGuideSlugs)),
+});
+export const GetGeneralMigrationGuideSchemaRefined = GetGeneralMigrationGuideSchema;

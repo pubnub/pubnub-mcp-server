@@ -5,11 +5,24 @@ import { clearTestEnv, setupTestEnv } from "../../test-utils/msw-setup";
 import {
   mockBestPracticesDocumentation,
   mockChatSdkDocumentation,
+  mockGeneralMigrationGuideDocumentation,
   mockHowToDocumentation,
   mockSdkDocumentation,
+  mockSdkMigrationGuideDocumentation,
 } from "../../test-utils/test-fixtures";
-import { getBestPractices, getChatSdkDocumentation, getHowTo, getSdkDocumentation } from "./api";
-import type { GetChatSdkDocumentationSchemaType, GetSdkDocumentationSchemaType } from "./types";
+import {
+  getBestPractices,
+  getChatSdkDocumentation,
+  getGeneralMigrationGuide,
+  getHowTo,
+  getSdkDocumentation,
+  getSdkMigrationGuide,
+} from "./api";
+import type {
+  GetChatSdkDocumentationSchemaType,
+  GetSdkDocumentationSchemaType,
+  GetSdkMigrationGuideSchemaType,
+} from "./types";
 
 describe("Docs API", () => {
   beforeEach(() => {
@@ -191,6 +204,75 @@ describe("Docs API", () => {
       overrideDocsRoute("get", "/best-practice", () => HttpResponse.error());
 
       await expect(getBestPractices()).rejects.toThrow();
+    });
+  });
+
+  describe("getSdkMigrationGuide", () => {
+    it("should fetch migration guide successfully", async () => {
+      const result = await getSdkMigrationGuide("go", "8");
+
+      expect(result).toEqual(mockSdkMigrationGuideDocumentation);
+    });
+
+    it("should throw error on HTTP error response", async () => {
+      overrideDocsResponse(
+        "get",
+        "/migration-guide",
+        { error: "Not Found" },
+        {
+          status: 404,
+          statusText: "Not Found",
+        }
+      );
+
+      await expect(getSdkMigrationGuide("go", "8")).rejects.toThrow(
+        "Failed to fetch SDK documentation: 404 Not Found"
+      );
+    });
+
+    it("should throw error on network failure", async () => {
+      overrideDocsRoute("get", "/migration-guide", () => HttpResponse.error());
+
+      await expect(getSdkMigrationGuide("go", "8")).rejects.toThrow();
+    });
+
+    it("should reject invalid language/version combination", async () => {
+      await expect(
+        getSdkMigrationGuide(
+          "go" as GetSdkMigrationGuideSchemaType["language"],
+          "13" as GetSdkMigrationGuideSchemaType["version"]
+        )
+      ).rejects.toThrow();
+    });
+  });
+
+  describe("getGeneralMigrationGuide", () => {
+    it("should fetch general migration guide successfully", async () => {
+      const result = await getGeneralMigrationGuide("pam-v3-migration");
+
+      expect(result).toEqual(mockGeneralMigrationGuideDocumentation);
+    });
+
+    it("should throw error on HTTP error response", async () => {
+      overrideDocsResponse(
+        "get",
+        "/general-migration-guide",
+        { error: "Not Found" },
+        {
+          status: 404,
+          statusText: "Not Found",
+        }
+      );
+
+      await expect(getGeneralMigrationGuide("pam-v3-migration")).rejects.toThrow(
+        "Failed to fetch SDK documentation: 404 Not Found"
+      );
+    });
+
+    it("should throw error on network failure", async () => {
+      overrideDocsRoute("get", "/general-migration-guide", () => HttpResponse.error());
+
+      await expect(getGeneralMigrationGuide("pam-v3-migration")).rejects.toThrow();
     });
   });
 });

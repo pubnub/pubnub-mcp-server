@@ -2,11 +2,14 @@ import "dotenv/config";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import pkg from "../package.json";
 import { wrapToolHandler } from "./analytics.js";
+import { createLogger } from "./lib/logger";
 import { prompts } from "./prompts.js";
 import { resources } from "./resources";
 import { tools } from "./tools.js";
 import { runHttp } from "./transporters/http.js";
 import { runStdio } from "./transporters/stdio.js";
+
+const log = createLogger("server");
 
 export const SERVER_INFO = {
   name: "pubnub-mcp",
@@ -14,7 +17,7 @@ export const SERVER_INFO = {
   description: "PubNub MCP Server - Build Realtime applications with PubNub and AI assistants",
 };
 
-class PubNubMCPServer {
+export class PubNubMCPServer {
   private server: McpServer;
 
   constructor() {
@@ -62,6 +65,10 @@ class PubNubMCPServer {
     });
   }
 
+  getServer(): McpServer {
+    return this.server;
+  }
+
   async run() {
     const mode = process.env.MCP_MODE ?? "stdio";
     const port = parseInt(process.env.PORT ?? "3000", 10);
@@ -75,7 +82,7 @@ class PubNubMCPServer {
 }
 
 const args = process.argv.slice(2);
-const httpMode = args.includes("--http") ?? args.includes("-h");
+const httpMode = args.includes("--http") || args.includes("-h");
 const port =
   args.find(arg => arg.startsWith("--port="))?.split("=")[1] ?? process.env.PORT ?? "3000";
 
@@ -86,6 +93,6 @@ if (httpMode) {
 
 const server = new PubNubMCPServer();
 server.run().catch((error: unknown) => {
-  console.error("Failed to start server:", error);
+  log.fatal({ err: error }, "Failed to start server");
   process.exit(1);
 });

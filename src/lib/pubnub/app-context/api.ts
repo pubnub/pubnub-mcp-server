@@ -1,5 +1,6 @@
 import type PubNub from "pubnub";
 import type { AppContext } from "pubnub";
+import { createLogger } from "../../logger";
 import { getPubNubClient } from "../api";
 import type {
   ChannelMetadataSortingOptions,
@@ -11,6 +12,8 @@ import type {
   MetadataSortingOptions,
   OptionalBooleanRecord,
 } from "./types";
+
+const log = createLogger("pubnub:app-context");
 
 export type ManageAppContextResult =
   | Awaited<ReturnType<typeof handleUserOperation>>
@@ -292,6 +295,7 @@ async function handleMembershipOperation(
 
 export async function manageAppContext(args: ManageAppContextParams) {
   const { type, operation, id, publishKey, subscribeKey, data, options } = args;
+  log.debug({ type, operation }, "Managing app context");
 
   const pubnub = getPubNubClient({ publishKey, subscribeKey });
 
