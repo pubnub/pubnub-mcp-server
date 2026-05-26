@@ -48,19 +48,6 @@ function createLanguageFeatureSchemas<TMapping extends Record<string, readonly s
 }
 
 export const sdkLanguageToFeatures = {
-  asyncio: [
-    "access-manager",
-    "channel-groups",
-    "configuration",
-    "files",
-    "message-actions",
-    "misc",
-    "mobile-push",
-    "presence",
-    "publish",
-    "storage-and-playback",
-    "subscribe",
-  ],
   "c-core": [
     "access-manager",
     "channel-groups",
@@ -262,7 +249,20 @@ export const sdkLanguageToFeatures = {
     "storage-and-playback",
     "subscribe",
   ],
-  python: [
+  "python-asyncio": [
+    "access-manager",
+    "channel-groups",
+    "configuration",
+    "files",
+    "message-actions",
+    "misc",
+    "mobile-push",
+    "presence",
+    "publish",
+    "storage-and-playback",
+    "subscribe",
+  ],
+  "python-sync": [
     "access-manager",
     "appcontext-channel",
     "appcontext-members",

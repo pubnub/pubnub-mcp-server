@@ -60,13 +60,26 @@ async function makeDocsRequest<T>({
   return (await response.json()) as DocumentationApiResponse;
 }
 
+const pythonEcosystemHints: Partial<Record<GetSdkDocumentationSchemaType["language"], string>> = {
+  "python-sync":
+    "IMPORTANT: This is the SYNCHRONOUS Python SDK. Before answering or generating code, ALWAYS ask the customer to confirm whether they need the sync (python-sync) or async (python-asyncio) version of the SDK, then use the matching Resource!",
+  "python-asyncio":
+    "IMPORTANT: This is the ASYNCHRONOUS (asyncio) Python SDK. Before answering or generating code, ALWAYS ask the customer to confirm whether they need the sync (python-sync) or async (python-asyncio) version of the SDK, then use the matching Resource!",
+};
+
+const sdkLanguageApiAliases: Partial<Record<GetSdkDocumentationSchemaType["language"], string>> = {
+  "python-sync": "python",
+  "python-asyncio": "asyncio",
+};
+
 export async function getSdkDocumentation(
   language: GetSdkDocumentationSchemaType["language"],
   feature: GetSdkDocumentationSchemaType["feature"]
 ) {
-  const path = `/sdk?feature=${feature}&language=${language}`;
+  const apiLanguage = sdkLanguageApiAliases[language] ?? language;
+  const path = `/sdk?feature=${feature}&language=${apiLanguage}`;
 
-  return await makeDocsRequest<GetSdkDocumentationSchemaType>({
+  const response = await makeDocsRequest<GetSdkDocumentationSchemaType>({
     path,
     schema: GetSdkDocumentationSchemaRefined,
     args: {
@@ -74,6 +87,13 @@ export async function getSdkDocumentation(
       feature,
     },
   });
+
+  const hint = pythonEcosystemHints[language];
+  if (hint) {
+    return { ...response, hint };
+  }
+
+  return response;
 }
 
 export async function getChatSdkDocumentation(

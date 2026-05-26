@@ -158,6 +158,7 @@ const getSDKDocumentationTool: ToolDef<GetSdkDocumentationSchemaType> = {
       - Need fine-grained control over pub/sub, presence, storage, or access management
       - Implementing custom real-time patterns
       - Need API reference for specific SDK methods (publish, subscribe, history, etc.)
+      - For Python SDK usage always request about sync or asyncio version of langauge. 
 
       **Do NOT use for:**
       - Chat/messaging apps → use "get_chat_sdk_documentation" instead

@@ -26,4 +26,5 @@ export type DocumentationApiResponse = {
     source_url: string;
     updated_at: string;
   };
+  hint?: string;
 };
