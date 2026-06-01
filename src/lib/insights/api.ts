@@ -22,7 +22,7 @@ function getAuthHeader(): string {
     return apiKey;
   }
 
-  log.error("No authentication available for Illuminate API request");
+  log.error("No authentication available for Insights API request");
   throw new Error(
     "No authentication available. Provide a Bearer token (HTTP/OAuth mode) or set PUBNUB_API_KEY environment variable (stdio mode)."
   );
