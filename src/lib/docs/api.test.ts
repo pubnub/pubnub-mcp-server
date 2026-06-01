@@ -35,9 +35,76 @@ describe("Docs API", () => {
 
   describe("getSdkDocumentation", () => {
     it("should fetch SDK documentation successfully", async () => {
-      const result = await getSdkDocumentation("python", "configuration");
+      const result = await getSdkDocumentation("javascript", "publish");
 
       expect(result).toEqual(mockSdkDocumentation);
+    });
+
+    it("should include sync python hint when language is `python-sync`", async () => {
+      const result = await getSdkDocumentation("python-sync", "configuration");
+
+      expect(result).toEqual({
+        ...mockSdkDocumentation,
+        hint: "IMPORTANT: This is the SYNCHRONOUS Python SDK. Before answering or generating code, ALWAYS ask the customer to confirm whether they need the sync (python-sync) or async (python-asyncio) version of the SDK, then use the matching Resource!",
+      });
+    });
+
+    it("should include async python hint when language is `python-asyncio`", async () => {
+      const result = await getSdkDocumentation("python-asyncio", "configuration");
+
+      expect(result).toEqual({
+        ...mockSdkDocumentation,
+        hint: "IMPORTANT: This is the ASYNCHRONOUS (asyncio) Python SDK. Before answering or generating code, ALWAYS ask the customer to confirm whether they need the sync (python-sync) or async (python-asyncio) version of the SDK, then use the matching Resource!",
+      });
+    });
+
+    it("should not include a hint for non python/asyncio languages", async () => {
+      const result = await getSdkDocumentation("javascript", "publish");
+
+      expect(result).not.toHaveProperty("hint");
+    });
+
+    it("should call the docs API with `python` when public language is `python-sync`", async () => {
+      const capturedUrls: string[] = [];
+      overrideDocsRoute("get", "/sdk", ({ request }) => {
+        capturedUrls.push(request.url);
+        return HttpResponse.json(mockSdkDocumentation);
+      });
+
+      await getSdkDocumentation("python-sync", "configuration");
+
+      expect(capturedUrls).toHaveLength(1);
+      const url = new URL(capturedUrls[0] as string);
+      expect(url.searchParams.get("language")).toBe("python");
+      expect(url.searchParams.get("feature")).toBe("configuration");
+    });
+
+    it("should call the docs API with `asyncio` when public language is `python-asyncio`", async () => {
+      const capturedUrls: string[] = [];
+      overrideDocsRoute("get", "/sdk", ({ request }) => {
+        capturedUrls.push(request.url);
+        return HttpResponse.json(mockSdkDocumentation);
+      });
+
+      await getSdkDocumentation("python-asyncio", "configuration");
+
+      expect(capturedUrls).toHaveLength(1);
+      const url = new URL(capturedUrls[0] as string);
+      expect(url.searchParams.get("language")).toBe("asyncio");
+      expect(url.searchParams.get("feature")).toBe("configuration");
+    });
+
+    it("should not translate languages that are not Python ecosystem aliases", async () => {
+      const capturedUrls: string[] = [];
+      overrideDocsRoute("get", "/sdk", ({ request }) => {
+        capturedUrls.push(request.url);
+        return HttpResponse.json(mockSdkDocumentation);
+      });
+
+      await getSdkDocumentation("javascript", "publish");
+
+      const url = new URL(capturedUrls[0] as string);
+      expect(url.searchParams.get("language")).toBe("javascript");
     });
 
     it("should throw error on HTTP error response", async () => {

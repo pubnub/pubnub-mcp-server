@@ -36,6 +36,34 @@ describe("Docs Handlers", () => {
       expect(parsedText.metadata.title).toBe("Publish and Subscribe - JavaScript SDK");
     });
 
+    it("should include the sync hint for python", async () => {
+      const args = { language: "python-sync" as const, feature: "configuration" as const };
+      const result = await getSDKDocumentationHandler(args);
+
+      const parsedText = JSON.parse(result.content?.[0]?.text ?? "{}");
+      expect(parsedText.hint).toBe(
+        "IMPORTANT: This is the SYNCHRONOUS Python SDK. Before answering or generating code, ALWAYS ask the customer to confirm whether they need the sync (python-sync) or async (python-asyncio) version of the SDK, then use the matching Resource!"
+      );
+    });
+
+    it("should include the async hint for asyncio", async () => {
+      const args = { language: "python-asyncio" as const, feature: "configuration" as const };
+      const result = await getSDKDocumentationHandler(args);
+
+      const parsedText = JSON.parse(result.content?.[0]?.text ?? "{}");
+      expect(parsedText.hint).toBe(
+        "IMPORTANT: This is the ASYNCHRONOUS (asyncio) Python SDK. Before answering or generating code, ALWAYS ask the customer to confirm whether they need the sync (python-sync) or async (python-asyncio) version of the SDK, then use the matching Resource!"
+      );
+    });
+
+    it("should not include a hint for non python/asyncio languages", async () => {
+      const args = { language: "javascript" as const, feature: "publish" as const };
+      const result = await getSDKDocumentationHandler(args);
+
+      const parsedText = JSON.parse(result.content?.[0]?.text ?? "{}");
+      expect(parsedText.hint).toBeUndefined();
+    });
+
     it("should handle API error", async () => {
       overrideDocsResponse(
         "get",
@@ -112,6 +140,30 @@ describe("Docs Handlers", () => {
       const parsedContent = JSON.parse(content?.text ?? "{}");
       expect(parsedContent.content).toBeDefined();
       expect(parsedContent.metadata).toBeDefined();
+    });
+
+    it("should expose the python sync hint in the resource payload", async () => {
+      const uri = new URL("pubnub-docs://sdk/python-sync/configuration");
+      const args = { language: "python-sync" as const, feature: "configuration" as const };
+
+      const result = await getSDKDocumentationResourceHandler(uri, args);
+
+      const parsedContent = JSON.parse(result.contents?.[0]?.text ?? "{}");
+      expect(parsedContent.hint).toBe(
+        "IMPORTANT: This is the SYNCHRONOUS Python SDK. Before answering or generating code, ALWAYS ask the customer to confirm whether they need the sync (python-sync) or async (python-asyncio) version of the SDK, then use the matching Resource!"
+      );
+    });
+
+    it("should expose the asyncio async hint in the resource payload", async () => {
+      const uri = new URL("pubnub-docs://sdk/python-asyncio/configuration");
+      const args = { language: "python-asyncio" as const, feature: "configuration" as const };
+
+      const result = await getSDKDocumentationResourceHandler(uri, args);
+
+      const parsedContent = JSON.parse(result.contents?.[0]?.text ?? "{}");
+      expect(parsedContent.hint).toBe(
+        "IMPORTANT: This is the ASYNCHRONOUS (asyncio) Python SDK. Before answering or generating code, ALWAYS ask the customer to confirm whether they need the sync (python-sync) or async (python-asyncio) version of the SDK, then use the matching Resource!"
+      );
     });
 
     it("should throw error for missing language", async () => {
