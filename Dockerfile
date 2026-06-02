@@ -3,7 +3,7 @@ FROM node:lts-alpine AS development
 WORKDIR /opt/pubnub-mcp
 
 COPY package*.json ./
-RUN npm install --only=development
+RUN npm ci
 
 COPY . .
 
@@ -22,5 +22,7 @@ RUN npm install --only=production
 COPY --from=development /opt/pubnub-mcp/dist ./dist
 
 EXPOSE 3000
+
+USER node
 
 CMD ["sh", "-c", "exec node dist/index.js --${MCP_MODE}"]

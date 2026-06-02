@@ -22,7 +22,7 @@
         "useConst": "error"
       },
       "suspicious": {
-        "noConsole": "off",
+        "noConsole": "warn",
         "noVar": "error"
       }
     }
@@ -43,6 +43,17 @@
       },
       "formatter": {
         "enabled": false
+      }
+    },
+    {
+      "includes": ["**/*.test.ts", "**/*.test.js"],
+      "linter": {
+        "rules": {
+          "suspicious": {
+            "noConsole": "off",
+            "noTemplateCurlyInString": "off"
+          }
+        }
       }
     }
   ],

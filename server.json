@@ -52,18 +52,6 @@
           "description": "Optional variable that can be provided to change the User ID for the SDK (real-time) operations (default: pubnub-mcp)",
           "isRequired": false,
           "isSecret": false
-        },
-        {
-          "name": "PUBNUB_EMAIL",
-          "description": "(Deprecated - use API Key instead) Your PubNub account email. Required for all operations related to your account/keyset",
-          "isRequired": false,
-          "isSecret": false
-        },
-        {
-          "name": "PUBNUB_PASSWORD",
-          "description": "(Deprecated - use API Key instead) Your PubNub account password. Required for all operations related to your account/keyset",
-          "isRequired": false,
-          "isSecret": true
         }
       ]
     }
