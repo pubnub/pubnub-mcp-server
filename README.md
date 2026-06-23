@@ -29,7 +29,7 @@ Connect your AI assistant to `https://mcp.pubnub.com` — no installation requir
 
 #### VS Code
 
-[![Open in VS Code](https://github.com/pubnub/pubnub-mcp-server/raw/master/images/add-to-vscode.png)](https://vscode.dev/redirect/mcp/install?name=PubNub&config=%7B%22url%22%3A%22https%3A%2F%2Fmcp.pubnub.com%22%7D)
+[![Open in VS Code](https://github.com/pubnub/pubnub-mcp-server/raw/master/images/add-to-vscode.png)](https://vscode.dev/redirect/mcp/install?name=pubnub&config=%7B%22url%22%3A%22https%3A%2F%2Fmcp.pubnub.com%22%7D)
 
 Click the button above, then select **Open in Visual Studio Code**. Back in VS Code, click **Install**, then select the organization you want to authorize and click **Allow access**.
 
@@ -39,7 +39,7 @@ Alternatively, add the following to your VS Code `settings.json` manually:
 {
   "mcp": {
     "servers": {
-      "PubNub": {
+      "pubnub": {
         "url": "https://mcp.pubnub.com"
       }
     }
@@ -60,7 +60,7 @@ Alternatively, add the following to `.cursor/mcp.json` (or `~/.cursor/mcp.json` 
 ```json
 {
   "mcpServers": {
-    "PubNub": {
+    "pubnub": {
       "url": "https://mcp.pubnub.com"
     }
   }
@@ -74,7 +74,7 @@ When you save the file, a notification is displayed. Click **Enable** to activat
 In the terminal, run:
 
 ```bash
-claude mcp add --scope user --transport http PubNub https://mcp.pubnub.com
+claude mcp add --scope user --transport http pubnub https://mcp.pubnub.com
 ```
 
 Then run `claude` to open Claude Code and enter `/mcp`. Select **pubnub**, then **authenticate**, and click **Allow access** to complete authorization. [Learn more in Claude Code documentation](https://docs.anthropic.com/en/docs/claude-code/mcp)
@@ -153,7 +153,7 @@ The installation process for an MCP server depends on the AI assistant you're us
 
 #### VS Code
 
-[![Open in VS Code](https://github.com/pubnub/pubnub-mcp-server/raw/master/images/add-to-vscode.png)](https://vscode.dev/redirect/mcp/install?name=PubNub&inputs=%5B%7B%22type%22%3A%22promptString%22%2C%22id%22%3A%22pubnub-api-key%22%2C%22description%22%3A%22PubNub%20API%20Key%22%7D%5D&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40pubnub%2Fmcp%40latest%22%5D%2C%22env%22%3A%7B%22PUBNUB_API_KEY%22%3A%22%24%7Binput%3Apubnub-api-key%7D%22%7D%7D)
+[![Open in VS Code](https://github.com/pubnub/pubnub-mcp-server/raw/master/images/add-to-vscode.png)](https://vscode.dev/redirect/mcp/install?name=pubnub&inputs=%5B%7B%22type%22%3A%22promptString%22%2C%22id%22%3A%22pubnub-api-key%22%2C%22description%22%3A%22PubNub%20API%20Key%22%7D%5D&config=%7B%22command%22%3A%22npx%22%2C%22args%22%3A%5B%22-y%22%2C%22%40pubnub%2Fmcp%40latest%22%5D%2C%22env%22%3A%7B%22PUBNUB_API_KEY%22%3A%22%24%7Binput%3Apubnub-api-key%7D%22%7D%7D)
 
 Just click the link above, then select "Open in Visual Studio Code" on the page that appears. Back in VS Code, click "Install". You'll be prompted to enter your PubNub API Key. Once provided, your MCP server is ready to use. For additional configuration options, refer to [Local server configuration](https://www.pubnub.com/docs/ai/pubnub-mcp-server#local-server-configuration).
 
@@ -168,7 +168,7 @@ Click the link above, then select "Open Cursor" on the page that appears. Back i
 With Claude Code installed run this command to have the MCP added to your configuration. Make sure to replace the value of `<your-api-key>`:
 
 ```bash
-claude mcp add PubNub --env PUBNUB_API_KEY=<your-api-key> --scope user --transport stdio -- npx -y @pubnub/mcp@latest
+claude mcp add pubnub --env PUBNUB_API_KEY=<your-api-key> --scope user --transport stdio -- npx -y @pubnub/mcp@latest
 ```
 
 Server is added in the "User" scope which means it will be available across all projects. For additional configuration options, refer to [Local server configuration](https://www.pubnub.com/docs/ai/pubnub-mcp-server#local-server-configuration).
@@ -178,7 +178,7 @@ Server is added in the "User" scope which means it will be available across all 
 With Codex installed run this command to have the MCP added to your configuration. Make sure to replace the value of `<your-api-key>`:
 
 ```bash
-codex mcp add PubNub --env PUBNUB_API_KEY=<your-api-key> -- npx -y @pubnub/mcp@latest
+codex mcp add pubnub --env PUBNUB_API_KEY=<your-api-key> -- npx -y @pubnub/mcp@latest
 ```
 
 For additional configuration options, refer to [Local server configuration](https://www.pubnub.com/docs/ai/pubnub-mcp-server#local-server-configuration).
