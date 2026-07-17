@@ -4,6 +4,10 @@ import { createLogger } from "./lib/logger";
 
 const log = createLogger("analytics");
 
+function getDeployment(): "local" | "hosted" {
+  return process.env.MCP_MODE === "http" ? "hosted" : "local";
+}
+
 function getPubNubClient() {
   return new PubNub({
     publishKey: "demo",
@@ -30,6 +34,7 @@ export function trackInit() {
             name: "pubnub_mcp_server",
             version: pkg.version,
             description: "PubNub MCP server instance",
+            deployment: getDeployment(),
           },
         },
       })
@@ -61,6 +66,7 @@ export function trackToolUsage(
         error: error ? String(error) : null,
         resultSize: result ? JSON.stringify(result).length : 0,
         serverVersion: pkg.version,
+        deployment: getDeployment(),
         userId: "pubnub_mcp",
       },
     } as PubNub.Publish.PublishParameters["message"];
