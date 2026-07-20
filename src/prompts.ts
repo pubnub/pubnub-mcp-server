@@ -215,6 +215,42 @@ const insightsEngagementDeepDive = {
   ),
 };
 
+const functionsDeploy = {
+  name: "functions-deploy",
+  definition: {
+    title: "Deploy a PubNub Function",
+    description:
+      "End-to-end: create a Functions v2 package, deploy a revision to a keyset, and start it",
+  },
+  handler: generateHandler(
+    "Act as a serverless engineer and use the PubNub MCP `manage_functions` tool to ship a Function end-to-end. Step 0 — Confirm inputs: (1) the target keyset — for deployment create you need the NUMERIC keyset id (keyset_id); account-level package/revision operations do not need a keyset; kv-store and secret operations use the subscribe_key (sub-c-...), (2) the trigger type (Before/After Publish/Signal/File, After Presence, On Request, or On Interval), (3) the channel or channel pattern (or path for On Request), and (4) what the Function should do. Step 1 — Author the Function code: follow how_to(slug=develop-pubnub-functions) so the default export has the correct signature for the type (request and response for On Request, request for Before/After events, event for On Interval) and returns the matching completion call (response.send / request.ok()/abort() / event.ok()/abort()). Each external module has its own independent per-execution budget (XHR 5, KV Store 10, PubNub API 10, Publish 10, Vault 10) — see how_to(slug=understand-pubnub-functions-limits-and-constraints). Step 2 — Show the user the proposed package name and function code and get confirmation before creating anything. Step 3 — Create the package with resource=package, operation=create (this also creates the initial revision and functions); capture the package id AND the package revision id from the response. Step 4 — Create a deployment with resource=deployment, operation=create, data set to the packageRevisionId, and keyset_id set to the target numeric keyset id; capture the deployment id. Step 5 — Before starting, check resource=limit, operation=get-running-deployments to confirm headroom; then start it with resource=deployment, operation=start and the id set to the new deployment id (start takes no keyset). Step 6 — Report the package id, revision id, deployment id, and running status. To view the Function's console.log/console.error output, subscribe to its log channel, which follows the pattern output-rev-REVISIONID-key-KEYSETID (use the subscribe_and_receive_pubnub_messages tool or any PubNub SDK). Never delete anything without explicit confirmation."
+  ),
+};
+
+const functionsManageKvStore = {
+  name: "functions-manage-kv-store",
+  definition: {
+    title: "Manage Functions KV Store",
+    description:
+      "Inspect and edit the Functions KV store (strings, JSON, counters) and secrets on a keyset",
+  },
+  handler: generateHandler(
+    "Act as a platform engineer and use the PubNub MCP `manage_functions` tool to manage the Functions KV store and secrets for a keyset. Step 0 — Confirm the keyset (subscribe_key, sub-c-...). All KV and secret operations are keyset-scoped. Step 1 — To survey current state, run resource=kv-store, operation=list for each kv_type the user cares about (string, json, counter) and resource=secret, operation=list (secret values are never returned — only key names). Step 2 — For reads, use resource=kv-store, operation=get with kv_type and key. Step 3 — For writes, use operation=set with kv_type, key, value, and optional ttl (minutes) for string/json entries; use operation=increment or decrement (kv_type=counter, optional amount) for counters. For secrets use resource=secret, operation=set with key and value. Step 4 — Always confirm before deleting: operation=delete (kv-store or secret) removes an entry permanently. Step 5 — Remind the user that this is the SAME store their Function code reads at runtime via require('kvstore') and require('vault') — see how_to(slug=\"use-pubnub-functions-kvstore-module\") and how_to(slug=\"use-pubnub-functions-vault-module\") — so edits take effect on the next Function execution. Present results grouped by type with key, value (or [secret]), and TTL where applicable."
+  ),
+};
+
+const functionsImportBlueprint = {
+  name: "functions-import-blueprint",
+  definition: {
+    title: "Import a Function from the Catalog",
+    description:
+      "Browse the Integrations Catalog blueprints and import one as a package deployed to a keyset",
+  },
+  handler: generateHandler(
+    "Act as a solutions engineer and use the PubNub MCP `manage_functions` tool to import a Function from the Integrations Catalog. Step 0 — Confirm the target keyset as its NUMERIC keyset id (keyset_id; not the sub-c-... subscribe key) and the use case the user wants (e.g. moderation, translation, webhook forwarding). Step 1 — Browse blueprints with resource=catalog, operation=list-blueprints (optionally filter by name); present the matching package blueprints with their ids and descriptions. Step 2 — Once the user picks one, inspect it: resource=catalog, operation=get-blueprint with the id set to the package blueprint id, then operation=list-function-blueprints with the same id, and operation=list-parameters to discover the required parameters and their meanings. Step 3 — Collect values for all required parameters from the user (e.g. API keys, target channels, thresholds). Remind the user that any secrets the blueprint needs should be stored via resource=secret, operation=set on the keyset. Step 4 — Confirm the plan, then import with resource=catalog, operation=import, the id set to the package blueprint id, data set to the parameter values, and keyset_id set to the target numeric keyset id; capture the resulting package id and deployment id. Step 5 — Start the deployment (resource=deployment, operation=start) if the user wants it running, after checking resource=limit, operation=get-running-deployments. Report all created ids and the running status."
+  ),
+};
+
 export const prompts = [
   hipaaChatShort,
   hipaaChatLong,
@@ -233,4 +269,7 @@ export const prompts = [
   insightsChannelAnalysis,
   insightsUserGrowth,
   insightsEngagementDeepDive,
+  functionsDeploy,
+  functionsManageKvStore,
+  functionsImportBlueprint,
 ];

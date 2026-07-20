@@ -75,6 +75,9 @@ export function createApp(server: McpServer): Application {
     );
 
     if (!enableSessions) {
+      if (isInitializeRequest(req.body)) {
+        trackInit();
+      }
       const transport = await createStatelessTransport(server, res);
       await transport.handleRequest(req, res, req.body);
       return;

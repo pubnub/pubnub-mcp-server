@@ -2,7 +2,27 @@ import * as jose from "jose";
 import { HttpResponse, http } from "msw";
 import { setupServer } from "msw/node";
 import request from "supertest";
-import { afterAll, afterEach, beforeAll, describe, expect, it } from "vitest";
+import { afterAll, afterEach, beforeAll, describe, expect, it, vi } from "vitest";
+
+// Mock only the init analytics so we can assert it fires with the right userId,
+// without making a real PubNub publish. Everything else (wrapToolHandler, etc.) stays real.
+vi.mock("./analytics", async importOriginal => {
+  const actual = await importOriginal<typeof import("./analytics")>();
+  return { ...actual, trackInit: vi.fn() };
+});
+
+import { trackInit } from "./analytics";
+
+const MCP_INITIALIZE_REQUEST = {
+  jsonrpc: "2.0",
+  id: 1,
+  method: "initialize",
+  params: {
+    protocolVersion: "2024-11-05",
+    capabilities: {},
+    clientInfo: { name: "integration-test", version: "1.0.0" },
+  },
+};
 
 // Generate test RSA key pair for signing JWTs
 const { publicKey, privateKey } = await jose.generateKeyPair("RS256");
@@ -302,5 +322,25 @@ describe("OAuth Flow Integration Test", () => {
     expect(response.status).toBe(401);
     expect(response.body.error).toBeDefined();
     expect(response.body.error.message).toContain("Missing bearer token");
+  });
+
+  it("should track init on the MCP initialize handshake", async () => {
+    vi.mocked(trackInit).mockClear();
+
+    const { PubNubMCPServer } = await import("./index");
+    const pubNubServer = new PubNubMCPServer();
+    const { createApp } = await import("./transporters/http");
+    const app = createApp(pubNubServer.getServer());
+
+    const response = await request(app)
+      .post("/")
+      .set("Authorization", `Bearer ${testMcpToken}`)
+      .set("Accept", "application/json, text/event-stream")
+      .send(MCP_INITIALIZE_REQUEST);
+
+    expect(response.status).toBe(200);
+    // trackInit reads the authenticated user's id from the request context itself
+    // (verified in analytics.test.ts); here we just confirm it fires on initialize.
+    expect(trackInit).toHaveBeenCalled();
   });
 });

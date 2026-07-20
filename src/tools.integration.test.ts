@@ -74,10 +74,11 @@ describe("Tools", () => {
         "get_pubnub_messages",
         "manage_illuminate",
         "insights",
+        "manage_functions",
       ];
 
       expect(tools).toBeDefined();
-      expect(tools.length).toBe(16);
+      expect(tools.length).toBe(17);
       expect(MCPToolsNames).toEqual(expectedTools);
     });
 
@@ -99,6 +100,7 @@ describe("Tools", () => {
         "get_usage_metrics",
         "manage_illuminate",
         "insights",
+        "manage_functions",
       ];
 
       for (const toolName of toolsWithInputs) {
