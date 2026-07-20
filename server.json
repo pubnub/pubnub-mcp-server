@@ -3,7 +3,7 @@
   "name": "io.github.pubnub/mcp-server",
   "title": "PubNub MCP Server",
   "description": "PubNub Model Context Protocol MCP Server for Cursor and Claude",
-  "version": "2.3.8",
+  "version": "2.3.9",
   "repository": {
     "url": "https://github.com/pubnub/pubnub-mcp-server",
     "source": "github"
@@ -25,25 +25,13 @@
     {
       "registryType": "npm",
       "identifier": "@pubnub/mcp",
-      "version": "2.3.8",
+      "version": "2.3.9",
       "runtimeHint": "npx",
       "transport": { "type": "stdio" },
       "environmentVariables": [
         {
           "name": "PUBNUB_API_KEY",
-          "description": "Your PubNub API Key. Required for all operations related to your account/keyset",
-          "isRequired": false,
-          "isSecret": true
-        },
-        {
-          "name": "PUBNUB_PUBLISH_KEY",
-          "description": "Optional PubNub publish key for real-time operations",
-          "isRequired": false,
-          "isSecret": true
-        },
-        {
-          "name": "PUBNUB_SUBSCRIBE_KEY",
-          "description": "Optional PubNub subscribe key for real-time operations",
+          "description": "Service Integration API key (si_...) used by admin/platform tools (manage_apps, manage_keysets, manage_illuminate, insights, manage_functions). For manage_functions the Service Integration needs the Admin API permission scopes per operation: functions.package:* on the account (packages/revisions/limits/import), functions.package-deployment:* on the keyset (deployments, scheduled events), and keyset:* on the keyset (KV store, secrets).",
           "isRequired": false,
           "isSecret": true
         },

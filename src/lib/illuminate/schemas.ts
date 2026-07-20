@@ -76,8 +76,10 @@ export const ManageIlluminateSchema = z.object({
         "BO LIMITS (handler pre-flights and rejects on violation): name 1-100 chars, " +
         "fields[].name 1-50 chars, max 100 fields per BO, MAX 5 TEXT_LONG fields per BO. " +
         "Use TEXT (256 chars) for fields under 256 characters; reserve TEXT_LONG (1000 chars) " +
-        "for the longest free-text fields only. Keep `description` concise — overly long " +
-        "descriptions are rejected with HTTP 400 by the Illuminate API. " +
+        "for the longest free-text fields only. Keep `description` to ONE concise sentence " +
+        "(~under 200 chars). The API does NOT reject long descriptions, but an overly long one " +
+        "breaks the Admin portal Business Object detail page (it fails to render) — treat " +
+        "'concise' as a hard rendering requirement, not a style preference. " +
         "Deactivate before editing measures/dimensions. " +
         "METRIC: COUNT → set function='COUNT', omit measureId entirely. " +
         "SUM/AVG/MIN/MAX → set function and measureId to a NUMERIC field ID. " +
@@ -99,6 +101,12 @@ export const ManageIlluminateSchema = z.object({
         "activeFrom: ISO datetime e.g. '2026-01-01T00:00:00Z'. " +
         "activeUntil: ISO datetime (handler defaults to now + 2 years if absent). " +
         "Handler auto-injects these defaults if absent. " +
+        "executionFrequency (NOT 'evaluationFrequency' — that name is invalid): the decision's " +
+        "evaluation cadence in seconds. For METRIC/QUERY decisions it controls scheduled " +
+        "evaluation; for BUSINESSOBJECT decisions keep a plan-supported value (commonly 3600) " +
+        "and never send null — a null value passes the API but makes the portal reject saves " +
+        "('evaluation frequency of NULL is not supported by your plan'). Per-action throttling " +
+        "(once-per-interval, etc.) belongs on rules[].actionValues[].executionLimit*, NOT here. " +
         "BUSINESSOBJECT decision: set sourceId = businessObjectId at top level; inputFields.sourceType = 'FIELD'. " +
         "METRIC COUNT: inputFields.sourceType = 'BUSINESSOBJECT' (count) or 'DIMENSION' (grouped). " +
         "METRIC SUM/AVG/MIN/MAX: inputFields.sourceType = 'MEASURE' (value) or 'DIMENSION' (grouped). " +
@@ -109,6 +117,15 @@ export const ManageIlluminateSchema = z.object({
         "are met. Fetch field names via get-fields and use them verbatim. " +
         "Rules: every inputValues array must cover ALL inputFields (use operation='ANY' for unconstrained fields). " +
         "Actions: use 'actionType' (not 'type'). OutputFields: use 'variable' and 'name' (no 'type'). " +
+        "Metric/query FILTERS can only reference dimensions: a filtered field must be one of the " +
+        "metric's dimensionIds (use sourceType='DIMENSION'), else 400 'Filter fields must be dimensions'. " +
+        "ACTION TYPES: 'PUBNUB_PUBLISH' (portal: Publish), 'WEBHOOK_EXECUTION' (Webhook), " +
+        "'APPCONTEXT_SET_USER_METADATA' (portal: Update User), 'APPCONTEXT_SET_CHANNEL_METADATA' " +
+        "(Update Channel), 'APPCONTEXT_SET_MEMBERSHIP_METADATA' (Update Membership). " +
+        "All action config goes INSIDE the action's 'template' object — never as top-level action props. " +
+        "PUBNUB_PUBLISH requires ALL four fields nested in template: pubkey, subkey, channel, body. " +
+        "Putting channel/body at the action top level does NOT error but stores template:null, " +
+        "which then breaks the Admin portal Decisions page ('There was a problem loading your Decisions'). " +
         "ACTION DEFAULT: when the user doesn't specify what action to fire, default to " +
         "actionType='PUBNUB_PUBLISH' with a message body that includes the relevant input/output " +
         "values via dollar-brace template references. PUBNUB_PUBLISH requires no external " +

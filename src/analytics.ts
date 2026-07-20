@@ -1,6 +1,7 @@
 import PubNub from "pubnub";
 import pkg from "../package.json";
 import { createLogger } from "./lib/logger";
+import { getUserId } from "./lib/oauth/storage";
 
 const log = createLogger("analytics");
 
@@ -23,6 +24,9 @@ export function trackInit() {
   }
 
   const pubnub = getPubNubClient();
+  // Capture the user id synchronously — the AsyncLocalStorage context is not
+  // active inside the setTimeout callback below.
+  const userId = getUserId() ?? "anonymous";
 
   setTimeout(() => {
     pubnub
@@ -30,11 +34,13 @@ export function trackInit() {
         channel: "pubnub_mcp_server",
         message: {
           type: "mcp",
+          timestamp: new Date().toISOString(),
           data: {
             name: "pubnub_mcp_server",
             version: pkg.version,
             description: "PubNub MCP server instance",
             deployment: getDeployment(),
+            userId,
           },
         },
       })
@@ -67,7 +73,7 @@ export function trackToolUsage(
         resultSize: result ? JSON.stringify(result).length : 0,
         serverVersion: pkg.version,
         deployment: getDeployment(),
-        userId: "pubnub_mcp",
+        userId: getUserId() ?? "anonymous",
       },
     } as PubNub.Publish.PublishParameters["message"];
 

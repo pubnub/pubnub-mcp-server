@@ -66,7 +66,11 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
 
   // Set up AsyncLocalStorage context and call next()
   // The token will be available to all tool handlers via getOAuthToken()
-  withOAuthToken(adminApiToken, () => {
-    next();
-  });
+  withOAuthToken(
+    adminApiToken,
+    () => {
+      next();
+    },
+    result.payload?.sub
+  );
 }

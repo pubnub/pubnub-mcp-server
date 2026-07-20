@@ -28,6 +28,9 @@ import type { ManageIlluminateSchemaType } from "./lib/illuminate/types";
 import { insightsHandler } from "./lib/insights/handlers";
 import { InsightsSchema } from "./lib/insights/schemas";
 import type { InsightsSchemaType } from "./lib/insights/types";
+import { manageFunctionsHandler } from "./lib/functions/handlers";
+import { ManageFunctionsSchema } from "./lib/functions/schemas";
+import type { ManageFunctionsSchemaType } from "./lib/functions/types";
 import {
   getUsageMetricsHandler,
   manageAppsHandler,
@@ -368,6 +371,11 @@ const manageIlluminateTool: ToolDef<ManageIlluminateSchemaType> = {
       **Critical Decision rules:**
       hitType ('SINGLE'|'MATCH_ALL') and executeOnce (boolean) are required — omitting causes HTTP 500.
       Handler auto-injects safe defaults (hitType=SINGLE, executeOnce=false, activeFrom=now, activeUntil=now+2yr).
+      executionFrequency (NOT 'evaluationFrequency' — that name is invalid) is the decision evaluation
+      cadence in seconds: it schedules evaluation for METRIC/QUERY decisions, and for BUSINESSOBJECT
+      decisions must stay a plan-supported value (commonly 3600), never null (a null value passes the
+      API but makes the portal reject saves). Per-action throttling goes on
+      rules[].actionValues[].executionLimit*, not on executionFrequency.
       The 2-step create workflow resolves field/action names → UUIDs in: action templates
       (both output variable names AND input field names — input names are sentinel-substituted
       pre-POST and restored post-POST), inputValues.inputFieldId, outputValues.outputFieldId,
@@ -388,7 +396,23 @@ const manageIlluminateTool: ToolDef<ManageIlluminateSchemaType> = {
       - fields[].name: 1-50 characters
       - max 100 fields per BO
       - **max 5 TEXT_LONG fields per BO** (use TEXT, which holds 256 chars, for shorter strings)
-      - keep \`description\` concise — overly long descriptions are rejected with HTTP 400 by the API
+      - keep \`description\` to ONE concise sentence (~under 200 chars). The API does NOT reject long
+        descriptions, but an overly long one breaks the Admin portal Business Object detail page (it
+        fails to render) — treat 'concise' as a hard rendering requirement, not a style preference.
+
+      **Decision action types:**
+      - PUBNUB_PUBLISH (portal label: Publish) — requires ALL four fields nested inside 'template':
+        pubkey, subkey, channel, body.
+      - WEBHOOK_EXECUTION (Webhook)
+      - APPCONTEXT_SET_USER_METADATA (portal label: Update User)
+      - APPCONTEXT_SET_CHANNEL_METADATA (portal label: Update Channel)
+      - APPCONTEXT_SET_MEMBERSHIP_METADATA (portal label: Update Membership)
+      All action config goes INSIDE the action's 'template' object — never as top-level action props.
+      Putting PUBNUB_PUBLISH channel/body at the action top level does NOT error but stores
+      template:null, which then breaks the portal Decisions page ('There was a problem loading your
+      Decisions').
+      Metric/query filters can only reference dimensions (a filtered field must be in dimensionIds),
+      else 400 'Filter fields must be dimensions'.
 
       **Decision action default:**
       When the user doesn't specify what action to fire, default to actionType='PUBNUB_PUBLISH'
@@ -475,6 +499,85 @@ const insightsTool: ToolDef<InsightsSchemaType> = {
   handler: insightsHandler,
 };
 
+const manageFunctionsTool: ToolDef<ManageFunctionsSchemaType> = {
+  name: "manage_functions",
+  definition: {
+    title: "Manage PubNub Functions",
+    description: `Manages PubNub Functions v2 via the Functions Admin API (admin-api.pubnub.com/v2/faas).
+      Covers the full resource surface: packages, revisions, deployments, KV store, secrets,
+      scheduled events, catalog (blueprints), and account limits.
+
+      **Resources and operations** (the handler validates the resource/operation pair):
+      - package: list, get, create, update, delete, list-revisions
+      - revision: get, create, update, delete, list-functions, list-deployments, list-test-inputs, create-test-input, update-test-input, delete-test-input
+      - deployment: create, get, delete, start, stop, rolling-update, intersected, stop-by
+      - kv-store: list, get, set, delete, increment, decrement (use kv_type: string | json | counter)
+      - secret: list, set, delete
+      - scheduled-event: list, get, create, update, delete
+      - catalog: list-blueprints, get-blueprint, list-function-blueprints, list-parameters, list-all-parameters, get-parameter, import
+      - limit: get-running-deployments
+
+      **Core model (v2):** a Package groups Functions and tracks immutable Revisions. A Revision is
+      deployed to a keyset as a Deployment, which you then start/stop. To ship a Function end-to-end:
+      (1) package create (creates the initial revision + functions), (2) deployment create with the
+      packageRevisionId on the target keyset, (3) deployment start. Use rolling-update to swap a
+      running deployment to a new revision with no downtime.
+
+      **Authentication:** uses the same Service Integration key as manage_illuminate (PUBNUB_API_KEY
+      env var, or an OAuth Bearer token in HTTP mode). Permissions follow the Admin API model (each
+      operation is annotated in the FaaS OpenAPI spec, the canonical source): packages, revisions,
+      test-inputs, limits, and blueprint import require functions.package:read|write on the ACCOUNT;
+      deployments and scheduled events require functions.package-deployment:read|write on the KEYSET;
+      KV store and secrets require keyset:read|write on the KEYSET. (These are Admin API permission
+      scopes, not portal user roles.)
+
+      TOOL SELECTION GUIDE — Functions Claude Behavior:
+
+      1. Keyset scoping differs by resource. kv-store and secret operations take subscribe_key
+         (sub-c-..., sent as the subkey query param) — it must be provided as an argument.
+         deployment create, deployment intersected, and catalog import take the NUMERIC keyset id as
+         keyset_id (deployment lifecycle ops start/get/delete take only the deployment id; stop also
+         accepts an optional force flag, and intersected accepts an optional function_type filter).
+         scheduled-event operations take no keyset (the keyset is derived from the referenced
+         deployment). Package, revision, catalog-read, and limit operations are account-scoped.
+
+      2. ID chain — capture and reuse: package create → packageId + revision id; deployment create →
+         deployment id. revision list-functions → function revision ids (needed for test inputs).
+
+      3. KV store vs Vault: kv-store is the Functions KV database (string/json/counter). Use increment/
+         decrement only with kv_type="counter". secret manages the Vault (encrypted; values are never
+         returned by list). These mirror the require('kvstore') and require('vault') modules used in
+         Function code — see how_to(slug="use-pubnub-functions-kvstore-module") and "...vault-module".
+
+      4. Deployment lifecycle is stateful and has side effects. Account has a running-deployments limit
+         (check via resource=limit, operation=get-running-deployments). Starting a deployment consumes
+         the limit. NEVER delete a package, revision, or deployment without explicit user confirmation;
+         a package must be stopped before it can be deleted.
+
+      5. Authoring vs managing: this tool MANAGES Functions resources. To WRITE the JavaScript handler
+         code, follow how_to(slug="develop-pubnub-functions") and the module guides. Function code must
+         be a default export with the correct signature for its eventType (request/response for On
+         Request, request for Before/After events, event for On Interval) and must return the matching
+         completion call.
+
+      6. Catalog: use list-blueprints to browse templates, then import to create a package (and deploy
+         to a keyset) from a blueprint. Inspect required parameters via list-function-blueprints /
+         list-parameters before importing.
+
+      7. Function logs: a running Function's console.log/console.error output is PUBLISHED to the
+         channel output-rev-<functionRevisionId>-key-<keysetId> (there is no log API). To read logs,
+         subscribe to that channel with the subscribe_and_receive_pubnub_messages tool (or any SDK).
+         Get functionRevisionId from revision list-functions; keysetId is the numeric keyset id.
+
+      8. Errors: the API returns a FAAS-* envelope ({ errors: [{ code, message }] }). Surface the code
+         and message. Common cases: 403/FAAS-1027 (the Service Integration lacks the required
+         permission scope for the operation — e.g. functions.package-deployment:write on the keyset),
+         running-deployment limit reached, and "package must be stopped before deletion".`,
+    inputSchema: ManageFunctionsSchema.shape,
+  },
+  handler: manageFunctionsHandler,
+};
+
 export const tools = [
   getSDKDocumentationTool,
   getChatSDKDocumentationTool,
@@ -492,4 +595,5 @@ export const tools = [
   getHistoryTool,
   manageIlluminateTool,
   insightsTool,
+  manageFunctionsTool,
 ];
