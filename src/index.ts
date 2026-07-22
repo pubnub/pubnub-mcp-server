@@ -1,7 +1,7 @@
 import "dotenv/config";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import pkg from "../package.json";
-import { wrapToolHandler } from "./analytics.js";
+import { flushAnalytics, wrapToolHandler } from "./analytics.js";
 import { createLogger } from "./lib/logger";
 import { prompts } from "./prompts.js";
 import { resources } from "./resources";
@@ -81,6 +81,38 @@ export class PubNubMCPServer {
   }
 }
 
+function installShutdownHandlers() {
+  let finished = false;
+
+  function finish(signal: "SIGTERM" | "SIGINT") {
+    if (finished) return;
+    finished = true;
+    process.off("SIGTERM", sigtermHandler);
+    process.off("SIGINT", sigintHandler);
+    process.kill(process.pid, signal);
+  }
+
+  function onShutdown(signal: "SIGTERM" | "SIGINT") {
+    void flushAnalytics().finally(() => {
+      finish(signal);
+    });
+    // Don't let a hung flush block shutdown indefinitely.
+    setTimeout(() => {
+      finish(signal);
+    }, 2000).unref();
+  }
+
+  function sigtermHandler() {
+    onShutdown("SIGTERM");
+  }
+  function sigintHandler() {
+    onShutdown("SIGINT");
+  }
+
+  process.on("SIGTERM", sigtermHandler);
+  process.on("SIGINT", sigintHandler);
+}
+
 const args = process.argv.slice(2);
 const httpMode = args.includes("--http") || args.includes("-h");
 const port =
@@ -92,6 +124,7 @@ if (httpMode) {
 }
 
 const server = new PubNubMCPServer();
+installShutdownHandlers();
 server.run().catch((error: unknown) => {
   log.fatal({ err: error }, "Failed to start server");
   process.exit(1);

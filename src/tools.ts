@@ -22,15 +22,15 @@ import type {
   GetSdkMigrationGuideSchemaType,
   HowToSchemaType,
 } from "./lib/docs/types";
+import { manageFunctionsHandler } from "./lib/functions/handlers";
+import { ManageFunctionsSchema } from "./lib/functions/schemas";
+import type { ManageFunctionsSchemaType } from "./lib/functions/types";
 import { manageIlluminateHandler } from "./lib/illuminate/handlers";
 import { ManageIlluminateSchema } from "./lib/illuminate/schemas";
 import type { ManageIlluminateSchemaType } from "./lib/illuminate/types";
 import { insightsHandler } from "./lib/insights/handlers";
 import { InsightsSchema } from "./lib/insights/schemas";
 import type { InsightsSchemaType } from "./lib/insights/types";
-import { manageFunctionsHandler } from "./lib/functions/handlers";
-import { ManageFunctionsSchema } from "./lib/functions/schemas";
-import type { ManageFunctionsSchemaType } from "./lib/functions/types";
 import {
   getUsageMetricsHandler,
   manageAppsHandler,
