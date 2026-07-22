@@ -1,6 +1,7 @@
 import { builtinModules } from "node:module";
 import commonjs from "@rollup/plugin-commonjs";
 import json from "@rollup/plugin-json";
+import replace from "@rollup/plugin-replace";
 import typescript from "@rollup/plugin-typescript";
 import pkg from "./package.json" with { type: "json" };
 
@@ -19,6 +20,12 @@ export default {
   },
 
   plugins: [
+    replace({
+      preventAssignment: true,
+      values: {
+        "process.env.AMPLITUDE_API_KEY": JSON.stringify(process.env.AMPLITUDE_API_KEY || ""),
+      },
+    }),
     commonjs(),
     json(),
     typescript({

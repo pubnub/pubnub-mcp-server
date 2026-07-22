@@ -24,18 +24,23 @@ const enableSessions = process.env.MCP_SESSION_SUPPORT === "true";
  */
 export function createApp(server: McpServer): Application {
   const app: Application = express();
+  app.set("trust proxy", true);
   app.use(express.json());
 
   const transports = new Map<string, StreamableHTTPServerTransport>();
 
   async function createStatelessTransport(
     server: McpServer,
-    res: express.Response
+    res: express.Response,
+    trackInitOnConnect = false
   ): Promise<StreamableHTTPServerTransport> {
     const transport = new StreamableHTTPServerTransport({});
     transport.onclose = () => {};
     res.on("close", () => transport.close());
     await server.connect(transport as Transport);
+    if (trackInitOnConnect) {
+      trackInit();
+    }
     return transport;
   }
 
@@ -75,10 +80,7 @@ export function createApp(server: McpServer): Application {
     );
 
     if (!enableSessions) {
-      if (isInitializeRequest(req.body)) {
-        trackInit();
-      }
-      const transport = await createStatelessTransport(server, res);
+      const transport = await createStatelessTransport(server, res, isInitializeRequest(req.body));
       await transport.handleRequest(req, res, req.body);
       return;
     }

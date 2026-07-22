@@ -1,5 +1,10 @@
 FROM node:lts-alpine AS development
 
+ARG AMPLITUDE_API_KEY=""
+ENV AMPLITUDE_API_KEY=$AMPLITUDE_API_KEY
+
+RUN npm install -g npm@^11.18.0
+
 WORKDIR /opt/pubnub-mcp
 
 COPY package*.json ./
@@ -11,6 +16,8 @@ RUN npm run lint
 RUN npm run build
 
 FROM node:lts-alpine AS production
+
+RUN npm install -g npm@^11.18.0
 
 ENV MCP_MODE="stdio"
 

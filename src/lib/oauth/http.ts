@@ -2,7 +2,7 @@ import type { NextFunction, Request, Response } from "express";
 import { createLogger } from "../logger";
 import { isOAuthEnabled } from "./config";
 import { buildWWWAuthenticateHeader } from "./resource-server";
-import { withOAuthToken } from "./storage";
+import { withRequestContext } from "./storage";
 import { exchangeToken } from "./token-exchange";
 import { validateToken } from "./validate";
 
@@ -13,6 +13,11 @@ function extractBearerToken(authHeader: string | undefined): string | null {
   const parts = authHeader.split(" ");
   if (parts.length !== 2 || parts[0]?.toLowerCase() !== "bearer") return null;
   return parts[1] ?? null;
+}
+
+export function normalizeClientIp(ip: string | undefined): string | undefined {
+  if (!ip) return undefined;
+  return ip.replace(/^::ffff:/, "");
 }
 
 const unauthorizedResponse = (res: Response, error: string, errorDescription: string) =>
@@ -65,12 +70,24 @@ export async function authMiddleware(req: Request, res: Response, next: NextFunc
   }
 
   // Set up AsyncLocalStorage context and call next()
-  // The token will be available to all tool handlers via getOAuthToken()
-  withOAuthToken(
+  // The token (and analytics identity) is available to all tool handlers via storage getters.
+  const userId = result.payload?.sub ?? "unknown";
+  // With `trust proxy` enabled on the app, req.ip already resolves the leftmost
+  // X-Forwarded-For entry (the real client behind the ingress/proxy).
+  const clientIp = normalizeClientIp(req.ip);
+  const analyticsDisabled = req.headers["x-analytics-disabled"] === "true";
+  const ctx: {
+    adminApiToken: string;
+    userId: string;
+    clientIp?: string;
+    analyticsDisabled?: boolean;
+  } = {
     adminApiToken,
-    () => {
-      next();
-    },
-    result.payload?.sub
-  );
+    userId,
+  };
+  if (clientIp) ctx.clientIp = clientIp;
+  if (analyticsDisabled) ctx.analyticsDisabled = true;
+  withRequestContext(ctx, () => {
+    next();
+  });
 }

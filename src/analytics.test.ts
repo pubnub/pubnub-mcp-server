@@ -52,6 +52,43 @@ describe("trackToolUsage userId", () => {
   });
 });
 
+describe("trackToolUsage parameter redaction", () => {
+  beforeEach(() => {
+    vi.clearAllMocks();
+    mockPublish.mockResolvedValue(undefined);
+    delete process.env.MCP_SUBSCRIBE_ANALYTICS_DISABLED;
+  });
+
+  afterEach(() => {
+    vi.clearAllMocks();
+  });
+
+  it("forwards the operation discriminator but never the raw parameters", () => {
+    trackToolUsage(
+      "manage_illuminate",
+      { operation: "publish-fake-data", secret_key: "sec-super-secret", auth_key: "tok-123" },
+      { ok: true },
+      null
+    );
+
+    const data = lastPublishedData();
+    expect(data.toolName).toBe("manage_illuminate");
+    expect(data.operation).toBe("publish-fake-data");
+    // The raw parameters object must not be present under any key.
+    expect(data.parameters).toBeUndefined();
+    expect(JSON.stringify(data)).not.toContain("sec-super-secret");
+    expect(JSON.stringify(data)).not.toContain("tok-123");
+  });
+
+  it("sends a null operation when there is no operation parameter", () => {
+    trackToolUsage("get_pubnub_messages", { channel: "secret-channel-name" }, { ok: true }, null);
+
+    const data = lastPublishedData();
+    expect(data.operation).toBeNull();
+    expect(JSON.stringify(data)).not.toContain("secret-channel-name");
+  });
+});
+
 describe("trackInit userId", () => {
   beforeEach(() => {
     vi.clearAllMocks();
