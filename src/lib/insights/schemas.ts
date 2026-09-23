@@ -79,7 +79,7 @@ export const InsightsSchema = z.object({
     .string()
     .optional()
     .describe(
-      'JSON object for top metrics on /v2/insights/top. Top-level key must match `metric` (e.g. top_1000_channels). Value is an array of {field, operator, value} conditions combined with AND. Operators: eq, neq, gt, lt, gte, lte, in, nin, startsWith. See how_to(slug="how-to-query-insights-filters").'
+      'JSON object for top metrics on /v2/insights/top. Top-level key must match `metric` (e.g. top_1000_channels). Value is an array of {field, operator, value} conditions combined with AND. Operators: eq, neq, gt, lt, gte, lte, in, nin, startsWith. See how_to(slug="query-insights-filters").'
     ),
 
   orderBy: z

@@ -459,7 +459,7 @@ const insightsTool: ToolDef<InsightsSchemaType> = {
       1. Group-aware: Insights metrics are organized into 5 functional groups — Channels, Users,
          Messages, User Behavior, Devices. When a user asks an analytic question, pick the right
          group first and then the specific metric. See the how-to guides:
-         how_to(slug="how-to-get-insights-api-access"), channels, users, messages,
+         how_to(slug="get-insights-api-access"), channels, users, messages,
          user-behavior-and-devices, filters.
 
       2. Period rules (enforced at runtime):
