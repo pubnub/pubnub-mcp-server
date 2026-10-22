@@ -340,6 +340,11 @@ function defaultTextValue(
   return `value-${index}`;
 }
 
+// jsonPath comes from user-defined business objects. Writing through these
+// segments would pollute Object.prototype for the whole process, after which
+// the MCP SDK's strict JSON-RPC schemas reject every incoming message.
+const UNSAFE_PATH_SEGMENTS = new Set(["__proto__", "constructor", "prototype"]);
+
 function setNestedValue(
   target: Record<string, unknown>,
   dotPath: string,
@@ -347,11 +352,12 @@ function setNestedValue(
 ): void {
   const parts = dotPath.split(".").filter(p => p.length > 0);
   if (parts.length === 0) return;
+  if (parts.some(p => UNSAFE_PATH_SEGMENTS.has(p))) return;
   const leaf = parts[parts.length - 1] as string;
   let cursor: Record<string, unknown> = target;
   for (let i = 0; i < parts.length - 1; i++) {
     const key = parts[i] as string;
-    const existing = cursor[key];
+    const existing = Object.hasOwn(cursor, key) ? cursor[key] : undefined;
     if (typeof existing !== "object" || existing === null || Array.isArray(existing)) {
       cursor[key] = {};
     }

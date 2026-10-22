@@ -591,6 +591,45 @@ describe("Illuminate Handlers", () => {
       expect(msg.count).toBeTypeOf("number");
     });
 
+    it("skips jsonPaths that would pollute Object.prototype", async () => {
+      vi.mocked(api.getResource).mockResolvedValue({
+        id: "bo-1",
+        fields: [
+          {
+            id: "f-1",
+            name: "Proto",
+            jsonPath: "$.message.body.__proto__.polluted",
+            jsonFieldType: "TEXT",
+          },
+          {
+            id: "f-2",
+            name: "Ctor",
+            jsonPath: "$.message.body.constructor.prototype.polluted",
+            jsonFieldType: "TEXT",
+          },
+          { id: "f-3", name: "User", jsonPath: "$.message.body.user", jsonFieldType: "TEXT" },
+        ],
+      });
+
+      try {
+        const result = await manageIlluminateHandler({
+          operation: "publish-fake-data",
+          bo_id: "bo-1",
+          publish_key: "pub-c-test",
+          subscribe_key: "sub-c-test",
+          count: 1,
+          scenario: "generic",
+        });
+
+        expect(Object.hasOwn(Object.prototype, "polluted")).toBe(false);
+        const parsed = parseResult(result);
+        expect(parsed.published).toBe(1);
+        expect(parsed.messages[0].message).toEqual({ user: expect.any(String) });
+      } finally {
+        delete (Object.prototype as Record<string, unknown>).polluted;
+      }
+    });
+
     it("collects per-message failures and continues", async () => {
       vi.mocked(api.getResource).mockResolvedValue({
         id: "bo-1",

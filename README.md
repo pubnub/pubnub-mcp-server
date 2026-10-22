@@ -208,7 +208,7 @@ For additional configuration options, refer to the [Local server configuration](
 
 ### Prerequisites
 
-- Node.js >= 20.0.0
+- Node.js 22.23.4, 24.22.1, or 26.12.1, or a later release on those lines
 
 ### Running locally
 
@@ -279,6 +279,10 @@ This PubNub MCP server provides a comprehensive set of tools, resources, and pro
 
 - **`insights`** - Query PubNub Insights for aggregated analytics metrics: unique channels/users, message volume, top-N rankings (channels, users, message types), country breakdowns, new vs. recurring user trends, user duration, and device type distributions. Requires a Service Integration API key with Account-level Insights Read access and Insights Premium tier.
 
+#### PubNub Functions Management
+
+- **`manage_functions`** - Manage PubNub Functions v2 resources via the Functions Admin API: packages, revisions, deployments, KV store (string/JSON/counter), secrets (Vault), scheduled events, Integrations Catalog blueprints, and account limits. Ships Functions end-to-end — create a package, deploy a revision to a keyset, and start it. Requires a Service Integration API key with `functions.package:read|write` (account-level) and `functions.package-deployment:read|write` / `keyset:read|write` (keyset-level) permission scopes.
+
 ### Prompts
 
 #### Healthcare & HIPAA Compliance
@@ -315,6 +319,12 @@ This PubNub MCP server provides a comprehensive set of tools, resources, and pro
 - **`insights-channel-analysis`** - Deep dive into top channels by ranking category, channel naming patterns, and cross-category engagement comparisons
 - **`insights-user-growth`** - New vs. recurring user trends, daily/weekly/monthly breakdowns, top countries, and whale user identification
 - **`insights-engagement-deep-dive`** - Average user duration, session-length bucket histogram, top channels by user-minutes, and device-type breakdown across publishes, subscribers, and unique users
+
+#### PubNub Functions
+
+- **`functions-deploy`** - End-to-end guided deployment: author a Functions v2 handler, create a package, deploy a revision to a keyset, and start it
+- **`functions-manage-kv-store`** - Inspect and edit the Functions KV store (strings, JSON, counters) and the secrets Vault on a keyset
+- **`functions-import-blueprint`** - Browse the Integrations Catalog and import a blueprint as a deployed package on a keyset
 
 ### Resources
 

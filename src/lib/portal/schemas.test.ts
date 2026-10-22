@@ -221,4 +221,52 @@ describe("Portal Schemas", () => {
       expect(result.success).toBe(false);
     });
   });
+
+  describe("UpdateKeysetDataSchema - presence rules", () => {
+    const rules = [
+      { pattern: "lobby-*", tracking: { enabled: false } },
+      { pattern: "*", tracking: { enabled: true, publishEvents: ["join", "leave", "timeout"] } },
+    ];
+
+    it("should keep presence rules and enableLegacySDKTracking after parsing", () => {
+      const result = UpdateKeysetDataSchema.safeParse({
+        id: "123",
+        config: { presence: { enabled: true, enableLegacySDKTracking: false, rules } },
+      });
+      expect(result.success).toBe(true);
+      expect(result.data?.config.presence?.rules).toEqual(rules);
+      expect(result.data?.config.presence?.enableLegacySDKTracking).toBe(false);
+    });
+
+    it("should reject a tracked rule without publishEvents", () => {
+      const result = UpdateKeysetDataSchema.safeParse({
+        id: "123",
+        config: {
+          presence: { enabled: true, rules: [{ pattern: "*", tracking: { enabled: true } }] },
+        },
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it("should reject an unknown presence event", () => {
+      const result = UpdateKeysetDataSchema.safeParse({
+        id: "123",
+        config: {
+          presence: {
+            enabled: true,
+            rules: [{ pattern: "*", tracking: { enabled: true, publishEvents: ["unknown"] } }],
+          },
+        },
+      });
+      expect(result.success).toBe(false);
+    });
+
+    it("should reject an empty rules list", () => {
+      const result = UpdateKeysetDataSchema.safeParse({
+        id: "123",
+        config: { presence: { enabled: true, rules: [] } },
+      });
+      expect(result.success).toBe(false);
+    });
+  });
 });

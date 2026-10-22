@@ -132,6 +132,67 @@ describe("OAuth Flow Integration Test", () => {
     server.resetHandlers();
   });
 
+  it("should advertise the full issuer (including path) in protected resource metadata", async () => {
+    const { PubNubMCPServer } = await import("./index");
+    const pubNubServer = new PubNubMCPServer();
+    const { createApp } = await import("./transporters/http");
+    const app = createApp(pubNubServer.getServer());
+
+    const response = await request(app).get("/.well-known/oauth-protected-resource");
+
+    expect(response.status).toBe(200);
+    expect(response.body.resource).toBe(MCP_RESOURCE_URL);
+    // RFC 8414 §3.3: must exactly match the AS issuer.
+    expect(response.body.authorization_servers).toEqual([OAUTH_ISSUER]);
+  });
+
+  it("should serve CORS headers in cloud mode for browser-based clients", async () => {
+    const { PubNubMCPServer } = await import("./index");
+    const pubNubServer = new PubNubMCPServer();
+    const { createApp } = await import("./transporters/http");
+    const app = createApp(pubNubServer.getServer());
+
+    // MCP_CLOUD_MODE is "true" here (see beforeAll)
+    const preflight = await request(app)
+      .options("/")
+      .set("Origin", "https://claude.ai")
+      .set("Access-Control-Request-Method", "POST");
+
+    expect(preflight.status).toBe(200);
+    expect(preflight.headers["access-control-allow-origin"]).toBe("*");
+    expect(preflight.headers["access-control-allow-methods"]).toContain("POST");
+    expect(preflight.headers["access-control-allow-headers"]).toContain("Authorization");
+    expect(preflight.headers["access-control-allow-headers"]).toContain("mcp-protocol-version");
+    expect(preflight.headers["access-control-expose-headers"]).toContain("mcp-session-id");
+
+    const discovery = await request(app)
+      .get("/.well-known/oauth-protected-resource")
+      .set("Origin", "https://claude.ai");
+
+    expect(discovery.status).toBe(200);
+    expect(discovery.headers["access-control-allow-origin"]).toBe("*");
+  });
+
+  it("should mirror authorization server metadata at the MCP origin for legacy clients", async () => {
+    const { PubNubMCPServer } = await import("./index");
+    const pubNubServer = new PubNubMCPServer();
+    const { createApp } = await import("./transporters/http");
+    const app = createApp(pubNubServer.getServer());
+
+    for (const path of [
+      "/.well-known/oauth-authorization-server",
+      "/.well-known/openid-configuration",
+    ]) {
+      const response = await request(app).get(path);
+
+      expect(response.status).toBe(200);
+      // Mirrors upstream issuer metadata (mocked above)
+      expect(response.body.issuer).toBe(OAUTH_ISSUER);
+      expect(response.body.token_endpoint).toBe(`${OAUTH_ISSUER}/token`);
+      expect(response.body.jwks_uri).toBe(`${OAUTH_ISSUER}/jwks`);
+    }
+  });
+
   it("should complete full OAuth flow: validate MCP token → exchange for Admin API token → call Admin API", async () => {
     // Use production MCP server with all real tools
     const { PubNubMCPServer } = await import("./index");

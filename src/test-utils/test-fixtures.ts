@@ -61,6 +61,7 @@ export const mockV2CreateKeysetResponse: v2.CreateKeysetResponse = {
       channelGroupLimit: 100,
     },
     presence: {
+      enabled: true,
       announceMax: 20,
       interval: 10,
       deltas: false,
@@ -68,6 +69,13 @@ export const mockV2CreateKeysetResponse: v2.CreateKeysetResponse = {
       streamFiltering: false,
       activeNoticeChannel: null,
       debounce: 2,
+      enableLegacySDKTracking: false,
+      rules: [
+        {
+          pattern: "*",
+          tracking: { enabled: true, publishEvents: ["join", "leave", "timeout"] },
+        },
+      ],
     },
     apns: {
       enabled: false,
