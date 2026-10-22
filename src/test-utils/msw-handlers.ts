@@ -18,6 +18,7 @@ import {
   mockV2App,
   mockV2AppsListResponse,
   mockV2CreateKeysetResponse,
+  mockV2Keyset,
   mockV2KeysetsListResponse,
 } from "./test-fixtures";
 
@@ -47,6 +48,10 @@ export const portalV2Handlers = [
 
   http.post(`${ADMIN_API_V2_URL}/v2/keysets`, () => {
     return HttpResponse.json<v2.CreateKeysetResponse>(mockV2CreateKeysetResponse, { status: 201 });
+  }),
+
+  http.get(`${ADMIN_API_V2_URL}/v2/keysets/:id`, () => {
+    return HttpResponse.json<v2.ApiKeyset>(mockV2Keyset);
   }),
 
   http.get(`${ADMIN_API_V2_URL}/v2/keysets/:id/config`, () => {

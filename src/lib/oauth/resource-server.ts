@@ -26,7 +26,7 @@ export function buildWWWAuthenticateHeader(error?: string, errorDescription?: st
 export function getProtectedResourceMetadata() {
   return {
     resource: getResourceUrl(),
-    authorization_servers: [getOAuthConfig().issuer.replace(/\/oauth$/, "")],
+    authorization_servers: [getOAuthConfig().issuer],
     bearer_methods_supported: ["header"],
     resource_signing_alg_values_supported: ["RS256"],
     scopes_supported: ["openid", "email", "profile", "offline_access"],

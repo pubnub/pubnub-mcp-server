@@ -15,6 +15,7 @@ import type {
 export type ManageKeysetsSchemaType = z.infer<typeof ManageKeysetsSchema>;
 export type ManageAppsSchemaType = z.infer<typeof ManageAppsSchema>;
 export type KeysetConfig = z.infer<typeof KeysetConfigSchema>;
+export type PresenceRule = NonNullable<NonNullable<KeysetConfig["presence"]>["rules"]>[number];
 
 export type CreateAppData = z.infer<typeof CreateAppDataSchema>;
 export type UpdateAppData = z.infer<typeof UpdateAppDataSchema>;
@@ -102,6 +103,7 @@ export interface KeysetConfigResponse {
     channelGroupLimit: number | null;
   };
   presence: {
+    enabled: boolean;
     announceMax: number | null;
     interval: number | null;
     deltas: boolean | null;
@@ -109,6 +111,8 @@ export interface KeysetConfigResponse {
     streamFiltering: boolean | null;
     activeNoticeChannel: string | null;
     debounce: number | null;
+    enableLegacySDKTracking: boolean | "INCONSISTENT";
+    rules: PresenceRule[] | "UNREADABLE";
   };
   apns: {
     enabled: boolean;
