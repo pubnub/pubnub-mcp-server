@@ -131,7 +131,7 @@ export const ManageIlluminateSchema = z.object({
         "values via dollar-brace template references. PUBNUB_PUBLISH requires no external " +
         "infrastructure and is trivially verifiable via check-action-log or by subscribing to " +
         "the target channel. Only use WEBHOOK when the user has provided a specific URL. " +
-        "Account limits: METRIC decisions max 3/account; saved queries ~10/account. " +
+        "Limits: METRIC decisions max 3 per metric; saved queries ~10/account. " +
         "DASHBOARD charts: use metric: { id: '<metricId>' } — NOT metricId directly. " +
         "PUT is FULL replacement for charts array — always include all existing charts when updating."
     ),

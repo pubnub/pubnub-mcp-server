@@ -15,7 +15,7 @@ import type {
 
 const log = createLogger("portal:api");
 
-const API_VERSION = "2026-03-23";
+const API_VERSION = "2026-10-14";
 
 function getBaseUrl(): string {
   return process.env.ADMIN_API_V2_URL ?? "https://admin-api.pubnub.com";
@@ -143,13 +143,21 @@ export async function updateApp(id: string, name: string): Promise<void> {
   });
 }
 
-export async function getKeyset(id: string): Promise<Omit<Keyset, "name">> {
-  const data = await makeRequest<ApiKeyset>(`/v2/keysets/${id}`, { method: "GET" });
+export interface KeysetWithConfig extends Omit<Keyset, "name"> {
+  config: KeysetConfigResponse;
+}
+
+export async function getKeyset(id: string): Promise<KeysetWithConfig> {
+  const [data, config] = await Promise.all([
+    makeRequest<ApiKeyset>(`/v2/keysets/${id}`, { method: "GET" }),
+    makeRequest<KeysetConfigResponse>(`/v2/keysets/${id}/config`, { method: "GET" }),
+  ]);
   return {
     id: data.id,
     subscribeKey: data.subscribeKey,
     publishKey: data.publishKey,
     type: data.type,
+    config,
   };
 }
 

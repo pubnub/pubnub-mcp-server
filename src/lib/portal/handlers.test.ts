@@ -1,4 +1,5 @@
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { mockV2CreateKeysetResponse } from "../../test-utils/test-fixtures";
 import * as api from "./api";
 import { manageAppsHandler, manageKeysetsHandler } from "./handlers";
 
@@ -68,6 +69,23 @@ describe("Portal Handlers", () => {
   });
 
   describe("manageKeysetsHandler", () => {
+    it("should handle get operation and return config", async () => {
+      const mockResult = {
+        id: "1",
+        subscribeKey: "sub-key",
+        publishKey: "pub-key",
+        type: "production" as const,
+        config: mockV2CreateKeysetResponse.config,
+      };
+      vi.mocked(api.getKeyset).mockResolvedValue(mockResult);
+
+      const result = await manageKeysetsHandler({ operation: "get", data: { id: "1" } });
+
+      expect(api.getKeyset).toHaveBeenCalledWith("1");
+      const parsed = JSON.parse(result.content?.[0]?.text ?? "");
+      expect(parsed).toEqual(mockResult);
+    });
+
     it("should handle list operation without appId", async () => {
       const mockResult = [
         {

@@ -46,7 +46,8 @@ export function getOAuthConfig(): OAuthConfig {
 interface AuthorizationServerMetadata {
   issuer: string;
   token_endpoint: string;
-  // Other fields omitted for brevity
+  // Preserve full upstream metadata for mirroring.
+  [key: string]: unknown;
 }
 let authServerMetadata: AuthorizationServerMetadata | null = null;
 export async function getAuthServerMetadata(): Promise<AuthorizationServerMetadata> {

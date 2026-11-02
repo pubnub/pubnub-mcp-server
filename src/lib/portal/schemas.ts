@@ -155,6 +155,44 @@ const FilesConfigSchema = z
     path: ["retention"],
   });
 
+const PresenceEvent = z.enum([
+  "join",
+  "leave",
+  "timeout",
+  "state-change",
+  "interval",
+  "active",
+  "inactive",
+]);
+
+const PresenceRuleSchema = z.object({
+  pattern: z
+    .string()
+    .min(1)
+    .max(256)
+    .describe(
+      'Channel pattern. "*" is a wildcard matching one or more characters; every other character is matched literally. Regular expressions are not supported.'
+    ),
+  tracking: z
+    .discriminatedUnion("enabled", [
+      z.object({ enabled: z.literal(false) }),
+      z.object({
+        enabled: z.literal(true),
+        publishEvents: z
+          .array(PresenceEvent)
+          .refine(events => new Set(events).size === events.length, {
+            message: "publishEvents must not contain duplicates",
+          })
+          .describe(
+            "Presence events published to the `-pnpres` channel. Events left out are not published. An empty list keeps the channel tracked but silent (occupancy, hereNow and whereNow still work)."
+          ),
+      }),
+    ])
+    .describe(
+      "Whether Presence tracks channels matching this rule. Tracking is needed for occupancy, publishing events, hereNow/whereNow and Events & Actions ingestion."
+    ),
+});
+
 const PresenceConfigSchema = z.object({
   enabled: z
     .boolean()
@@ -206,6 +244,28 @@ const PresenceConfigSchema = z.object({
     .optional()
     .describe(
       'The number of seconds to wait before allowing implicit "joins" after an explicit "leave". Helps smooth out rapid state changes.'
+    ),
+  enableLegacySDKTracking: z
+    .boolean()
+    .optional()
+    .describe(
+      "Whether Presence also counts subscribe requests as liveness, on top of heartbeat requests, for every tracked rule. Defaults to false (heartbeat-only). Enable only when clients rely on subscribe requests to stay present - older SDKs without Event Engine, or SDKs configured with heartbeatInterval: 0. Setting it to true when no rule is tracked fails."
+    ),
+  rules: z
+    .array(PresenceRuleSchema)
+    .min(1)
+    .max(100)
+    .optional()
+    .describe(
+      [
+        "Ordered list of rules controlling which channels Presence tracks and which events it publishes.",
+        "Rules are evaluated in order and the first rule matching a channel wins.",
+        "A channel matching no rule is not tracked, so a rule that disables specific channels usually needs a following catch-all rule",
+        '({ "pattern": "*", "tracking": { "enabled": true, "publishEvents": ["join", "leave", "timeout"] } }).',
+        'To track nothing send [{ "pattern": "*", "tracking": { "enabled": false } }].',
+        "The list replaces the stored rules entirely - to add a rule, include all existing rules you want to keep.",
+        "Omit the field to leave the current rules unchanged.",
+      ].join(" ")
     ),
 });
 
@@ -320,7 +380,9 @@ export const GetKeysetDataSchema = z
   .strict();
 
 const GetKeysetOperationSchema = z.object({
-  operation: z.literal("get").describe("Get a specific keyset information."),
+  operation: z
+    .literal("get")
+    .describe("Get a specific keyset information, including its current feature configuration."),
   data: GetKeysetDataSchema.describe("For 'get': {id}."),
 });
 
