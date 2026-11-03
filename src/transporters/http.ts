@@ -9,6 +9,7 @@ import { SERVER_INFO } from "../index";
 import { createLogger } from "../lib/logger";
 import {
   authMiddleware,
+  getAuthServerMetadata,
   getOAuthConfig,
   getProtectedResourceMetadata,
   isOAuthEnabled,
@@ -45,11 +46,15 @@ export function createApp(server: McpServer): Application {
   }
 
   app.use((req, res, next) => {
-    if (process.env.MCP_CLOUD_MODE !== "true") {
-      res.header("Access-Control-Allow-Origin", "*");
-      res.header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
-      res.header("Access-Control-Allow-Headers", "Content-Type, Authorization, mcp-session-id");
-    }
+    // CORS is required in cloud mode too for browser-based MCP clients.
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
+    res.header(
+      "Access-Control-Allow-Headers",
+      "Content-Type, Authorization, mcp-session-id, mcp-protocol-version, last-event-id"
+    );
+    // Expose headers so browsers can read them.
+    res.header("Access-Control-Expose-Headers", "mcp-session-id, WWW-Authenticate");
     if (req.method === "OPTIONS") {
       res.sendStatus(200);
     } else {
@@ -61,6 +66,22 @@ export function createApp(server: McpServer): Application {
   app.get("/.well-known/oauth-protected-resource", (_req: Request, res: Response) => {
     res.json(getProtectedResourceMetadata());
   });
+
+  // Mirror AS metadata (RFC 8414) for pre-RFC 9728 clients.
+  const serveAuthServerMetadata = async (_req: Request, res: Response) => {
+    if (!isOAuthEnabled()) {
+      res.status(404).json({ error: "OAuth is not enabled" });
+      return;
+    }
+    try {
+      res.json(await getAuthServerMetadata());
+    } catch (error) {
+      log.error({ err: error }, "Failed to mirror authorization server metadata");
+      res.status(502).json({ error: "Failed to fetch authorization server metadata" });
+    }
+  };
+  app.get("/.well-known/oauth-authorization-server", serveAuthServerMetadata);
+  app.get("/.well-known/openid-configuration", serveAuthServerMetadata);
 
   app.get("/health", (_req: Request, res: Response) => {
     res.json({

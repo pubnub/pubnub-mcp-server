@@ -6,6 +6,7 @@ import { mockV2App, mockV2CreateKeysetResponse } from "../../test-utils/test-fix
 import {
   createApp,
   createKeyset,
+  getKeyset,
   listApps,
   listKeysets,
   updateApp,
@@ -131,6 +132,23 @@ describe("Portal v2 API", () => {
         messagePersistence: { enabled: true, retention: 30 },
       });
       expect(result).toBeUndefined();
+    });
+  });
+
+  describe("getKeyset", () => {
+    it("should return keyset details together with its config", async () => {
+      const result = await getKeyset("1");
+
+      expect(result).toMatchObject({
+        id: "1",
+        publishKey: "pub-c-mock-key",
+        subscribeKey: "sub-c-mock-key",
+        type: "testing",
+      });
+      expect(result.config).toEqual(mockV2CreateKeysetResponse.config);
+      expect(result.config.presence.rules).toEqual(
+        mockV2CreateKeysetResponse.config.presence.rules
+      );
     });
   });
 });

@@ -103,12 +103,14 @@ const manageKeysetsTool: ToolDef<ManageKeysetsSchemaType> = {
   definition: {
     title: "Manage PubNub Keyset",
     description: `Manages PubNub keysets with operations: get, list, create, update.
-      - 'get': Get a specific keyset information. User needs to provide the keyset id.
+      - 'get': Get a specific keyset information, including its current config (message persistence, App Context, files, presence including presence rules, etc.). User needs to provide the keyset id.
       - 'list': List all keysets for your account or a specific app.
       - 'create': Create a new keyset. New keyset is created with Message Persistence, App Context, Files, and Presence enabled by default;
         the user must provide name, production, and config with nested objects (messagePersistence, appContext, files, presence),
         and if any required parameter is missing, you must ask the user to provide it.
-      - 'update': Update an existing keyset. User needs to provide the keyset id and the config to update.`,
+      - 'update': Update an existing keyset. User needs to provide the keyset id and the config to update. Only provided fields are changed.
+        presence.rules replaces the stored rules entirely: before changing rules, call 'get' and send the full list including the existing rules to keep.
+        If 'get' returns presence.rules as "UNREADABLE", the existing rules cannot be read back; tell the user that sending rules will overwrite them and ask before proceeding.`,
     inputSchema: ManageKeysetsDefinitionSchema.shape,
   },
   handler: manageKeysetsHandler,
