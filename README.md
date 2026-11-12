@@ -222,6 +222,7 @@ npm run dev
 | Variable | Description | Required |
 |---|---|---|
 | `PORT` | HTTP server port (default: 3000) | No |
+| `HOST` | HTTP bind address (default: `127.0.0.1`, or all interfaces when `MCP_CLOUD_MODE=true`) | No |
 | `MCP_OAUTH_ENABLED` | Enable OAuth authentication | Yes (for production) |
 | `OAUTH_ISSUER` | OAuth authorization server URL | When OAuth enabled |
 | `OAUTH_CLIENT_ID` | OAuth client ID | When OAuth enabled |
@@ -233,6 +234,8 @@ npm run dev
 | `ADMIN_API_V2_URL` | Override Admin API v2 endpoint | No |
 | `PUBNUB_ORIGIN` | Override PubNub origin | No |
 | `SDK_DOCS_API_URL` | Override docs API endpoint | No |
+
+Without OAuth, the HTTP transport (`--http`) runs every tool with the server's own `PUBNUB_API_KEY`, so it only accepts requests whose `Host` is `localhost`, `127.0.0.1` or `[::1]` and rejects browser requests from non-local origins with `403`. Enable OAuth for any shared or remote deployment.
 
 ### Testing
 

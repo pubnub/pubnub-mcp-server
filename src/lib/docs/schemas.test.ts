@@ -1,7 +1,9 @@
 import { describe, expect, it } from "vitest";
 import {
+  describeFeaturesByLanguage,
   GetChatSdkDocumentationSchemaRefined,
   GetGeneralMigrationGuideSchemaRefined,
+  GetSdkDocumentationSchema,
   GetSdkDocumentationSchemaRefined,
   GetSdkMigrationGuideSchemaRefined,
   HowToSchema,
@@ -32,6 +34,56 @@ describe("Docs Schemas", () => {
 
       const result = GetSdkDocumentationSchemaRefined.safeParse(invalidData);
       expect(result.success).toBe(false);
+    });
+
+    it("should accept data-sync for languages that support DataSync", () => {
+      const result = GetSdkDocumentationSchemaRefined.safeParse({
+        language: "javascript",
+        feature: "data-sync",
+      });
+      expect(result.success).toBe(true);
+    });
+
+    it("should reject data-sync for languages without DataSync", () => {
+      // ruby doesn't have DataSync docs
+      const result = GetSdkDocumentationSchemaRefined.safeParse({
+        language: "ruby",
+        feature: "data-sync",
+      });
+      expect(result.success).toBe(false);
+    });
+  });
+
+  describe("describeFeaturesByLanguage", () => {
+    it("lists shared features once and language-specific features per language", () => {
+      const description = describeFeaturesByLanguage({
+        javascript: ["publish", "subscribe", "data-sync"],
+        "objective-c": ["publish", "subscribe", "presence-builder", "presence-methods"],
+        ruby: ["publish", "subscribe"],
+      });
+
+      expect(description).toContain("Available for all languages: publish, subscribe.");
+      expect(description).toContain("- javascript: data-sync");
+      expect(description).toContain("- objective-c: presence-builder, presence-methods");
+      expect(description).toContain("- ruby: (none)");
+    });
+
+    it("omits the shared line when no feature is common to every language", () => {
+      const description = describeFeaturesByLanguage({ a: ["x"], b: ["y"] });
+
+      expect(description).not.toContain("Available for all languages");
+      expect(description).toContain("Features per language:");
+      expect(description).toContain("- a: x");
+      expect(description).toContain("- b: y");
+    });
+
+    it("is attached to the SDK feature field so clients see per-language availability", () => {
+      const description = GetSdkDocumentationSchema.shape.feature.description ?? "";
+
+      expect(description).toMatch(/- objective-c: .*publish-builder/);
+      expect(description).not.toMatch(/- javascript: .*publish-builder/);
+      expect(description).toMatch(/- javascript: .*data-sync/);
+      expect(description).not.toMatch(/- ruby: .*data-sync/);
     });
   });
 

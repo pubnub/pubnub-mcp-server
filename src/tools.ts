@@ -163,6 +163,7 @@ const getSDKDocumentationTool: ToolDef<GetSdkDocumentationSchemaType> = {
       - Need fine-grained control over pub/sub, presence, storage, or access management
       - Implementing custom real-time patterns
       - Need API reference for specific SDK methods (publish, subscribe, history, etc.)
+      - Storing and syncing application state (users, channels, memberships, custom entities) → use feature "data-sync" (DataSync is the successor to App Context; prefer it over "appcontext-*" features where available)
       - For Python SDK usage always request about sync or asyncio version of langauge. 
 
       **Do NOT use for:**

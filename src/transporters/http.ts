@@ -1,5 +1,6 @@
 import { randomUUID } from "node:crypto";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { localhostHostValidation } from "@modelcontextprotocol/sdk/server/middleware/hostHeaderValidation.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
 import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
@@ -18,6 +19,21 @@ import {
 const log = createLogger("http");
 
 const enableSessions = process.env.MCP_SESSION_SUPPORT === "true";
+
+const LOOPBACK_HOSTNAMES = ["localhost", "127.0.0.1", "[::1]"];
+
+/**
+ * True when the Origin points at the local machine (e.g. a local MCP Inspector).
+ * Opaque origins ("null"), file:// and anything unparsable are rejected.
+ */
+export function isLoopbackOrigin(origin: string): boolean {
+  try {
+    const { protocol, hostname } = new URL(origin);
+    return (protocol === "http:" || protocol === "https:") && LOOPBACK_HOSTNAMES.includes(hostname);
+  } catch {
+    return false;
+  }
+}
 
 /**
  * Create and configure Express app with MCP HTTP transport
@@ -45,9 +61,34 @@ export function createApp(server: McpServer): Application {
     return transport;
   }
 
+  // Without OAuth every tool runs with the server's own credentials (PUBNUB_API_KEY),
+  // so only local clients may talk to it. Host validation blocks DNS rebinding;
+  // the Origin check below blocks cross-site requests from pages in the user's browser.
+  const unauthenticated = !isOAuthEnabled();
+  if (unauthenticated) {
+    app.use(localhostHostValidation());
+  }
+
   app.use((req, res, next) => {
-    // CORS is required in cloud mode too for browser-based MCP clients.
-    res.header("Access-Control-Allow-Origin", "*");
+    const origin = req.headers.origin;
+    if (unauthenticated) {
+      if (origin !== undefined && !isLoopbackOrigin(origin)) {
+        log.warn({ origin }, "Rejected request from non-local origin");
+        res.status(403).json({
+          jsonrpc: "2.0",
+          error: { code: -32000, message: `Origin not allowed: ${origin}` },
+          id: null,
+        });
+        return;
+      }
+      if (origin !== undefined) {
+        res.header("Access-Control-Allow-Origin", origin);
+      }
+      res.header("Vary", "Origin");
+    } else {
+      // Every MCP route requires a bearer token, so browser-based MCP clients may call from any origin.
+      res.header("Access-Control-Allow-Origin", "*");
+    }
     res.header("Access-Control-Allow-Methods", "GET, POST, DELETE, OPTIONS");
     res.header(
       "Access-Control-Allow-Headers",
@@ -185,12 +226,37 @@ export function runHttp(server: McpServer, port = 3000) {
     getOAuthConfig(); // This will throw if config is invalid
   }
 
+  // Cloud deployments sit behind an ingress and must listen on all interfaces;
+  // local runs stay on loopback unless HOST is set explicitly.
+  // (undefined = Node's default of all interfaces, IPv4 and IPv6).
+  const host =
+    process.env.HOST ?? (process.env.MCP_CLOUD_MODE === "true" ? undefined : "127.0.0.1");
+
+  if (!isOAuthEnabled()) {
+    log.warn(
+      { host },
+      "OAuth is disabled: every request runs with this server's PubNub credentials. " +
+        "Only localhost clients are accepted. Set MCP_OAUTH_ENABLED=true for any shared or remote deployment."
+    );
+  }
+
   const app = createApp(server);
 
-  app.listen(port, () => {
+  const onListening = () => {
     log.info(
-      { port, sessions: enableSessions, health: `http://localhost:${port}/health` },
+      {
+        host: host ?? "all interfaces",
+        port,
+        sessions: enableSessions,
+        health: `http://localhost:${port}/health`,
+      },
       "PubNub MCP server started"
     );
-  });
+  };
+
+  if (host) {
+    app.listen(port, host, onListening);
+  } else {
+    app.listen(port, onListening);
+  }
 }
