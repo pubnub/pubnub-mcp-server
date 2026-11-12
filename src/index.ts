@@ -114,7 +114,27 @@ function installShutdownHandlers() {
 }
 
 const args = process.argv.slice(2);
-const httpMode = args.includes("--http") || args.includes("-h");
+
+if (args.includes("--help") || args.includes("-h")) {
+  process.stdout.write(
+    [
+      `${SERVER_INFO.name} ${SERVER_INFO.version}`,
+      "",
+      "Usage: npx @pubnub/mcp [options]",
+      "",
+      "Runs over stdio by default.",
+      "",
+      "Options:",
+      "  --http          Run the Streamable HTTP transport (development use; localhost only without OAuth)",
+      "  --port=<port>   HTTP port (default: 3000, or PORT env var)",
+      "  -h, --help      Show this help",
+      "",
+    ].join("\n")
+  );
+  process.exit(0);
+}
+
+const httpMode = args.includes("--http");
 const port =
   args.find(arg => arg.startsWith("--port="))?.split("=")[1] ?? process.env.PORT ?? "3000";
 

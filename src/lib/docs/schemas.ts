@@ -3,6 +3,30 @@ import { z } from "zod";
 const toTuple = <T extends string>(xs: readonly T[]) => xs as unknown as [T, ...T[]];
 
 /**
+ * Builds a human/LLM-readable description of which features each language supports.
+ * Features shared by every language are listed once to keep the tool definition compact.
+ */
+export function describeFeaturesByLanguage(mapping: Record<string, readonly string[]>): string {
+  const featureLists = Object.values(mapping);
+  const common = (featureLists[0] ?? []).filter(feature =>
+    featureLists.every(features => features.includes(feature))
+  );
+
+  const lines = [
+    "Feature to fetch. Availability depends on the selected language; only use a feature listed for that language.",
+  ];
+  if (common.length > 0) {
+    lines.push(`Available for all languages: ${common.join(", ")}.`);
+  }
+  lines.push(common.length > 0 ? "Additional features per language:" : "Features per language:");
+  for (const [language, features] of Object.entries(mapping)) {
+    const specific = features.filter(feature => !common.includes(feature));
+    lines.push(`- ${language}: ${specific.length > 0 ? specific.join(", ") : "(none)"}`);
+  }
+  return lines.join("\n");
+}
+
+/**
  * Factory function to create language-feature schemas from a mapping
  */
 function createLanguageFeatureSchemas<TMapping extends Record<string, readonly string[]>>(
@@ -17,7 +41,10 @@ function createLanguageFeatureSchemas<TMapping extends Record<string, readonly s
 
   const allFeatures = Array.from(new Set(Object.values(mapping).flat())) as readonly Feature[];
 
-  const featureSchema = z.enum(toTuple(allFeatures));
+  // MCP tool inputs must be a flat object schema, so `feature` has to be a single enum
+  // covering every language. Spell out per-language availability in the description so
+  // clients (and LLMs) can see which features are valid for the chosen language.
+  const featureSchema = z.enum(toTuple(allFeatures)).describe(describeFeaturesByLanguage(mapping));
 
   const baseSchema = z.object({
     language: languageSchema,
@@ -67,6 +94,7 @@ export const sdkLanguageToFeatures = {
     "appcontext-user",
     "channel-groups",
     "configuration",
+    "data-sync",
     "encryption",
     "files",
     "message-actions",
@@ -85,6 +113,7 @@ export const sdkLanguageToFeatures = {
     "appcontext-user",
     "channel-groups",
     "configuration",
+    "data-sync",
     "encryption",
     "files",
     "message-actions",
@@ -112,6 +141,7 @@ export const sdkLanguageToFeatures = {
     "appcontext-user",
     "channel-groups",
     "configuration",
+    "data-sync",
     "encryption",
     "files",
     "message-actions",
@@ -130,6 +160,7 @@ export const sdkLanguageToFeatures = {
     "appcontext-user",
     "channel-groups",
     "configuration",
+    "data-sync",
     "encryption",
     "files",
     "message-actions",
@@ -148,6 +179,7 @@ export const sdkLanguageToFeatures = {
     "appcontext-user",
     "channel-groups",
     "configuration",
+    "data-sync",
     "encryption",
     "files",
     "message-actions",
@@ -166,6 +198,7 @@ export const sdkLanguageToFeatures = {
     "appcontext-user",
     "channel-groups",
     "configuration",
+    "data-sync",
     "encryption",
     "files",
     "message-actions",
@@ -220,6 +253,7 @@ export const sdkLanguageToFeatures = {
     "appcontext-user",
     "channel-groups",
     "configuration",
+    "data-sync",
     "encryption",
     "files",
     "message-actions",
@@ -314,6 +348,7 @@ export const sdkLanguageToFeatures = {
     "appcontext-user",
     "channel-groups",
     "configuration",
+    "data-sync",
     "encryption",
     "files",
     "message-actions",
@@ -332,6 +367,7 @@ export const sdkLanguageToFeatures = {
     "appcontext-user",
     "channel-groups",
     "configuration",
+    "data-sync",
     "encryption",
     "files",
     "message-actions",
