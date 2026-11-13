@@ -13,6 +13,27 @@ permissions:
   contents: read
 
 jobs:
+  lint:
+    runs-on:
+      group: organization/Default
+
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      # Lint, format and import order check (never writes files)
+      - name: Run Biome check
+        run: npm run check:ci
+
   run-tests:
     runs-on:
       group: organization/Default
@@ -24,17 +45,11 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v4
         with:
-          node-version: 20
+          node-version-file: .nvmrc
           cache: npm
 
       - name: Install dependencies
         run: npm ci
-
-      - name: Run lint
-        run: npm run lint
-
-      - name: Run format check
-        run: npm run format:check
 
       - name: Run unit tests
         run: npm run test:unit
