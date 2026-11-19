@@ -93,10 +93,9 @@ describe.skipIf(!OPENAI_API_KEY)("Full conversation flow with OpenAI", () => {
     console.log(`  Mock Docs API: ${SDK_DOCS_API_URL}`);
 
     // Start MCP server in HTTP mode
-    const { PubNubMCPServer } = await import("./index");
+    const { createMcpServer } = await import("./index");
     const { createApp } = await import("./transporters/http");
-    const serverInstance = new PubNubMCPServer();
-    const app = createApp(serverInstance.getServer());
+    const app = createApp(createMcpServer);
     mcpHttpServer = app.listen(MCP_SERVER_PORT);
     await new Promise<void>(resolve => {
       mcpHttpServer?.on("listening", resolve);

@@ -121,7 +121,6 @@ describe("OAuth Flow Integration Test", () => {
     process.env.OAUTH_CLIENT_SECRET = "test-client-secret";
     process.env.ADMIN_API_RESOURCE_URL = ADMIN_API_RESOURCE_URL;
     process.env.ADMIN_API_V2_URL = "https://admin-api-test.example.com";
-    process.env.MCP_SESSION_SUPPORT = "false"; // Use stateless mode for testing
   });
 
   afterAll(() => {
@@ -133,10 +132,9 @@ describe("OAuth Flow Integration Test", () => {
   });
 
   it("should advertise the full issuer (including path) in protected resource metadata", async () => {
-    const { PubNubMCPServer } = await import("./index");
-    const pubNubServer = new PubNubMCPServer();
+    const { createMcpServer } = await import("./index");
     const { createApp } = await import("./transporters/http");
-    const app = createApp(pubNubServer.getServer());
+    const app = createApp(createMcpServer);
 
     const response = await request(app).get("/.well-known/oauth-protected-resource");
 
@@ -147,10 +145,9 @@ describe("OAuth Flow Integration Test", () => {
   });
 
   it("should serve CORS headers in cloud mode for browser-based clients", async () => {
-    const { PubNubMCPServer } = await import("./index");
-    const pubNubServer = new PubNubMCPServer();
+    const { createMcpServer } = await import("./index");
     const { createApp } = await import("./transporters/http");
-    const app = createApp(pubNubServer.getServer());
+    const app = createApp(createMcpServer);
 
     // MCP_CLOUD_MODE is "true" here (see beforeAll)
     const preflight = await request(app)
@@ -174,10 +171,9 @@ describe("OAuth Flow Integration Test", () => {
   });
 
   it("should mirror authorization server metadata at the MCP origin for legacy clients", async () => {
-    const { PubNubMCPServer } = await import("./index");
-    const pubNubServer = new PubNubMCPServer();
+    const { createMcpServer } = await import("./index");
     const { createApp } = await import("./transporters/http");
-    const app = createApp(pubNubServer.getServer());
+    const app = createApp(createMcpServer);
 
     for (const path of [
       "/.well-known/oauth-authorization-server",
@@ -195,13 +191,11 @@ describe("OAuth Flow Integration Test", () => {
 
   it("should complete full OAuth flow: validate MCP token → exchange for Admin API token → call Admin API", async () => {
     // Use production MCP server with all real tools
-    const { PubNubMCPServer } = await import("./index");
-    const pubNubServer = new PubNubMCPServer();
-    const mcpServer = pubNubServer.getServer();
+    const { createMcpServer } = await import("./index");
 
     // Use production app setup
     const { createApp } = await import("./transporters/http");
-    const app = createApp(mcpServer);
+    const app = createApp(createMcpServer);
 
     // Make MCP protocol request with valid JWT token
     const mcpRequest = {
@@ -272,12 +266,10 @@ describe("OAuth Flow Integration Test", () => {
     );
 
     // Use production MCP server
-    const { PubNubMCPServer } = await import("./index");
-    const pubNubServer = new PubNubMCPServer();
-    const mcpServer = pubNubServer.getServer();
+    const { createMcpServer } = await import("./index");
 
     const { createApp } = await import("./transporters/http");
-    const app = createApp(mcpServer);
+    const app = createApp(createMcpServer);
 
     const mcpRequest = {
       jsonrpc: "2.0",
@@ -316,10 +308,9 @@ describe("OAuth Flow Integration Test", () => {
       .setExpirationTime("-1h") // Expired 1 hour ago
       .sign(privateKey);
 
-    const { PubNubMCPServer } = await import("./index");
-    const pubNubServer = new PubNubMCPServer();
+    const { createMcpServer } = await import("./index");
     const { createApp } = await import("./transporters/http");
-    const app = createApp(pubNubServer.getServer());
+    const app = createApp(createMcpServer);
 
     const mcpRequest = {
       jsonrpc: "2.0",
@@ -341,10 +332,9 @@ describe("OAuth Flow Integration Test", () => {
   it("should reject token with wrong audience", async () => {
     const wrongAudienceToken = await createTestToken("https://wrong-audience.example.com/");
 
-    const { PubNubMCPServer } = await import("./index");
-    const pubNubServer = new PubNubMCPServer();
+    const { createMcpServer } = await import("./index");
     const { createApp } = await import("./transporters/http");
-    const app = createApp(pubNubServer.getServer());
+    const app = createApp(createMcpServer);
 
     const mcpRequest = {
       jsonrpc: "2.0",
@@ -364,10 +354,9 @@ describe("OAuth Flow Integration Test", () => {
   });
 
   it("should reject request without authorization header", async () => {
-    const { PubNubMCPServer } = await import("./index");
-    const pubNubServer = new PubNubMCPServer();
+    const { createMcpServer } = await import("./index");
     const { createApp } = await import("./transporters/http");
-    const app = createApp(pubNubServer.getServer());
+    const app = createApp(createMcpServer);
 
     const mcpRequest = {
       jsonrpc: "2.0",
@@ -388,10 +377,9 @@ describe("OAuth Flow Integration Test", () => {
   it("should track init on the MCP initialize handshake", async () => {
     vi.mocked(trackInit).mockClear();
 
-    const { PubNubMCPServer } = await import("./index");
-    const pubNubServer = new PubNubMCPServer();
+    const { createMcpServer } = await import("./index");
     const { createApp } = await import("./transporters/http");
-    const app = createApp(pubNubServer.getServer());
+    const app = createApp(createMcpServer);
 
     const response = await request(app)
       .post("/")

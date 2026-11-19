@@ -1,6 +1,6 @@
 import type { Server } from "node:http";
 import { afterEach, beforeEach, describe, expect, it } from "vitest";
-import { PubNubMCPServer } from "./index";
+import { createMcpServer } from "./index";
 import { chatSdkLanguageToFeatures, sdkLanguageToFeatures } from "./lib/docs/schemas";
 import { createMcpClient } from "./test-utils/mcp-client";
 import { createApp } from "./transporters/http";
@@ -21,8 +21,7 @@ const getClient = () => {
 describe("Resources", () => {
   beforeEach(async () => {
     process.env.MCP_OAUTH_ENABLED = "false";
-    const serverInstance = new PubNubMCPServer();
-    const app = createApp(serverInstance.getServer());
+    const app = createApp(createMcpServer);
     httpServer = app.listen(TEST_PORT);
     await new Promise<void>((resolve, reject) => {
       if (httpServer) {
