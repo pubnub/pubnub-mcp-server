@@ -1,4 +1,3 @@
-import { randomUUID } from "node:crypto";
 import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import { localhostHostValidation } from "@modelcontextprotocol/sdk/server/middleware/hostHeaderValidation.js";
 import { StreamableHTTPServerTransport } from "@modelcontextprotocol/sdk/server/streamableHttp.js";
@@ -6,7 +5,6 @@ import type { Transport } from "@modelcontextprotocol/sdk/shared/transport.js";
 import { isInitializeRequest } from "@modelcontextprotocol/sdk/types.js";
 import express, { type Application, type Request, type Response } from "express";
 import { trackInit } from "../analytics";
-import { SERVER_INFO } from "../index";
 import { createLogger } from "../lib/logger";
 import {
   authMiddleware,
@@ -15,10 +13,9 @@ import {
   getProtectedResourceMetadata,
   isOAuthEnabled,
 } from "../lib/oauth";
+import { SERVER_INFO } from "../server-info";
 
 const log = createLogger("http");
-
-const enableSessions = process.env.MCP_SESSION_SUPPORT === "true";
 
 const LOOPBACK_HOSTNAMES = ["localhost", "127.0.0.1", "[::1]"];
 
@@ -38,27 +35,37 @@ export function isLoopbackOrigin(origin: string): boolean {
 /**
  * Create and configure Express app with MCP HTTP transport
  * This can be used for both production (via runHttp) and testing
+ *
+ * Every request gets its own McpServer from `createServer`: the SDK's Protocol owns a single
+ * transport, so sharing one server across transports lets responses reach the wrong client.
  */
-export function createApp(server: McpServer): Application {
+export function createApp(createServer: () => McpServer): Application {
   const app: Application = express();
   app.set("trust proxy", true);
   app.use(express.json());
 
-  const transports = new Map<string, StreamableHTTPServerTransport>();
-
-  async function createStatelessTransport(
-    server: McpServer,
-    res: express.Response,
-    trackInitOnConnect = false
-  ): Promise<StreamableHTTPServerTransport> {
-    const transport = new StreamableHTTPServerTransport({});
-    transport.onclose = () => {};
-    res.on("close", () => transport.close());
-    await server.connect(transport as Transport);
-    if (trackInitOnConnect) {
-      trackInit();
+  async function handleMcpRequest(req: Request, res: Response) {
+    try {
+      const server = createServer();
+      const transport = new StreamableHTTPServerTransport({});
+      res.on("close", () => {
+        void server.close();
+      });
+      await server.connect(transport as Transport);
+      if (isInitializeRequest(req.body)) {
+        trackInit();
+      }
+      await transport.handleRequest(req, res, req.body);
+    } catch (error) {
+      log.error({ err: error, method: req.method }, "Failed to handle MCP request");
+      if (!res.headersSent) {
+        res.status(500).json({
+          jsonrpc: "2.0",
+          error: { code: -32603, message: "Internal server error" },
+          id: null,
+        });
+      }
     }
-    return transport;
   }
 
   // Without OAuth every tool runs with the server's own credentials (PUBNUB_API_KEY),
@@ -131,88 +138,12 @@ export function createApp(server: McpServer): Application {
       version: SERVER_INFO.version,
       timestamp: new Date().toISOString(),
       uptime: process.uptime(),
-      sessions: transports.size,
     });
   });
 
-  app.post("/", authMiddleware, async (req, res) => {
-    log.debug(
-      { method: req.method, path: req.path, contentType: req.headers["content-type"] },
-      "Request received"
-    );
-
-    if (!enableSessions) {
-      const transport = await createStatelessTransport(server, res, isInitializeRequest(req.body));
-      await transport.handleRequest(req, res, req.body);
-      return;
-    }
-
-    const sessionId = req.headers["mcp-session-id"] as string | undefined;
-    let transport: StreamableHTTPServerTransport;
-
-    if (sessionId && transports.has(sessionId)) {
-      transport = transports.get(sessionId) as StreamableHTTPServerTransport;
-    } else if (!sessionId && isInitializeRequest(req.body)) {
-      transport = new StreamableHTTPServerTransport({
-        sessionIdGenerator: () => randomUUID(),
-        onsessioninitialized: sessionId => {
-          transports.set(sessionId, transport);
-          trackInit();
-          log.info({ sessionId }, "New MCP session initialized");
-        },
-      });
-
-      transport.onclose = () => {
-        if (transport.sessionId) {
-          log.info({ sessionId: transport.sessionId }, "MCP session closed");
-          transports.delete(transport.sessionId);
-        }
-      };
-
-      await server.connect(transport as Transport);
-    } else {
-      res.status(404).json({
-        jsonrpc: "2.0",
-        error: {
-          code: -32001,
-          message: "Session not found. Please reinitialize.",
-        },
-        id: null,
-      });
-      return;
-    }
-
-    await transport.handleRequest(req, res, req.body);
-  });
-
-  const handleSessionRequest = async (req: express.Request, res: express.Response) => {
-    if (!enableSessions) {
-      const transport = await createStatelessTransport(server, res);
-      await transport.handleRequest(req, res);
-      return;
-    }
-
-    const sessionId = req.headers["mcp-session-id"] as string | undefined;
-    if (!sessionId || !transports.has(sessionId)) {
-      log.warn({ sessionId, activeSessions: transports.size }, "Invalid or missing session ID");
-      res.status(404).json({
-        jsonrpc: "2.0",
-        error: {
-          code: -32001,
-          message: "Session not found. Please reinitialize.",
-        },
-        id: null,
-      });
-      return;
-    }
-
-    const transport = transports.get(sessionId) as StreamableHTTPServerTransport;
-    await transport.handleRequest(req, res);
-  };
-
-  app.get("/", authMiddleware, handleSessionRequest);
-
-  app.delete("/", authMiddleware, handleSessionRequest);
+  app.post("/", authMiddleware, handleMcpRequest);
+  app.get("/", authMiddleware, handleMcpRequest);
+  app.delete("/", authMiddleware, handleMcpRequest);
 
   return app;
 }
@@ -220,7 +151,7 @@ export function createApp(server: McpServer): Application {
 /**
  * Run MCP HTTP server on the specified port
  */
-export function runHttp(server: McpServer, port = 3000) {
+export function runHttp(createServer: () => McpServer, port = 3000) {
   // Validate OAuth configuration if auth is enabled
   if (isOAuthEnabled()) {
     getOAuthConfig(); // This will throw if config is invalid
@@ -240,14 +171,13 @@ export function runHttp(server: McpServer, port = 3000) {
     );
   }
 
-  const app = createApp(server);
+  const app = createApp(createServer);
 
   const onListening = () => {
     log.info(
       {
         host: host ?? "all interfaces",
         port,
-        sessions: enableSessions,
         health: `http://localhost:${port}/health`,
       },
       "PubNub MCP server started"

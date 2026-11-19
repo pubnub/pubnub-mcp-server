@@ -1,83 +1,61 @@
 import "dotenv/config";
 import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
-import pkg from "../package.json";
 import { flushAnalytics, wrapToolHandler } from "./analytics.js";
 import { createLogger } from "./lib/logger";
 import { prompts } from "./prompts.js";
 import { resources } from "./resources";
+import { SERVER_INFO } from "./server-info";
 import { tools } from "./tools.js";
 import { runHttp } from "./transporters/http.js";
 import { runStdio } from "./transporters/stdio.js";
 
 const log = createLogger("server");
 
-export const SERVER_INFO = {
-  name: "pubnub-mcp",
-  version: pkg.version,
-  description: "PubNub MCP Server - Build Realtime applications with PubNub and AI assistants",
-};
-
-export class PubNubMCPServer {
-  private server: McpServer;
-
-  constructor() {
-    this.server = new McpServer(SERVER_INFO, {
-      instructions: `PubNub MCP Server - Build real-time applications with PubNub.
+export function createMcpServer(): McpServer {
+  const server = new McpServer(SERVER_INFO, {
+    instructions: `PubNub MCP Server - Build real-time applications with PubNub.
         TOOL SELECTION GUIDE:
         1. **Start here**: Call "write_pubnub_app" first when unsure which tool to use and for production-ready patterns
         2. **Chat apps**: Use "get_chat_sdk_documentation" for chat/messaging features
         3. **Non-chat real-time**: Use "get_sdk_documentation" for IoT, gaming, analytics, pub/sub and for non-chat real-time applications
         4. **Use case guides**: Use "how_to" for conceptual/integration guides
       `,
-    });
+  });
 
-    this.setupToolHandlers();
-    this.setupPromptHandlers();
-    this.setupResourceHandlers();
-  }
+  tools.forEach(tool => {
+    server.registerTool(
+      tool.name,
+      tool.definition,
+      // @ts-expect-error - Union types from heterogeneous tool schemas
+      wrapToolHandler(tool.handler, tool.name)
+    );
+  });
 
-  private setupToolHandlers() {
-    tools.forEach(tool => {
-      this.server.registerTool(
-        tool.name,
-        tool.definition,
-        // @ts-expect-error - Union types from heterogeneous tool schemas
-        wrapToolHandler(tool.handler, tool.name)
-      );
-    });
-  }
+  prompts.forEach(prompt => {
+    server.registerPrompt(prompt.name, prompt.definition, prompt.handler);
+  });
 
-  private setupPromptHandlers() {
-    prompts.forEach(prompt => {
-      this.server.registerPrompt(prompt.name, prompt.definition, prompt.handler);
-    });
-  }
+  resources.forEach(resource => {
+    // @ts-expect-error - Union types from heterogeneous resource schemas
+    server.registerResource(
+      resource.name,
+      resource.template,
+      resource.definition,
+      resource.handler
+    );
+  });
 
-  private setupResourceHandlers() {
-    resources.forEach(resource => {
-      // @ts-expect-error - Union types from heterogeneous resource schemas
-      this.server.registerResource(
-        resource.name,
-        resource.template,
-        resource.definition,
-        resource.handler
-      );
-    });
-  }
+  return server;
+}
 
-  getServer(): McpServer {
-    return this.server;
-  }
+async function run() {
+  const mode = process.env.MCP_MODE ?? "stdio";
+  const port = parseInt(process.env.PORT ?? "3000", 10);
 
-  async run() {
-    const mode = process.env.MCP_MODE ?? "stdio";
-    const port = parseInt(process.env.PORT ?? "3000", 10);
-
-    if (mode === "http") {
-      runHttp(this.server, port);
-    } else {
-      await runStdio(this.server);
-    }
+  if (mode === "http") {
+    runHttp(createMcpServer, port);
+  } else {
+    await runStdio(createMcpServer());
   }
 }
 
@@ -143,9 +121,8 @@ if (httpMode) {
   process.env.PORT = port;
 }
 
-const server = new PubNubMCPServer();
 installShutdownHandlers();
-server.run().catch((error: unknown) => {
+run().catch((error: unknown) => {
   log.fatal({ err: error }, "Failed to start server");
   process.exit(1);
 });

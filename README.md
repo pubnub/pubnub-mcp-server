@@ -230,7 +230,6 @@ npm run dev
 | `ADMIN_API_RESOURCE_URL` | Admin API resource identifier | When OAuth enabled |
 | `MCP_RESOURCE_URL` | MCP resource URL | When OAuth enabled |
 | `MCP_CLOUD_MODE` | Cloud deployment mode | No |
-| `MCP_SESSION_SUPPORT` | Enable session persistence | No |
 | `ADMIN_API_V2_URL` | Override Admin API v2 endpoint | No |
 | `PUBNUB_ORIGIN` | Override PubNub origin | No |
 | `SDK_DOCS_API_URL` | Override docs API endpoint | No |

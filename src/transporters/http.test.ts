@@ -1,6 +1,7 @@
-import type { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
+import { McpServer } from "@modelcontextprotocol/sdk/server/mcp.js";
 import request from "supertest";
-import { afterEach, describe, expect, it } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { z } from "zod";
 import { createApp, isLoopbackOrigin } from "./http";
 
 const originalOAuth = process.env.MCP_OAUTH_ENABLED;
@@ -15,12 +16,12 @@ afterEach(() => {
 
 function appWithOAuth(enabled: boolean) {
   process.env.MCP_OAUTH_ENABLED = enabled ? "true" : "false";
-  return createApp({} as McpServer);
+  return createApp(() => ({}) as McpServer);
 }
 
 describe("createApp", () => {
   it("trusts the proxy so req.ip resolves X-Forwarded-For behind an ingress", () => {
-    const app = createApp({} as McpServer);
+    const app = createApp(() => ({}) as McpServer);
     expect(app.get("trust proxy")).toBe(true);
   });
 });
@@ -103,5 +104,77 @@ describe("HTTP transport with OAuth", () => {
 
     expect(res.status).toBe(200);
     expect(res.headers["access-control-allow-origin"]).toBe("*");
+  });
+});
+
+describe("MCP request handling", () => {
+  function createEchoServer() {
+    const server = new McpServer({ name: "test", version: "0.0.0" });
+    server.registerTool(
+      "echo",
+      { inputSchema: { value: z.string(), delayMs: z.number() } },
+      async ({ value, delayMs }) => {
+        await new Promise(resolve => setTimeout(resolve, delayMs));
+        return { content: [{ type: "text", text: value }] };
+      }
+    );
+    return server;
+  }
+
+  function callEcho(app: ReturnType<typeof createApp>, value: string, delayMs: number) {
+    return request(app)
+      .post("/")
+      .set("Accept", "application/json, text/event-stream")
+      .send({
+        jsonrpc: "2.0",
+        id: 2,
+        method: "tools/call",
+        params: { name: "echo", arguments: { value, delayMs } },
+      });
+  }
+
+  function echoedValue(res: request.Response): string | undefined {
+    const data = res.text.split("\n").find(line => line.startsWith("data: "));
+    return data ? JSON.parse(data.slice("data: ".length)).result?.content?.[0]?.text : undefined;
+  }
+
+  it("creates a separate McpServer for every request", async () => {
+    process.env.MCP_OAUTH_ENABLED = "false";
+    const createServer = vi.fn(createEchoServer);
+    const app = createApp(createServer);
+
+    await callEcho(app, "first", 0);
+    await callEcho(app, "second", 0);
+
+    expect(createServer).toHaveBeenCalledTimes(2);
+    expect(createServer.mock.results[0].value).not.toBe(createServer.mock.results[1].value);
+  });
+
+  it("delivers each response to its own client when concurrent requests share a JSON-RPC id", async () => {
+    process.env.MCP_OAUTH_ENABLED = "false";
+    const app = createApp(createEchoServer);
+
+    const clients = Array.from({ length: 20 }, (_, i) => `client-${i}`);
+    const responses = await Promise.all(
+      clients.map((value, i) => callEcho(app, value, (i * 7) % 30))
+    );
+
+    expect(responses.map(echoedValue)).toEqual(clients);
+  });
+
+  it("answers with a JSON-RPC error when the request cannot be handled", async () => {
+    process.env.MCP_OAUTH_ENABLED = "false";
+    const app = createApp(() => {
+      throw new Error("tool registration failed");
+    });
+
+    const res = await callEcho(app, "value", 0);
+
+    expect(res.status).toBe(500);
+    expect(res.body).toEqual({
+      jsonrpc: "2.0",
+      error: { code: -32603, message: "Internal server error" },
+      id: null,
+    });
   });
 });

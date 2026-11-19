@@ -1,6 +1,6 @@
 {
   "name": "@pubnub/mcp",
-  "version": "2.3.15",
+  "version": "2.4.0",
   "mcpName": "io.github.pubnub/mcp-server",
   "description": "PubNub Model Context Protocol MCP Server for Cursor and Claude",
   "main": "dist/index.js",
@@ -75,7 +75,7 @@
   },
   "dependencies": {
     "@amplitude/analytics-node": "^1.5.62",
-    "@modelcontextprotocol/sdk": "^1.23.0",
+    "@modelcontextprotocol/sdk": "^1.32.2",
     "dotenv": "^17.2.3",
     "express": "^5.3.0",
     "jose": "^6.1.3",
